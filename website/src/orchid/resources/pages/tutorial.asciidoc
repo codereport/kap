@@ -351,37 +351,40 @@ All arrays have a dimensionality, or "`rank`" as it is often referred to.
 Arrays in most languages are 1-dimensional, meaning that values in the array are addressed using a single number.
 When creating an array using the syntax described in the previous section, the result is a 1-dimensional array.
 
-==== Rank-0 arrays
+*Rank-0 arrays*
 
 A rank-0 array contains a single value:
 
 image::diagrams/zero-dim.svg[]
 
-==== Rank-1 arrays
+*Rank-1 arrays*
 
 Rank-1 arrays are often referred to as vectors, and are the default type of arrays in almost all programming languages.
 Elements are referenced using a single index:
 
 image::diagrams/one-dim.svg[]
 
-==== Rank-2 arrays
+*Rank-2 arrays*
 
 A 2-dimensional array is similar to a spreadsheet, and have elements that are indexed using two numbers:
 
 image::diagrams/two-dim.svg[]
 
-==== Rank-3 arrays
+*Rank-3 arrays*
 
 One can think of 3-dimensional arrays as a stack of 2-dimensional arrays, where the first index indicates the sheet, the second the row and the third is the column:
 
 image::diagrams/three-dim.svg[]
 
-==== Rank-4 arrays
+*Rank-4 arrays*
 
 A 4-dimensional array can be thought of as multiple stacks of sheets.
 One needs 4 numbers to find a given cell, with the first number being the stack and the remaining three numbers as per the rank-3 array.
 
 image::diagrams/four-dim.svg[]
+
+KAP supports arrays with a large number of dimensions (the exact number is 2^31^-1), but in practice it's rare to work with arrays with more than 4 dimensions.
+The principles that are illustrated in the previous paragraphs extend naturally to any number of dimensions.
 
 ==== Creating multidimensional arrays
 
@@ -681,19 +684,28 @@ This is equivalent to `,[0]`
 If the array is empty, return 0.
 |Return the first A values in B. If B has fewer values than A, return 0 for the remaining results.
 
+|`↓`
+|Drop the first value in the argument
+|Drop the first A values in B. If A is negative, drop the last -A values of B.
+
 |`?`
 |Return an array of the same dimensions as the argument, with each value being a random number between 0 and less than N.
 |Return A unique numbers between 0 and less than B
 
 
-//        registerNativeFunction("⌽", RotateHorizFunction())
-//        registerNativeFunction("⊖", RotateVertFunction())
-//        registerNativeFunction("↓", DropAPLFunction())
-//        registerNativeFunction("⍉", TransposeFunction())
-//        registerNativeFunction("⌊", MinAPLFunction())
-//        registerNativeFunction("⌈", MaxAPLFunction())
-//        registerNativeFunction("|", ModAPLFunction())
-//        registerNativeFunction("∘", NullFunction())
+|`⌽`
+|Reverse the order of the cells along the minor axis
+|Rotate the content of the cells in array B by A steps to the left along the minor axis
+
+|`⊖`
+|Reverse the order of the cells along the major axis
+|Rotate the content of the cells in array B by A steps to the left along the major axis
+
+|`⍉`
+|Transpose the array.
+Reverse the order of the dimensions.
+|Reorder the dimensions of B according to A
+
 //        registerNativeFunction("≡", CompareFunction())
 //        registerNativeFunction("≢", CompareNotEqualFunction())
 //        registerNativeFunction("∊", MemberFunction())
