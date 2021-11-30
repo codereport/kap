@@ -11,7 +11,6 @@ import org.fxmisc.richtext.model.*
 import org.fxmisc.wellbehaved.event.EventPattern
 import org.fxmisc.wellbehaved.event.InputMap
 import java.util.function.BiConsumer
-import java.util.function.BooleanSupplier
 import java.util.function.Function
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -59,7 +58,14 @@ class ROStyledArea(
         entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.F, KeyCombination.CONTROL_DOWN), { true }, { caretSelectionBind.moveToNextChar() }))
         entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.B, KeyCombination.CONTROL_DOWN), { true }, { caretSelectionBind.moveToPrevChar() }))
         entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.A, KeyCombination.CONTROL_DOWN), { atEditbox() }, { moveToBeginningOfInput() }))
-        entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.E, KeyCombination.CONTROL_DOWN), { atEditbox() }, { moveToEndOfInput() }))
+        entries.add(InputMap.consumeWhen(
+            EventPattern.keyPressed(KeyCode.E, KeyCombination.CONTROL_DOWN),
+            { atEditbox() },
+            { moveToEndOfInput() }))
+        entries.add(InputMap.consumeWhen(
+            EventPattern.keyPressed(KeyCode.K, KeyCombination.CONTROL_DOWN),
+            { atEditbox() },
+            { deleteToEnd() }))
     }
 
     fun displayPrompt() {
@@ -265,6 +271,13 @@ class ROStyledArea(
     private fun moveToEndOfInput() {
         val inputPosition = findInputStartEnd()
         caretSelectionBind.moveTo(inputPosition.inputEnd)
+    }
+
+    private fun deleteToEnd() {
+        val inputPosition = findInputStartEnd()
+        withUpdateEnabled {
+            deleteText(caretSelectionBind.position, inputPosition.inputEnd)
+        }
     }
 
     data class InputPositions(val promptStartPos: Int, val inputStart: Int, val inputEnd: Int)
