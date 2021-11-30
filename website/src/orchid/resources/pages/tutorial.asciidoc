@@ -355,33 +355,33 @@ When creating an array using the syntax described in the previous section, the r
 
 A rank-0 array contains a single value:
 
-image::../diagrams/zero-dim.svg[]
+image::diagrams/zero-dim.svg[]
 
 ==== Rank-1 arrays
 
 Rank-1 arrays are often referred to as vectors, and are the default type of arrays in almost all programming languages.
 Elements are referenced using a single index:
 
-image::../diagrams/one-dim.svg[]
+image::diagrams/one-dim.svg[]
 
 ==== Rank-2 arrays
 
 A 2-dimensional array is similar to a spreadsheet, and have elements that are indexed using two numbers:
 
-image::../diagrams/two-dim.svg[]
+image::diagrams/two-dim.svg[]
 
 ==== Rank-3 arrays
 
 One can think of 3-dimensional arrays as a stack of 2-dimensional arrays, where the first index indicates the sheet, the second the row and the third is the column:
 
-image::../diagrams/three-dim.svg[]
+image::diagrams/three-dim.svg[]
 
 ==== Rank-4 arrays
 
 A 4-dimensional array can be thought of as multiple stacks of sheets.
 One needs 4 numbers to find a given cell, with the first number being the stack and the remaining three numbers as per the rank-3 array.
 
-image::../diagrams/four-dim.svg[]
+image::diagrams/four-dim.svg[]
 
 ==== Creating multidimensional arrays
 
