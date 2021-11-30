@@ -354,7 +354,7 @@ When creating an array using the syntax described in the previous section, the r
 ==== Creating multidimensional arrays
 
 To create an array of different dimensionality, the function `⍴` is used.
-When called dyadically, this function takes an array of numbers to the left that indicates the sizes of the resulting array's dimensions, and changes the dimensions of the array specified on the right to confirm to the requested dimensions.
+When called dyadically, this function takes an array of numbers to the left that indicates the sizes of the resulting array's dimensions, and changes the dimensions of the array specified on the right to conform to the requested dimensions.
 
 That description was probably a bit confusing, so an example is in order:
 
@@ -534,6 +534,8 @@ while(i < 20) {
 
 === Functions
 
+In the below list, when discussing a dyadic function call, A and B refers to the left and right argument respectively.
+
 [cols=3,options=header,cols="1a,4a,4a"]
 |===
 |Function
@@ -558,7 +560,7 @@ while(i < 20) {
 
 |`\|`
 |Magnitude
-|Modulo (note that the arguments are reversed, for `a\|b`, the result is `b` modulo `a`)
+|Modulo (note that the arguments are reversed, for `a\|b`, the result is B modulo A)
 
 |`⌈`
 |Ceiling (return the smallest integer greater than or equal to the argument)
@@ -567,6 +569,117 @@ while(i < 20) {
 |`⌊`
 |Floor (return the largest integer smaller than or equal to the argument)
 |Minimum of the two arguments
+
+|`⍟`
+|Natural logarithm
+|Base-A logarithm of B
+
+|`⍳`
+|If the argument is a number, return a list from 0 to N-1. If the argument is an array, the result is sets of numbers where each value is the index in the corresponding axis.
+|Return the index of B in A
+
+|`⍴`
+|Return the shape of the argument
+|Reshape B to the dimensions specified in A
+
+|`⊢`
+|Return the argument itself
+|Return B
+
+|`⊣`
+|Return the argument itself
+|Return A
+
+|`=`
+|Not defined
+|Compare cells of A to corresponding cells in B
+
+|`≠`
+|Not defined
+|Not-equals comparison of cells in A with the corresponding cells in B
+
+|`<`
+|Not defined
+|Less than
+
+|`>`
+|Not defined
+|Greater than
+
+|`≤`
+|Not defined
+|Less than or equal
+
+|`≥`
+|Not defined
+|Greater than or equal
+
+|`⌷`
+|Not defined
+|Indexed lookup from B by index A
+
+|`⊂`
+|Enclose
+|Partition B from specification A
+
+|`⊃`
+|Disclose.
+If the argument is an enclosed value, return the contained value, otherwise return the argument.
+|Pick
+
+|`∧`
+|Not defined
+|For boolean arguments, return the logical and of A and B. For numeric values, return the GCD of A and B.
+
+|`∨`
+|Not defined
+|For boolean arguments, return the logical or of A and B. For numeric values, return the LCM of A and B.
+
+|`,`
+|Return the argument converted to a 1-dimensional array
+|Concatenate A and B along the major axis
+
+|`⍪`
+|Return the argument converted to a 2-dimensional array of one column
+|Concatenate A and B along the minor axis.
+This is equivalent to `,[0]`
+
+|`↑`
+|Return the first value in the array.
+If the array is empty, return 0.
+|Return the first A values in B. If B has fewer values than A, return 0 for the remaining results.
+
+|`?`
+|Return an array of the same dimensions as the argument, with each value being a random number between 0 and less than N.
+|Return A unique numbers between 0 and less than B
+
+
+//        registerNativeFunction("⌽", RotateHorizFunction())
+//        registerNativeFunction("⊖", RotateVertFunction())
+//        registerNativeFunction("↓", DropAPLFunction())
+//        registerNativeFunction("⍉", TransposeFunction())
+//        registerNativeFunction("⌊", MinAPLFunction())
+//        registerNativeFunction("⌈", MaxAPLFunction())
+//        registerNativeFunction("|", ModAPLFunction())
+//        registerNativeFunction("∘", NullFunction())
+//        registerNativeFunction("≡", CompareFunction())
+//        registerNativeFunction("≢", CompareNotEqualFunction())
+//        registerNativeFunction("∊", MemberFunction())
+//        registerNativeFunction("⍋", GradeUpFunction())
+//        registerNativeFunction("⍒", GradeDownFunction())
+//        registerNativeFunction("⍷", FindFunction())
+//        registerNativeFunction("/", SelectElementsLastAxisFunction())
+//        registerNativeFunction("⌿", SelectElementsFirstAxisFunction())
+//        registerNativeFunction("∼", NotAPLFunction())
+//        registerNativeFunction("⍕", FormatAPLFunction())
+//        registerNativeFunction("⍸", WhereAPLFunction())
+//        registerNativeFunction("∪", UniqueFunction())
+//        registerNativeFunction("⍲", NandAPLFunction())
+//        registerNativeFunction("⍱", NorAPLFunction())
+//        registerNativeFunction("∩", IntersectionAPLFunction())
+//        registerNativeFunction("!", BinomialAPLFunction())
+//        registerNativeFunction("⍎", ParseNumberFunction())
+
 |===
 
 === Operators
