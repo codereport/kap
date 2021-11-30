@@ -59,7 +59,7 @@ The best way to get started is to start using KAP as a calculator by running the
 When users of other programming languages may take to an IDE and start writing tens or even hundreds of lines of code to perform certain calculations, KAP can do the same in sometimes just a single line of code.
 It is therefore often not necessary to actually open an editor to write a program, and the user can instead simply perform their calculation directly in the tool itself.
 
-= Using the KAP software disctribution
+= Using the KAP software distribution
 
 == Running KAP
 
@@ -511,9 +511,46 @@ After this code has been run, the variable `bar` will contain the array `3 5`.
 From this it can be seen that `⍴ X ⍴ Y` will always return `X`.
 This is because ths expression is parsed as `⍴ (X ⍴ Y)`, which is equivalent to first reshaping Y with dimensions X, and then returning the dimensions of this array.
 
-=== TODO
+== Datatypes
 
-*Array operations?*
+KAP suports the following basic datatypes:
+
+- Number (see next section)
+- Character
+- Symbol
+- Hashtable
+- Array
+
+=== Numeric types
+
+KAP supports the following numeric types:
+
+- 64-bit integers.
+These are written as plain decimal numbers: `123` or `¯12`
+- 64-bit floating point numbers.
+A number if floating point if it contains a decimal point: `123.789`
+- Complex numbers of the form `12J98`.
+The first value represents the real part and the second is the imaginary part.
+Both the real and imaginary parts are always 64-bit floating point values even if they do not contain a decimal point.
+
+=== Characters
+
+A character is written as a `@` followed by the character.
+For example, `@b`.
+A 1-dimensional array of characters is a string and can be written using double quotes.
+Thus, the array `@f @o @o` is the same as `"foo"`.
+
+=== Symbols
+
+Symbols are objects that represents names.
+They are mostly used in advanced concept such as when defining new syntax.
+The most common usage of symbols is when using keywords, which are symbols that belong to the special keyword namespace.
+These are entered by prefixing the symbol name by a colon: `:foo`.
+
+=== Hashtables
+
+Hashtables are a special datatype that maps an object such as a string to another object.
+These are described in a later section.
 
 == Flow control
 

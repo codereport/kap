@@ -1,5 +1,5 @@
 = GUI
-:experimental
+:experimental:
 
 == Launching the GUI
 
