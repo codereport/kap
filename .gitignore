@@ -36,3 +36,5 @@
 /website/build
 /text-client/build
 /client-java/build
+
+/website/src/orchid/resources/pages/tutorial.html

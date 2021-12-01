@@ -533,12 +533,29 @@ A number if floating point if it contains a decimal point: `123.789`
 The first value represents the real part and the second is the imaginary part.
 Both the real and imaginary parts are always 64-bit floating point values even if they do not contain a decimal point.
 
+Negative numbers are written using the `¯` symbol rather than `-`.
+In other words, the value -22 is written as `¯22`.
+The reason for this is that `-` is a regular function, so an expression such as `3 -2` will be interpreted as 1. Writing it as `3 ¯2` makes this consistent.
+
 === Characters
 
 A character is written as a `@` followed by the character.
 For example, `@b`.
 A 1-dimensional array of characters is a string and can be written using double quotes.
 Thus, the array `@f @o @o` is the same as `"foo"`.
+
+The interpreter will print 1-dimensional arrays as strings if every element in the array is a character.
+If any element is not a character, the entire array will be printed in the regular fashion:
+
+[source,kap]
+----
+    @x @y @z
+"xyz"
+    @x @y @z 4
+┏━━━━━━━━━━┓
+┃@x @y @z 4┃
+┗━━━━━━━━━━┛
+----
 
 === Symbols
 
@@ -707,6 +724,18 @@ If the argument is an enclosed value, return the contained value, otherwise retu
 |Not defined
 |For boolean arguments, return the logical or of A and B. For numeric values, return the LCM of A and B.
 
+|`⍲`
+|Not defined
+|Logical Nand
+
+|`⍱`
+|Not defined
+|Logical Nor
+
+|`~`
+|Logical not
+|Remove elements in B from A
+
 |`,`
 |Return the argument converted to a 1-dimensional array
 |Concatenate A and B along the major axis
@@ -743,23 +772,57 @@ If the array is empty, return 0.
 Reverse the order of the dimensions.
 |Reorder the dimensions of B according to A
 
-//        registerNativeFunction("≡", CompareFunction())
-//        registerNativeFunction("≢", CompareNotEqualFunction())
-//        registerNativeFunction("∊", MemberFunction())
-//        registerNativeFunction("⍋", GradeUpFunction())
-//        registerNativeFunction("⍒", GradeDownFunction())
-//        registerNativeFunction("⍷", FindFunction())
-//        registerNativeFunction("/", SelectElementsLastAxisFunction())
-//        registerNativeFunction("⌿", SelectElementsFirstAxisFunction())
-//        registerNativeFunction("∼", NotAPLFunction())
-//        registerNativeFunction("⍕", FormatAPLFunction())
-//        registerNativeFunction("⍸", WhereAPLFunction())
-//        registerNativeFunction("∪", UniqueFunction())
-//        registerNativeFunction("⍲", NandAPLFunction())
-//        registerNativeFunction("⍱", NorAPLFunction())
-//        registerNativeFunction("∩", IntersectionAPLFunction())
-//        registerNativeFunction("!", BinomialAPLFunction())
-//        registerNativeFunction("⍎", ParseNumberFunction())
+|`≡`
+|Not defined
+|True if A is equal to B
+
+|`≢`
+|Size of the array along the major axis
+|True is A is not equal to B
+
+|`∊`
+|Not defined
+|Find elements of A in B
+
+|`⍷`
+|Not defined
+|Return an array o booleans of the same dimension as B, where a cell is set to true if A is can be found at that point.
+
+|`⍋`
+|Return the indexes into the argument ordered by increasing value
+|Not defined
+
+|`⍒`
+|Return the indexes into the argument ordered by decreasing value
+|Not defined
+
+|`/`
+|Not defined
+|For each element in A, select that number of instances of the corresponding element in B. Selection along the major axis.
+
+|`⌿`
+|Not defined
+|For each element in A, select that number of instances of the corresponding element in B. Selection along the minor axis.
+
+|`⍕`
+|Return the argument as a string
+|Not defined
+
+|`⍎`
+|Parse the string as a number
+|Not defined
+
+|`∪`
+|Return all unique elements in the argument
+|Return all unique elements in both arguments
+
+|`∩`
+|Not defined
+|Return the intersection of elements in arrays A and B
+
+|`!`
+|Return the factorial of the argument
+|Return the binomial of A to B
 
 |===
 
@@ -775,6 +838,21 @@ Reverse the order of the dimensions.
 
 |`⌿`
 |Reduce along first axis (this is equivalent to `FN/[0]`)
+
+//        registerNativeOperator("¨", ForEachOp())
+//        registerNativeOperator("/", ReduceOpLastAxis())
+//        registerNativeOperator("⌿", ReduceOpFirstAxis())
+//        registerNativeOperator("⌺", OuterJoinOp())
+//        registerNativeOperator(".", OuterInnerJoinOp())
+//        registerNativeOperator("⍨", CommuteOp())
+//        registerNativeOperator("⍣", PowerAPLOperator())
+//        registerNativeOperator("\\", ScanLastAxisOp())
+//        registerNativeOperator("⍀", ScanFirstAxisOp())
+//        registerNativeOperator("⍤", RankOperator())
+//        registerNativeOperator("∵", BitwiseOp())
+//        registerNativeOperator("∘", ComposeOp())
+//        registerNativeOperator("parallel", ParallelOp())
+
 |===
 
 == Flow control
