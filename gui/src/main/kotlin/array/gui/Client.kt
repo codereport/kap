@@ -3,6 +3,9 @@ package array.gui
 import array.*
 import array.gui.arrayedit.ArrayEditor
 import array.gui.graphics.initGraphicCommands
+import array.gui.settings.Settings
+import array.gui.settings.loadSettings
+import array.gui.settings.saveSettings
 import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.scene.Scene
@@ -25,11 +28,14 @@ class Client(val application: ClientApplication, val stage: Stage) {
     val functionListWindow: FunctionListWindow
     val keyboardHelpWindow: KeyboardHelpWindow
     val aboutWindow: AboutWindow
-    val settingsWindow: Settings
+    val settingsWindow: SettingsWindow
     val calculationQueue: CalculationQueue
     val sourceEditors = ArrayList<SourceEditor>()
+    var settings: Settings
 
     init {
+        settings = loadSettings()
+
         engine = Engine()
         engine.addLibrarySearchPath("../array/standard-lib")
         initCustomFunctions()
@@ -53,7 +59,7 @@ class Client(val application: ClientApplication, val stage: Stage) {
         functionListWindow = FunctionListWindow.create(renderContext, engine)
         keyboardHelpWindow = KeyboardHelpWindow(renderContext)
         aboutWindow = AboutWindow()
-        settingsWindow = Settings()
+        settingsWindow = SettingsWindow()
 
         calculationQueue.start()
         stage.onCloseRequest = EventHandler { calculationQueue.stop() }
@@ -72,7 +78,7 @@ class Client(val application: ClientApplication, val stage: Stage) {
                     onAction = EventHandler { selectAndEditFile() }
                 })
                 items.add(MenuItem("Settings").apply {
-                    onAction = EventHandler { openSettings() }
+                    onAction = EventHandler { openSettingsWindow() }
                 })
                 items.add(MenuItem("Close").apply {
                     onAction = EventHandler { Platform.exit() }
@@ -111,12 +117,20 @@ class Client(val application: ClientApplication, val stage: Stage) {
         val fileSelector = FileChooser().apply {
             title = "Open KAP file"
             selectedExtensionFilter = FileChooser.ExtensionFilter("KAP files", ".kap")
+            val dir = settings.recentPath
+            if (dir != null) {
+                initialDirectory = File(dir)
+            }
         }
-        return if (forSave) {
+        val file = if (forSave) {
             fileSelector.showSaveDialog(stage)
         } else {
             fileSelector.showOpenDialog(stage)
         }
+        if (file != null) {
+            settings = settings.copy(recentPath = file.parent)
+        }
+        return file
     }
 
     private fun selectAndEditFile() {
@@ -127,7 +141,7 @@ class Client(val application: ClientApplication, val stage: Stage) {
         }
     }
 
-    private fun openSettings() {
+    private fun openSettingsWindow() {
         settingsWindow.show()
     }
 
@@ -188,6 +202,7 @@ class Client(val application: ClientApplication, val stage: Stage) {
 
     fun stopRequest() {
         calculationQueue.stop()
+        saveSettings(settings)
     }
 
     private inner class ClientRenderContextImpl : ClientRenderContext {

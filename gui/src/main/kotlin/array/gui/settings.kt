@@ -5,12 +5,12 @@ import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.stage.Stage
 
-class Settings {
+class SettingsWindow {
     private val settingsController: SettingsController
     private val stage = Stage()
 
     init {
-        val loader = FXMLLoader(Settings::class.java.getResource("settings.fxml"))
+        val loader = FXMLLoader(SettingsWindow::class.java.getResource("settings.fxml"))
         val root = loader.load<Parent>()
         settingsController = loader.getController()
 
