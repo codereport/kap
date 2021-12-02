@@ -4,7 +4,6 @@ import array.gui.Client
 import array.gui.ExtendedCharsKeyboardInput
 import javafx.event.Event
 import javafx.scene.Node
-import javafx.scene.input.InputEvent
 import javafx.scene.input.KeyCombination
 import javafx.scene.input.KeyEvent
 import javafx.scene.text.TextFlow

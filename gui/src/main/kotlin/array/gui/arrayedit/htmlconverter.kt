@@ -1,12 +1,10 @@
 package array.gui.arrayedit
 
 import array.*
-import array.csv.stringToAplValue
 import org.jsoup.Jsoup
 import org.jsoup.nodes.Document
 import java.text.NumberFormat
 import java.util.*
-import kotlin.collections.ArrayList
 
 fun main() {
     val html = """

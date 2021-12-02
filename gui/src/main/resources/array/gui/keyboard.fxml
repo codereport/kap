@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.Integer?>
 <?import array.gui.*?>
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.layout.*?>
-<?import java.lang.Integer?>
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="array.gui.KeyboardHelp"

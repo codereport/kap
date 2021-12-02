@@ -1,6 +1,9 @@
 package array
 
-import kotlin.test.*
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class ComplexExpressionsTest : APLTest() {
     @Test

@@ -7,7 +7,6 @@ import array.toStringValue
 import javafx.geometry.Pos
 import javafx.scene.control.TableCell
 import javafx.scene.paint.Color
-import javafx.scene.text.Text
 
 class ArrayEditorTableCell : TableCell<ArrayEditorRow, ArrayEditorCell>() {
     override fun updateItem(item: ArrayEditorCell?, empty: Boolean) {

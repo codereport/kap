@@ -3,12 +3,6 @@ package array.gui.display
 import array.APLMap
 import array.APLValue
 import array.FormatStyle
-import com.sun.javafx.collections.ImmutableObservableList
-import javafx.beans.property.ListProperty
-import javafx.beans.property.ListPropertyBase
-import javafx.beans.property.SimpleListProperty
-import javafx.collections.ObservableList
-import javafx.scene.Node
 import javafx.scene.control.Label
 import javafx.scene.control.TreeCell
 import javafx.scene.control.TreeItem
