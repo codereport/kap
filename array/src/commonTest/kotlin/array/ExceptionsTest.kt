@@ -57,16 +57,16 @@ class ExceptionsTest : APLTest() {
         try {
             parseAPLExpression(
                 """
-            |∇ foo (x) {
-            |  x[1;2]
-            |}
-            |
-            |∇ bar (y) {
-            |  foo y
-            |}
-            |
-            |bar 1 2 3 4
-            """.trimMargin())
+                |∇ foo (x) {
+                |  x[1;2]
+                |}
+                |
+                |∇ bar (y) {
+                |  foo y
+                |}
+                |
+                |bar 1 2 3 4
+                """.trimMargin())
             assertTrue(false, "Exception was expected")
         } catch (ex: APLEvalException) {
             val callStack = ex.callStack

@@ -10,15 +10,14 @@ import javafx.event.EventHandler
 import javafx.geometry.Insets
 import javafx.scene.Node
 import javafx.scene.Scene
-import javafx.scene.control.Button
-import javafx.scene.control.TextField
-import javafx.scene.control.ToolBar
+import javafx.scene.control.*
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCombination
 import javafx.scene.layout.*
 import javafx.scene.paint.Color
 import javafx.scene.text.TextFlow
 import javafx.stage.Stage
+import javafx.stage.WindowEvent
 import org.fxmisc.flowless.VirtualizedScrollPane
 import org.fxmisc.richtext.StyledTextArea
 import org.fxmisc.richtext.TextExt
@@ -42,7 +41,7 @@ class SourceEditor(val client: Client) {
         val vbox = VBox()
 
         val toolbar = ToolBar(
-            makeToolbarButton("Save", this::saveClicked),
+            makeToolbarButton("Save", this::processSave),
             makeToolbarButton("Run", this::runClicked))
         vbox.children.add(toolbar)
 
@@ -56,7 +55,7 @@ class SourceEditor(val client: Client) {
         stage.scene = Scene(vbox, 1200.0, 800.0)
 
         client.sourceEditors.add(this)
-        stage.onCloseRequest = EventHandler { client.sourceEditors.remove(this) }
+        stage.onCloseRequest = EventHandler { event -> handleCloseRequest(event) }
     }
 
     private var highlightedRow: Int? = null
@@ -103,19 +102,53 @@ class SourceEditor(val client: Client) {
         }
     }
 
+    private fun handleCloseRequest(event: WindowEvent) {
+        var close = false
+        if (styledArea.modifided) {
+            val dialog = Dialog<ButtonType>().apply {
+                title = "File is modified"
+                contentText = "This file has unsaved changes. Save changes?"
+                dialogPane.buttonTypes.apply {
+                    add(ButtonType("Save", ButtonBar.ButtonData.YES))
+                    add(ButtonType("Don't save", ButtonBar.ButtonData.NO))
+                    add(ButtonType("Cancel", ButtonBar.ButtonData.CANCEL_CLOSE))
+                }
+            }
+            val result = dialog.showAndWait()
+            if (result.isPresent) {
+                val type = result.get()
+                if (type.buttonData == ButtonBar.ButtonData.YES) {
+                    if(processSave()) {
+                        close = true
+                    }
+                }
+                else if (type.buttonData == ButtonBar.ButtonData.NO) {
+                    close = true
+                }
+            }
+        }
+        if (close) {
+            client.sourceEditors.remove(this)
+        } else {
+            event.consume()
+        }
+    }
+
     fun runClicked() {
         val source = EditorSourceLocation(this, styledArea.document.text)
         client.evalSource(source, true)
     }
 
-    private fun saveClicked() {
+    private fun processSave(): Boolean {
         if (loaded == null) {
-            val selectedFile = client.selectFile(true) ?: return
+            val selectedFile = client.selectFile(true) ?: return false
             loaded = selectedFile
         }
         FileWriter(loaded, StandardCharsets.UTF_8).use { out ->
             out.write(styledArea.document.text)
         }
+        styledArea.modifided = false
+        return true
     }
 
     fun setFile(file: File) {
@@ -180,6 +213,12 @@ class SourceEditorStyledArea(
     styledTextOps,
     nodeFactory
 ) {
+    var modifided = false
+
+    init {
+        textProperty().addListener { _, _, _ -> modifided = true }
+    }
+
     override fun addInputMappings(entries: MutableList<InputMap<out Event>>) {
         entries.add(InputMap.consume(EventPattern.keyPressed(KeyCode.ENTER, KeyCombination.CONTROL_DOWN), { sourceEditor.runClicked() }))
     }

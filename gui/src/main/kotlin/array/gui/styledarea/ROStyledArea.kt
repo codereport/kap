@@ -216,6 +216,7 @@ class ROStyledArea(
                 .build()
             insert(inputPos.promptStartPos, newDoc)
         }
+        showBottomParagraphAtTop()
     }
 
     fun appendOutputEnd(text: String) {
