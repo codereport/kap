@@ -119,7 +119,10 @@ class Client(val application: ClientApplication, val stage: Stage) {
             selectedExtensionFilter = FileChooser.ExtensionFilter("KAP files", ".kap")
             val dir = settings.recentPath
             if (dir != null) {
-                initialDirectory = File(dir)
+                val file = File(dir)
+                if (file.isDirectory) {
+                    initialDirectory = file
+                }
             }
         }
         val file = if (forSave) {
