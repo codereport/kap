@@ -1,0 +1,35 @@
+∇ solvePart1 {
+    ⍝ Construct a 2-column array with the first column being the command
+    ⍝ and the second being the distance.
+    list ← ⊃ {(d n) ← ⍵ ⊂⍨ ⍵≠↑" " ◊ d (⍎n)}¨ io:read "/home/elias/prog/advent-of-code2021/part02.txt"
+
+    ⍝ Convert each direction instruction into a vector (up, down or right)
+    directions ← { ⊃ ((0 1) (¯1 0) (1 0))[(⊂¨ "forward" "up" "down") ⍳ ⊂⍵] }¨ list[;0]
+
+    ⍝ Multiply each direction with the distance and sum the results
+    ⍝ and finally multiply the individual values
+    ×/ ⊃ directions +.× list[;1]
+}
+
+∇ solvePart2 {
+    list ← ⊃ {(d n) ← ⍵ ⊂⍨ ⍵≠↑" " ◊ d (⍎n)}¨ io:read "/home/elias/prog/advent-of-code2021/part02.txt"
+
+    ⍝ We now need to create two lists: One with the horizontal movement commands,
+    ⍝ and the other with the direction adjustments.
+    
+    ⍝ Select the rows that have "forward" in the first column:
+    fwdindex ← list[;0] ≡¨ ⊂"forward"
+    fwd ← fwdindex × list[;1]
+
+    ⍝ Adjust the sign for rows marked as up and clear the movement rows
+    udchanges ← (~fwdindex) × list[;1] × ¯1+2×list[;0] ≡¨ ⊂"down"
+
+    ⍝ The total depth is the sum of the changes in depth
+    depth ← +/ fwd × +\ udchanges
+    
+    ⍝ The total distance is the sum of all horizontal movement
+    dist ← +/ fwd
+
+    ⍝ The final result is the product of these two values
+    depth × dist
+}

@@ -1,0 +1,9 @@
+∇ solvePart1 {
+  content ← ⍎¨ io:read "/home/elias/prog/advent-of-code2021/part01.txt"
+  +/2</content
+}
+
+∇ solvePart2 {
+  content ← ⍎¨ io:read "/home/elias/prog/advent-of-code2021/part01.txt"
+  +/2</3+/content
+}
