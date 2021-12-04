@@ -104,7 +104,9 @@ class SourceEditor(val client: Client) {
 
     private fun handleCloseRequest(event: WindowEvent) {
         var close = false
-        if (styledArea.modifided) {
+        if (!styledArea.modifided) {
+            close = true
+        } else {
             val dialog = Dialog<ButtonType>().apply {
                 title = "File is modified"
                 contentText = "This file has unsaved changes. Save changes?"
@@ -118,11 +120,10 @@ class SourceEditor(val client: Client) {
             if (result.isPresent) {
                 val type = result.get()
                 if (type.buttonData == ButtonBar.ButtonData.YES) {
-                    if(processSave()) {
+                    if (processSave()) {
                         close = true
                     }
-                }
-                else if (type.buttonData == ButtonBar.ButtonData.NO) {
+                } else if (type.buttonData == ButtonBar.ButtonData.NO) {
                     close = true
                 }
             }
