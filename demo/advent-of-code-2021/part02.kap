@@ -1,7 +1,7 @@
 ∇ solvePart1 {
     ⍝ Construct a 2-column array with the first column being the command
     ⍝ and the second being the distance.
-    list ← ⊃ {(d n) ← ⍵ ⊂⍨ ⍵≠↑" " ◊ d (⍎n)}¨ io:read "/home/elias/prog/advent-of-code2021/part02.txt"
+    list ← ⊃ {(d n) ← ⍵ ⊂⍨ ⍵≠↑" " ◊ d (⍎n)}¨ io:read "part02.txt"
 
     ⍝ Convert each direction instruction into a vector (up, down or right)
     directions ← { ⊃ ((0 1) (¯1 0) (1 0))[(⊂¨ "forward" "up" "down") ⍳ ⊂⍵] }¨ list[;0]
@@ -12,7 +12,7 @@
 }
 
 ∇ solvePart2 {
-    list ← ⊃ {(d n) ← ⍵ ⊂⍨ ⍵≠↑" " ◊ d (⍎n)}¨ io:read "/home/elias/prog/advent-of-code2021/part02.txt"
+    list ← ⊃ {(d n) ← ⍵ ⊂⍨ ⍵≠↑" " ◊ d (⍎n)}¨ io:read "part02.txt"
 
     ⍝ We now need to create two lists: One with the horizontal movement commands,
     ⍝ and the other with the direction adjustments.
