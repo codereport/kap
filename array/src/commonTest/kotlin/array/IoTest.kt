@@ -1,9 +1,6 @@
 package array
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNull
+import kotlin.test.*
 
 class IoTest {
     @Test
@@ -78,6 +75,65 @@ class IoTest {
         assertFailsWith<MPFileException> {
             openCharFile("test-data/this-file-should-not-be-found")
 
+        }
+    }
+
+    @Test
+    fun stringBuilderOutput() {
+        val out = StringBuilderOutput()
+        out.writeString("abc")
+        out.writeString("efg")
+        assertEquals("abcefg", out.buf.toString())
+    }
+
+    @Test
+    fun resolveDirectoryPathAbsolute() {
+        assertEquals("/foo/bar", resolveDirectoryPath("/foo/bar", "/xyz"))
+    }
+
+    @Test
+    fun resolveDirectoryPathRelative() {
+        assertEquals("/xyz/foo/bar", resolveDirectoryPath("foo/bar", "/xyz"))
+    }
+
+    @Test
+    fun resolveDirectoryPathBlankNameNotAllowed() {
+        assertFails {
+            resolveDirectoryPath("", "/foo/bar")
+        }
+    }
+
+    @Test
+    fun resolveDirectoryPathWithNull() {
+        assertEquals("foo/bar", resolveDirectoryPath("foo/bar", null))
+        assertEquals("/foo/bar", resolveDirectoryPath("/foo/bar", null))
+    }
+
+    @Test
+    fun stringCharacterProvider() {
+        val prov = StringCharacterProvider("fooabc")
+        assertEquals('f'.code, prov.nextCodepoint())
+        assertEquals('o'.code, prov.nextCodepoint())
+        assertEquals('o'.code, prov.nextCodepoint())
+        assertEquals('a'.code, prov.nextCodepoint())
+        assertEquals('b'.code, prov.nextCodepoint())
+        assertEquals('c'.code, prov.nextCodepoint())
+        assertNull(prov.nextCodepoint())
+    }
+
+    @Test
+    fun astralPlaneStringCharProv() {
+        openCharFile("test-data/char-tests.txt").use { input ->
+            val s = input.nextLine()
+            assertNotNull(s)
+            val prov = StringCharacterProvider(s)
+            assertEquals(0x61, prov.nextCodepoint())
+            assertEquals(0x62, prov.nextCodepoint())
+            assertEquals(0x2283, prov.nextCodepoint())
+            assertEquals(0x22C6, prov.nextCodepoint())
+            assertEquals(0x1D49F, prov.nextCodepoint())
+            assertEquals(0xE01, prov.nextCodepoint())
+            assertNull(prov.nextCodepoint())
         }
     }
 

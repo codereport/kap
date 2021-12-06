@@ -4,6 +4,7 @@ import java.io.*
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.io.path.pathString
 import kotlin.math.min
 
 actual class StringCharacterProvider actual constructor(private val s: String) : CharacterProvider {
@@ -195,6 +196,10 @@ actual fun fileType(path: String): FileNameType? {
     }
 }
 
+actual fun currentDirectory(): String {
+    return System.getProperty("user.dir")
+}
+
 actual fun readDirectoryContent(dirName: String): List<PathEntry> {
     val path = Paths.get(dirName)
     unless(Files.isDirectory(path)) {
@@ -214,4 +219,10 @@ actual fun readDirectoryContent(dirName: String): List<PathEntry> {
                 fileNameType))
     }
     return result
+}
+
+actual fun resolveDirectoryPathInt(fileName: String, workingDirectory: String): String {
+    val file = Path.of(fileName)
+    val parent = Path.of(workingDirectory)
+    return parent.resolve(file).pathString
 }

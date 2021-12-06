@@ -128,6 +128,23 @@ actual fun fileType(path: String): FileNameType? {
     }
 }
 
+actual fun currentDirectory(): String {
+    memScoped {
+        var size = 100
+        var result: String? = null
+        while (result == null) {
+            val buf = allocArray<ByteVar>(size)
+            val res = getcwd(buf, size.toULong())
+            if (res != null) {
+                result = res.toKString()
+            } else {
+                size *= 2
+            }
+        }
+        return result
+    }
+}
+
 @OptIn(ExperimentalUnsignedTypes::class)
 actual fun readDirectoryContent(dirName: String): List<PathEntry> {
     println("Loading directory: ${dirName}")
@@ -160,5 +177,18 @@ actual fun readDirectoryContent(dirName: String): List<PathEntry> {
         }
     } finally {
         closedir(dir)
+    }
+}
+
+actual fun resolveDirectoryPathInt(fileName: String, workingDirectory: String): String {
+    return if (fileName.startsWith("/")) {
+        fileName
+    } else {
+        var i = workingDirectory.length
+        while (i > 0 && workingDirectory[i - 1] == '/') {
+            i--
+        }
+        val fixedDirName = workingDirectory.substring(0, i)
+        "${fixedDirName}/${fileName}"
     }
 }

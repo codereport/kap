@@ -86,6 +86,15 @@ class IOAPLTest : APLTest() {
         assertEquals("01", out)
     }
 
+    @Test
+    fun changedWorkingDirectory() {
+        val engine = Engine()
+        engine.workingDirectory = currentDirectory() + "/test-data/subdir-test"
+        val result = engine.parseAndEval(StringSourceLocation("io:read \"foo.txt\""), true).collapse()
+        assertDimension(dimensionsOfSize(1), result)
+        assertString("test message", result.valueAt(0))
+    }
+
     fun parseWithClosableValue(expr: String): Pair<APLValue, String> {
         val engine = Engine()
         val out = StringBuilderOutput()

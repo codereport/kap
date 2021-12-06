@@ -8,30 +8,33 @@ import array.gui.settings.loadSettings
 import array.gui.settings.saveSettings
 import javafx.application.Platform
 import javafx.event.EventHandler
+import javafx.geometry.Insets
+import javafx.geometry.Pos
+import javafx.scene.Node
 import javafx.scene.Scene
-import javafx.scene.control.Menu
-import javafx.scene.control.MenuBar
-import javafx.scene.control.MenuItem
+import javafx.scene.control.*
 import javafx.scene.layout.BorderPane
+import javafx.scene.layout.HBox
+import javafx.scene.layout.VBox
 import javafx.scene.text.Font
+import javafx.stage.DirectoryChooser
 import javafx.stage.FileChooser
 import javafx.stage.Stage
 import java.io.File
 
 class Client(val application: ClientApplication, val stage: Stage) {
     val renderContext: ClientRenderContext = ClientRenderContextImpl()
-
     val resultList: ResultList3
-
     val inputFont: Font
     val engine: Engine
-    val functionListWindow: FunctionListWindow
-    val keyboardHelpWindow: KeyboardHelpWindow
-    val aboutWindow: AboutWindow
-    val settingsWindow: SettingsWindow
     val calculationQueue: CalculationQueue
     val sourceEditors = ArrayList<SourceEditor>()
-    var settings: Settings
+    private val functionListWindow: FunctionListWindow
+    private val keyboardHelpWindow: KeyboardHelpWindow
+    private val aboutWindow: AboutWindow
+    private val settingsWindow: SettingsWindow
+    private var settings: Settings
+    private val directoryTextField = TextField()
 
     init {
         settings = loadSettings()
@@ -52,7 +55,7 @@ class Client(val application: ClientApplication, val stage: Stage) {
         stage.title = "Test ui"
 
         val border = BorderPane().apply {
-            top = makeMenuBar()
+            top = makeTopBar()
             center = resultList.getNode()
         }
 
@@ -61,11 +64,26 @@ class Client(val application: ClientApplication, val stage: Stage) {
         aboutWindow = AboutWindow()
         settingsWindow = SettingsWindow()
 
+        settings.directory.let { dir ->
+            if (dir == null) {
+                updateWorkingDirectory(currentDirectory())
+            } else {
+                updateWorkingDirectory(dir)
+            }
+        }
+
         calculationQueue.start()
         stage.onCloseRequest = EventHandler { calculationQueue.stop() }
 
         stage.scene = Scene(border, 1000.0, 800.0)
         stage.show()
+    }
+
+    private fun makeTopBar(): VBox {
+        val vbox = VBox()
+        vbox.children.add(makeMenuBar())
+        vbox.children.add(makeToolBar())
+        return vbox
     }
 
     private fun makeMenuBar(): MenuBar {
@@ -106,6 +124,59 @@ class Client(val application: ClientApplication, val stage: Stage) {
             }
             menus.add(helpMenu)
         }
+    }
+
+    private fun makeToolBar(): ToolBar {
+        return ToolBar(makeWorkingDirectoryButton())
+    }
+
+    private fun makeWorkingDirectoryButton(): Node {
+        val hbox = HBox()
+        hbox.alignment = Pos.BASELINE_LEFT
+
+        val label = Label("Working directory:")
+        label.onMouseClicked = EventHandler { selectWorkingDirectory() }
+        hbox.children.add(label)
+        HBox.setMargin(label, Insets(0.0, 5.0, 0.0, 5.0))
+
+        directoryTextField.prefColumnCount = 20
+        hbox.children.add(directoryTextField)
+
+        return hbox
+    }
+
+    private fun selectWorkingDirectory() {
+        val fileSelector = DirectoryChooser().apply {
+            title = "Select working directory"
+            val dirString = settings.directory
+            if (dirString != null) {
+                val dir = File(dirString)
+                if (dir.isDirectory) {
+                    initialDirectory = dir
+                }
+            }
+        }
+        val res = fileSelector.showDialog(stage)
+        if (res != null) {
+            if (!res.isDirectory) {
+                val dialog = Dialog<ButtonType>().apply {
+                    title = "Not a valid directory"
+                    contentText = "The selected directory is not a directory, or is not readable."
+                    dialogPane.buttonTypes.apply {
+                        add(ButtonType("Close", ButtonBar.ButtonData.CANCEL_CLOSE))
+                    }
+                }
+                dialog.showAndWait()
+            } else {
+                updateWorkingDirectory(res.path)
+            }
+        }
+    }
+
+    private fun updateWorkingDirectory(dir: String) {
+        engine.workingDirectory = dir
+        settings = settings.copy(directory = dir)
+        directoryTextField.text = dir
     }
 
     private fun openNewFile() {

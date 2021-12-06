@@ -10,7 +10,7 @@ import java.nio.file.Path
 import kotlin.io.path.*
 
 @Serializable
-data class Settings(val recentPath: String? = null)
+data class Settings(val recentPath: String? = null, val directory: String? = null)
 
 private fun findSettingsDirectory(): Path? {
     val homeString = System.getProperty("user.home") ?: return null

@@ -135,6 +135,10 @@ actual fun fileType(path: String): FileNameType? {
     }
 }
 
+actual fun currentDirectory(): String {
+    return "/"
+}
+
 actual fun readDirectoryContent(dirName: String): List<PathEntry> {
     val dir = registeredFilesRoot.find(dirName) ?: throw MPFileException("Path not found: ${dirName}")
     if (dir !is RegisteredEntry.Directory) throw MPFileException("Path does not indicate a directory name: ${dirName}")
@@ -147,4 +151,17 @@ actual fun readDirectoryContent(dirName: String): List<PathEntry> {
         result.add(e)
     }
     return result
+}
+
+actual fun resolveDirectoryPathInt(fileName: String, workingDirectory: String): String {
+    return if (fileName.startsWith("/")) {
+        fileName
+    } else {
+        var i = workingDirectory.length
+        while (i > 0 && workingDirectory[i - 1] == '/') {
+            i--
+        }
+        val fixedDirName = workingDirectory.substring(0, i)
+        "${fixedDirName}/${fileName}"
+    }
 }

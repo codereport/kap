@@ -536,6 +536,18 @@ class Engine(numComputeEngines: Int? = null) {
         @Suppress("UNCHECKED_CAST")
         (handler as ClosableHandler<T>).close(value)
     }
+
+    fun resolvePathName(file: String) = resolveDirectoryPath(file, workingDirectory)
+
+    var workingDirectory: String? = currentDirectory()
+        get() = field
+        set(s) {
+            if (s != null && fileType(s) != FileNameType.DIRECTORY) {
+                field = "/"
+            } else {
+                field = s
+            }
+        }
 }
 
 class CloseAPLFunction : APLFunctionDescriptor {

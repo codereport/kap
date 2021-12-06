@@ -9,7 +9,7 @@ class ReadFunction : APLFunctionDescriptor {
             val file = a.toStringValue(pos)
             val result = ArrayList<APLValue>()
             try {
-                openCharFile(file).use { provider ->
+                openCharFile(context.engine.resolvePathName(file)).use { provider ->
                     provider.lines().forEach { s ->
                         result.add(APLString(s))
                     }

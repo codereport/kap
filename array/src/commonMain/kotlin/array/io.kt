@@ -189,7 +189,6 @@ class NullCharacterOutput : CharacterOutput {
 
 class StringBuilderOutput : CharacterOutput {
     val buf = StringBuilder()
-    var curr = ""
 
     override fun writeString(s: String) {
         buf.append(s)
@@ -204,6 +203,8 @@ class NullCharacterProvider : CharacterProvider {
 fun fileExists(path: String) = fileType(path) != null
 
 expect fun fileType(path: String): FileNameType?
+
+expect fun currentDirectory(): String
 
 class PathUtils {
     companion object {
@@ -228,3 +229,13 @@ enum class FileNameType {
 data class PathEntry(val name: String, val size: Long, val type: FileNameType)
 
 expect fun readDirectoryContent(dirName: String): List<PathEntry>
+
+fun resolveDirectoryPath(fileName: String, workingDirectory: String?): String {
+    return when {
+        fileName.isEmpty() -> throw IllegalArgumentException("Empty file name")
+        workingDirectory == null -> fileName
+        else -> resolveDirectoryPathInt(fileName, workingDirectory)
+    }
+}
+
+expect fun resolveDirectoryPathInt(fileName: String, workingDirectory: String): String
