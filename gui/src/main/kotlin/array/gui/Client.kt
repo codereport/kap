@@ -35,6 +35,7 @@ class Client(val application: ClientApplication, val stage: Stage) {
     private val settingsWindow: SettingsWindow
     private var settings: Settings
     private val directoryTextField = TextField()
+    private val breakButton = Button("Stop")
 
     init {
         settings = loadSettings()
@@ -77,6 +78,8 @@ class Client(val application: ClientApplication, val stage: Stage) {
 
         stage.scene = Scene(border, 1000.0, 800.0)
         stage.show()
+
+        resultList.requestFocus()
     }
 
     private fun makeTopBar(): VBox {
@@ -127,7 +130,7 @@ class Client(val application: ClientApplication, val stage: Stage) {
     }
 
     private fun makeToolBar(): ToolBar {
-        return ToolBar(makeWorkingDirectoryButton())
+        return ToolBar(makeWorkingDirectoryButton(), makeBreakButton())
     }
 
     private fun makeWorkingDirectoryButton(): Node {
@@ -143,6 +146,15 @@ class Client(val application: ClientApplication, val stage: Stage) {
         hbox.children.add(directoryTextField)
 
         return hbox
+    }
+
+    private fun makeBreakButton(): Node {
+        breakButton.onMouseClicked = EventHandler { interruptEvaluation() }
+        return breakButton
+    }
+
+    private fun interruptEvaluation() {
+        engine.interruptEvaluation()
     }
 
     private fun selectWorkingDirectory() {

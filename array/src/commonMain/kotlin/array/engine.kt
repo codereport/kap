@@ -7,6 +7,7 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.jvm.JvmInline
+import kotlin.jvm.Volatile
 import kotlin.reflect.KClass
 
 interface APLFunctionDescriptor {
@@ -221,6 +222,9 @@ class Engine(numComputeEngines: Int? = null) {
 
     val backgroundDispatcher = makeBackgroundDispatcher(numComputeEngines ?: numCores())
 
+    @Volatile
+    private var breakPending = false
+
     init {
         // Intern the names of all the types in the core namespace.
         // This ensures that code that refers to the unqualified versions of the names pick up the correct symbol.
@@ -352,6 +356,18 @@ class Engine(numComputeEngines: Int? = null) {
         addModule(UnicodeModule())
         addModule(JsonAPLModule())
         addModule(RegexpModule())
+    }
+
+    fun interruptEvaluation() {
+        breakPending = true
+    }
+
+    fun checkInterrupted(pos: Position? = null) {
+        val pending = breakPending
+        if (pending) {
+            breakPending = false
+            throw APLEvaluationInterrupted(pos)
+        }
     }
 
     fun addModule(module: KapModule) {
@@ -491,6 +507,7 @@ class Engine(numComputeEngines: Int? = null) {
     @OptIn(ExperimentalContracts::class)
     inline fun <T> withCallStackElement(name: String, pos: Position, fn: (CallStackElement) -> T): T {
         contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+        checkInterrupted(pos)
         val threadLocalCallStack = threadLocalCallstackRef.value
         assertx(threadLocalCallStack != null)
         val callStack = threadLocalCallStack.callStack

@@ -50,6 +50,7 @@ class PowerAPLOperator : APLOperatorCombinedRightArg {
                         if (checkResult.asBoolean()) {
                             break
                         }
+                        context.engine.checkInterrupted(pos)
                     }
                     return curr
                 }

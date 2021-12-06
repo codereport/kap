@@ -28,6 +28,7 @@ fun <T : APLGenericException> T.details(description: String): T {
     return this
 }
 
+class APLEvaluationInterrupted(pos: Position? = null) : APLGenericException("Interrupted", pos)
 
 open class APLEvalException(message: String, pos: Position? = null) : APLGenericException(message, pos) {
     var callStack: List<CallStackElement>? = null

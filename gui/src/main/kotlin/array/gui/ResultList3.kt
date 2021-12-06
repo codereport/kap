@@ -49,6 +49,10 @@ class ResultList3(val client: Client) {
         scrollArea = VirtualizedScrollPane(styledArea)
     }
 
+    fun requestFocus() {
+        styledArea.requestFocus()
+    }
+
     private fun processCommand(text: String) {
         if (text.trim().isNotBlank()) {
             history.add(text)

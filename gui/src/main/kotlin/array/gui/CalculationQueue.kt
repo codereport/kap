@@ -1,6 +1,7 @@
 package array.gui
 
 import array.*
+import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.LinkedTransferQueue
 import java.util.concurrent.TransferQueue
 
@@ -9,16 +10,27 @@ class WrappedException(cause: Throwable) : APLGenericException("JVM exception wh
 class CalculationQueue(val engine: Engine) {
     private val queue: TransferQueue<Request> = LinkedTransferQueue()
     private val thread = Thread { computeLoop() }
+    private val statusHandlers = CopyOnWriteArrayList<(Boolean) -> Unit>()
 
     private fun computeLoop() {
         try {
             while (!Thread.interrupted()) {
+                fireStatusCallbacks(false)
                 val request = queue.take()
+                fireStatusCallbacks(true)
                 request.processRequest()
             }
         } catch (e: InterruptedException) {
             println("Closing calculation queue")
         }
+    }
+
+    fun addStatusCallback(callback: (Boolean) -> Unit) {
+        statusHandlers.add(callback)
+    }
+
+    private fun fireStatusCallbacks(status: Boolean) {
+        statusHandlers.forEach { fn -> fn(status) }
     }
 
     interface Request {
