@@ -145,11 +145,21 @@ class SourceEditor(val client: Client) {
             val selectedFile = client.selectFile(true) ?: return false
             loaded = selectedFile
         }
-        FileWriter(loaded, StandardCharsets.UTF_8).use { out ->
-            out.write(styledArea.document.text)
-        }
+        saveContentToFile(loaded)
         styledArea.modifided = false
         return true
+    }
+
+    private fun saveContentToFile(name: File?) {
+        FileWriter(name, StandardCharsets.UTF_8).use { out ->
+            val content = styledArea.document.text
+            val fixed = if (content.isNotEmpty() && !content.endsWith("\n")) {
+                content + "\n"
+            } else {
+                content
+            }
+            out.write(fixed)
+        }
     }
 
     fun setFile(file: File) {
