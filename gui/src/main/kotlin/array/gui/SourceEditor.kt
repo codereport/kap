@@ -26,6 +26,7 @@ import org.fxmisc.wellbehaved.event.EventPattern
 import org.fxmisc.wellbehaved.event.InputMap
 import java.io.File
 import java.io.FileWriter
+import java.lang.Integer.min
 import java.lang.ref.WeakReference
 import java.nio.charset.StandardCharsets
 import java.util.function.BiConsumer
@@ -232,6 +233,36 @@ class SourceEditorStyledArea(
 
     override fun addInputMappings(entries: MutableList<InputMap<out Event>>) {
         entries.add(InputMap.consume(EventPattern.keyPressed(KeyCode.ENTER, KeyCombination.CONTROL_DOWN), { sourceEditor.runClicked() }))
+        entries.add(InputMap.consume(
+            EventPattern.keyPressed(KeyCode.F, KeyCombination.CONTROL_DOWN),
+            { caretSelectionBind.moveToNextChar() }))
+        entries.add(InputMap.consume(
+            EventPattern.keyPressed(KeyCode.B, KeyCombination.CONTROL_DOWN),
+            { caretSelectionBind.moveToPrevChar() }))
+        entries.add(InputMap.consume(EventPattern.keyPressed(KeyCode.P, KeyCombination.CONTROL_DOWN), { moveToPrevLine() }))
+        entries.add(InputMap.consume(EventPattern.keyPressed(KeyCode.N, KeyCombination.CONTROL_DOWN), { moveToNextLine() }))
+        entries.add(InputMap.consume(
+            EventPattern.keyPressed(KeyCode.A, KeyCombination.CONTROL_DOWN),
+            { caretSelectionBind.moveToParStart() }))
+        entries.add(InputMap.consume(
+            EventPattern.keyPressed(KeyCode.E, KeyCombination.CONTROL_DOWN),
+            { caretSelectionBind.moveToParEnd() }))
+    }
+
+    private fun moveToNextLine() {
+        val n = currentParagraph
+        if (n < paragraphs.size - 1) {
+            val p = paragraphs[n + 1]
+            caretSelectionBind.moveTo(n + 1, min(caretSelectionBind.columnPosition, p.length()))
+        }
+    }
+
+    private fun moveToPrevLine() {
+        val n = currentParagraph
+        if (n > 0) {
+            val p = paragraphs[n - 1]
+            caretSelectionBind.moveTo(n - 1, min(caretSelectionBind.columnPosition, p.length()))
+        }
     }
 
     fun highlightRow(row: Int) {
