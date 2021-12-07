@@ -18,6 +18,7 @@ class CalculationQueue(val engine: Engine) {
                 fireStatusCallbacks(false)
                 val request = queue.take()
                 fireStatusCallbacks(true)
+                engine.clearInterrupted()
                 request.processRequest()
             }
         } catch (e: InterruptedException) {

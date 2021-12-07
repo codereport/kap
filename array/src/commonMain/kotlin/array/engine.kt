@@ -370,6 +370,10 @@ class Engine(numComputeEngines: Int? = null) {
         }
     }
 
+    fun clearInterrupted() {
+        breakPending = false
+    }
+
     fun addModule(module: KapModule) {
         module.init(this)
         modules.add(module)
