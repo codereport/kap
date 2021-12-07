@@ -1,0 +1,40 @@
+⍝ The second solution is the same as the first except that the ordering
+⍝ is reversed.
+
+∇ solvePart1 {
+  stringToNumbers ⇐ {⍎¨ ⍵ ⊂⍨ ⍺≠⍵}
+
+  filecontent ← io:read "part04.txt"
+  num ← @, stringToNumbers ↑filecontent
+  b ← ⊃ {⊃ (↑" ") stringToNumbers¨ ⍵}¨ v ⊂⍨ (⊂⍬) ≢¨ v←2↓filecontent
+
+  ⍝ Compute the time at which each cell is picked, 0 means that the cell was not picked
+  indexed ← (1+⍳≢num) ×⌺ (⍴b)⍴1
+  res ← +⌿ indexed × num=⌺b
+
+  highest ← ⌊/ (⌊/⌈/[2] res) ,[0.5] ⌊/⌈/[1] res
+  winning ← b[indexHigh←↑⍋highest;;]
+  numbersPicked ← highest[indexHigh]
+
+  unmarkedValues ← winning × ~winning ∊ num[⍳numbersPicked]
+  num[numbersPicked-1] × +/,unmarkedValues
+}
+
+∇ solvePart2 {
+  stringToNumbers ⇐ {⍎¨ ⍵ ⊂⍨ ⍺≠⍵}
+
+  filecontent ← io:read "part04.txt"
+  num ← @, stringToNumbers ↑filecontent
+  b ← ⊃ {⊃ (↑" ") stringToNumbers¨ ⍵}¨ v ⊂⍨ (⊂⍬) ≢¨ v←2↓filecontent
+
+  ⍝ Compute the time at which each cell is picked, 0 means that the cell was not picked
+  indexed ← (1+⍳≢num) ×⌺ (⍴b)⍴1
+  res ← +⌿ indexed × num=⌺b
+
+  highest ← ⌊/ (⌊/⌈/[2] res) ,[0.5] ⌊/⌈/[1] res
+  winning ← b[indexHigh←↑⍒highest;;]
+  numbersPicked ← highest[indexHigh]
+
+  unmarkedValues ← winning × ~winning ∊ num[⍳numbersPicked]
+  num[numbersPicked-1] × +/,unmarkedValues
+}
