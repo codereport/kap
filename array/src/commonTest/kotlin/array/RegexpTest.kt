@@ -9,7 +9,7 @@ class RegexpTest : APLTest() {
     fun plainRegexpMatches() {
         val result = parseAPLExpression(
             """
-            |"abc" regexp:match "qweabcasd"
+            |"abc" regex:match "qweabcasd"
             """.trimMargin())
         assertSimpleNumber(1, result)
     }
@@ -18,7 +18,7 @@ class RegexpTest : APLTest() {
     fun plainRegexpNoMatch() {
         val result = parseAPLExpression(
             """
-            |"abc" regexp:match "xyztestcxz"
+            |"abc" regex:match "xyztestcxz"
             """.trimMargin())
         assertSimpleNumber(0, result)
     }
@@ -27,7 +27,7 @@ class RegexpTest : APLTest() {
     fun testFullStringMatch() {
         val result = parseAPLExpression(
             """
-            |"^xyz*w$" regexp:match "xyw"
+            |"^xyz*w$" regex:match "xyw"
             """.trimMargin())
         assertSimpleNumber(1, result)
     }
@@ -35,10 +35,10 @@ class RegexpTest : APLTest() {
     @Test
     fun plainRegexSyntaxError() {
         assertFailsWith<InvalidRegexp> {
-            parseAPLExpression("\"a[z\" regexp:match \"foo\"")
+            parseAPLExpression("\"a[z\" regex:match \"foo\"")
         }
         assertFailsWith<InvalidRegexp> {
-            parseAPLExpression("\"a(z\" regexp:match \"foo\"")
+            parseAPLExpression("\"a(z\" regex:match \"foo\"")
         }
     }
 
@@ -46,7 +46,7 @@ class RegexpTest : APLTest() {
     fun plainWithMatcher0() {
         val result = parseAPLExpression(
             """
-            |(regexp:create "abc") regexp:match "qweabcasd"
+            |(regex:create "abc") regex:match "qweabcasd"
             """.trimMargin())
         assertSimpleNumber(1, result)
     }
@@ -55,7 +55,7 @@ class RegexpTest : APLTest() {
     fun plainWithMatcher1() {
         val result = parseAPLExpression(
             """
-            |(regexp:create "abc") regexp:match "xyztestcxz"
+            |(regex:create "abc") regex:match "xyztestcxz"
             """.trimMargin())
         assertSimpleNumber(0, result)
     }
@@ -64,7 +64,7 @@ class RegexpTest : APLTest() {
     fun regexpFind0() {
         val result = parseAPLExpression(
             """
-            |"^zx:([a-z]+):x${'$'}" regexp:find "zx:test:x"
+            |"^zx:([a-z]+):x${'$'}" regex:find "zx:test:x"
             """.trimMargin())
         assertDimension(dimensionsOfSize(2), result)
         assertString("zx:test:x", result.valueAt(0))
@@ -75,7 +75,7 @@ class RegexpTest : APLTest() {
     fun regexpFind1() {
         val (result, engine) = parseAPLExpression2(
             """
-            |"^zx:(foo)?:x${'$'}" regexp:find "zx::x"
+            |"^zx:(foo)?:x${'$'}" regex:find "zx::x"
             """.trimMargin())
         assertDimension(dimensionsOfSize(2), result)
         assertString("zx::x", result.valueAt(0))
@@ -86,7 +86,7 @@ class RegexpTest : APLTest() {
     fun regexpTestMultiline() {
         val result = parseAPLExpression(
             """
-            |(:multiLine regexp:create "^foo") regexp:match "a
+            |(:multiLine regex:create "^foo") regex:match "a
             |fooa
             |a
             |a"
@@ -98,13 +98,13 @@ class RegexpTest : APLTest() {
     fun regexpTestCase() {
         val result0 = parseAPLExpression(
             """
-            |(regexp:create "^foo$") regexp:match "foO"
+            |(regex:create "^foo$") regex:match "foO"
             """.trimMargin())
         assertSimpleNumber(0, result0)
 
         val result1 = parseAPLExpression(
             """
-            |(:ignoreCase regexp:create "^foo$") regexp:match "foO"
+            |(:ignoreCase regex:create "^foo$") regex:match "foO"
             """.trimMargin())
         assertSimpleNumber(1, result1)
     }
@@ -114,7 +114,7 @@ class RegexpTest : APLTest() {
         assertFailsWith<APLEvalException> {
             parseAPLExpression(
                 """
-                |:foo regexp:create "foo"
+                |:foo regex:create "foo"
                 """.trimMargin())
         }
     }
@@ -124,7 +124,7 @@ class RegexpTest : APLTest() {
         assertFailsWith<APLEvalException> {
             parseAPLExpression(
                 """
-                |:foo :bar regexp:create "foo"
+                |:foo :bar regex:create "foo"
                 """.trimMargin())
         }
     }
@@ -134,7 +134,7 @@ class RegexpTest : APLTest() {
         assertFailsWith<APLEvalException> {
             parseAPLExpression(
                 """
-                |1 regexp:create "foo"
+                |1 regex:create "foo"
                 """.trimMargin())
         }
     }
@@ -144,7 +144,7 @@ class RegexpTest : APLTest() {
         assertFailsWith<APLEvalException> {
             parseAPLExpression(
                 """
-                |(2 1 ⍴ :multiLine :ignoreCase) regexp:create "foo"
+                |(2 1 ⍴ :multiLine :ignoreCase) regex:create "foo"
                 """.trimMargin())
         }
     }
@@ -153,7 +153,7 @@ class RegexpTest : APLTest() {
 //    fun regexpTestWithIndex0() {
 //        val result = parseAPLExpression(
 //            """
-//            |"a([a-z]+)9" regexp:index "xbzafoo9qwatest921"
+//            |"a([a-z]+)9" regex:index "xbzafoo9qwatest921"
 //            """.trimMargin())
 //        assertDimension(dimensionsOfSize(2), result)
 //        assertArrayContent(arrayOf(3, 8), result.valueAt(0))
@@ -164,7 +164,7 @@ class RegexpTest : APLTest() {
 //    fun regexpTestWithIndex1() {
 //        val result = parseAPLExpression(
 //            """
-//            |"a([a-z]+)?9" regexp:index "xbza9qwatest921"
+//            |"a([a-z]+)?9" regex:index "xbza9qwatest921"
 //            """.trimMargin())
 //        assertDimension(dimensionsOfSize(2), result)
 //        assertArrayContent(arrayOf(3, 5), result.valueAt(0))
@@ -175,7 +175,7 @@ class RegexpTest : APLTest() {
 //    fun regexpWithIndex2() {
 //        val result = parseAPLExpression(
 //            """
-//            |"a([a-z]+)?9" regexp:index "xbza8qwatest821"
+//            |"a([a-z]+)?9" regex:index "xbza8qwatest821"
 //            """.trimMargin())
 //        assertAPLNull(result)
 //    }
@@ -184,7 +184,7 @@ class RegexpTest : APLTest() {
     fun regexpSplit0() {
         val result = parseAPLExpression(
             """
-            |"," regexp:split "foo,bar,,test,cba" 
+            |"," regex:split "foo,bar,,test,cba" 
             """.trimMargin())
         assertDimension(dimensionsOfSize(5), result)
         assertString("foo", result.valueAt(0))
@@ -198,7 +198,7 @@ class RegexpTest : APLTest() {
     fun regexpSplit1() {
         val result = parseAPLExpression(
             """
-            |",+" regexp:split "foo,bar,,test,cba,,,," 
+            |",+" regex:split "foo,bar,,test,cba,,,," 
             """.trimMargin())
         assertDimension(dimensionsOfSize(5), result)
         assertString("foo", result.valueAt(0))
@@ -212,7 +212,7 @@ class RegexpTest : APLTest() {
     fun regexpSplit2() {
         val result = parseAPLExpression(
             """
-            |",+" regexp:split ",,,foo" 
+            |",+" regex:split ",,,foo" 
             """.trimMargin())
         assertDimension(dimensionsOfSize(2), result)
         assertString("", result.valueAt(0))
@@ -223,7 +223,7 @@ class RegexpTest : APLTest() {
     fun regexpSplit3() {
         val result = parseAPLExpression(
             """
-            |",+" regexp:split "foo" 
+            |",+" regex:split "foo" 
             """.trimMargin())
         assertDimension(dimensionsOfSize(1), result)
         assertString("foo", result.valueAt(0))
@@ -233,7 +233,7 @@ class RegexpTest : APLTest() {
     fun regexpSplit4() {
         val result = parseAPLExpression(
             """
-            |",+" regexp:split "" 
+            |",+" regex:split "" 
             """.trimMargin())
         assertDimension(dimensionsOfSize(1), result)
         assertString("", result.valueAt(0))
@@ -243,7 +243,7 @@ class RegexpTest : APLTest() {
     fun regexpSplit5() {
         val result = parseAPLExpression(
             """
-            |"," regexp:split ",a" 
+            |"," regex:split ",a" 
             """.trimMargin())
         assertDimension(dimensionsOfSize(2), result)
         assertString("", result.valueAt(0))
@@ -254,7 +254,7 @@ class RegexpTest : APLTest() {
     fun regexpSplit6() {
         val result = parseAPLExpression(
             """
-            |"," regexp:split "foo,,,app" 
+            |"," regex:split "foo,,,app" 
             """.trimMargin())
         assertDimension(dimensionsOfSize(4), result)
         assertString("foo", result.valueAt(0))
@@ -268,7 +268,7 @@ class RegexpTest : APLTest() {
         assertFailsWith<APLEvalException> {
             parseAPLExpression(
                 """
-                |" " regexp:split 10
+                |" " regex:split 10
                 """.trimMargin())
         }
     }
@@ -278,7 +278,7 @@ class RegexpTest : APLTest() {
         assertFailsWith<APLEvalException> {
             parseAPLExpression(
                 """
-                |" " regexp:split 10 20
+                |" " regex:split 10 20
                 """.trimMargin())
         }
     }
@@ -288,7 +288,7 @@ class RegexpTest : APLTest() {
         assertFailsWith<APLEvalException> {
             parseAPLExpression(
                 """
-                |" " regexp:split 3 4 ⍴ 10 20
+                |" " regex:split 3 4 ⍴ 10 20
                 """.trimMargin())
         }
     }

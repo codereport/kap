@@ -23,7 +23,7 @@ fun loadLibraries() {
         "standard-lib/io.kap",
         "standard-lib/output.kap",
         "standard-lib/time.kap",
-        "standard-lib/regexp.kap")
+        "standard-lib/regex.kap")
 }
 
 private fun loadLibFiles(vararg names: String) {

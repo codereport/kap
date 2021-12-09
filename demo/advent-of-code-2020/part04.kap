@@ -10,11 +10,11 @@
 }
 
 ∇ parseElement (v) {
-    ⊃ {1↓ "^([a-z]{3}):(.*)$" regexp:finderror ⍵}¨ " +" regexp:split v
+    ⊃ {1↓ "^([a-z]{3}):(.*)$" regex:finderror ⍵}¨ " +" regex:split v
 }
 
 ∇ parseContent (file) {
-    parseElement¨ " {2,}" regexp:split ↑{⍺," ",⍵}/ io:read file
+    parseElement¨ " {2,}" regex:split ↑{⍺," ",⍵}/ io:read file
 }
 
 ∇ solveDay4part1 (file) {
@@ -22,7 +22,7 @@
 }
 
 ∇ validateHeight (s) {
-    result ← "^([0-9]+)(cm|in)$" regexp:find s
+    result ← "^([0-9]+)(cm|in)$" regex:find s
     if (result≡⍬) {
         0
     } else {
@@ -42,9 +42,9 @@
                     "iyr" λ{year ← ⍎⍵ ◊ (year≥2010) ∧ year≤2020} `
                     "eyr" λ{year ← ⍎⍵ ◊ (year≥2020) ∧ year≤2030} `
                     "hgt" λvalidateHeight `
-                    "hcl" λ{"^#[0-9a-f]{6}$" regexp:match ⍵} `
+                    "hcl" λ{"^#[0-9a-f]{6}$" regex:match ⍵} `
                     "ecl" λ{(⊂⍵) ∊ "amb" "blu" "brn" "gry" "grn" "hzl" "oth"} `
-                    "pid" λ{"^[0-9]{9}$" regexp:match ⍵}
+                    "pid" λ{"^[0-9]{9}$" regex:match ⍵}
     ×/ ({fn ← validators[↑⍵[0]] ◊ if(fn≡⍬) { 1 } else { ⍞fn ↑⍵[1] } }⍤1) element
 }
 

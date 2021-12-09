@@ -130,10 +130,10 @@ class CreateRegexpFunction : APLFunctionDescriptor {
 //}
 
 class RegexpModule : KapModule {
-    override val name get() = "regexp"
+    override val name get() = "regex"
 
     override fun init(engine: Engine) {
-        val namespace = engine.makeNamespace("regexp")
+        val namespace = engine.makeNamespace("regex")
         fun registerFn(name: String, fn: APLFunctionDescriptor) {
             engine.registerFunction(namespace.internAndExport(name), fn)
         }
