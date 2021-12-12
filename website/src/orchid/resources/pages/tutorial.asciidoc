@@ -677,20 +677,6 @@ foo ← if(a < b) {
 
 After executing the above, the variable `foo` will have the value `10` if `a` was less than `b`.
 
-=== When statement
-
-The `when` statement can be used instead of a series of `if` and `else` statements.
-It has the following form:
-
-[source,kap]
-----
-result ← when {
-  (cond0) { "cond0 is true" }
-  (cond1) { "cond1 is true" }
-  (1)     { "cond0 and cond1 false" }
-}
-----
-
 === While loops
 
 KAP provides a while loop that is similar to that of C and many of its descendents.
@@ -932,19 +918,32 @@ Reverse the order of the dimensions.
 |`⌿`
 |Reduce along first axis (this is equivalent to `FN/[0]`)
 
-//        registerNativeOperator("¨", ForEachOp())
-//        registerNativeOperator("/", ReduceOpLastAxis())
-//        registerNativeOperator("⌿", ReduceOpFirstAxis())
+|`¨`
+|Call function on each cell
+
 //        registerNativeOperator("⌺", OuterJoinOp())
 //        registerNativeOperator(".", OuterInnerJoinOp())
-//        registerNativeOperator("⍨", CommuteOp())
+
+|`⍨`
+|For monadic calls, `FN⍨ a` is equivalent to `a FN a`.
+For dyadic calls, the arguments are reversed.
+
 //        registerNativeOperator("⍣", PowerAPLOperator())
 //        registerNativeOperator("\\", ScanLastAxisOp())
 //        registerNativeOperator("⍀", ScanFirstAxisOp())
-//        registerNativeOperator("⍤", RankOperator())
-//        registerNativeOperator("∵", BitwiseOp())
-//        registerNativeOperator("∘", ComposeOp())
-//        registerNativeOperator("parallel", ParallelOp())
+|`⍤`
+|Rank.
+When called as `a (FN⍤N) b` Calls the function on all elements of N major axis of the arguments.
+N can be an array of 1, 2 or 3 integers.
+
+|`∵`
+|Derive bitwise function
+
+|`∘`
+|Compose functions.
+
+|`parallel`
+|Derive parallel version of the function if available
 
 |===
 
