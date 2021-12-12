@@ -1,5 +1,6 @@
 package array
 
+import array.builtins.TagCatch
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertSame
@@ -290,6 +291,22 @@ class RegexpTest : APLTest() {
                 """
                 |" " regex:split 3 4 ⍴ 10 20
                 """.trimMargin())
+        }
+    }
+
+    @Test
+    fun finderrorWithMatches() {
+        parseAPLExpression("\"x(f[0-9]+)y\" regex:finderror \"fooxf12345ybar\"", withStandardLib = true).let { result ->
+            assertDimension(dimensionsOfSize(2), result)
+            assertString("xf12345y", result.valueAt(0))
+            assertString("f12345", result.valueAt(1))
+        }
+    }
+
+    @Test
+    fun funderrorNotMatch() {
+        assertFailsWith<TagCatch> {
+            parseAPLExpression("\"x(f[0-9]+)y\" regex:finderror \"fooxf12345qwer\"", withStandardLib = true)
         }
     }
 }

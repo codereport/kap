@@ -1,7 +1,7 @@
-namespace("regexp")
+namespace("regex")
 
 ∇ (m) finderror (s) {
-  result ← m regexp:find s
+  result ← m regex:find s
   if (result ≡ ⍬) {
     →"No match"
   } else {
