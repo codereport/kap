@@ -102,11 +102,9 @@ For example, to generate `⍴` type kbd:[Meta+r].
 - Press kbd:[\`] followed by other keys. +
 Type kbd:[`] followed by kbd:[Space] to generate a ```.
 
-= First steps
+= KAP basics
 
-== KAP basics
-
-=== Printing text
+== Printing text
 
 The first thing anyone learning a new language wants to know is how to print a message to the screen.
 In KAP, printing is done using `io:print` or `io:println`.
@@ -129,7 +127,7 @@ When using the REPL to enter KAP expressions, the return value of the expression
 This is the reason why when typing the above example into the REPL, the string will be printed twice.
 The first is the result of the call to `io:println` and the second is the return value of the expression. `io:println` always returns the value it printed, which results in the double output.
 
-=== Comments
+== Comments
 
 Comments in KAP are indicated using the symbol `⍝` and extends to the end of the line.
 
@@ -139,7 +137,7 @@ Comments in KAP are indicated using the symbol `⍝` and extends to the end of t
 io:println "This will be printed"    ⍝ This is another comment
 ----
 
-=== Mathematical functions
+== Mathematical functions
 
 Just like any other programming languages, KAP provides functions to perform mathematical computations, the main ones are:
 
@@ -164,7 +162,7 @@ In other words, it's interpreted as `3×(4+5)`.
 This may seem somewhat strange, but the decision to interpret the code like this provides two distinct benefits: First and foremost, it removes any ambiguity as to the order in which computation will be performed.
 Secondly, it reduces the number of parentheses that are needed when writing complex code.
 
-=== Variables
+== Variables
 
 Variables in KAP can be global, or they can have local bindings.
 The difference between the two types of bindings will be obvious later in the tutorial, but for now this distinction can be ignored.
@@ -179,7 +177,7 @@ bar ← 1+2+3      ⍝ Assigns the value 6 to the variable bar
 xyz ← foo + bar  ⍝ Assigns the value 129 to the variable xyz
 ----
 
-=== Statement separators
+== Statement separators
 
 Individual statements are separated either by a newline or the symbol `⋄`.
 Thus, the following:
@@ -197,7 +195,7 @@ is equivalent to:
 io:println a ⋄ io:println b
 ----
 
-=== Monadic and dyadic function invocation
+== Monadic and dyadic function invocation
 
 Two terms that any beginner learning APL will quickly come across are the terms _monadic_ and _dyadic_.
 These terms refer to the two different ways in which a function can be called:
@@ -246,7 +244,7 @@ An example will help clear this up:
 Looking from the right, the rightmost `-` does not have a value to the left (to the left of the `-` is a `×` symbol), and it must therefore be a monadic invocation resulting in the value `-2`.
 The call to `×` is dyadic since it has a `10` to the left, so the result is the product of `10` and `-2` which is `-20`.
 
-== Working with arrays
+= Working with arrays
 
 KAP programming is about arrays.
 While the language has other container types, the array is the main way that data is organised.
@@ -255,9 +253,9 @@ The reason array languages can get away with having poor support for flow contro
 
 While KAP has stronger flow control constructs than most other array languages, the language's strength is still the focus on arrays, which is why this topic is explained even before discussing how flow control works.
 
-=== Constructing arrays
+== Constructing arrays
 
-==== Literal arrays
+=== Literal arrays
 
 In many languages, arrays have only a single dimension.
 Taking Javascript as an example, an array is a collection of objects which is given inside square brackets:
@@ -281,7 +279,7 @@ value ← 1 2 "string" (4 5)
 As can be seen from the comparison above, KAP parses everything as arrays by default.
 If more than one value is given separated by spaces, the individual values will be concatenated together and interpreted as a 1-dimensional array.
 
-==== Iota function
+=== Iota function
 
 It is very common to need an array consisting of numbers in ascending order.
 For example, a 5-element array containing the values `0 1 2 3 4`.
@@ -299,9 +297,9 @@ When invoked monadically, `⍳` accepts an argument indicating the size of the r
 
 The `⍳` function will be used in a lot of examples below.
 
-=== Accessing data in arrays
+== Accessing data in arrays
 
-==== Reading single values
+=== Reading single values
 
 KAP uses the square brackets to read values from an array, so to read second value from a 1-dimensional array, one would use the following syntax:
 
@@ -313,7 +311,7 @@ bar ← foo[1]                      ⍝ bar now contains the value 11
 
 All arrays are zero-indexed, meaning that the first element (the value 10) can be read using `foo[0]`, the second using `foo[1]`, etc.
 
-==== Reading multiple values
+=== Reading multiple values
 
 The value inside square brackets (i.e. the index) does not need to be a single number.
 One can specify an array as in index itself.
@@ -345,7 +343,7 @@ Thus, to read the first 6 elements from an array, the following can be used:
 
 Of course, KAP provides other ways to slice arrays (as would be expected from an array language) and these methods will be discussed later.
 
-=== Array dimensionality
+== Array dimensionality
 
 All arrays have a dimensionality, or "`rank`" as it is often referred to.
 Arrays in most languages are 1-dimensional, meaning that values in the array are addressed using a single number.
@@ -386,7 +384,7 @@ image::diagrams/four-dim.svg[]
 KAP supports arrays with a large number of dimensions (the exact number is 2^31^-1), but in practice it's rare to work with arrays with more than 4 dimensions.
 The principles that are illustrated in the previous paragraphs extend naturally to any number of dimensions.
 
-==== Creating multidimensional arrays
+=== Creating multidimensional arrays
 
 To create an array of different dimensionality, the function `⍴` is used.
 When called dyadically, this function takes an array of numbers to the left that indicates the sizes of the resulting array's dimensions, and changes the dimensions of the array specified on the right to conform to the requested dimensions.
@@ -495,7 +493,7 @@ This returns the following:
 |0 |5 |10
 |===
 
-==== Finding the dimensionality of an array
+=== Finding the dimensionality of an array
 
 In the previous section, it was explained how `⍴` is called dyadically to set the dimensions of an array.
 When called monadically, the function returns the dimensionality of its argument.
@@ -511,9 +509,9 @@ After this code has been run, the variable `bar` will contain the array `3 5`.
 From this it can be seen that `⍴ X ⍴ Y` will always return `X`.
 This is because ths expression is parsed as `⍴ (X ⍴ Y)`, which is equivalent to first reshaping Y with dimensions X, and then returning the dimensions of this array.
 
-=== Applying functions on arrays
+== Applying functions on arrays
 
-==== Scalar functions
+=== Scalar functions
 
 Earlier in this tutorial, the basic mathematical functions were mentioned, including `+`, `-`, etc.
 These function belong to a category of functions which either act on single elements, or entire arrays at the same time.
@@ -582,7 +580,7 @@ Error at: 1:7: function add: Arguments must be of the same dimension, or one of 
 
 The error message here explains that the arguments to the "add" function does not have the same dimensions.
 
-==== Structural functions
+=== Structural functions
 
 Functions that are not scalar are called structural, which means that the behaviour of the function does not follow the simple rules outlined above.
 
@@ -590,7 +588,7 @@ A few structural functions have already been introduced, `⍴` and `⍳`.
 The value returned from these functions depend on the arguments, and not just their dimensions.
 For example, the size of the array returned by the dyadic invocation of `⍴` depends on the arguments on the left side of the function.
 
-=== Operators
+== Operators
 
 Operators are used to derive a new function from another function.
 Operators are written immediately following a function.
@@ -633,9 +631,9 @@ When used to together with reduce it can be used to find the maximum value in an
 100
 ----
 
-== Datatypes
+= Datatypes
 
-KAP suports the following basic datatypes:
+KAP supports the following basic datatypes:
 
 - Number (see next section)
 - Character
@@ -643,7 +641,7 @@ KAP suports the following basic datatypes:
 - Hashtable
 - Array
 
-=== Numeric types
+== Numeric types
 
 KAP supports the following numeric types:
 
@@ -659,7 +657,7 @@ Negative numbers are written using the `¯` symbol rather than `-`.
 In other words, the value -22 is written as `¯22`.
 The reason for this is that `-` is a regular function, so an expression such as `3 -2` will be interpreted as 1. Writing it as `3 ¯2` makes this consistent.
 
-=== Characters
+== Characters
 
 A character is written as a `@` followed by the character.
 For example, `@b`.
@@ -679,21 +677,21 @@ If any element is not a character, the entire array will be printed in the regul
 ┗━━━━━━━━━━┛
 ----
 
-=== Symbols
+== Symbols
 
 Symbols are objects that represents names.
 They are mostly used in advanced concept such as when defining new syntax.
 The most common usage of symbols is when using keywords, which are symbols that belong to the special keyword namespace.
 These are entered by prefixing the symbol name by a colon: `:foo`.
 
-=== Hashtables
+== Hashtables
 
 Hashtables are a special datatype that maps an object such as a string to another object.
 These are described in a later section.
 
-== Flow control
+= Flow control
 
-=== If statements
+== If statements
 
 The if statement looks similar to that of C:
 
@@ -720,7 +718,7 @@ foo ← if(a < b) {
 
 After executing the above, the variable `foo` will have the value `10` if `a` was less than `b`.
 
-=== While loops
+== While loops
 
 KAP provides a while loop that is similar to that of C and many of its descendents.
 A while loop terminates once its condition is false.
@@ -735,7 +733,7 @@ while(i < 20) {
 }
 ----
 
-=== Exceptions
+== Exceptions
 
 *TODO: Explain try/catch*
 
