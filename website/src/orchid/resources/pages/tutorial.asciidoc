@@ -584,11 +584,54 @@ The error message here explains that the arguments to the "add" function does no
 
 ==== Structural functions
 
-If a function isn't scalar, then it's structural which means that the behaviour of the function does not follow the simple rules outlined above.
+Functions that are not scalar are called structural, which means that the behaviour of the function does not follow the simple rules outlined above.
 
 A few structural functions have already been introduced, `⍴` and `⍳`.
 The value returned from these functions depend on the arguments, and not just their dimensions.
 For example, the size of the array returned by the dyadic invocation of `⍴` depends on the arguments on the left side of the function.
+
+=== Operators
+
+Operators are used to derive a new function from another function.
+Operators are written immediately following a function.
+For example, `/` is the "`reduction operator`":
+
+[source,kap]
+----
++/ array
+----
+
+The above code takes the `+` function and derives a new function using the reduction operator.
+The new function performs an additive reduction on its argument:
+
+[source,kap]
+----
+    +/10 20 30 40 50 60
+210
+----
+
+The above returns the sum of the values in the array.
+In other words: `10+20+30+40+50+60`.
+However, as opposed to other versions of APL, `+/` is not identical to simply placing the function between the values and evaluating the result.
+In KAP, the reduction is performed left-to-right, with the above example evaluated as follows:
+
+----
+ 10+20 → 30
+ 30+30 → 60
+ 60+40 → 100
+100+50 → 150
+150+60 → 210
+----
+
+The reduction operator is very useful for a lot of purposes.
+For example, the function `⌈` returns the maximum of two values.
+When used to together with reduce it can be used to find the maximum value in an array:
+
+[source,kap]
+----
+    ⌈/ 3 8 4 3 100 2 8 12 9 6
+100
+----
 
 == Datatypes
 
