@@ -8,6 +8,7 @@ import javafx.scene.Scene
 import javafx.scene.image.WritableImage
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
+import javafx.scene.text.Font
 import javafx.stage.Stage
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
@@ -24,8 +25,8 @@ class ImageData(
     val arrayIs3D: Boolean
 )
 
-class GraphicWindowAPLValue(engine: Engine, width: Int, height: Int) : APLSingleValue() {
-    val window = GraphicWindow(engine, width, height)
+class GraphicWindowAPLValue(engine: Engine, width: Int, height: Int, settings: GraphicWindow.Settings) : APLSingleValue() {
+    val window = GraphicWindow(engine, width, height, settings)
 
     override val aplValueType: APLValueType
         get() = APLValueType.INTERNAL
@@ -44,17 +45,41 @@ class GraphicWindowAPLValue(engine: Engine, width: Int, height: Int) : APLSingle
 class MakeGraphicFunction : APLFunctionDescriptor {
     class MakeGraphicFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            return makeWindow(a, context.engine, GraphicWindow.Settings())
+        }
+
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            val keywords = arrayToKeywords(context.engine, a, pos, listOf("labels"))
+            return makeWindow(b, context.engine, GraphicWindow.Settings(labels = keywords.contains("labels")))
+        }
+
+        private fun makeWindow(a: APLValue, engine: Engine, settings: GraphicWindow.Settings): GraphicWindowAPLValue {
             val aDimensions = a.dimensions
             if (aDimensions.size != 1 || aDimensions[0] != 2) {
                 throw InvalidDimensionsException("Argument must be a two-element vector")
             }
             val width = a.valueAtInt(0, pos)
             val height = a.valueAtInt(1, pos)
-            return GraphicWindowAPLValue(context.engine, width, height)
+            return GraphicWindowAPLValue(engine, width, height, settings)
         }
     }
 
     override fun make(pos: Position) = MakeGraphicFunctionImpl(pos)
+}
+
+private fun arrayToKeywords(engine: Engine, a: APLValue, pos: Position, allowed: List<String>): Set<String> {
+    val a0 = a.arrayify()
+    val aDimensions = a0.dimensions
+    if (aDimensions.size != 1) {
+        throwAPLException(APLIllegalArgumentException("Left argument must be a scalar or 1-dimensional array", pos))
+    }
+    return a0.membersSequence().map { v ->
+        val sym = v.ensureSymbol(pos).value
+        if (sym.namespace != engine.keywordNamespace) {
+            throwAPLException(APLIllegalArgumentException("Unexpected keyword argument: ${sym}", pos))
+        }
+        sym.symbolName
+    }.toSet()
 }
 
 class DrawGraphicFunction : APLFunctionDescriptor {
@@ -89,7 +114,7 @@ class DrawGraphicFunction : APLFunctionDescriptor {
 
 typealias EventType = KClass<out KapWindowEvent>
 
-class GraphicWindow(val engine: Engine, width: Int, height: Int) {
+class GraphicWindow(val engine: Engine, width: Int, height: Int, val settings: Settings) {
     private var content = AtomicReference<Content?>()
     private val events = LinkedList<KapWindowEvent>()
     private val enabledEvents = HashSet<EventType>()
@@ -171,14 +196,18 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int) {
         fun updateArrayAndRepaint(imageData: ImageData) {
             array = imageData
             if (!imageData.arrayIs3D) {
-                repaintCanvas2D(imageData.width, imageData.height, imageData.array)
+                repaintCanvas2D()
             } else {
-                repaintCanvas3D(imageData.width, imageData.height, imageData.array)
+                repaintCanvas3D()
             }
         }
 
-        private fun repaintCanvas2D(width: Int, height: Int, imageData: DoubleArray) {
-            assert(imageData.size == width * height)
+        private fun repaintCanvas2D() {
+            val arrayValues = array!!.array
+            val width = array!!.width
+            val height = array!!.height
+
+            assert(arrayValues.size == width * height)
             val imageWidth = image.width
             val imageHeight = image.height
             val xStride = width.toDouble() / imageWidth
@@ -186,16 +215,21 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int) {
             val pixelWriter = image.pixelWriter
             for (y in 0 until imageHeight.toInt()) {
                 for (x in 0 until imageWidth.toInt()) {
-                    val value = imageData[(y * yStride).toInt() * width + (x * xStride).toInt()]
+                    val value = arrayValues[(y * yStride).toInt() * width + (x * xStride).toInt()]
                     val valueByte = min(max(value * 256, 0.0), 255.0).toInt() and 0xFF
                     val colour = (0xFF shl 24) or (valueByte shl 16) or (valueByte shl 8) or valueByte
                     pixelWriter.setArgb(x, y, colour)
                 }
             }
             canvas.graphicsContext2D.drawImage(image, 0.0, 0.0)
+            drawCellValues()
         }
 
-        private fun repaintCanvas3D(width: Int, height: Int, imageData: DoubleArray) {
+        private fun repaintCanvas3D() {
+            val imageData = array!!.array
+            val width = array!!.width
+            val height = array!!.height
+
             assert(imageData.size == width * height * 3)
             val lineWidth = width * 3
             val imageWidth = image.width
@@ -216,6 +250,25 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int) {
             canvas.graphicsContext2D.drawImage(image, 0.0, 0.0)
         }
 
+        private fun drawCellValues() {
+            val imageData = array!!.array
+            val width = array!!.width
+            val height = array!!.height
+
+            val cellWidth = image.width / width
+            val cellHeight = image.height / height
+            val c = canvas.graphicsContext2D
+            c.font = Font.font("Sans Serif", cellHeight / 2)
+            if (cellWidth > 2 && cellHeight > 2) {
+                for (y in 0 until height) {
+                    for (x in 0 until width) {
+                        val value = imageData[y * height + x]
+                        c.fillText(String.format("%f", value), x * cellWidth, y * cellHeight)
+                    }
+                }
+            }
+        }
+
         private fun processKeyPress(event: KeyEvent) {
             publishEventIfEnabled(KapKeyEvent(event))
         }
@@ -224,6 +277,8 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int) {
     fun repaintContent(imageData: ImageData) {
         content.get()?.updateArrayAndRepaint(imageData)
     }
+
+    data class Settings(val labels: Boolean = false)
 }
 
 fun initGraphicCommands(client: Client) {

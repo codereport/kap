@@ -1,8 +1,6 @@
 package array
 
-import kotlin.test.Test
-import kotlin.test.assertNotSame
-import kotlin.test.assertSame
+import kotlin.test.*
 
 class SymbolTest : APLTest() {
     @Test
@@ -14,6 +12,27 @@ class SymbolTest : APLTest() {
         assertNotSame(symbol1, symbol2)
         assertNotSame(symbol2, symbol3)
         assertSame(symbol1, symbol3)
+    }
+
+    @Test
+    fun compareWithNamespace() {
+        val engine = Engine()
+        val n0 = Namespace("n0")
+        val n1 = Namespace("n1")
+        val sym0 = engine.internSymbol("abc", n0)
+        val sym1 = engine.internSymbol("abc", n1)
+        assertNotEquals(sym0, sym1)
+    }
+
+    @Test
+    fun compareToWithNamespace() {
+        val engine = Engine()
+        val n0 = Namespace("n0")
+        val n1 = Namespace("n1")
+        val sym0 = engine.internSymbol("abc", n0)
+        val sym1 = engine.internSymbol("abc", n1)
+        val d = sym0.compareTo(sym1)
+        assertEquals(-1, d)
     }
 
     @Test

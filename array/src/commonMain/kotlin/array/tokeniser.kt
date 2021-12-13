@@ -94,8 +94,15 @@ class Namespace(val name: String) {
 
 class Symbol(val symbolName: String, val namespace: Namespace) : Token(), Comparable<Symbol> {
     override fun toString() = "Symbol[name=${nameWithNamespace()}]"
-    override fun compareTo(other: Symbol) = symbolName.compareTo(other.symbolName)
-    override fun hashCode() = symbolName.hashCode()
+    override fun compareTo(other: Symbol): Int {
+        return if (namespace.name != other.namespace.name) {
+            namespace.name.compareTo(other.namespace.name)
+        } else {
+            symbolName.compareTo(other.symbolName)
+        }
+    }
+
+    override fun hashCode() = symbolName.hashCode() xor namespace.hashCode()
     override fun equals(other: Any?) = other != null && other is Symbol && symbolName == other.symbolName && namespace === other.namespace
     override fun formatted() = nameWithNamespace()
 
