@@ -2,9 +2,9 @@ package array.gui.graphics
 
 import array.*
 import array.gui.Client
+import array.gui.ResizableCanvas
 import javafx.application.Platform
 import javafx.scene.Scene
-import javafx.scene.canvas.Canvas
 import javafx.scene.image.WritableImage
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
@@ -17,6 +17,13 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KClass
 
+class ImageData(
+    val array: DoubleArray,
+    val width: Int,
+    val height: Int,
+    val arrayIs3D: Boolean
+)
+
 class GraphicWindowAPLValue(engine: Engine, width: Int, height: Int) : APLSingleValue() {
     val window = GraphicWindow(engine, width, height)
 
@@ -27,15 +34,9 @@ class GraphicWindowAPLValue(engine: Engine, width: Int, height: Int) : APLSingle
     override fun compareEquals(reference: APLValue) = reference is GraphicWindowAPLValue && window === reference.window
     override fun makeKey() = APLValueKeyImpl(this, window)
 
-    fun updateContent2D(w: Int, h: Int, content: DoubleArray) {
+    fun updateContent(imageData: ImageData) {
         Platform.runLater {
-            window.repaintContent2D(w, h, content)
-        }
-    }
-
-    fun updateContent3D(w: Int, h: Int, content: DoubleArray) {
-        Platform.runLater {
-            window.repaintContent3D(w, h, content)
+            window.repaintContent(imageData)
         }
     }
 }
@@ -66,13 +67,13 @@ class DrawGraphicFunction : APLFunctionDescriptor {
             val bDimensions = b.dimensions
             when (bDimensions.size) {
                 2 -> {
-                    v.updateContent2D(bDimensions[1], bDimensions[0], b.toDoubleArray(pos))
+                    v.updateContent(ImageData(b.toDoubleArray(pos), bDimensions[1], bDimensions[0], false))
                 }
                 3 -> {
                     if (bDimensions[2] != 3) {
                         throwAPLException(APLIllegalArgumentException("Colour arrays needs must have a third dimension of size 3", pos))
                     }
-                    v.updateContent3D(bDimensions[1], bDimensions[0], b.toDoubleArray(pos))
+                    v.updateContent(ImageData(b.toDoubleArray(pos), bDimensions[1], bDimensions[0], true))
                 }
                 else -> {
                     throw InvalidDimensionsException("Right argument must be 2 or 3-dimensional", pos)
@@ -139,12 +140,18 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int) {
 
     private inner class Content(width: Int, height: Int) {
         val stage = Stage()
-        val canvas: Canvas
-        val image: WritableImage
+        val canvas: ResizableCanvas
+        var image: WritableImage
+        var array: ImageData? = null
 
         init {
             image = WritableImage(width, height)
-            canvas = Canvas(width.toDouble(), height.toDouble())
+            canvas = ResizableCanvas()
+            canvas.width = width.toDouble()
+            canvas.height = height.toDouble()
+            canvas.addOnSizeChangeCallback {
+                createImage(canvas.width.toInt(), canvas.height.toInt())
+            }
             val border = BorderPane().apply {
                 center = canvas
             }
@@ -154,8 +161,24 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int) {
             stage.show()
         }
 
-        fun repaintCanvas2D(width: Int, height: Int, array: DoubleArray) {
-            assert(array.size == width * height)
+        private fun createImage(width: Int, height: Int) {
+            image = WritableImage(width, height)
+            array?.let { a ->
+                updateArrayAndRepaint(a)
+            }
+        }
+
+        fun updateArrayAndRepaint(imageData: ImageData) {
+            array = imageData
+            if (!imageData.arrayIs3D) {
+                repaintCanvas2D(imageData.width, imageData.height, imageData.array)
+            } else {
+                repaintCanvas3D(imageData.width, imageData.height, imageData.array)
+            }
+        }
+
+        private fun repaintCanvas2D(width: Int, height: Int, imageData: DoubleArray) {
+            assert(imageData.size == width * height)
             val imageWidth = image.width
             val imageHeight = image.height
             val xStride = width.toDouble() / imageWidth
@@ -163,7 +186,7 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int) {
             val pixelWriter = image.pixelWriter
             for (y in 0 until imageHeight.toInt()) {
                 for (x in 0 until imageWidth.toInt()) {
-                    val value = array[(y * yStride).toInt() * width + (x * xStride).toInt()]
+                    val value = imageData[(y * yStride).toInt() * width + (x * xStride).toInt()]
                     val valueByte = min(max(value * 256, 0.0), 255.0).toInt() and 0xFF
                     val colour = (0xFF shl 24) or (valueByte shl 16) or (valueByte shl 8) or valueByte
                     pixelWriter.setArgb(x, y, colour)
@@ -172,8 +195,8 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int) {
             canvas.graphicsContext2D.drawImage(image, 0.0, 0.0)
         }
 
-        fun repaintCanvas3D(width: Int, height: Int, array: DoubleArray) {
-            assert(array.size == width * height * 3)
+        private fun repaintCanvas3D(width: Int, height: Int, imageData: DoubleArray) {
+            assert(imageData.size == width * height * 3)
             val lineWidth = width * 3
             val imageWidth = image.width
             val imageHeight = image.height
@@ -183,9 +206,9 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int) {
             for (y in 0 until imageHeight.toInt()) {
                 for (x in 0 until imageWidth.toInt()) {
                     val offset = (y * yStride).toInt() * lineWidth + (x * xStride).toInt() * 3
-                    val valueR = min(max((array[offset] * 255).toInt(), 0), 255) and 0xFF
-                    val valueG = min(max((array[offset + 1] * 255).toInt(), 0), 255) and 0xFF
-                    val valueB = min(max((array[offset + 2] * 255).toInt(), 0), 255) and 0xFF
+                    val valueR = min(max((imageData[offset] * 255).toInt(), 0), 255) and 0xFF
+                    val valueG = min(max((imageData[offset + 1] * 255).toInt(), 0), 255) and 0xFF
+                    val valueB = min(max((imageData[offset + 2] * 255).toInt(), 0), 255) and 0xFF
                     val colour = (0xFF shl 24) or (valueR shl 16) or (valueG shl 8) or valueB
                     pixelWriter.setArgb(x, y, colour)
                 }
@@ -198,12 +221,8 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int) {
         }
     }
 
-    fun repaintContent2D(width: Int, height: Int, array: DoubleArray) {
-        content.get()?.repaintCanvas2D(width, height, array)
-    }
-
-    fun repaintContent3D(width: Int, height: Int, array: DoubleArray) {
-        content.get()?.repaintCanvas3D(width, height, array)
+    fun repaintContent(imageData: ImageData) {
+        content.get()?.updateArrayAndRepaint(imageData)
     }
 }
 
