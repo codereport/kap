@@ -49,10 +49,10 @@ open class KAPEditorStyledArea<P, S>(
         client.renderContext.extendedInput().keymap.forEach { e ->
             val modifiers =
                 if (e.key.shift) arrayOf(KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN) else arrayOf(KeyCombination.ALT_DOWN)
-            val v = InputMap.consume(EventPattern.keyTyped(e.key.character, *modifiers), { replaceSelection(e.value) })
+            val v = InputMap.consume(EventPattern.keyTyped(e.key.character, *modifiers), { replaceSelectionWithDisplay(e.value) })
             entries.add(v)
         }
-        entries.add(InputMap.consume(EventPattern.keyTyped(" ", KeyCombination.ALT_DOWN), { replaceSelection(" ") }))
+        entries.add(InputMap.consume(EventPattern.keyTyped(" ", KeyCombination.ALT_DOWN), { replaceSelectionWithDisplay(" ") }))
         addInputMappings(entries)
 
         // Prefix input
@@ -68,7 +68,7 @@ open class KAPEditorStyledArea<P, S>(
     private fun makePrefixInputKeymap(prefixChar: String): InputMap<out Event> {
         fun disableAndAdd(s: String) {
             prefixActive = false
-            replaceSelection(s)
+            replaceSelectionWithDisplay(s)
         }
 
         fun processKey(event: KeyEvent) {
@@ -101,7 +101,7 @@ open class KAPEditorStyledArea<P, S>(
                 }
                 event.character == " " && emptyKeyModifiers(event) -> {
                     prefixActive = false
-                    replaceSelection(prefixChar)
+                    replaceSelectionWithDisplay(prefixChar)
                     InputHandler.Result.CONSUME
                 }
                 else -> {
@@ -112,12 +112,21 @@ open class KAPEditorStyledArea<P, S>(
                     if (charMapping == null) {
                         InputHandler.Result.PROCEED
                     } else {
-                        replaceSelection(charMapping)
+                        replaceSelectionWithDisplay(charMapping)
                         InputHandler.Result.CONSUME
                     }
                 }
             }
         })
         return InputMap.sequence(*entries.toTypedArray())
+    }
+
+    fun showBottomParagraphAtTop() {
+        showParagraphAtTop(document.paragraphs.size - 1)
+    }
+
+    fun replaceSelectionWithDisplay(s: String) {
+        replaceSelection(s)
+        showBottomParagraphAtTop()
     }
 }

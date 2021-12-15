@@ -47,8 +47,8 @@ class ResizableCanvas : Canvas() {
     }
 
     override fun resize(width: Double, height: Double) {
-        this.setWidth(width)
-        this.setHeight(height)
+        this.width = width
+        this.height = height
     }
 
     fun addOnSizeChangeCallback(fn: () -> Unit) {

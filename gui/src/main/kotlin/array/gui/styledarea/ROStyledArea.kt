@@ -201,10 +201,6 @@ class ROStyledArea(
         showBottomParagraphAtTop()
     }
 
-    fun showBottomParagraphAtTop() {
-        showParagraphAtTop(document.paragraphs.size - 1)
-    }
-
     fun appendErrorMessage(text: String) {
         withUpdateEnabled {
             val inputPos = findInputStartEnd()
