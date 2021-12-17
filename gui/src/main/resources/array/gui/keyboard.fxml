@@ -7,13 +7,13 @@
 <BorderPane xmlns="http://javafx.com/javafx"
             xmlns:fx="http://javafx.com/fxml"
             fx:controller="array.gui.KeyboardHelp"
-            id="borderPane">
+            fx:id="borderPane">
     <center>
-        <GridPane prefWidth="600.0" prefHeight="400.0"
-                  vgap="1"
-                  hgap="1"
+        <GridPane prefWidth="600.0" prefHeight="350.0"
+                  vgap="2"
+                  hgap="2"
                   style="-fx-background-color: red;"
-                  id="gridPane"
+                  fx:id="gridPane"
                   stylesheets="@keyboard.css">
             <fx:define>
                 <Integer fx:id="keywidth" fx:value="28"/>

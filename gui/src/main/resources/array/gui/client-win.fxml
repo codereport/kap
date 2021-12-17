@@ -1,0 +1,53 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane prefHeight="1000.0" prefWidth="800.0" xmlns="http://javafx.com/javafx/16"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="array.gui.ClientWin">
+    <top>
+        <VBox BorderPane.alignment="CENTER">
+            <children>
+                <MenuBar>
+                    <menus>
+                        <Menu mnemonicParsing="false" text="File">
+                            <items>
+                                <MenuItem mnemonicParsing="false" text="New"/>
+                                <MenuItem mnemonicParsing="false" text="Open"/>
+                                <MenuItem mnemonicParsing="false" text="Settings"/>
+                                <MenuItem mnemonicParsing="false" text="Close"/>
+                            </items>
+                        </Menu>
+                        <Menu mnemonicParsing="false" text="Window">
+                            <items>
+                                <MenuItem mnemonicParsing="false" text="Keyboard"/>
+                                <MenuItem mnemonicParsing="false" text="Functions"/>
+                                <MenuItem mnemonicParsing="false" text="Array Editor"/>
+                            </items>
+                        </Menu>
+                        <Menu mnemonicParsing="false" text="Help">
+                            <items>
+                                <MenuItem mnemonicParsing="false" text="About"/>
+                            </items>
+                        </Menu>
+                    </menus>
+                </MenuBar>
+                <ToolBar prefHeight="40.0" prefWidth="200.0">
+                    <items>
+                        <HBox alignment="BASELINE_LEFT">
+                            <children>
+                                <Label text="Working Directory:">
+                                    <HBox.margin>
+                                        <Insets left="5.0" right="5.0"/>
+                                    </HBox.margin>
+                                </Label>
+                                <TextField prefColumnCount="20"/>
+                            </children>
+                        </HBox>
+                        <Button mnemonicParsing="false" text="Stop"/>
+                    </items>
+                </ToolBar>
+            </children>
+        </VBox>
+    </top>
+</BorderPane>

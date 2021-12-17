@@ -21,44 +21,11 @@ class KeyboardHelpWindow(renderContext: ClientRenderContext) {
         val loader = FXMLLoader(javaClass.getResource("keyboard.fxml"))
         val root: Parent = loader.load()
         val controller: KeyboardHelp = loader.getController()
-        controller.borderPane = root as BorderPane
-        val grid = root.center as GridPane
-        grid.setMaxSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE)
-        controller.gridPane = grid
         controller.init(renderContext)
         val scene = Scene(root, 800.0, 300.0)
         stage.title = "Keyboard Layout"
         stage.scene = scene
     }
-
-//    init {
-//        val bp = BorderPane().apply {
-//            style = "-fx-background-color: red;"
-//            center = GridPane().apply {
-//                style = "-fx-background-color: green;"
-//                setMaxSize(Region.USE_COMPUTED_SIZE, Region.USE_COMPUTED_SIZE)
-//
-//                fun addCell(name: String, col: Int, row: Int, colour: String? = null) {
-//                    add(Button(name).also { b ->
-//                        if (colour != null) {
-//                            b.style = "-fx-background-color: $colour;"
-//                        }
-//                        GridPane.setConstraints(b, col, row, 1, 1, HPos.CENTER, VPos.CENTER, Priority.ALWAYS, Priority.ALWAYS)
-//                        b.maxWidth = Double.MAX_VALUE
-//                        b.maxHeight = Double.MAX_VALUE
-//                    }, col, row)
-//                }
-//
-//                addCell("[0,0]", 0, 0, "blue")
-//                addCell("[1,0]", 1, 0)
-//                addCell("[0,1]", 0, 1)
-//                addCell("[1,1]", 1, 1, "yellow")
-//            }
-//        }
-//        val scene = Scene(bp, 800.0, 600.0)
-//        stage.title = "Foo"
-//        stage.scene = scene
-//    }
 
     fun show() {
         stage.show()
@@ -66,13 +33,13 @@ class KeyboardHelpWindow(renderContext: ClientRenderContext) {
 }
 
 class KeyboardHelp {
-    @FXML
-    @JvmField
-    var borderPane: BorderPane? = null
+    @get:FXML
+    @set:FXML
+    lateinit var borderPane: BorderPane
 
-    @FXML
-    @JvmField
-    var gridPane: GridPane? = null
+    @get:FXML
+    @set:FXML
+    lateinit var gridPane: GridPane
 
     lateinit var renderContext: ClientRenderContext
 
@@ -87,11 +54,11 @@ class KeyboardHelp {
     fun updateShortcuts() {
         renderContext.extendedInput().keymap.forEach { (key, value) ->
             forEachKeyLabel key@{ label ->
-                if (label.getUpperLabel() == key.character) {
+                if (label.upperLabel == key.character) {
                     label.setAltUpperLabel(value)
                     return@key
                 }
-                if (label.getLowerLabel() == key.character) {
+                if (label.lowerLabel == key.character) {
                     label.setAltLowerLabel(value)
                     return@key
                 }
@@ -100,7 +67,7 @@ class KeyboardHelp {
     }
 
     fun forEachKeyLabel(fn: (KeyboardButtonLabel) -> Unit) {
-        gridPane!!.children.forEach { label ->
+        gridPane.children.forEach { label ->
             if (label is KeyboardButtonLabel) {
                 fn(label)
             }
@@ -116,8 +83,6 @@ class KeyboardButtonLabel : AnchorPane() {
 
     private var altUpperLabel: String = ""
     private var altLowerLabel: String = ""
-    private var upperLabel: String = ""
-    private var lowerLabel: String = ""
     var clickable: Boolean = true
 
     init {
@@ -146,27 +111,27 @@ class KeyboardButtonLabel : AnchorPane() {
         setRightAnchor(lowerFx, margin)
     }
 
+    @get:FXML
+    @set:FXML
+    var upperLabel: String = ""
+        get() = field
+        set(s) {
+            upperFx.text = s
+            field = s
+        }
+
+    @get:FXML
+    @set:FXML
+    var lowerLabel: String = ""
+        get() = field
+        set(s) {
+            lowerFx.text = s
+            field = s
+        }
+
     private fun handleClick(s: String) {
         println("send '${s}' to window")
     }
-
-    @FXML
-    fun setUpperLabel(s: String) {
-        upperLabel = s
-        upperFx.text = s
-    }
-
-    @FXML
-    fun getUpperLabel() = upperLabel
-
-    @FXML
-    fun setLowerLabel(s: String) {
-        lowerLabel = s
-        lowerFx.text = s
-    }
-
-    @FXML
-    fun getLowerLabel() = lowerLabel
 
     fun setAltUpperLabel(s: String) {
         altUpperLabel = s
