@@ -48,8 +48,9 @@ class Client(val application: ClientApplication, val stage: Stage) {
         engine.standardOutput = SendToMainCharacterOutput()
         calculationQueue = CalculationQueue(engine)
 
-        val fontIn = javaClass.getResourceAsStream("fonts/FreeMono.otf")
-        inputFont = fontIn.use { Font.loadFont(it, 18.0) ?: throw IllegalStateException("Unable to load font") }
+        inputFont = javaClass.getResourceAsStream("fonts/FreeMono.otf").use {
+            Font.loadFont(it, 18.0) ?: throw IllegalStateException("Unable to load font")
+        }
 
         resultList = ResultList3(this)
 

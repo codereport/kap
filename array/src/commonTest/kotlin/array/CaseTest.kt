@@ -1,0 +1,87 @@
+package array
+
+import kotlin.test.Test
+import kotlin.test.assertFailsWith
+
+class CaseTest : APLTest() {
+    @Test
+    fun characterCase() {
+        parseAPLExpression("0 1 0 % \"abc\" \"FOO\"").let { result ->
+            assertString("aOc", result)
+        }
+    }
+
+    @Test
+    fun stringCase() {
+        parseAPLExpression("0 1 0 % (\"a1\" \"b1\" \"c1\") (\"a2\" \"b2\" \"c2\")").let { result ->
+            assertDimension(dimensionsOfSize(3), result)
+            assertString("a1", result.valueAt(0))
+            assertString("b2", result.valueAt(1))
+            assertString("c1", result.valueAt(2))
+        }
+    }
+
+    @Test
+    fun selectionArrayWrongDimensions() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("0 1 % (1 2 3) (4 5 6)")
+        }
+    }
+
+    @Test
+    fun selectionIndexOutOfRange() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("0 1 2 % (1 2 3) (4 5 6)")
+        }
+    }
+
+    @Test
+    fun contentArrayInvalidDimension0() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("0 1 2 % (1 2 3 4) (4 5 6)")
+        }
+    }
+
+    @Test
+    fun contentArrayInvalidDimension1() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("0 1 2 % (1 2 3) (3 4 5 6)")
+        }
+    }
+
+    @Test
+    fun contentArrayInvalidDimension2() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("(2 2 ⍴ 0 0 1 0) % (1 2 3 4) (4 5 6 7)")
+        }
+    }
+
+    @Test
+    fun contentArrayInvalidDimension3() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("(2 3 ⍴ 0 0 1 0 1 1 1 0) % (1 2 3 4 5 6) (10 11 12 13 14 15 16)")
+        }
+    }
+
+    @Test
+    fun contentArrayInvalidDimension4() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("(2 2 ⍴ 0 0 1 0) % (2 2 ⍴ 1 2 3 4) (4 5 6 7)")
+        }
+    }
+
+    @Test
+    fun contentArrayInvalidDimension5() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("(2 2 ⍴ 0 0 1 0) % (1 2 3 4) (2 2 ⍴ 4 5 6 7)")
+        }
+    }
+
+    @Test
+    fun twoDimensionalCase() {
+        parseAPLExpression("(2 2 ⍴ 0 0 1 0) % (2 2 ⍴ ⍳4) (2 2 ⍴ 100+⍳4)").let { result ->
+            assertDimension(dimensionsOfSize(2, 2), result)
+            assertArrayContent(arrayOf(0, 1, 102, 3), result)
+        }
+    }
+}

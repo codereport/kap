@@ -76,7 +76,10 @@ private fun arrayToKeywords(engine: Engine, a: APLValue, pos: Position, allowed:
     return a0.membersSequence().map { v ->
         val sym = v.ensureSymbol(pos).value
         if (sym.namespace != engine.keywordNamespace) {
-            throwAPLException(APLIllegalArgumentException("Unexpected keyword argument: ${sym}", pos))
+            throwAPLException(APLIllegalArgumentException("Left arguments must be in keyword namespace: ${sym}", pos))
+        }
+        if (!allowed.contains(sym.symbolName)) {
+            throwAPLException(APLIllegalArgumentException("Unexpected keyword: ${sym}", pos))
         }
         sym.symbolName
     }.toSet()

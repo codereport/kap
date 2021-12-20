@@ -1592,3 +1592,38 @@ class IntersectionAPLFunction : APLFunctionDescriptor {
 
     override fun make(pos: Position) = IntersectionAPLFunctionImpl(pos.withName("intersection"))
 }
+
+class CaseValue(val selectionArray: APLValue, val values: List<APLValue>, val pos: Position) : APLArray() {
+    override val dimensions get() = selectionArray.dimensions
+
+    override fun valueAt(p: Int): APLValue {
+        val index = selectionArray.valueAtInt(p, pos)
+        if (index < 0 || index >= values.size) {
+            throwAPLException(InvalidDimensionsException("Attempt to read index ${index} from array (n=${values.size}", pos))
+        }
+        return values[index].valueAt(p)
+    }
+}
+
+class CaseFunction : APLFunctionDescriptor {
+    class CaseFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            val bDimensions = b.dimensions
+            if (bDimensions.size != 1) {
+                throwAPLException(InvalidDimensionsException("Right argument must be a 1-dimensional array", pos))
+            }
+            val aDimensions = a.dimensions
+            val values = b.membersSequence().map { v ->
+                unless(v.dimensions.compareEquals(aDimensions)) {
+                    throwAPLException(InvalidDimensionsException("Unmatched dimensions in selection list", pos))
+                }
+                v
+            }.toList()
+            return CaseValue(a, values, pos)
+        }
+    }
+
+    override fun make(pos: Position) = CaseFunctionImpl(pos.withName("case"))
+}
+
+

@@ -288,6 +288,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("∩", IntersectionAPLFunction())
         registerNativeFunction("!", BinomialAPLFunction())
         registerNativeFunction("⍎", ParseNumberFunction())
+        registerNativeFunction("%", CaseFunction())
 
         // hash tables
         registerNativeFunction("map", MapAPLFunction())
