@@ -1,6 +1,7 @@
 package array
 
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class CaseTest : APLTest() {
@@ -84,4 +85,22 @@ class CaseTest : APLTest() {
             assertArrayContent(arrayOf(0, 1, 102, 3), result)
         }
     }
+
+    @Test
+    fun caseWithLazy() {
+        parseAPLExpressionWithOutput("0 0 1 1 1 1 % (io:print¨0 1 2 3 4 5) (io:print¨100 101 102 103 104 105)").let { (result, out) ->
+            assertDimension(dimensionsOfSize(6), result)
+            assertArrayContent(arrayOf(0, 1, 102, 103, 104, 105), result)
+            assertEquals("01102103104105", out)
+        }
+    }
+
+    @Test
+    fun multiSelection() {
+        parseAPLExpression("0 10 2 2 % (100×⍳11) + 11 ⍴ (⊂0 1 2 3)").let { result ->
+            assertDimension(dimensionsOfSize(4), result)
+            assertArrayContent(arrayOf(0, 1001, 202, 203), result)
+        }
+    }
+
 }
