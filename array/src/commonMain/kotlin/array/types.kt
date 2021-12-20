@@ -517,10 +517,6 @@ class APLMap(val content: ImmutableMap2<APLValueKey, APLValue>) : APLSingleValue
         }
         return APLArrayImpl(dimensionsOfSize(res.size / 2, 2), res.toTypedArray())
     }
-
-    companion object {
-        fun makeEmptyMap() = APLMap(ImmutableMap2())
-    }
 }
 
 class APLList(val elements: List<APLValue>) : APLSingleValue() {
@@ -758,7 +754,7 @@ class APLChar(val value: Int) : APLSingleValue() {
         if (reference is APLChar) {
             return value.compareTo(reference.value)
         } else {
-            throwAPLException(IncompatibleTypeException("Chars must be compared to chars", pos))
+            throwAPLException(IncompatibleTypeException("Comparing char to non-char type", pos))
         }
     }
 

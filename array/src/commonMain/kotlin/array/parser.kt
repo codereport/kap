@@ -520,7 +520,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                         tokeniser.pushBackToken(fnDefToken)
                         val fn = lookupFunction(token)
                         if (fn != null) {
-                            return processFn(fn.make(pos), leftArgs)
+                            return processFn(fn.make(pos.withCallerName(token.symbolName)), leftArgs)
                         } else {
                             leftArgs.add(makeVariableRef(token, pos))
                         }
@@ -733,7 +733,7 @@ class APLParser(val tokeniser: TokenGenerator) {
             when (token) {
                 is Symbol -> {
                     val op = tokeniser.engine.getOperator(token) ?: break
-                    currentFn = op.parseAndCombineFunctions(this, currentFn, opPos)
+                    currentFn = op.parseAndCombineFunctions(this, currentFn, opPos.withCallerName(token.symbolName))
                 }
                 else -> break
             }

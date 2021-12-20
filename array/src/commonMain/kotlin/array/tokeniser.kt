@@ -133,8 +133,9 @@ class FileSourceLocation(private val file: String) : SourceLocation {
     override fun open() = openCharFile(file)
 }
 
-data class Position(val source: SourceLocation, val line: Int, val col: Int, val name: String? = null) {
+data class Position(val source: SourceLocation, val line: Int, val col: Int, val name: String? = null, val callerName: String? = null) {
     fun withName(s: String) = copy(name = s)
+    fun withCallerName(s: String) = copy(callerName = s)
 }
 
 class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {

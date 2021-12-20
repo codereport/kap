@@ -8,13 +8,24 @@ open class APLGenericException(message: String, val pos: Position? = null, cause
     var extendedDescription: String? = null
 
     fun formattedError(): String {
-        val exceptionText = message ?: "no message"
-        return if (pos != null) {
-            val name = if(pos.name != null) "function ${pos.name}: " else ""
-            "Error at: ${pos.line + 1}:${pos.col + 1}: ${name}${exceptionText}"
+        val buf = StringBuilder()
+        if (pos != null) {
+            buf.append("Error at: ${pos.line + 1}:${pos.col}: ")
+            if (pos.name != null) {
+                buf.append("in function: ${pos.name}: ")
+            }
+            if (pos.callerName != null) {
+                buf.append("name: ${pos.callerName}: ")
+            }
         } else {
-            "Error: ${exceptionText}"
+            buf.append("Error: ")
         }
+        if (message != null) {
+            buf.append(message)
+        } else {
+            buf.append("no message")
+        }
+        return buf.toString()
     }
 
     override fun toString() = formattedError()

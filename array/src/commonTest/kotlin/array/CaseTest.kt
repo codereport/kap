@@ -102,5 +102,4 @@ class CaseTest : APLTest() {
             assertArrayContent(arrayOf(0, 1001, 202, 203), result)
         }
     }
-
 }
