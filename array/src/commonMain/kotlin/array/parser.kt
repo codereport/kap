@@ -188,7 +188,7 @@ class APLParser(val tokeniser: TokenGenerator) {
     private fun makeResultList(leftArgs: List<Instruction>): Instruction? {
         return when {
             leftArgs.isEmpty() -> null
-            leftArgs.size == 1 -> LiteralScalarValue(leftArgs[0])
+            leftArgs.size == 1 -> leftArgs[0]
             else -> Literal1DArray.make(leftArgs)
         }
     }
@@ -237,13 +237,6 @@ class APLParser(val tokeniser: TokenGenerator) {
                     throw IncompatibleTypeParseException("Destructuring variable list must only contain variable names", pos)
                 }
                 instr.binding
-            }
-            is LiteralScalarValue -> {
-                val instr = dest.value
-                if (instr !is VariableRef) {
-                    throw IncompatibleTypeParseException("Destructuring variable list must only contain variable names", pos)
-                }
-                arrayOf(instr.binding)
             }
             else -> throw IncompatibleTypeParseException("Attempt to assign to a type which is not a variable or variable list", pos)
         }

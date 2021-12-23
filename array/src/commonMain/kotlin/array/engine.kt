@@ -447,6 +447,15 @@ class Engine(numComputeEngines: Int? = null) {
     fun getFunction(name: Symbol) = functions[resolveAlias(name)]
     fun getOperator(name: Symbol) = operators[resolveAlias(name)]
 
+    fun parse(source: SourceLocation): Instruction {
+        val tokeniser = TokenGenerator(this, source)
+        exportedSingleCharFunctions.forEach { token ->
+            tokeniser.registerSingleCharFunction(token)
+        }
+        val parser = APLParser(tokeniser)
+        return parser.parseValueToplevel(EndOfFile)
+    }
+
     fun parseAndEval(source: SourceLocation, newContext: Boolean): APLValue {
         withThreadLocalAssigned {
             val tokeniser = TokenGenerator(this, source)

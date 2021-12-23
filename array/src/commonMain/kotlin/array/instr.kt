@@ -160,11 +160,6 @@ class Literal1DArray private constructor(val values: List<Instruction>, pos: Pos
     }
 }
 
-class LiteralScalarValue(val value: Instruction) : Instruction(value.pos) {
-    override fun evalWithContext(context: RuntimeContext) = value.evalWithContext(context)
-    override fun toString() = "LiteralScalarValue(${value})"
-}
-
 class LiteralInteger(value: Long, pos: Position) : Instruction(pos) {
     private val valueInt = APLLong(value)
 

@@ -6,6 +6,7 @@ import array.gui.graphics.initGraphicCommands
 import array.gui.settings.Settings
 import array.gui.settings.loadSettings
 import array.gui.settings.saveSettings
+import array.gui.viewer.StructureViewer
 import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.geometry.Insets
@@ -117,6 +118,9 @@ class Client(val application: ClientApplication, val stage: Stage) {
                 })
                 items.add(MenuItem("Array Editor").apply {
                     onAction = EventHandler { ArrayEditor.open(this@Client) }
+                })
+                items.add(MenuItem("Structure Viewer").apply {
+                    onAction = EventHandler { StructureViewer.open(this@Client) }
                 })
             }
             menus.add(windowMenu)

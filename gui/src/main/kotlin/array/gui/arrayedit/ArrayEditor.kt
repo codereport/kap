@@ -21,12 +21,10 @@ class ArrayEditor {
     private lateinit var stage: Stage
 
     @FXML
-    @JvmField
-    var table: TableView<ArrayEditorRow>? = null
+    lateinit var table: TableView<ArrayEditorRow>
 
     @FXML
-    @JvmField
-    var variableField: TextField? = null
+    lateinit var variableField: TextField
 
     var client: Client? = null
 
@@ -47,8 +45,8 @@ class ArrayEditor {
     }
 
     private fun loadFromField() {
-        println("Variable name: ${variableField?.text}")
-        val name = variableField!!.text.trim()
+        println("Variable name: ${variableField.text}")
+        val name = variableField.text.trim()
         client!!.calculationQueue.pushReadVariableRequest(name) { result ->
             if (result != null) {
                 val v = result.collapse()
@@ -60,10 +58,10 @@ class ArrayEditor {
     }
 
     private fun saveFromField() {
-        println("Variable name: ${variableField?.text}")
-        val name = variableField!!.text.trim()
+        println("Variable name: ${variableField.text}")
+        val name = variableField.text.trim()
         client!!.calculationQueue.pushWriteVariableRequest(name, makeArrayContent()) { result ->
-            if(result != null) {
+            if (result != null) {
                 result.printStackTrace()
             }
         }
@@ -83,17 +81,17 @@ class ArrayEditor {
                 text = columnLabels?.get(index)?.title ?: index.toString()
             }
         }
-        table!!.columns.setAll(colList)
+        table.columns.setAll(colList)
 
         val rows = (0 until d[0]).map { i -> ArrayEditorRow(value, i, d[1]) }.toTypedArray()
-        table!!.items = FXCollections.observableArrayList()
-        table!!.items.setAll(*rows)
+        table.items = FXCollections.observableArrayList()
+        table.items.setAll(*rows)
     }
 
     private fun makeArrayContent(): APLValue {
-        val items = table!!.items
+        val items = table.items
         val numRows = items.size
-        val numCols = table!!.columns.size
+        val numCols = table.columns.size
         val content = ArrayList<APLValue>()
         items.forEach { row ->
             content.addAll(row.values)
@@ -131,7 +129,7 @@ class ArrayEditor {
             controller.stage.title = "Array Editor"
             controller.stage.scene = scene
 
-            controller.table!!.contextMenu = ContextMenu(MenuItem("Paste").apply { onAction = EventHandler { controller.pasteToTable() } })
+            controller.table.contextMenu = ContextMenu(MenuItem("Paste").apply { onAction = EventHandler { controller.pasteToTable() } })
 
             return controller
         }

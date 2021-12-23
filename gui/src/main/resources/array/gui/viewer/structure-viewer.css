@@ -1,0 +1,25 @@
+.structure-label {
+    -fx-border-color: black;
+    -fx-padding: 5px;
+}
+
+.call2 {
+    -fx-background-color: #e0e0e0;
+}
+
+.call1 {
+    -fx-background-color: #e0e0e0;
+}
+
+.number-label {
+    -fx-background-color: #80ff80;
+}
+
+.labelled-container {
+    -fx-border-color: black;
+    -fx-padding: 5px;
+}
+
+.labelled-container-title {
+    -fx-font-size: 10;
+}
