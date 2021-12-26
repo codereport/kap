@@ -181,6 +181,7 @@ class LiteralComplex(value: Complex, pos: Position) : Instruction(pos) {
 
     override fun evalWithContext(context: RuntimeContext) = valueInt
     override fun toString() = "LiteralComplex[value=$valueInt]"
+    val value get() = valueInt.asComplex()
 }
 
 class LiteralCharacter(value: Int, pos: Position) : Instruction(pos) {
