@@ -34,9 +34,10 @@
         </HBox>
     </top>
     <center>
-        <ScrollPane prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
+        <ScrollPane fitToHeight="true" fitToWidth="true" BorderPane.alignment="CENTER">
             <content>
-                <Pane fx:id="graphContentPane" minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0"/>
+                <Pane fx:id="graphContentPane" minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0"
+                      styleClass="viewer-scroll"/>
             </content>
         </ScrollPane>
     </center>

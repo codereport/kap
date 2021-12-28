@@ -4,6 +4,7 @@ import array.*
 import array.gui.Client
 import javafx.event.ActionEvent
 import javafx.fxml.FXMLLoader
+import javafx.scene.Group
 import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.Scene
@@ -11,10 +12,13 @@ import javafx.scene.control.Label
 import javafx.scene.control.TextField
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.Pane
+import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import javafx.scene.shape.Line
+import javafx.scene.text.Font
+import javafx.scene.text.Text
 import javafx.stage.Stage
-import kotlin.math.max
+import kotlin.math.*
 
 class StructureViewer {
     lateinit var graphContentPane: Pane
@@ -27,6 +31,7 @@ class StructureViewer {
     }
 
     private fun parseExpression(text: String) {
+        val text = "1 ((+-*)%!) foo"
         val instr = client.engine.parse(StringSourceLocation(text))
         graphContentPane.children.clear()
         val graph = createGraph(instr)
@@ -83,7 +88,9 @@ class Graph(val pane: Pane) {
             links.forEach { link ->
                 val (x1, y1) = link.upValue.downPos()
                 val (x2, y2) = link.downValue.upPos()
-                pane.children.add(Line(x1, y1, x2, y2))
+                val l = link.makeLine(x1, y1, x2, y2)
+                pane.children.add(l)
+                l.viewOrder = 10.0
             }
         }
     }
@@ -104,19 +111,51 @@ abstract class KNode(val graph: Graph) {
     abstract fun upPos(): Coord
 }
 
-abstract class KNode1Arg(graph: Graph) : KNode(graph) {
-    abstract val rightArgLink: KNode
+abstract class KNode1Arg(graph: Graph) : KNode(graph)
+abstract class KNode2Arg(graph: Graph) : KNode(graph)
+
+abstract class KNodeLink(val upValue: KNode, val downValue: KNode) {
+    abstract fun makeLine(x1: Double, y1: Double, x2: Double, y2: Double): Node
 }
 
-abstract class KNode2Arg(graph: Graph, val leftArgLink: KNode, val rightArgLink: KNode) : KNode(graph)
+class LeftArgLink(upValue: KNode, downValue: KNode) : KNodeLink(upValue, downValue) {
+    override fun makeLine(x1: Double, y1: Double, x2: Double, y2: Double): Node {
+        return Line(x1, y1, x2, y2).apply {
+            styleClass.add("left-arg-line")
+        }
+    }
+}
 
-abstract class KNodeLink(val upValue: KNode, val downValue: KNode)
-class LeftArgLink(upValue: KNode, downValue: KNode) : KNodeLink(upValue, downValue)
-class RightArgLink(upValue: KNode, downValue: KNode) : KNodeLink(upValue, downValue)
+class RightArgLink(upValue: KNode, downValue: KNode) : KNodeLink(upValue, downValue) {
+    override fun makeLine(x1: Double, y1: Double, x2: Double, y2: Double): Node {
+        // Make sure line is top-to-bottom
+        assert(y1 <= y2)
+
+        val line = Line(x1, y1, x2, y2).apply {
+            styleClass.add("right-arg-line")
+        }
+        val label = Text("Right").apply {
+            font = Font.font(8.0)
+
+            val a = atan2(y2 - y1, x2 - x1)
+            rotate = (if (x2 < x1) (a + PI).rem(PI * 2) else a) * (360.0 / (PI * 2))
+            relocate(
+                min(x1, x2) + abs((x2 - x1) / 2),
+                min(y1, y2) + abs((y2 - y1) / 2))
+        }
+//        val l2 = Text("Ref").apply {
+//            relocate(
+//                min(x1, x2) + abs((x2 - x1) / 2),
+//                min(y1, y2) + abs((y2 - y1) / 2))
+//        }
+        return Group(line, label)
+    }
+}
 
 fun makeNodeFromInstr(graph: Graph, instr: Instruction): KNode {
     val node = when (instr) {
         is LiteralInteger -> LiteralIntegerGraphNode(graph, instr)
+        is VariableRef -> VarRefGraphNode(graph, instr)
         is FunctionCall2Arg -> makeFunctionCall2ArgGraphNodeFromInstruction(graph, instr.fn, instr.leftArgs, instr.rightArgs)
         else -> throw CreateGraphException("Unsupported instruction type: ${instr}")
     }
@@ -124,9 +163,7 @@ fun makeNodeFromInstr(graph: Graph, instr: Instruction): KNode {
     return node
 }
 
-class LiteralIntegerGraphNode(graph: Graph, instr: LiteralInteger) : KNode(graph) {
-    private val label = LabelledContainer("Integer", Label(instr.value.toString()))
-
+abstract class SimpleGraphNode(graph: Graph, val label: Region) : KNode(graph) {
     init {
         graph.pane.children.add(label)
     }
@@ -146,6 +183,12 @@ class LiteralIntegerGraphNode(graph: Graph, instr: LiteralInteger) : KNode(graph
         return Coord(label.layoutX + label.width / 2, label.layoutY)
     }
 }
+
+class LiteralIntegerGraphNode(graph: Graph, instr: LiteralInteger) :
+    SimpleGraphNode(graph, LabelledContainer("Integer", Label(instr.value.toString())))
+
+class VarRefGraphNode(graph: Graph, instr: VariableRef) :
+    SimpleGraphNode(graph, LabelledContainer("Variable", Label(instr.name.nameWithNamespace())))
 
 private fun fnName(fn: APLFunction): String {
     val pos = fn.pos
@@ -219,7 +262,7 @@ class ContainerGraphNode(
 
 class FunctionCall2ArgGraphNode(
     graph: Graph, fn: APLFunction, leftArgLink: KNode, rightArgLink: KNode
-) : KNode2Arg(graph, leftArgLink, rightArgLink) {
+) : KNode2Arg(graph) {
 
     private val label = LabelledContainer("Call2", Label(fnName(fn)))
 
@@ -266,7 +309,7 @@ class Chain3GraphNode(graph: Graph, fn: FunctionCallChain.Chain3, leftArgLink: K
         val rBounds = rightNode.bounds()
         val bottomWidth = lBounds.width + rBounds.width + NODE_SPACING_HORIZ
         middleNode.computePosition(x + (b.width - mBounds.width) / 2, y)
-        val yOffset = mBounds.height + NODE_SPACING_VERT
+        val yOffset = y + mBounds.height + NODE_SPACING_VERT
         val lx = x + (b.width - bottomWidth) / 2
         leftNode.computePosition(lx, yOffset)
         rightNode.computePosition(lx + lBounds.width + NODE_SPACING_HORIZ, yOffset)
@@ -276,5 +319,5 @@ class Chain3GraphNode(graph: Graph, fn: FunctionCallChain.Chain3, leftArgLink: K
         TODO("not implemented")
     }
 
-    override fun upPos() = leftNode.upPos()
+    override fun upPos() = middleNode.upPos()
 }
