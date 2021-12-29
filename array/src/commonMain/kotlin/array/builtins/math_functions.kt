@@ -573,7 +573,7 @@ class PowerAPLFunction : APLFunctionDescriptor {
         override fun identityValue() = APLLONG_1
     }
 
-    override fun make(pos: Position) = PowerAPLFunctionImpl(pos)
+    override fun make(pos: Position) = PowerAPLFunctionImpl(pos.withName("power"))
 }
 
 fun complexFloor(z: Complex): Complex {
