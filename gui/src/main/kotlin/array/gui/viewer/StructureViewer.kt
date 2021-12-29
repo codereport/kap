@@ -15,10 +15,8 @@ import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import javafx.scene.shape.Line
-import javafx.scene.text.Font
-import javafx.scene.text.Text
 import javafx.stage.Stage
-import kotlin.math.*
+import kotlin.math.max
 
 class StructureViewer {
     lateinit var graphContentPane: Pane
@@ -31,7 +29,6 @@ class StructureViewer {
     }
 
     private fun parseExpression(text: String) {
-        val text = "1 ((+-*)%!) foo"
         val instr = client.engine.parse(StringSourceLocation(text))
         graphContentPane.children.clear()
         val graph = createGraph(instr)
@@ -107,7 +104,11 @@ private const val NODE_SPACING_VERT = 50.0
 abstract class KNode(val graph: Graph) {
     abstract fun bounds(): BoundsDimensions
     abstract fun computePosition(x: Double, y: Double)
-    abstract fun downPos(): Coord
+
+    open fun downPos(): Coord {
+        throw IllegalStateException("No down position for this node type")
+    }
+
     abstract fun upPos(): Coord
 }
 
@@ -118,9 +119,40 @@ abstract class KNodeLink(val upValue: KNode, val downValue: KNode) {
     abstract fun makeLine(x1: Double, y1: Double, x2: Double, y2: Double): Node
 }
 
+private fun makeLabelLine(x1: Double, y1: Double, x2: Double, y2: Double, label: String): Node {
+    // Make sure line is top-to-bottom
+    assert(y1 <= y2)
+
+    val line = Line(x1, y1, x2, y2).apply {
+        styleClass.add("node-line")
+    }
+//    val m1: Node
+//    val m2: Node
+//    val label = Text(label).apply {
+//        styleClass.add("node-line-label")
+//
+//        val a = atan2(y2 - y1, x2 - x1)
+//        transforms.add(Rotate((if (x2 < x1) (a + PI).rem(PI * 2) else a) * (360.0 / (PI * 2)), 0.0,0.0))
+//        relocate(
+//            min(x1, x2) + abs((x2 - x1) / 2),
+//            min(y1, y2) + abs((y2 - y1) / 2))
+////        m1 = Line(
+////            min(x1, x2) + abs((x2 - x1) / 2) - 5,
+////            min(y1, y2) + abs((y2 - y1) / 2) - 5,
+////            min(x1, x2) + abs((x2 - x1) / 2) + 5,
+////            min(y1, y2) + abs((y2 - y1) / 2) + 5)
+////        m2 = Line(
+////            min(x1, x2) + abs((x2 - x1) / 2) + 5,
+////            min(y1, y2) + abs((y2 - y1) / 2) - 5,
+////            min(x1, x2) + abs((x2 - x1) / 2) - 5,
+////            min(y1, y2) + abs((y2 - y1) / 2) + 5)
+//    }
+    return Group(line)
+}
+
 class LeftArgLink(upValue: KNode, downValue: KNode) : KNodeLink(upValue, downValue) {
     override fun makeLine(x1: Double, y1: Double, x2: Double, y2: Double): Node {
-        return Line(x1, y1, x2, y2).apply {
+        return makeLabelLine(x1, y1, x2, y2, "Left").apply {
             styleClass.add("left-arg-line")
         }
     }
@@ -128,27 +160,9 @@ class LeftArgLink(upValue: KNode, downValue: KNode) : KNodeLink(upValue, downVal
 
 class RightArgLink(upValue: KNode, downValue: KNode) : KNodeLink(upValue, downValue) {
     override fun makeLine(x1: Double, y1: Double, x2: Double, y2: Double): Node {
-        // Make sure line is top-to-bottom
-        assert(y1 <= y2)
-
-        val line = Line(x1, y1, x2, y2).apply {
+        return makeLabelLine(x1, y1, x2, y2, "Right").apply {
             styleClass.add("right-arg-line")
         }
-        val label = Text("Right").apply {
-            font = Font.font(8.0)
-
-            val a = atan2(y2 - y1, x2 - x1)
-            rotate = (if (x2 < x1) (a + PI).rem(PI * 2) else a) * (360.0 / (PI * 2))
-            relocate(
-                min(x1, x2) + abs((x2 - x1) / 2),
-                min(y1, y2) + abs((y2 - y1) / 2))
-        }
-//        val l2 = Text("Ref").apply {
-//            relocate(
-//                min(x1, x2) + abs((x2 - x1) / 2),
-//                min(y1, y2) + abs((y2 - y1) / 2))
-//        }
-        return Group(line, label)
     }
 }
 
@@ -156,6 +170,7 @@ fun makeNodeFromInstr(graph: Graph, instr: Instruction): KNode {
     val node = when (instr) {
         is LiteralInteger -> LiteralIntegerGraphNode(graph, instr)
         is VariableRef -> VarRefGraphNode(graph, instr)
+        is FunctionCall1Arg -> makeFunctionCall1ArgGraphNodeFromInstruction(graph, instr.fn, instr.rightArgs)
         is FunctionCall2Arg -> makeFunctionCall2ArgGraphNodeFromInstruction(graph, instr.fn, instr.leftArgs, instr.rightArgs)
         else -> throw CreateGraphException("Unsupported instruction type: ${instr}")
     }
@@ -193,13 +208,37 @@ class VarRefGraphNode(graph: Graph, instr: VariableRef) :
 private fun fnName(fn: APLFunction): String {
     val pos = fn.pos
     return when {
+        pos.callerName != null && pos.name != null -> "${pos.callerName} [${pos.name}]"
         pos.callerName != null -> pos.callerName!!
         pos.name != null -> pos.name!!
         else -> fn::class.simpleName ?: "unnamed"
     }
 }
 
-fun makeFunctionCall2ArgGraphNodeFromInstruction(graph: Graph, fn: APLFunction, leftArgs: Instruction, rightArgs: Instruction): KNode {
+private fun makeFunctionCall1ArgGraphNodeFromInstruction(graph: Graph, fn: APLFunction, rightArgs: Instruction): KNode {
+    val rightArgsNode = makeNodeFromInstr(graph, rightArgs)
+    val fnNode = makeFunctionCall1ArgGraphNodeFromFunction(fn, graph, rightArgsNode)
+    return ContainerGraphNode(graph, fnNode, rightArgsNode)
+}
+
+private fun makeFunctionCall1ArgGraphNodeFromFunction(
+    fn: APLFunction,
+    graph: Graph,
+    rightArgsNode: KNode
+): KNode {
+    return when (fn) {
+        is FunctionCallChain.Chain2 -> Chain2A1GraphNode(graph, fn, rightArgsNode)
+        is FunctionCallChain.Chain3 -> Chain3A1GraphNode(graph, fn, rightArgsNode)
+        else -> FunctionCall1ArgGraphNode(graph, fn, rightArgsNode)
+    }
+}
+
+private fun makeFunctionCall2ArgGraphNodeFromInstruction(
+    graph: Graph,
+    fn: APLFunction,
+    leftArgs: Instruction,
+    rightArgs: Instruction
+): KNode {
     val leftArgsNode = makeNodeFromInstr(graph, leftArgs)
     val rightArgsNode = makeNodeFromInstr(graph, rightArgs)
     val fnNode = makeFunctionCall2ArgGraphNodeFromFunction(fn, graph, leftArgsNode, rightArgsNode)
@@ -212,11 +251,11 @@ private fun makeFunctionCall2ArgGraphNodeFromFunction(
     leftArgsNode: KNode,
     rightArgsNode: KNode
 ): KNode {
-    val fnNode = when (fn) {
-        is FunctionCallChain.Chain3 -> Chain3GraphNode(graph, fn, leftArgsNode, rightArgsNode)
+    return when (fn) {
+        is FunctionCallChain.Chain2 -> Chain2A2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
+        is FunctionCallChain.Chain3 -> Chain3A2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
         else -> FunctionCall2ArgGraphNode(graph, fn, leftArgsNode, rightArgsNode)
     }
-    return fnNode
 }
 
 class ContainerGraphNode(
@@ -251,12 +290,34 @@ class ContainerGraphNode(
         }
     }
 
+    override fun upPos(): Coord {
+        return fnNode.upPos()
+    }
+}
+
+class FunctionCall1ArgGraphNode(
+    graph: Graph, fn: APLFunction, rightArgLink: KNode
+) : KNode1Arg(graph) {
+    private val label = LabelledContainer("Call1", Label(fnName(fn)))
+
+    init {
+        graph.pane.children.add(label)
+        graph.links.add(RightArgLink(this, rightArgLink))
+    }
+
+    override fun bounds() = BoundsDimensions(label.width, label.height)
+
+    override fun computePosition(x: Double, y: Double) {
+        label.layoutX = x
+        label.layoutY = y
+    }
+
     override fun downPos(): Coord {
-        TODO("not implemented")
+        return Coord(label.layoutX + label.width / 2, label.layoutY + label.height)
     }
 
     override fun upPos(): Coord {
-        return fnNode.upPos()
+        return Coord(label.layoutX + label.width / 2, label.layoutY)
     }
 }
 
@@ -288,9 +349,51 @@ class FunctionCall2ArgGraphNode(
     }
 }
 
-class Chain3GraphNode(graph: Graph, fn: FunctionCallChain.Chain3, leftArgLink: KNode, rightArgLink: KNode) : KNode(graph) {
-    val leftNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn0, graph, leftArgLink, rightArgLink)
-    val rightNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn2, graph, leftArgLink, rightArgLink)
+class Chain2A1GraphNode(graph: Graph, fn: FunctionCallChain.Chain2, rightArgLink: KNode) : KNode(graph) {
+    val rightNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn1, graph, rightArgLink)
+    val leftNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn0, graph, rightNode)
+
+    override fun bounds(): BoundsDimensions {
+        val lBounds = leftNode.bounds()
+        val rBounds = rightNode.bounds()
+        return BoundsDimensions(max(lBounds.width, rBounds.width), lBounds.height + NODE_SPACING_VERT + rBounds.height)
+    }
+
+    override fun computePosition(x: Double, y: Double) {
+        val b = bounds()
+        val lBounds = leftNode.bounds()
+        val rBounds = rightNode.bounds()
+        leftNode.computePosition(x + (b.width - lBounds.width) / 2, y)
+        rightNode.computePosition(x + (b.width - rBounds.width) / 2, y + rBounds.height + NODE_SPACING_VERT)
+    }
+
+    override fun upPos() = leftNode.upPos()
+}
+
+class Chain2A2GraphNode(graph: Graph, fn: FunctionCallChain.Chain2, leftArgLink: KNode, rightArgLink: KNode) : KNode(graph) {
+    val rightNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn1, graph, leftArgLink, rightArgLink)
+    val leftNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn0, graph, rightNode)
+
+    override fun bounds(): BoundsDimensions {
+        val lBounds = leftNode.bounds()
+        val rBounds = rightNode.bounds()
+        return BoundsDimensions(max(lBounds.width, rBounds.width), lBounds.height + NODE_SPACING_VERT + rBounds.height)
+    }
+
+    override fun computePosition(x: Double, y: Double) {
+        val b = bounds()
+        val lBounds = leftNode.bounds()
+        val rBounds = rightNode.bounds()
+        leftNode.computePosition(x + (b.width - lBounds.width) / 2, y)
+        rightNode.computePosition(x + (b.width - rBounds.width) / 2, y + rBounds.height + NODE_SPACING_VERT)
+    }
+
+    override fun upPos() = leftNode.upPos()
+}
+
+class Chain3A1GraphNode(graph: Graph, fn: FunctionCallChain.Chain3, rightArgLink: KNode) : KNode(graph) {
+    val leftNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn0, graph, rightArgLink)
+    val rightNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn2, graph, rightArgLink)
     val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn1, graph, leftNode, rightNode)
 
     override fun bounds(): BoundsDimensions {
@@ -315,8 +418,34 @@ class Chain3GraphNode(graph: Graph, fn: FunctionCallChain.Chain3, leftArgLink: K
         rightNode.computePosition(lx + lBounds.width + NODE_SPACING_HORIZ, yOffset)
     }
 
-    override fun downPos(): Coord {
-        TODO("not implemented")
+    override fun upPos() = middleNode.upPos()
+}
+
+class Chain3A2GraphNode(graph: Graph, fn: FunctionCallChain.Chain3, leftArgLink: KNode, rightArgLink: KNode) : KNode(graph) {
+    val leftNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn0, graph, leftArgLink, rightArgLink)
+    val rightNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn2, graph, leftArgLink, rightArgLink)
+    val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn1, graph, leftNode, rightNode)
+
+    override fun bounds(): BoundsDimensions {
+        val mBounds = middleNode.bounds()
+        val lBounds = leftNode.bounds()
+        val rBounds = rightNode.bounds()
+        val width = max(mBounds.width, lBounds.width + rBounds.width + NODE_SPACING_HORIZ)
+        val height = mBounds.height + NODE_SPACING_VERT + max(lBounds.height, rBounds.height)
+        return BoundsDimensions(width, height)
+    }
+
+    override fun computePosition(x: Double, y: Double) {
+        val b = bounds()
+        val mBounds = middleNode.bounds()
+        val lBounds = leftNode.bounds()
+        val rBounds = rightNode.bounds()
+        val bottomWidth = lBounds.width + rBounds.width + NODE_SPACING_HORIZ
+        middleNode.computePosition(x + (b.width - mBounds.width) / 2, y)
+        val yOffset = y + mBounds.height + NODE_SPACING_VERT
+        val lx = x + (b.width - bottomWidth) / 2
+        leftNode.computePosition(lx, yOffset)
+        rightNode.computePosition(lx + lBounds.width + NODE_SPACING_HORIZ, yOffset)
     }
 
     override fun upPos() = middleNode.upPos()

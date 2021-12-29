@@ -28,3 +28,7 @@
 .labelled-container-title {
     -fx-font-size: 8;
 }
+
+.node-line-label {
+    -fx-font-size: 8;
+}
