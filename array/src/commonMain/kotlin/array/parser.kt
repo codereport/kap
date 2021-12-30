@@ -4,7 +4,6 @@ import array.syntax.processCustomSyntax
 import array.syntax.processDefsyntax
 import array.syntax.processDefsyntaxSub
 
-//data class InstrTokenHolder(val instruction: Optional<Instruction>, val lastToken: Token, val pos: Position)
 sealed class ParseResultHolder(val lastToken: Token, val pos: Position) {
     class InstrParseResult(val instr: Instruction, lastToken: Token, pos: Position) : ParseResultHolder(lastToken, pos)
     class FnParseResult(val fn: APLFunction, leftArgs: List<Instruction>, lastToken: Token, pos: Position) :
@@ -193,10 +192,10 @@ class APLParser(val tokeniser: TokenGenerator) {
         }
     }
 
-    private fun processFn(fn: APLFunction, leftArgs: List<Instruction>): ParseResultHolder {
+    private fun processFn(fn: APLFunction, leftArgs: List<Instruction>, functionChainContext: Boolean = false): ParseResultHolder {
         val axis = parseAxis()
         val parsedFn = parseOperator(fn)
-        return when (val holder = parseValue()) {
+        return when (val holder = parseValue(functionChainContext = true)) {
             is ParseResultHolder.EmptyParseResult -> {
                 ParseResultHolder.FnParseResult(parsedFn, leftArgs, holder.lastToken, holder.pos)
             }
@@ -216,11 +215,11 @@ class APLParser(val tokeniser: TokenGenerator) {
             }
             is ParseResultHolder.FnParseResult -> {
                 ParseResultHolder.FnParseResult(
-                    FunctionCallChain.make(parsedFn.pos, parsedFn, holder.fn),
+                    FunctionCallChain.make(parsedFn.pos, parsedFn, holder.fn, functionChainContext = functionChainContext),
                     leftArgs,
                     holder.lastToken,
                     holder.pos)
-            }                    //       (1 (2 3 (4 5 6)))
+            }
         }
     }
 
@@ -473,7 +472,7 @@ class APLParser(val tokeniser: TokenGenerator) {
         return tokeniser.engine.getFunction(name)
     }
 
-    fun parseValue(): ParseResultHolder {
+    fun parseValue(functionChainContext: Boolean = false): ParseResultHolder {
         val leftArgs = ArrayList<Instruction>()
 
         fun processIndex(pos: Position) {
@@ -513,7 +512,10 @@ class APLParser(val tokeniser: TokenGenerator) {
                         tokeniser.pushBackToken(fnDefToken)
                         val fn = lookupFunction(token)
                         if (fn != null) {
-                            return processFn(fn.make(pos.withCallerName(token.symbolName)), leftArgs)
+                            return processFn(
+                                fn.make(pos.withCallerName(token.symbolName)),
+                                leftArgs,
+                                functionChainContext = functionChainContext)
                         } else {
                             leftArgs.add(makeVariableRef(token, pos))
                         }

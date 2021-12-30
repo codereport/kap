@@ -398,7 +398,7 @@ class MulAPLFunction : APLFunctionDescriptor {
         override fun name2Arg() = "multiply"
     }
 
-    override fun make(pos: Position) = MulAPLFunctionImpl(pos)
+    override fun make(pos: Position) = MulAPLFunctionImpl(pos.withName("multiply"))
 }
 
 class DivAPLFunction : APLFunctionDescriptor {

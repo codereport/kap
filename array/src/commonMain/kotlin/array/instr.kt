@@ -265,7 +265,7 @@ class UserFunction(
 }
 
 sealed class FunctionCallChain(pos: Position) : APLFunction(pos) {
-    class Chain2(pos: Position, val fn0: APLFunction, val fn1: APLFunction) : FunctionCallChain(pos) {
+    class Chain2(pos: Position, val fn0: APLFunction, val fn1: APLFunction, val inFunctionChainContext: Boolean) : FunctionCallChain(pos) {
         override val optimisationFlags = computeOptimisationFlags()
 
         private fun computeOptimisationFlags(): OptimisationFlags {
@@ -302,10 +302,10 @@ sealed class FunctionCallChain(pos: Position) : APLFunction(pos) {
     }
 
     companion object {
-        fun make(pos: Position, fn0: APLFunction, fn1: APLFunction): FunctionCallChain {
-            return when (fn1) {
-                is Chain2 -> Chain3(pos, fn0, fn1.fn0, fn1.fn1)
-                else -> Chain2(pos, fn0, fn1)
+        fun make(pos: Position, fn0: APLFunction, fn1: APLFunction, functionChainContext: Boolean): FunctionCallChain {
+            return when {
+                fn1 is Chain2 && fn1.inFunctionChainContext -> Chain3(pos, fn0, fn1.fn0, fn1.fn1)
+                else -> Chain2(pos, fn0, fn1, functionChainContext)
             }
         }
     }

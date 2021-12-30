@@ -109,11 +109,25 @@ class Symbol(val symbolName: String, val namespace: Namespace) : Token(), Compar
     fun nameWithNamespace() = "${namespace.name}:${symbolName}"
 }
 
-class StringToken(val value: String) : Token()
-class ParsedLong(val value: Long) : Token()
-class ParsedDouble(val value: Double) : Token()
-class ParsedComplex(val value: Complex) : Token()
-class ParsedCharacter(val value: Int) : Token()
+class StringToken(val value: String) : Token() {
+    override fun toString() = "StringToken['${value}']"
+}
+
+class ParsedLong(val value: Long) : Token() {
+    override fun toString() = "ParsedLong[${value}]"
+}
+
+class ParsedDouble(val value: Double) : Token() {
+    override fun toString() = "ParsedDouble[${value}]"
+}
+
+class ParsedComplex(val value: Complex) : Token() {
+    override fun toString() = "ParsedComplex[${value}]"
+}
+
+class ParsedCharacter(val value: Int) : Token() {
+    override fun toString() = "ParsedCharacter[${value}]"
+}
 
 interface SourceLocation {
     fun sourceText(): String
