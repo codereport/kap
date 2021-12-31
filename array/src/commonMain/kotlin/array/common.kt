@@ -15,7 +15,7 @@ open class APLGenericException(message: String, val pos: Position? = null, cause
                 buf.append("in function: ${pos.name}: ")
             }
             if (pos.callerName != null) {
-                buf.append("name: ${pos.callerName}: ")
+                buf.append("${pos.callerName}: ")
             }
         } else {
             buf.append("Error: ")

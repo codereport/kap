@@ -309,4 +309,32 @@ class RegexpTest : APLTest() {
             parseAPLExpression("\"x(f[0-9]+)y\" regex:finderror \"fooxf12345qwer\"", withStandardLib = true)
         }
     }
+
+    @Test
+    fun singleStringReplace() {
+        parseAPLExpression("\"x\" regex:replace (\"fooxbar\";\"qwe\")").let { result ->
+            assertString("fooqwebar", result)
+        }
+    }
+
+    @Test
+    fun multiStringReplace() {
+        parseAPLExpression("\"x[0-9]*\" regex:replace (\"foox11barx8bar\";\"A\")").let { result ->
+            assertString("fooAbarAbar", result)
+        }
+    }
+
+    @Test
+    fun replaceNoMatch() {
+        parseAPLExpression("\"xyz\" regex:replace (\"fooabc\";\"A\")").let { result ->
+            assertString("fooabc", result)
+        }
+    }
+
+    @Test
+    fun groupReplace() {
+        parseAPLExpression("\"x([A-Z])\" regex:replace (\"fooxCbarxDtest\";λ{\"A\",(⊃⍵[1]),\"B\"})").let { result ->
+            assertString("fooACBbarADBtest", result)
+        }
+    }
 }

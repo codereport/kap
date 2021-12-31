@@ -33,24 +33,28 @@ class RegexpFindFunction : APLFunctionDescriptor {
             val matchString = b.toStringValue(pos)
             val regexp = regexpFromValue(a, pos)
             val result = regexp.find(matchString) ?: return APLNullValue.APL_NULL_INSTANCE
-            val groups = result.groups
-            var undefinedSym: Symbol? = null
-            return APLArrayImpl(dimensionsOfSize(groups.size), Array(groups.size) { i ->
-                val v = groups.get(i)
-                assertx(!(i == 0 && v == null))
-                if (v == null) {
-                    if (undefinedSym == null) {
-                        undefinedSym = context.engine.keywordNamespace.internSymbol("undefined")
-                    }
-                    APLSymbol(undefinedSym!!)
-                } else {
-                    APLString(v.value)
-                }
-            })
+            return makeAPLValueFromGroups(result, context)
         }
     }
 
     override fun make(pos: Position) = RegexpFindFunctionImpl(pos.withName("find regexp"))
+}
+
+private fun makeAPLValueFromGroups(result: MatchResult, context: RuntimeContext): APLArrayImpl {
+    val groups = result.groups
+    var undefinedSym: Symbol? = null
+    return APLArrayImpl(dimensionsOfSize(groups.size), Array(groups.size) { i ->
+        val v = groups.get(i)
+        assertx(!(i == 0 && v == null))
+        if (v == null) {
+            if (undefinedSym == null) {
+                undefinedSym = context.engine.keywordNamespace.internSymbol("undefined")
+            }
+            APLSymbol(undefinedSym!!)
+        } else {
+            APLString(v.value)
+        }
+    })
 }
 
 class RegexpSplitFunction : APLFunctionDescriptor {
@@ -106,28 +110,36 @@ class CreateRegexpFunction : APLFunctionDescriptor {
     override fun make(pos: Position) = CreateRegexpFunctionImpl(pos.withName("create regexp"))
 }
 
-//class RegexpMatcherIndexFunction : APLFunctionDescriptor {
-//    class RegexpMatcherIndexFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
-//        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-//            val matchString = b.toStringValue(pos)
-//            val regexp = regexpFromValue(a, pos)
-//            val result = regexp.find(matchString) ?: return APLNullValue.APL_NULL_INSTANCE
-//            val groups = result.groups
-//            return APLArrayImpl(dimensionsOfSize(groups.size), Array(groups.size) { i ->
-//                val v = groups.get(i)
-//                assertx(!(i == 0 && v == null))
-//                if (v == null) {
-//                    APLNullValue.APL_NULL_INSTANCE
-//                } else {
-//                    val (start, end) = indexesFromRegexpMatchGroup(v)
-//                    APLArrayLong(dimensionsOfSize(2), longArrayOf(start.toLong(), end.toLong()))
-//                }
-//            })
-//        }
-//    }
-//
-//    override fun make(pos: Position) = RegexpMatcherIndexFunctionImpl(pos)
-//}
+class RegexpReplaceFunction : APLFunctionDescriptor {
+    class RegexpReplaceFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            val regexp = regexpFromValue(a, pos)
+            val args = b.listify()
+            if (args.listSize() != 2) {
+                throwAPLException(APLIllegalArgumentException("Function requires 2 arguments", pos))
+            }
+            val matchString = args.listElement(0).toStringValue(pos)
+            val replacementArg = args.listElement(1).collapse()
+            val s = when {
+                replacementArg.isStringValue() -> {
+                    regexp.replace(matchString, replacementArg.toStringValue(pos))
+                }
+                replacementArg is LambdaValue -> {
+                    val replacementClosure = replacementArg.makeClosure()
+                    regexp.replace(matchString) { r ->
+                        replacementClosure.eval1Arg(context, makeAPLValueFromGroups(r, context), null).toStringValue(pos)
+                    }
+                }
+                else -> {
+                    throwAPLException(APLIllegalArgumentException("Replacement must be either a string or a lambda"))
+                }
+            }
+            return APLString(s)
+        }
+    }
+
+    override fun make(pos: Position) = RegexpReplaceFunctionImpl(pos)
+}
 
 class RegexpModule : KapModule {
     override val name get() = "regex"
@@ -141,6 +153,6 @@ class RegexpModule : KapModule {
         registerFn("find", RegexpFindFunction())
         registerFn("create", CreateRegexpFunction())
         registerFn("split", RegexpSplitFunction())
-//        registerFn("index", RegexpMatcherIndexFunction())
+        registerFn("replace", RegexpReplaceFunction())
     }
 }
