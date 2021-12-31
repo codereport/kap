@@ -29,7 +29,6 @@ class ReadFunction : APLFunctionDescriptor {
     override fun make(pos: Position) = ReadFunctionImpl(pos.withName("read"))
 }
 
-
 class PrintAPLFunction : APLFunctionDescriptor {
     class PrintAPLFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
@@ -64,17 +63,32 @@ class PrintAPLFunction : APLFunctionDescriptor {
 class ReadCSVFunction : APLFunctionDescriptor {
     class ReadCSVFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            val source = openCharFile(a.toStringValue(pos))
-            try {
+            openCharFile(a.toStringValue(pos)).use { source ->
                 return readCsv(source)
-            } finally {
-                source.close()
             }
         }
     }
 
     override fun make(pos: Position) = ReadCSVFunctionImpl(pos.withName("readCsvFile"))
 }
+
+class ReadFileFunction : APLFunctionDescriptor {
+    class ReadFileFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            openCharFile(a.toStringValue(pos)).use { source ->
+                val buf = StringBuilder()
+                while (true) {
+                    val ch = source.nextCodepoint() ?: break
+                    buf.addCodepoint(ch)
+                }
+                return APLString(buf.toString())
+            }
+        }
+    }
+
+    override fun make(pos: Position) = ReadFileFunctionImpl(pos)
+}
+
 
 class LoadFunction : APLFunctionDescriptor {
     class LoadFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {

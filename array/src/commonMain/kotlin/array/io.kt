@@ -7,7 +7,7 @@ interface NativeCloseable {
     fun close()
 }
 
-fun <T : NativeCloseable, R> T.use(fn: (T) -> R): R {
+inline fun <T : NativeCloseable, R> T.use(fn: (T) -> R): R {
     try {
         return fn(this)
     } finally {

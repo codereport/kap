@@ -1,10 +1,7 @@
 package array
 
 import array.builtins.TagCatch
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertSame
-import kotlin.test.fail
+import kotlin.test.*
 
 class IOAPLTest : APLTest() {
     @Test
@@ -36,6 +33,16 @@ class IOAPLTest : APLTest() {
             for (i in expected.indices) {
                 assertEquals(expected[i], result.valueAt(i).toStringValue())
             }
+        }
+    }
+
+    @Test
+    fun readSingleString() {
+        val expected = listOf("foo", "bar", "test", "abcdef", "testtest", "  testline", "", "aa", "ab", "ac", "ad")
+        parseAPLExpression("io:readFile \"test-data/multi.txt\"").let { result ->
+            assertTrue(result.isStringValue())
+            val resultString = result.toStringValue()
+            assertEquals(expected.joinToString("\n") + "\n", resultString)
         }
     }
 
