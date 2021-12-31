@@ -43,6 +43,9 @@ declare(:export (when begin end))
 declare(:singleCharExported "⊇")
 
 ∇ (A) ⊇ (B) {
+  if (~isLocallyBound 'A) {
+    →"Function requires left argument"
+  }
   {(⊂⍵)⊃B}¨A
 }
 
