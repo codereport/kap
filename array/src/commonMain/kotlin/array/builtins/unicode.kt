@@ -67,6 +67,29 @@ class GraphemesFunction : APLFunctionDescriptor {
     override fun make(pos: Position) = GraphemesFunctionImpl(pos.withName("toGraphemes"))
 }
 
+class ToLowerFunction : APLFunctionDescriptor {
+    class ToLowerFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val s = a.toStringValue(pos)
+            return APLString(s.lowercase())
+        }
+    }
+
+    override fun make(pos: Position) = ToLowerFunctionImpl(pos.withName("toLower"))
+}
+
+class ToUpperFunction : APLFunctionDescriptor {
+    class ToUpperFunctionImpl(pos: Position) : NoAxisAPLFunction(pos.withName("toUpper")) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val s = a.toStringValue(pos)
+            return APLString(s.uppercase())
+        }
+    }
+
+    override fun make(pos: Position) = ToUpperFunctionImpl(pos)
+}
+
+
 class UnicodeModule : KapModule {
     override val name get() = "unicode"
 
@@ -75,5 +98,7 @@ class UnicodeModule : KapModule {
         engine.registerFunction(namespace.internAndExport("toCodepoints"), MakeCodepoints())
         engine.registerFunction(namespace.internAndExport("fromCodepoints"), MakeCharsFromCodepoints())
         engine.registerFunction(namespace.internAndExport("toGraphemes"), GraphemesFunction())
+        engine.registerFunction(namespace.internAndExport("toLower"), ToLowerFunction())
+        engine.registerFunction(namespace.internAndExport("toUpper"), ToUpperFunction())
     }
 }

@@ -127,6 +127,34 @@ class UnicodeTest : APLTest() {
         }
     }
 
+    @Test
+    fun toLowerPlainString() {
+        parseAPLExpression("unicode:toLower \"teStabcfOO\"").let { result ->
+            assertString("testabcfoo", result)
+        }
+    }
+
+    @Test
+    fun toLowerNonAscii() {
+        parseAPLExpression("unicode:toLower \"tesTåÅtest\"").let { result ->
+            assertString("testååtest", result)
+        }
+    }
+
+    @Test
+    fun toUpperPlainString() {
+        parseAPLExpression("unicode:toUpper \"abCfooTest\"").let { result ->
+            assertString("ABCFOOTEST", result)
+        }
+    }
+
+    @Test
+    fun toUpperNonAscii() {
+        parseAPLExpression("unicode:toUpper \"XyzåÅtEST\"").let { result ->
+            assertString("XYZÅÅTEST", result)
+        }
+    }
+
     private fun assertChar(codepoint: Int, result: APLValue) {
         assertTrue(result is APLChar)
         assertEquals(codepoint, result.value)
