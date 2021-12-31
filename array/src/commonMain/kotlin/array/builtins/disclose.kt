@@ -177,7 +177,7 @@ class EncloseAPLFunction : APLFunctionDescriptor {
             val partitionArgs = when (aDimensions.size) {
                 0 -> intArrayOf(a.ensureNumber(pos).asInt())
                 1 -> a.toIntArray(pos)
-                else -> throw APLIllegalArgumentException("Left argument to partition must be a scalar or a on-dimensional array")
+                else -> throw APLIllegalArgumentException("Left argument to partition must be a scalar or a one-dimensional array")
             }
             if (partitionArgs.size != bDimensions[axisInt]) {
                 throw InvalidDimensionsException(
