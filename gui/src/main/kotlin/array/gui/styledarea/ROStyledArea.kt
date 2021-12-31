@@ -3,6 +3,7 @@ package array.gui.styledarea
 import array.APLValue
 import array.gui.Client
 import array.gui.display.ValueRenderer
+import javafx.application.Platform
 import javafx.scene.Node
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCombination
@@ -198,7 +199,9 @@ class ROStyledArea(
             val inputPos = findInputStartEnd()
             insert(inputPos.promptStartPos, newDoc)
         }
-        showBottomParagraphAtTop()
+        Platform.runLater {
+            showBottomParagraphAtTop()
+        }
     }
 
     fun appendErrorMessage(text: String) {

@@ -66,7 +66,11 @@ class SourceEditor(val client: Client) {
         val applyParagraphStyle = BiConsumer<TextFlow, SourceEditorParStyle> { flow, parStyle ->
             flow.background = when (parStyle.type) {
                 SourceEditorParStyle.StyleType.NORMAL -> Background.EMPTY
-                SourceEditorParStyle.StyleType.ERROR -> Background(BackgroundFill(Color.RED, CornerRadii.EMPTY, Insets.EMPTY))
+                SourceEditorParStyle.StyleType.ERROR -> Background(
+                    BackgroundFill(
+                        Color(1.0, 0.6, 0.6, 1.0),
+                        CornerRadii.EMPTY,
+                        Insets.EMPTY))
             }
         }
         val nodeFactory = Function<StyledSegment<String, TextStyle>, Node> { seg ->

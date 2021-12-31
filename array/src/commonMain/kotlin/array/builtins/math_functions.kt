@@ -484,7 +484,7 @@ class NotAPLFunction : APLFunctionDescriptor {
                     result.add(v)
                 }
             }
-            return APLArrayImpl(dimensionsOfSize(result.size), result.toTypedArray())
+            return APLArrayList(dimensionsOfSize(result.size), result)
         }
 
         override fun combine1ArgLong(a: Long) = notOp(a, pos1Arg)

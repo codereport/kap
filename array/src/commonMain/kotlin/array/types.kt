@@ -515,7 +515,7 @@ class APLMap(val content: ImmutableMap2<APLValueKey, APLValue>) : APLSingleValue
             res.add(key.value)
             res.add(value)
         }
-        return APLArrayImpl(dimensionsOfSize(res.size / 2, 2), res.toTypedArray())
+        return APLArrayList(dimensionsOfSize(res.size / 2, 2), res)
     }
 }
 

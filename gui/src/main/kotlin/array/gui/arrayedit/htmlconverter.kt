@@ -82,5 +82,5 @@ fun htmlTableToArray(doc: Document): APLValue? {
             list.add(APLLONG_0)
         }
     }
-    return APLArrayImpl(dimensionsOfSize(numRows, numCols), list.toTypedArray())
+    return APLArrayList(dimensionsOfSize(numRows, numCols), list)
 }

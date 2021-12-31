@@ -60,7 +60,7 @@ private fun parseArray(reader: JsonReader): APLArray {
         }
     }
     reader.endArray()
-    return APLArrayImpl(dimensionsOfSize(content.size), content.toTypedArray())
+    return APLArrayList(dimensionsOfSize(content.size), content)
 }
 
 private fun parseNumber(reader: JsonReader): APLNumber {

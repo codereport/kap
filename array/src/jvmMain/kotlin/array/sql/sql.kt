@@ -90,7 +90,7 @@ private fun resultSetToValue(result: ResultSet, pos: Position): APLValue {
             resultData.add(parseEntry(result.getObject(colIndex + 1), colIndex, pos))
         }
     }
-    return APLArrayImpl(dimensionsOfSize(resultData.size / colCount, colCount), resultData.toTypedArray())
+    return APLArrayList(dimensionsOfSize(resultData.size / colCount, colCount), resultData)
 }
 
 class SQLQueryFunction : APLFunctionDescriptor {

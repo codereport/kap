@@ -63,7 +63,7 @@ class RegexpSplitFunction : APLFunctionDescriptor {
             val matchString = b.toStringValue(pos)
             val regexp = regexpFromValue(a, pos)
             val result = regexp.split(matchString)
-            return APLArrayImpl(dimensionsOfSize(result.size), result.map(::APLString).toTypedArray())
+            return APLArrayList(dimensionsOfSize(result.size), result.map(::APLString))
         }
     }
 

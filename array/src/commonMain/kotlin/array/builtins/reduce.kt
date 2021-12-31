@@ -42,10 +42,12 @@ class ReduceResult1Arg(
             val posInSrc = highPosition * toDestMul + lowPosition
 
             val specialisedType = arg.specialisedType
+            val engine = context.engine
             when {
                 specialisedType === ArrayMemberType.LONG && fn.optimisationFlags.is2ALongLong -> {
                     var curr = arg.valueAtLong(posInSrc, pos)
                     for (i in 1 until sizeAlongAxis) {
+                        engine.checkInterrupted(pos)
                         curr = fn.eval2ArgLongLong(context, curr, arg.valueAtLong(i * stepLength + posInSrc, pos), fnAxis)
                     }
                     curr.makeAPLNumber()
@@ -53,6 +55,7 @@ class ReduceResult1Arg(
                 specialisedType === ArrayMemberType.DOUBLE && fn.optimisationFlags.is2ADoubleDouble -> {
                     var curr = arg.valueAtDouble(posInSrc, pos)
                     for (i in 1 until sizeAlongAxis) {
+                        engine.checkInterrupted(pos)
                         curr = fn.eval2ArgDoubleDouble(context, curr, arg.valueAtDouble(i * stepLength + posInSrc, pos), fnAxis)
                     }
                     curr.makeAPLNumber()
@@ -60,6 +63,7 @@ class ReduceResult1Arg(
                 else -> {
                     var curr = arg.valueAt(posInSrc)
                     for (i in 1 until sizeAlongAxis) {
+                        engine.checkInterrupted(pos)
                         curr = fn.eval2Arg(context, curr, arg.valueAt(i * stepLength + posInSrc), fnAxis).collapse()
                     }
                     curr

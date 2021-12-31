@@ -1,6 +1,6 @@
 package array.gui.arrayedit
 
-import array.APLArrayImpl
+import array.APLArrayList
 import array.APLValue
 import array.dimensionsOfSize
 import array.gui.Client
@@ -97,7 +97,7 @@ class ArrayEditor {
             content.addAll(row.values)
         }
         assert(items.size == numRows * numCols)
-        return APLArrayImpl(dimensionsOfSize(numRows, numCols), content.toTypedArray())
+        return APLArrayList(dimensionsOfSize(numRows, numCols), content)
     }
 
     private fun pasteToTable() {

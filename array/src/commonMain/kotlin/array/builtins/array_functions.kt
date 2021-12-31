@@ -1509,7 +1509,7 @@ class WhereAPLFunction : APLFunctionDescriptor {
                                 pos))
                     }
                 }
-                APLArrayImpl(dimensionsOfSize(result.size), result.toTypedArray())
+                APLArrayList(dimensionsOfSize(result.size), result)
             }
         }
     }
@@ -1519,7 +1519,7 @@ class WhereAPLFunction : APLFunctionDescriptor {
 
 class UniqueFunction : APLFunctionDescriptor {
     class UniqueFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
-        private fun iterateUnique(input: List<APLValue>): APLArrayImpl {
+        private fun iterateUnique(input: List<APLValue>): APLArray {
             val map = HashSet<APLValue.APLValueKey>()
             val result = ArrayList<APLValue>()
             input.forEach { a ->
@@ -1531,7 +1531,7 @@ class UniqueFunction : APLFunctionDescriptor {
                     }
                 }
             }
-            return APLArrayImpl(dimensionsOfSize(result.size), result.toTypedArray())
+            return APLArrayList(dimensionsOfSize(result.size), result)
         }
 
         private fun collapseAndCheckRank(a: APLValue): APLValue {
@@ -1575,7 +1575,7 @@ class IntersectionAPLFunction : APLFunctionDescriptor {
                     leftKeys.add(key)
                 }
             }
-            return APLArrayImpl(dimensionsOfSize(result.size), result.toTypedArray())
+            return APLArrayList(dimensionsOfSize(result.size), result)
         }
 
         private fun collapseAndCheckRank(a: APLValue): APLValue {

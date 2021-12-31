@@ -51,7 +51,7 @@ private fun parseArray(obj: CPointer<json_t>): APLValue {
         }
         content.add(parseEntry(v))
     }
-    return APLArrayImpl(dimensionsOfSize(content.size), content.toTypedArray())
+    return APLArrayList(dimensionsOfSize(content.size), content)
 }
 
 private fun parseObject(obj: CPointer<json_t>): APLValue {
