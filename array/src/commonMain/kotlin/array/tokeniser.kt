@@ -398,10 +398,10 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
 
     private fun collectString(): Token {
         val buf = StringBuilder()
-        while (true) {
+        loop@ while (true) {
             val ch = content.nextCodepoint() ?: throw ParseException("End of input in the middle of string", content.pos())
             when (ch) {
-                '"'.code -> break
+                '"'.code -> break@loop
                 '\\'.code -> {
                     val next = content.nextCodepoint() ?: throw ParseException("End of input in the middle of string", content.pos())
                     when (next) {
