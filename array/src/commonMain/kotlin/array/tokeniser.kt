@@ -400,13 +400,17 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
         val buf = StringBuilder()
         while (true) {
             val ch = content.nextCodepoint() ?: throw ParseException("End of input in the middle of string", content.pos())
-            if (ch == '"'.code) {
-                break
-            } else if (ch == '\\'.code) {
-                val next = content.nextCodepoint() ?: throw ParseException("End of input in the middle of string", content.pos())
-                buf.addCodepoint(next)
-            } else {
-                buf.addCodepoint(ch)
+            when (ch) {
+                '"'.code -> break
+                '\\'.code -> {
+                    val next = content.nextCodepoint() ?: throw ParseException("End of input in the middle of string", content.pos())
+                    when (next) {
+                        'n'.code -> buf.addCodepoint('\n'.code)
+                        'r'.code -> buf.addCodepoint('\r'.code)
+                        else -> buf.addCodepoint(next)
+                    }
+                }
+                else -> buf.addCodepoint(ch)
             }
         }
         return StringToken(buf.toString())
