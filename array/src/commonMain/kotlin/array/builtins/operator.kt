@@ -24,8 +24,10 @@ class PowerAPLOperator : APLOperatorCombinedRightArg {
                     if (n < 0) {
                         throwAPLException(APLIllegalArgumentException("Argument to power is negative: ${n}", pos))
                     }
+                    val engine = context.engine
                     var curr = a
                     while (n > 0) {
+                        engine.checkInterrupted()
                         curr = fn.eval1Arg(context, curr, null).collapse()
                         n--
                     }
@@ -42,8 +44,10 @@ class PowerAPLOperator : APLOperatorCombinedRightArg {
         override fun make(pos: Position): APLFunction {
             return object : APLFunction(pos) {
                 override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+                    val engine = context.engine
                     var curr = a
                     while (true) {
+                        engine.checkInterrupted()
                         val next = fn1.eval1Arg(context, curr, null).collapse()
                         val checkResult = fn2.eval2Arg(context, next, curr, null).collapse()
                         curr = next
