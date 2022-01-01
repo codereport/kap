@@ -68,13 +68,13 @@ class ReduceTest : APLTest() {
 
     @Test
     fun reduceTestCustomInt() {
-        val result = parseAPLExpression("{⍺+⍵+10}/internal:ensureLong ⍳6")
+        val result = parseAPLExpression("{⍺+⍵+10}/int:ensureLong ⍳6")
         assertSimpleNumber(65, result)
     }
 
     @Test
     fun reduceTestCustomNoSpecialisation() {
-        val result = parseAPLExpression("{⍺+⍵+10}/internal:ensureGeneric ⍳6")
+        val result = parseAPLExpression("{⍺+⍵+10}/int:ensureGeneric ⍳6")
         assertSimpleNumber(65, result)
     }
 
@@ -86,13 +86,13 @@ class ReduceTest : APLTest() {
 
     @Test
     fun reduceTestCustomWithDoubleGeneric() {
-        val result = parseAPLExpression("{⍺+⍵+10}/internal:ensureGeneric 0.0 0.1 0.2 0.3 0.4 0.5")
+        val result = parseAPLExpression("{⍺+⍵+10}/int:ensureGeneric 0.0 0.1 0.2 0.3 0.4 0.5")
         assertDoubleWithRange(Pair(51.4, 51.6), result)
     }
 
     @Test
     fun reduceTestCustomWithSpecialisedDouble() {
-        val result = parseAPLExpression("{⍺+⍵+10}/internal:ensureDouble 0.0 0.1 0.2 0.3 0.4 0.5")
+        val result = parseAPLExpression("{⍺+⍵+10}/int:ensureDouble 0.0 0.1 0.2 0.3 0.4 0.5")
         assertDoubleWithRange(Pair(51.4, 51.6), result)
     }
 

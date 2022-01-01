@@ -31,22 +31,25 @@ class APLLong(val value: Long) : APLNumber() {
     override fun asLong() = value
     override fun asComplex() = Complex(value.toDouble())
     override fun isComplex() = false
-    override fun formatted(style: FormatStyle) =
-        when (style) {
-            FormatStyle.PLAIN -> value.toString()
-            FormatStyle.PRETTY -> value.toString()
-            FormatStyle.READABLE -> if (value < 0) "¯" + (-value).toString() else value.toString()
-        }
 
-    override fun compareEquals(reference: APLValue) = reference is APLLong && value == reference.value
+    override fun formatted(style: FormatStyle) = when (style) {
+        FormatStyle.PLAIN -> value.toString()
+        FormatStyle.PRETTY -> value.toString()
+        FormatStyle.READABLE -> if (value < 0) "¯" + (-value).toString() else value.toString()
+    }
 
-    override fun compare(reference: APLValue, pos: Position?): Int {
-        return when (reference) {
-            is APLLong -> value.compareTo(reference.value)
-            is APLDouble -> value.compareTo(reference.value)
-            is APLComplex -> throwComplexComparisonException(pos)
-            else -> super.compare(reference, pos)
-        }
+    override fun compareEquals(reference: APLValue) = when (reference) {
+        is APLLong -> value == reference.value
+        is APLDouble -> value.toDouble() == reference.value
+        is APLComplex -> reference.value.imaginary == 0.0 && value.toDouble() == reference.value.imaginary
+        else -> false
+    }
+
+    override fun compare(reference: APLValue, pos: Position?) = when (reference) {
+        is APLLong -> value.compareTo(reference.value)
+        is APLDouble -> value.compareTo(reference.value)
+        is APLComplex -> throwComplexComparisonException(pos)
+        else -> super.compare(reference, pos)
     }
 
     override fun toString() = "APLLong(${formatted(FormatStyle.PRETTY)})"
@@ -65,32 +68,34 @@ class APLDouble(val value: Double) : APLNumber() {
     override fun asComplex() = Complex(value)
     override fun isComplex() = false
 
-    override fun formatted(style: FormatStyle) =
-        when (style) {
-            FormatStyle.PLAIN -> value.toString()
-            FormatStyle.PRETTY -> {
-                // Kotlin native doesn't have a decent formatter, so we'll take the easy way out:
-                // We'll check if the value fits in a Long and if it does, use it for rendering.
-                // This is the easiest way to avoid displaying a decimal point for integers.
-                // Let's hope this changes sooner rather than later.
-                if (value.rem(1) == 0.0 && value <= Long.MAX_VALUE && value >= Long.MIN_VALUE) {
-                    value.toLong().toString()
-                } else {
-                    value.toString()
-                }
+    override fun formatted(style: FormatStyle) = when (style) {
+        FormatStyle.PLAIN -> value.toString()
+        FormatStyle.PRETTY -> {
+            // Kotlin native doesn't have a decent formatter, so we'll take the easy way out:
+            // We'll check if the value fits in a Long and if it does, use it for rendering.
+            // This is the easiest way to avoid displaying a decimal point for integers.
+            // Let's hope this changes sooner rather than later.
+            if (value.rem(1) == 0.0 && value <= Long.MAX_VALUE && value >= Long.MIN_VALUE) {
+                value.toLong().toString()
+            } else {
+                value.toString()
             }
-            FormatStyle.READABLE -> if (value < 0) "¯" + (-value).toString() else value.toString()
         }
+        FormatStyle.READABLE -> if (value < 0) "¯" + (-value).toString() else value.toString()
+    }
 
-    override fun compareEquals(reference: APLValue) = reference is APLDouble && value == reference.value
+    override fun compareEquals(reference: APLValue) = when (reference) {
+        is APLLong -> value == reference.value.toDouble()
+        is APLDouble -> value == reference.value
+        is APLComplex -> reference.value.imaginary == 0.0 && value == reference.value.real
+        else -> false
+    }
 
-    override fun compare(reference: APLValue, pos: Position?): Int {
-        return when (reference) {
-            is APLLong -> value.compareTo(reference.value)
-            is APLDouble -> value.compareTo(reference.value)
-            is APLComplex -> throwComplexComparisonException(pos)
-            else -> super.compare(reference, pos)
-        }
+    override fun compare(reference: APLValue, pos: Position?) = when (reference) {
+        is APLLong -> value.compareTo(reference.value)
+        is APLDouble -> value.compareTo(reference.value)
+        is APLComplex -> throwComplexComparisonException(pos)
+        else -> super.compare(reference, pos)
     }
 
     override fun toString() = "APLDouble(${formatted(FormatStyle.PRETTY)})"

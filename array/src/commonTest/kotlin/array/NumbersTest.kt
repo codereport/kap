@@ -134,7 +134,7 @@ class NumbersTest : APLTest() {
 
     @Test
     fun optimisedAdd() {
-        runExprTest("(internal:ensureLong 1 2 3 4) + (internal:ensureLong 11 12 13 14)") { result ->
+        runExprTest("(int:ensureLong 1 2 3 4) + (int:ensureLong 11 12 13 14)") { result ->
             assertDimension(dimensionsOfSize(4), result)
             assertArrayContent(arrayOf(12, 14, 16, 18), result)
         }

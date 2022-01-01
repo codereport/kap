@@ -177,7 +177,7 @@ class SpecialisedArrayTest : APLTest() {
 
     @Test
     fun transposeVerticalDouble() {
-        parseAPLExpression("⊖ 3 4 ⍴ internal:ensureDouble 0.7+⍳12", collapse = false).let { result ->
+        parseAPLExpression("⊖ 3 4 ⍴ int:ensureDouble 0.7+⍳12", collapse = false).let { result ->
             assertDimension(dimensionsOfSize(3, 4), result)
             assertArrayContent(arrayOf(8.7, 9.7, 10.7, 11.7, 4.7, 5.7, 6.7, 7.7, 0.7, 1.7, 2.7, 3.7), result)
             assertEquals(ArrayMemberType.DOUBLE, result.specialisedType)
@@ -195,7 +195,7 @@ class SpecialisedArrayTest : APLTest() {
 
     @Test
     fun transposeArrayDouble() {
-        parseAPLExpression("⍉ 2 3 ⍴ internal:ensureDouble 0.1+⍳12").let { result ->
+        parseAPLExpression("⍉ 2 3 ⍴ int:ensureDouble 0.1+⍳12").let { result ->
             assertDimension(dimensionsOfSize(3, 2), result)
             assertArrayContent(arrayOf(0.1, 3.1, 1.1, 4.1, 2.1, 5.1), result)
             assertEquals(ArrayMemberType.DOUBLE, result.specialisedType)

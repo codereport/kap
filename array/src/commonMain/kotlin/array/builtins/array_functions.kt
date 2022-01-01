@@ -1259,9 +1259,8 @@ object MemberResultValueImpls {
     }
 
     fun make(context: RuntimeContext, a: APLValue, b: APLValue, pos: Position): MemberResultValue {
-        val stb = b.specialisedType
-        return when {
-            stb === ArrayMemberType.LONG -> MemberResultValueRightLong(context, a, b, pos)
+        return when (b.specialisedType) {
+            ArrayMemberType.LONG -> MemberResultValueRightLong(context, a, b, pos)
             else -> MemberResultValue(context, a, b, pos)
         }
     }

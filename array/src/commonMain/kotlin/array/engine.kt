@@ -316,9 +316,9 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("timeMillis", TimeMillisFunction(), "time")
         registerNativeFunction("unwindProtect", UnwindProtectAPLFunction(), "int")
         registerNativeOperator("defer", DeferAPLOperator())
-        registerNativeFunction("ensureGeneric", EnsureTypeFunction(ArrayMemberType.GENERIC), "internal")
-        registerNativeFunction("ensureLong", EnsureTypeFunction(ArrayMemberType.LONG), "internal")
-        registerNativeFunction("ensureDouble", EnsureTypeFunction(ArrayMemberType.DOUBLE), "internal")
+        registerNativeFunction("ensureGeneric", EnsureTypeFunction(ArrayMemberType.GENERIC), "int")
+        registerNativeFunction("ensureLong", EnsureTypeFunction(ArrayMemberType.LONG), "int")
+        registerNativeFunction("ensureDouble", EnsureTypeFunction(ArrayMemberType.DOUBLE), "int")
         registerNativeOperator("atLeave", AtLeaveScopeOperator())
 
         // maths

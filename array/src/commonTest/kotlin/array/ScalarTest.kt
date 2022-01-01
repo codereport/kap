@@ -114,7 +114,7 @@ class ScalarTest : APLTest() {
 
     @Test
     fun multiFunctionPlusWithSpecialisedArray() {
-        parseAPLExpression("(internal:ensureLong 0 1 2) + (internal:ensureLong 10 11 12) + (internal:ensureLong 20 21 22)").let { result ->
+        parseAPLExpression("(int:ensureLong 0 1 2) + (int:ensureLong 10 11 12) + (int:ensureLong 20 21 22)").let { result ->
             assertDimension(dimensionsOfSize(3), result)
             assertArrayContent(arrayOf(30, 33, 36), result)
         }
@@ -130,7 +130,7 @@ class ScalarTest : APLTest() {
 
     @Test
     fun multiFunctionPlusAndMinusSpecialised() {
-        parseAPLExpression("(internal:ensureLong 20 21 22) - (internal:ensureLong 0 1 2) + (internal:ensureLong 10 11 12)").let { result ->
+        parseAPLExpression("(int:ensureLong 20 21 22) - (int:ensureLong 0 1 2) + (int:ensureLong 10 11 12)").let { result ->
             assertDimension(dimensionsOfSize(3), result)
             assertArrayContent(arrayOf(10, 9, 8), result)
         }
@@ -315,7 +315,7 @@ class ScalarTest : APLTest() {
 
     @Test
     fun twoLevelScalarLeftArgGeneric() {
-        parseAPLExpression("1 + 1 + internal:ensureGeneric 2 3 ⍴ ⍳6").let { result ->
+        parseAPLExpression("1 + 1 + int:ensureGeneric 2 3 ⍴ ⍳6").let { result ->
             assertDimension(dimensionsOfSize(2, 3), result)
             assertArrayContent(arrayOf(2, 3, 4, 5, 6, 7), result)
         }
@@ -342,7 +342,7 @@ class ScalarTest : APLTest() {
 
     @Test
     fun twoLevelEnclosedArrayLeftArgGeneric() {
-        parseAPLExpression("1 + (⊂1 2) + internal:ensureGeneric 2 3 ⍴ ⍳6").let { result ->
+        parseAPLExpression("1 + (⊂1 2) + int:ensureGeneric 2 3 ⍴ ⍳6").let { result ->
             assertDimension(dimensionsOfSize(2, 3), result)
             fun assertElement(expected: Array<Int>, index: Int) {
                 result.valueAt(index).let { v ->
@@ -371,7 +371,7 @@ class ScalarTest : APLTest() {
 
     @Test
     fun twoLevelEnclosed1() {
-        parseAPLExpression("1 + 1 + ⊂ internal:ensureGeneric 10 11").let { result ->
+        parseAPLExpression("1 + 1 + ⊂ int:ensureGeneric 10 11").let { result ->
             assertTrue(result.isScalar())
             val v = result.valueAt(0)
             assertDimension(dimensionsOfSize(2), v)
@@ -391,7 +391,7 @@ class ScalarTest : APLTest() {
 
     @Test
     fun leftEnclosedRightScalarGeneric() {
-        parseAPLExpression("(⊂ internal:ensureGeneric 5 6) + 1").let { result ->
+        parseAPLExpression("(⊂ int:ensureGeneric 5 6) + 1").let { result ->
             assertTrue(result.isScalar())
             val v = result.valueAt(0)
             assertDimension(dimensionsOfSize(2), v)
@@ -411,7 +411,7 @@ class ScalarTest : APLTest() {
 
     @Test
     fun bothEnclosedGeneric() {
-        parseAPLExpression("(⊂ internal:ensureGeneric 5 6) + (⊂ internal:ensureGeneric 10 11)").let { result ->
+        parseAPLExpression("(⊂ int:ensureGeneric 5 6) + (⊂ int:ensureGeneric 10 11)").let { result ->
             assertTrue(result.isScalar())
             val v = result.valueAt(0)
             assertDimension(dimensionsOfSize(2), v)

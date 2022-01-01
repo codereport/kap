@@ -71,4 +71,46 @@ class MemberTest : APLTest() {
         assertSimpleNumber(0, result)
         assertEquals("101112131415", out)
     }
+
+    @Test
+    fun compareDoubleInteger0() {
+        assertSimpleNumber(1, parseAPLExpression("3.0 ∊ 2 3"))
+        assertSimpleNumber(1, parseAPLExpression("3.0 ∊ int:ensureGeneric 2 3"))
+    }
+
+    @Test
+    fun compareDoubleInteger1() {
+        assertSimpleNumber(1, parseAPLExpression("3 ∊ 2 3.0"))
+        assertSimpleNumber(1, parseAPLExpression("3 ∊ int:ensureGeneric 2 3.0"))
+    }
+
+    @Test
+    fun compareDoubleInteger2() {
+        assertSimpleNumber(1, parseAPLExpression("3 ∊ 2 3J0"))
+        assertSimpleNumber(1, parseAPLExpression("3 ∊ int:ensureGeneric 2 3J0"))
+    }
+
+    @Test
+    fun compareDoubleInteger3() {
+        assertSimpleNumber(1, parseAPLExpression("3.0 ∊ 2 3J0"))
+        assertSimpleNumber(1, parseAPLExpression("3.0 ∊ int:ensureGeneric 2 3J0"))
+    }
+
+    @Test
+    fun compareDoubleInteger4() {
+        assertSimpleNumber(1, parseAPLExpression("3J0 ∊ 2 3.0"))
+        assertSimpleNumber(1, parseAPLExpression("3J0 ∊ int:ensureGeneric 2 3.0"))
+    }
+
+    @Test
+    fun compareDoubleInteger5() {
+        assertSimpleNumber(1, parseAPLExpression("3J0 ∊ 2 3"))
+        assertSimpleNumber(1, parseAPLExpression("3J0 ∊ int:ensureGeneric 2 3"))
+    }
+
+    @Test
+    fun compareDoubleInteger6() {
+        assertSimpleNumber(0, parseAPLExpression("3 ∊ 2 3.1"))
+        assertSimpleNumber(0, parseAPLExpression("3 ∊ int:ensureGeneric 2 3.1"))
+    }
 }

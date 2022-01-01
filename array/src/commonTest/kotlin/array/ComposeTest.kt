@@ -46,7 +46,7 @@ class ComposeTest : APLTest() {
 
     @Test
     fun integerOptimisedArrays() {
-        parseAPLExpression("(internal:ensureLong 301 ¯302 303 ¯304 305) (+∘×) (internal:ensureLong ¯10 ¯11 12 13 14)").let { result ->
+        parseAPLExpression("(int:ensureLong 301 ¯302 303 ¯304 305) (+∘×) (int:ensureLong ¯10 ¯11 12 13 14)").let { result ->
             assertDimension(dimensionsOfSize(5), result)
             assertArrayContent(arrayOf(300, -303, 304, -303, 306), result)
         }
@@ -54,7 +54,7 @@ class ComposeTest : APLTest() {
 
     @Test
     fun doubleOptimisedArrays() {
-        parseAPLExpression("(internal:ensureDouble 301 ¯302 303 ¯304 305) (+∘×) (internal:ensureDouble ¯10 ¯11 12 13 14)").let { result ->
+        parseAPLExpression("(int:ensureDouble 301 ¯302 303 ¯304 305) (+∘×) (int:ensureDouble ¯10 ¯11 12 13 14)").let { result ->
             assertDimension(dimensionsOfSize(5), result)
             assertArrayContent(arrayOf(300.0, -303.0, 304.0, -303.0, 306.0), result)
         }
