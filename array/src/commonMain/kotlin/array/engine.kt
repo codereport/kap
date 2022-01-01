@@ -219,8 +219,8 @@ class Engine(numComputeEngines: Int? = null) {
     val initialNamespace = makeNamespace(DEFAULT_NAMESPACE_NAME)
     var currentNamespace = initialNamespace
     val closableHandlers = HashMap<KClass<out APLValue>, ClosableHandler<*>>()
-
     val backgroundDispatcher = makeBackgroundDispatcher(numComputeEngines ?: numCores())
+    val inComputeThread = makeMPThreadLocal<Boolean>()
 
     @Volatile
     private var breakPending = false
@@ -367,7 +367,9 @@ class Engine(numComputeEngines: Int? = null) {
     fun checkInterrupted(pos: Position? = null) {
         val pending = breakPending
         if (pending) {
-            breakPending = false
+            if (!isInComputeThread) {
+                breakPending = false
+            }
             throw APLEvaluationInterrupted(pos)
         }
     }
@@ -375,6 +377,8 @@ class Engine(numComputeEngines: Int? = null) {
     fun clearInterrupted() {
         breakPending = false
     }
+
+    val isInComputeThread get() = inComputeThread.value == true
 
     fun addModule(module: KapModule) {
         module.init(this)

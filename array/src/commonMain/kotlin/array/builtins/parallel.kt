@@ -34,8 +34,7 @@ class SimpleParallelTaskList1Arg(val fn: APLFunction, val a: APLValue, val axis:
 
     override fun finaliseCompute(results: ArrayList<Either<ParallelTaskResult, Throwable>>): APLValue {
         assertx(results.size == 1)
-        val res = results[0]
-        when (res) {
+        when (val res = results[0]) {
             is Either.Left -> return (res.value as SimpleParallelTaskResult).result
             is Either.Right -> throw res.value
         }
@@ -137,23 +136,33 @@ class ParallelOp : APLOperatorOneArg {
 private class ParallelHandler(val derived: ParallelSupported, val numTasksWeightFactor: Double = 10.0) : APLFunctionDescriptor {
     inner class ParallelHandlerImpl(pos: Position) : APLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+            checkNotIsInComputeThread(context.engine)
             val parallelTaskList = derived.computeParallelTasks1Arg(context, computeNumEngines(context), a, axis)
             return evalTaskList(context, parallelTaskList)
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            checkNotIsInComputeThread(context.engine)
             val parallelTaskList = derived.computeParallelTasks2Arg(context, computeNumEngines(context), a, b, axis)
             return evalTaskList(context, parallelTaskList)
+        }
+
+        private fun checkNotIsInComputeThread(engine: Engine) {
+            if (engine.isInComputeThread) {
+                throwAPLException(APLEvalException("Attempt to start a parallel task from a compute thread", pos))
+            }
         }
 
         private fun computeNumEngines(context: RuntimeContext) =
             ceil(context.engine.backgroundDispatcher.numThreads * numTasksWeightFactor).toInt()
 
         private fun evalTaskList(context: RuntimeContext, parallelTaskList: ParallelTaskList): APLValue {
+            val engine = context.engine
             val dispatcher = context.engine.backgroundDispatcher
             val tasks = parallelTaskList.tasks.map { task ->
                 dispatcher.start {
-                    context.engine.withThreadLocalAssigned {
+                    engine.inComputeThread.value = true
+                    engine.withThreadLocalAssigned {
                         task.computeResult(context)
                     }
                 }
@@ -163,6 +172,7 @@ private class ParallelHandler(val derived: ParallelSupported, val numTasksWeight
                 val res = task.await()
                 results.add(res)
             }
+            engine.checkInterrupted(pos)
             return parallelTaskList.finaliseCompute(results)
         }
     }
