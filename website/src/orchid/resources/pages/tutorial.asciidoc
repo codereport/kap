@@ -265,7 +265,7 @@ Taking Javascript as an example, an array is a collection of objects which is gi
 
 [source,javascript]
 ----
-// Foo is a list of 4 values
+// The following is Javascript code:
 var foo = [1, 2, "string", [4, 5]];
 ----
 
