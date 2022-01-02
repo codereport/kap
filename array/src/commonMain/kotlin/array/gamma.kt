@@ -499,9 +499,7 @@ private fun negGamma(x: Double): Double {
         cos(PI * (0.5 - z))
     }
     if (x < -170) {
-        println("A")
         if (x < -190) {
-            println("B")
             val tiny = 1e-300
             return sgn * tiny * tiny
         }
