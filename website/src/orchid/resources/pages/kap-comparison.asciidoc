@@ -12,11 +12,9 @@ The purpose of this document is to explain how KAP works from the perspective of
 
 The different features are listed here in no particular order.
 
-== Differences between KAP and APL
+== Syntax
 
-=== Syntax
-
-==== Multiline input
+=== Multiline input
 
 If the final character of a line is the backquote character, then the newline is ignored and parsing continues with the next one:
 
@@ -29,13 +27,30 @@ a ← 1 2 3 `
 Note that lines cannot be broken in the middle of a symbol.
 In other words, the newline is interpreted as a space.
 
-==== Namespaces
+=== Parsing operators
+
+Dyadic operators that can take either a function or a value as a right argument causes problems during parsing.
+KAP supports two of these operators: `⍤` and `⍣`.
+Different APL versions have different ways of dealing with this depending on the type of parser used.
+KAP uses a single token lookahead left-to-right parser, which makes this form very difficult to parse.
+
+Due to this parsing issue, KAP requires the programmer to enclose the operator arguments in parentheses regardless of whether the arguments are functions or values.
+
+[source,kap]
+----
+a (fn⍣2) b
+a (fn0⍣fn1) b
+----
+
+The parentheses are not required for operators that only support function arguments.
+
+== Namespaces
 
 Every symbol in KAP belongs to a namespace.
 Unless changed, the default namespace after starting the KAP REPL is `default`.
 The default namespace can be changed using the `use` keyword.
 The default namespace is the namespace where new symbols are interned if they cannot be found in any of the other namespaces in the search path.
-After starting, the only namespace in the searchpath is `kap` which is where all the standard symbols are located.
+After starting, the only namespace in the search path is `kap` which is where all the standard symbols are located.
 Other namespaces can also be included using the `import` statement.
 
 Symbols in other namespaces can be specified by prefixing them with the name of the namespace followed by a colon, such as `unicode:toCodepoints`.
@@ -43,9 +58,9 @@ Symbols in other namespaces can be specified by prefixing them with the name of 
 Symbols with an empty namespace, `:abc`, could also be specified as `keyword:foo`.
 As keywords are the most common use of symbols, this namespace is assumed by default if no namespace is given.
 
-=== Datatypes
+== Datatypes
 
-==== Numbers
+=== Numbers
 
 APL only supports floating point numbers.
 In practice the actual implementation may use different types for optimisation.
@@ -60,10 +75,15 @@ If an operation is performed between an integer and a floating point number, the
 
 The real and imaginary components of complex numbers are always floating point.
 
-==== Characters
+=== Characters
 
-All characters are UTF-32 codepoints.
+All characters are unicode codepoints.
+Strings are sequences of codepoints, which means that strings are using UTF-32 encoding.
 The functions `unicode:toCodepoints` and `unicode:fromCodepoints` can be used to convert numbers to and from character values respectively.
+
+Note that in Unicode, a single codepoint does not necessarily mean a single character.
+Unicode uses the term "`grapheme cluster`" to describe a single unit (what most people would refer to as a character).
+KAP provides the function `unicode:toGraphemes` to convert a string into an array of graphemes.
 
 Strings are specified using double quotes rather than single quotes in APL.
 The reason for this is to make it clear that they work differently compared to APL.
@@ -79,7 +99,7 @@ Thus, the following two lines both specify the same string:
 @a @b @c
 ----
 
-==== Symbols
+=== Symbols
 
 Symbols are first-class objects in KAP.
 They work similar to Lisp in that they are unique objects identified by their name.
@@ -89,37 +109,158 @@ To obtain the symbol itself instead of its value, they are prefixed by a quote:
 [source,kap]
 ----
 a ← 'foo     ⍝ a now contains the symbol foo itself rather than the value of the variable
-b ← :abc     ⍝ b contains the keyword foo, no need to use ' here
+b ← :abc     ⍝ b contains the keyword abc, no need to use ' here
 ----
 
-==== Hashtables
+=== Maps
 
-Hashtables are a separate datatypes in KAP.
-They are immutable, and updating a hashtable returns a new instance with the requested change applied.
+Maps are a separate datatypes in KAP.
+They are immutable, and updating a map returns a new instance with the requested change applied.
 
-A hashtable is created using the function `map`.
+A map is created using the function `map`.
 It accepts either a 2-element array with the key and value of a single element, or a 2-dimensional array with 2 columns containing key/value pairs:
 
 [source,kap]
 ----
-⍝ Create a hashtable with a single element mapping foo to bar
+⍝ Create a map with a single element mapping foo to bar
 a ← map "foo" "bar"
 
-⍝ Create a hashtable with three elements:
+⍝ Create a map with three elements:
 b ← map 3 2 ⍴ `
     "foo" "value is a string" `
     "test" 1 `
     "test2" 2
 ----
 
-=== Function declarations
+The keys in a map can be anything, not just strings.
+This includes arrays, numbers and symbols.
+In fact, the most useful type of key is likely the keyword:
 
-APL has two ways of declaring functions, either tradfns or using dfns.
-The former are global functions while the latter are local to the current scope.
+[source,kap]
+----
+c ← map :foo "bar"
+----
 
-==== Tradfn
+The benefit of using keywords as keys is that member checks are done by identity and does not require iterating over each element in a string.
+This makes map lookups much faster.
 
-The original method uses `∇` and declares a function that allows you to use flow control using `→`.
+Elements from an array are accessed using syntax similar to array dereferencing, or the `mapGet` function:
+
+[source,kap]
+----
+    b["foo"]
+"value is a string"
+    b mapGet "foo"
+"value is a string"
+----
+
+Maps can be manipulated using the functions `mapPut` and `mapRemove`:
+
+[source,kap]
+----
+    b ← b mapPut "a" "b"
+    b["a"]
+"a"
+    b ← b mapRemove ⊂"a"
+    b["a"]
+⍬
+----
+
+== Differences in standard functions
+
+=== Enclose and disclose: `⊂`, `⊃`
+
+In KAP, the `⊂` and `⊃` functions follow the APL2 style, which is more consistent than the style used by for example Dyalog.
+The function `⊂` encloses the value in a scalar wrapper, and `⊃` undoes this operation, returning the contained value.
+
+[source,kap]
+----
+    ⊂ "foo"
+┏━━━━━┓
+┃"foo"┃
+┗━━━━━┛
+    ⊃ ⊂ "foo"
+"foo"
+----
+
+If `⊃` is called on an array, it performs the "`mix`" operation:
+
+[source,kap]
+----
+    ⊃ (1 2 3 4) (5 6 7 8)
+┏━━━━━━━┓
+┃1 2 3 4┃
+┃5 6 7 8┃
+┗━━━━━━━┛
+----
+
+=== Take and drop: `↑`, `↓`
+
+The `↑` and `↓` operations are consistently representing the take and drop functions. `↑` always takes some number of values from the beginning or end of the array, while `↓` removes the same values:
+
+[source,kap]
+----
+    ↑ 1 2 3 4
+1
+    3 ↑ ⍳10
+┏━━━━━┓
+┃0 1 2┃
+┗━━━━━┛
+    ↓ 1 2 3 4
+┏━━━━━┓
+┃2 3 4┃
+┗━━━━━┛
+    7 ↓ ⍳10
+┏━━━━━┓
+┃7 8 9┃
+┗━━━━━┛
+----
+
+=== Convert to string: `⍕`
+
+The format function is currently much less capable compared to APL.
+It's currently only used to a value to a string:
+
+[source,kap]
+----
+    ⍕2
+"2"
+----
+
+=== Parse string as number: `⍎`
+
+KAP currently does not support eval.
+The eval symbol is instead used to parse a string as a number:
+
+[source,kap]
+----
+    ⍎"432"
+432
+----
+
+=== Maths functions
+
+In APL, a lot of maths functions are provided via the `○` function.
+The left argument is a number specifying the operation and the right argument is the value on which the function should work.
+The `○` function is not available in KAP, and instead these functions are given regular names and placed in the `math` namespace.
+The currently implemented functions include:
+
+- `sin` - Sine
+- `cos` - Cosine
+- `tan` - Tangent
+- `asin` - Arcsin
+- `acos` - Arccos
+- `atan` - Arctan
+
+== Function declarations
+
+Both APL and KAP has two ways of declaring functions, either tradfns or using dfns.
+
+In KAP, functions that are defined using the tradfn style are global functions, while dfns are local to the current.
+
+=== Tradfn
+
+In APL, the original method uses `∇` and declares a function that allows you to use flow control using `→`.
 The following is an example of an APL tradfn:
 
 [source,apl]
@@ -151,7 +292,7 @@ In KAP, the function returns the last value that was evaluated.
 
 Functions defined using this style are global, and after declaration they can be accessible from any part of a program.
 
-==== Dfns style
+=== Dfns style
 
 Defining a dfn in KAP is similar to APL.
 The only visible difference is the use of `⇐` instead of `←`.
@@ -163,7 +304,7 @@ As these are vastly different types of operations, different symbols are used to
 foo ⇐ { ⍵+1 }
 ----
 
-=== Parse-time vs. evaluation-time
+== Parse-time vs. evaluation-time
 
 In APL, a function declared using `←` takes effect immediately.
 Thus, the following expression is valid in APL:
@@ -175,9 +316,127 @@ b ← { ⍵+1 }
 a 1  ⍝ This will print 12
 ----
 
-The corresponding code in KAP will not work, becuase at the time where the definition of `a` happens, `b` is not yet declared and the following error will be displayed when `a` is called on the last line: `Variable not assigned: default:b`.
+The corresponding code in KAP will not work, because at the time where the definition of `a` happens, `b` is not yet declared and the following error will be displayed when `a` is called on the last line: `Variable not assigned: default:b`.
 This error may seem confusing until one notes that when the first line was parsed, `b` was assumed to be a variable, and this variable indeed does not have a value.
 
 This difference is important when coming from APL.
 During parsing, KAP needs to know whether a symbol represents a function, an operator or a value.
 Any undefined symbols are assumed to be values.
+
+== Flow control
+
+KAP provides flow control structures that are similar to traditional programming languages.
+These are described in more detail in the tutorial, and are therefore only listed here briefly:
+
+=== if statements
+
+The following adds 1 to either `c` or `d` depending on `a`:
+
+[source,kap]
+----
+a ← 1 + if (b) { c } else { d }
+----
+
+=== when statement
+
+The `when` statement is used as an alternative to series of `if` and `else`.
+The following sets `a` to be the value of some variable, or returns a message if all conditions failed.
+
+[source,kap]
+----
+a ← when {
+  (b=1) { c }
+  (b=2) { d }
+  (b=3) { e }
+  (1)   { "All comparisons were false" }
+}
+----
+
+=== while loop
+
+[source,kap]
+----
+i ← 0
+while (i < 5) {
+  io:println "Number: ",⍕i
+  i ← i+1
+}
+----
+
+== Lambda functions
+
+KAP provides support for first-class functions.
+A first-class function is a function that can be processed like a value.
+They can be placed in arrays, and returned from functions.
+To convert a function into a value, the symbol `λ` is used:
+
+[source,kap]
+----
+q ← λ{⍵+1}
+w ← λ+
+----
+
+To call a function from a value, use the symbol `⍞`, called the "`apply`" operation.
+Note that while it may look like a function, it's actually special syntax which processes only the next element (either a symbol or an expression inside parens) after the apply symbol itself.
+
+[source,kap]
+----
+    ⍞q 10
+11
+----
+
+Lambda functions capture the local environment where they were applied:
+
+[source,kap]
+----
+∇ makeCounter start {
+    currentValue ← start
+    λ{currentValue ← currentValue+1}
+}
+----
+
+This function can be used as shown below.
+The argument `1` to the function is a no-op which is needed as there is no way to call a function with no parameters.
+A more general way to handle this will be introduced at a later time, once the best way to do this has been decided on.
+
+[source,kap]
+----
+    a ← makeCounter 0
+function
+    ⍞a 1
+1
+    ⍞a 1
+2
+----
+
+== Lazy evaluation
+
+Many functions in KAP returns lazy values.
+The value returned is a representation of the result, but the actual computation is only performed once the value is needed.
+The `¨` operator is the one that has the capability of creating the most surprises as it will defer the evaluation of the function until a possibly much later time.
+An example follows:
+
+[source,kap]
+----
+    ↑ {(1+⍵) ⊣ io:println "⍵ = ",⍕⍵}¨ 1 2 3
+⍵ = 1
+2
+----
+
+Since only the first value of the result was taken, the function was only evaluated once with the first element in the list as argument.
+
+A lazy result can be forced to compute the underlying results.
+This operation is referred to "`collapse`" and can be performed manually using the function `comp` (for "`compress`" which is an alternative name for this action).
+Thus, to force the printing of all values in the example above, the following can be performed:
+
+[source,kap]
+----
+    ↑ comp {(1+⍵) ⊣ io:println "⍵ = ",⍕⍵}¨ 1 2 3
+⍵ = 1
+⍵ = 2
+⍵ = 3
+2
+----
+
+Assigning a value to a variable always forces a collapse before the assignment.
+The collapse operation is also performed on the final result of a standalone expression.
