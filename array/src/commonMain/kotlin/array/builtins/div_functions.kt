@@ -301,3 +301,34 @@ class EnsureTypeFunction(val overrideType: ArrayMemberType) : APLFunctionDescrip
 
     override fun make(pos: Position) = EnsureTypeFunctionImpl(pos)
 }
+
+class ToListFunction : APLFunctionDescriptor {
+    class ToListFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val a0 = a.arrayify()
+            if (a0.dimensions.size != 1) {
+                throwAPLException(InvalidDimensionsException("Argument must be a scalar or 1-dimensional array", pos))
+            }
+            val result = a0.membersSequence().toList()
+            return APLList(result)
+        }
+    }
+
+    override fun make(pos: Position) = ToListFunctionImpl(pos)
+}
+
+class FromListFunction : APLFunctionDescriptor {
+    class FromListFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val a0 = a.collapse()
+            if (a0 !is APLList) {
+                throwAPLException(APLIllegalArgumentException("Argument is not a list", pos))
+            }
+            val content = a0.elements
+            val result = Array(content.size) { i -> content[i] }
+            return APLArrayImpl(dimensionsOfSize(content.size), result)
+        }
+    }
+
+    override fun make(pos: Position) = FromListFunctionImpl(pos)
+}

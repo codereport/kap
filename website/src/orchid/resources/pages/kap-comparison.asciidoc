@@ -166,6 +166,26 @@ Maps can be manipulated using the functions `mapPut` and `mapRemove`:
 ⍬
 ----
 
+=== List
+
+The list is a scalar datatype that wraps a fixed set of values.
+It can be seen as a generic n-tuple.
+The syntax for lists are a number of values separated by `;`.
+The most common use of lists are as arguments to array lookup as well as supporting multiple arguments to functions.
+Note that `;` binds looser than regular function calls, so in most cases the list needs to be enclosed in parentheses in order to be used as a single object.
+
+The functions `toList` and `fromList` can be used to convert between lists and vectors.
+
+[source,kap]
+----
+    a ← (1 ; 2 ; 3)
+list
+    fromList a
+┏━━━━━┓
+┃1 2 3┃
+┗━━━━━┛
+----
+
 == Differences in standard functions
 
 === Enclose and disclose: `⊂`, `⊃`

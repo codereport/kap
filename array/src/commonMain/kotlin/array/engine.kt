@@ -320,6 +320,8 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("ensureLong", EnsureTypeFunction(ArrayMemberType.LONG), "int")
         registerNativeFunction("ensureDouble", EnsureTypeFunction(ArrayMemberType.DOUBLE), "int")
         registerNativeOperator("atLeave", AtLeaveScopeOperator())
+        registerNativeFunction("toList", ToListFunction())
+        registerNativeFunction("fromList", FromListFunction())
 
         // maths
         registerNativeFunction("sin", SinAPLFunction(), "math")
