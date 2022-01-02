@@ -224,9 +224,8 @@ abstract class MathCombineAPLFunction(pos: Position) : APLFunction(pos) {
                 if (d1[0] != d2[axisInt]) {
                     throwAPLException(
                         InvalidDimensionsException(
-                            "Dimensions of A does not match dimensions of B across axis ${axisInt}", pos2Arg
-                        )
-                    )
+                            "Dimensions of A does not match dimensions of B across axis ${axisInt}",
+                            pos2Arg))
                 }
                 val d = d2.remove(axisInt).insert(d2.size - 1, d2[axisInt])
                 val transposeAxis = IntArray(d2.size) { i ->
@@ -240,14 +239,14 @@ abstract class MathCombineAPLFunction(pos: Position) : APLFunction(pos) {
             }
 
             // When an axis is given, one of the arguments must be rank 1, and its dimension must be equal to the
-            // dimension of the other arguments across the axis
+            // dimension of the other argument across the axis
             val (a1, b1) = when {
                 aDimensions.size == 1 && bDimensions.size == 1 -> {
                     if (axisInt == 0) Pair(a0, b0) else throwAPLException(IllegalAxisException(axisInt, aDimensions, pos2Arg))
                 }
                 aDimensions.size == 1 -> Pair(computeTransformation(a0, aDimensions, bDimensions), b0)
                 bDimensions.size == 1 -> Pair(a0, computeTransformation(b0, bDimensions, aDimensions))
-                else -> throwAPLException(APLIllegalArgumentException("When specifying an axis, A or B has ro be rank 1", pos2Arg))
+                else -> throwAPLException(APLIllegalArgumentException("When specifying an axis, A or B has to be rank 1", pos2Arg))
             }
 
             return makeCellSumFunction2Args(a1, b1, pos2Arg)
@@ -533,8 +532,9 @@ class ModAPLFunction : APLFunctionDescriptor {
             if (x == 0.0) y else (y % x).let { result -> (if (x < 0) -result else result) }
 
         override fun combine2ArgLong(a: Long, b: Long) = opLong(a, b)
+        override fun combine2ArgDouble(a: Double, b: Double) = opDouble(a, b)
 
-        override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_2ARG_LONG_LONG)
+        override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_2ARG_LONG_LONG or OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
     }
 
     override fun make(pos: Position) = ModAPLFunctionImpl(pos)
@@ -1001,11 +1001,11 @@ class BinomialAPLFunction : APLFunctionDescriptor {
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
             return numericRelationOperation(
                 pos,
-                                            a,
-                                            b,
-                                            { x, y -> doubleBinomial(x.toDouble(), y.toDouble()).makeAPLNumber() },
-                                            { x, y -> doubleBinomial(x, y).makeAPLNumber() },
-                                            { x, y -> complexBinomial(x, y).makeAPLNumber() })
+                a,
+                b,
+                { x, y -> doubleBinomial(x.toDouble(), y.toDouble()).makeAPLNumber() },
+                { x, y -> doubleBinomial(x, y).makeAPLNumber() },
+                { x, y -> complexBinomial(x, y).makeAPLNumber() })
         }
     }
 

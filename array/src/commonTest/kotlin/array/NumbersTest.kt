@@ -54,6 +54,30 @@ class NumbersTest : APLTest() {
     }
 
     @Test
+    fun testModOptimisedInt() {
+        parseAPLExpression("4 | int:ensureLong 2 5 6").let { result ->
+            assertDimension(dimensionsOfSize(3), result)
+            assertArrayContent(arrayOf(2, 1, 2), result)
+        }
+        parseAPLExpression("4 | int:ensureGeneric 2 5 6").let { result ->
+            assertDimension(dimensionsOfSize(3), result)
+            assertArrayContent(arrayOf(2, 1, 2), result)
+        }
+    }
+
+    @Test
+    fun testModOptimisedDouble() {
+        parseAPLExpression("2.0 | int:ensureDouble 2.0 2.1 2.5").let { result ->
+            assertDimension(dimensionsOfSize(3), result)
+            assertArrayContent(arrayOf(NearDouble(0.0, 4), NearDouble(0.1, 4), NearDouble(0.5, 4)), result)
+        }
+        parseAPLExpression("2.0 | int:ensureGeneric 2.0 2.1 2.5").let { result ->
+            assertDimension(dimensionsOfSize(3), result)
+            assertArrayContent(arrayOf(NearDouble(0.0, 4), NearDouble(0.1, 4), NearDouble(0.5, 4)), result)
+        }
+    }
+
+    @Test
     fun testNegation() {
         assertSimpleNumber(0, parseAPLExpression("-0"))
         assertSimpleNumber(1, parseAPLExpression("-(1-2)"))
