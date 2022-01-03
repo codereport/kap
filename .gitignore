@@ -37,7 +37,6 @@
 /text-client/build
 /client-java/build
 
-/website/src/orchid/resources/pages/tutorial.html
-/java_pid15667.hprof
-/website/src/orchid/resources/pages/kap-comparison.html
-/kotlin-js-store/yarn.lock
+/*.hprof
+/website/src/orchid/resources/pages/*.html
+/kotlin-js-store
