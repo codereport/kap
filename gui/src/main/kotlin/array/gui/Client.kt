@@ -49,7 +49,7 @@ class Client(val application: ClientApplication, val stage: Stage) {
         engine.standardOutput = SendToMainCharacterOutput()
         calculationQueue = CalculationQueue(engine)
 
-        inputFont = javaClass.getResourceAsStream("fonts/FreeMono.otf").use {
+        inputFont = javaClass.getResourceAsStream("fonts/DejaVuSansMono.ttf").use {
             Font.loadFont(it, 18.0) ?: throw IllegalStateException("Unable to load font")
         }
 
