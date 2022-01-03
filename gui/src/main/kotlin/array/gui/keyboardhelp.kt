@@ -4,14 +4,14 @@ import javafx.event.EventHandler
 import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
 import javafx.geometry.HPos
-import javafx.geometry.Insets
 import javafx.geometry.VPos
 import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.control.Label
-import javafx.scene.layout.*
-import javafx.scene.paint.Color
-import javafx.scene.text.Font
+import javafx.scene.layout.AnchorPane
+import javafx.scene.layout.BorderPane
+import javafx.scene.layout.GridPane
+import javafx.scene.layout.Priority
 import javafx.stage.Stage
 
 class KeyboardHelpWindow(renderContext: ClientRenderContext) {
@@ -46,7 +46,7 @@ class KeyboardHelp {
     fun init(context: ClientRenderContext) {
         renderContext = context
         forEachKeyLabel { label ->
-            label.initLabel(renderContext.font())
+            label.initLabel()
         }
         updateShortcuts()
     }
@@ -86,8 +86,9 @@ class KeyboardButtonLabel : AnchorPane() {
     var clickable: Boolean = true
 
     init {
-        background = Background(BackgroundFill(Color(0.95, 0.95, 0.95, 1.0), CornerRadii.EMPTY, Insets.EMPTY))
-        padding = Insets(2.0, 2.0, 2.0, 2.0)
+        styleClass.addAll("keyboard-button-label", "kapfont")
+//        background = Background(BackgroundFill(Color(0.95, 0.95, 0.95, 1.0), CornerRadii.EMPTY, Insets.EMPTY))
+//        padding = Insets(2.0, 2.0, 2.0, 2.0)
         maxWidth = Double.MAX_VALUE
         maxHeight = Double.MAX_VALUE
         GridPane.setHalignment(this, HPos.CENTER)
@@ -143,27 +144,27 @@ class KeyboardButtonLabel : AnchorPane() {
         altLowerFx.text = s
     }
 
-    fun initLabel(font: Font) {
-        altUpperFx.font = font
-        altLowerFx.font = font
-        upperFx.font = font
-        lowerFx.font = font
+    fun initLabel() {
+//        altUpperFx.font = font
+//        altLowerFx.font = font
+//        upperFx.font = font
+//        lowerFx.font = font
 
         if (clickable) {
             altUpperFx.apply {
-                styleClass.setAll("keyboard-button-label-clickable")
+                styleClass.add("keyboard-button-label-clickable")
                 onMouseClicked = EventHandler { handleClick(altUpperLabel) }
             }
             altLowerFx.apply {
-                styleClass.setAll("keyboard-button-label-clickable")
+                styleClass.add("keyboard-button-label-clickable")
                 onMouseClicked = EventHandler { handleClick(altLowerLabel) }
             }
             upperFx.apply {
-                styleClass.setAll("keyboard-button-label-clickable")
+                styleClass.add("keyboard-button-label-clickable")
                 onMouseClicked = EventHandler { handleClick(upperLabel) }
             }
             lowerFx.apply {
-                styleClass.setAll("keyboard-button-label-clickable")
+                styleClass.add("keyboard-button-label-clickable")
                 onMouseClicked = EventHandler { handleClick(lowerLabel) }
             }
         } else {

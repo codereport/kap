@@ -5,16 +5,15 @@ import org.fxmisc.richtext.TextExt
 
 open class TextStyle(val type: Type = Type.DEFAULT, val promptTag: Boolean = false) {
     fun styleContent(content: TextExt, renderContext: ClientRenderContext) {
-        content.font = renderContext.font()
         val css = when (type) {
-            Type.ERROR -> "-fx-fill: #ff0000;"
-            Type.PROMPT -> "-fx-font-weight: bold;"
-            Type.OUTPUT -> "-fx-fill: #000000;"
-            Type.RESULT -> "-fx-fill: #005000;"
+            Type.ERROR -> "editcontent-error"
+            Type.PROMPT -> "editcontent-prompt"
+            Type.OUTPUT -> "editcontent-output"
+            Type.RESULT -> "editcontent-result"
             else -> null
         }
         if (css != null) {
-            content.style = css
+            content.styleClass.add(css)
         }
     }
 

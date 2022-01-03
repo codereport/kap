@@ -26,7 +26,6 @@ import java.io.File
 class Client(val application: ClientApplication, val stage: Stage) {
     val renderContext: ClientRenderContext = ClientRenderContextImpl()
     val resultList: ResultList3
-    val inputFont: Font
     val engine: Engine
     val calculationQueue: CalculationQueue
     val sourceEditors = ArrayList<SourceEditor>()
@@ -49,8 +48,11 @@ class Client(val application: ClientApplication, val stage: Stage) {
         engine.standardOutput = SendToMainCharacterOutput()
         calculationQueue = CalculationQueue(engine)
 
-        inputFont = javaClass.getResourceAsStream("fonts/DejaVuSansMono.ttf").use {
-            Font.loadFont(it, 18.0) ?: throw IllegalStateException("Unable to load font")
+        val fontFiles = listOf("iosevka-fixed-regular.ttf", "iosevka-fixed-bold.ttf", "JuliaMono-Regular.ttf", "JuliaMono-Bold.ttf")
+        fontFiles.forEach { fileName ->
+            javaClass.getResourceAsStream("fonts/${fileName}").use { contentIn ->
+                Font.loadFont(contentIn, 18.0) ?: throw IllegalStateException("Unable to load font: ${fileName}")
+            }
         }
 
         resultList = ResultList3(this)
@@ -300,7 +302,6 @@ class Client(val application: ClientApplication, val stage: Stage) {
         private val extendedInput = ExtendedCharsKeyboardInput()
 
         override fun engine() = engine
-        override fun font() = inputFont
         override fun extendedInput() = extendedInput
     }
 

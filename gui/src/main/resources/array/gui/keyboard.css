@@ -1,3 +1,10 @@
+.keyboard-button-label {
+    -fx-font-family: "Iosevka Fixed";
+    -fx-background-color: #f3f3f3;
+    -fx-padding: 0.2;
+    -fx-font-size: 15pt;
+}
+
 .keyboard-button-label-clickable {
     -fx-background-color: transparent;
 }

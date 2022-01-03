@@ -39,6 +39,7 @@ open class KAPEditorStyledArea<P, S>(
 
     init {
         stylesheets.add("/array/gui/interactor.css")
+        styleClass.addAll("editcontent", "kapfont")
         updateKeymap()
     }
 

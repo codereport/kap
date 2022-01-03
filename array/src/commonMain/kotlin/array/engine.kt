@@ -277,7 +277,8 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("⍋", GradeUpFunction())
         registerNativeFunction("⍒", GradeDownFunction())
         registerNativeFunction("⍷", FindFunction())
-        registerNativeFunction("/", SelectElementsLastAxisFunction())
+        registerNativeFunction("⫽", SelectElementsLastAxisFunction())
+        registerNativeFunction("/", SelectElementsLastAxisFunction()) // Temporary alias while migrating code
         registerNativeFunction("⌿", SelectElementsFirstAxisFunction())
         registerNativeFunction("∼", NotAPLFunction())
         registerNativeFunction("⍕", FormatAPLFunction())

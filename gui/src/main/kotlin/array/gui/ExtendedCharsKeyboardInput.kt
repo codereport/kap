@@ -49,13 +49,13 @@ class ExtendedCharsKeyboardInput {
             makeKeyDescriptor("z") to "⊂", makeKeyDescriptor("Z", Flag.SHIFT) to "⊆",
             makeKeyDescriptor("x") to "⊃", makeKeyDescriptor("X", Flag.SHIFT) to "⊇",
             makeKeyDescriptor("c") to "∩", makeKeyDescriptor("C", Flag.SHIFT) to "⍧",
-            makeKeyDescriptor("v") to "∪",
+            makeKeyDescriptor("v") to "∪", makeKeyDescriptor("V", Flag.SHIFT) to "⍠",
             makeKeyDescriptor("b") to "⊥", makeKeyDescriptor("B", Flag.SHIFT) to "£",
             makeKeyDescriptor("n") to "⊤", makeKeyDescriptor("N", Flag.SHIFT) to "λ",
             makeKeyDescriptor("m") to "|",
             makeKeyDescriptor(",") to "⍝", makeKeyDescriptor("<", Flag.SHIFT) to "⍪",
             makeKeyDescriptor(">", Flag.SHIFT) to "⍀",
-            makeKeyDescriptor("/") to "⌿", makeKeyDescriptor("?", Flag.SHIFT) to "⍠")
+            makeKeyDescriptor("/") to "⌿", makeKeyDescriptor("?", Flag.SHIFT) to "⫽")
     }
 
 //    fun addEventHandlerToNode(node: TextInputControl) {

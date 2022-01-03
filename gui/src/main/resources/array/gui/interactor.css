@@ -1,9 +1,30 @@
+.editcontent {
+    -fx-font-family: "Iosevka Fixed";
+    /*-fx-font-family: "JuliaMono";*/
+    -fx-font-size: 14pt
+}
+
+.editcontent-error {
+    -fx-fill: #ff0000;
+}
+
+.editcontent-prompt {
+    -fx-font-weight: bold;
+}
+
+.editcontent-output {
+    -fx-fill: #000000;
+}
+
+.editcontent-result {
+    -fx-fill: #005000;
+}
+
 .kapresult {
-    -fx-font-size: 16px;
-    -fx-font-family: DejaVuSansMono;
+    -fx-font-size: 14pt;
 }
 
 .kapresult-header {
-    -fx-font-size: 16px;
+    -fx-font-size: 14pt;
     -fx-font-weight: bold;
 }

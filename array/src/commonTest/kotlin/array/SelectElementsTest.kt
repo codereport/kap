@@ -6,7 +6,7 @@ import kotlin.test.assertFailsWith
 class SelectElementsTest : APLTest() {
     @Test
     fun plainSelect() {
-        parseAPLExpression("1 0 1 / 1 2 3").let { result ->
+        parseAPLExpression("1 0 1 ⫽ 1 2 3").let { result ->
             assertDimension(dimensionsOfSize(2), result)
             assertArrayContent(arrayOf(1, 3), result)
         }
