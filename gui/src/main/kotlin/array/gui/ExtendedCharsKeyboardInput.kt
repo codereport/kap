@@ -17,7 +17,7 @@ class ExtendedCharsKeyboardInput {
             makeKeyDescriptor("8") to "≠", makeKeyDescriptor("*", Flag.SHIFT) to "⍟",
             makeKeyDescriptor("9") to "∨", makeKeyDescriptor("(", Flag.SHIFT) to "⍱",
             makeKeyDescriptor("0") to "∧", makeKeyDescriptor(")", Flag.SHIFT) to "⍲",
-            makeKeyDescriptor("-") to "×", makeKeyDescriptor("_", Flag.SHIFT) to "!",
+            makeKeyDescriptor("-") to "×", makeKeyDescriptor("_", Flag.SHIFT) to "⍠",
             makeKeyDescriptor("=") to "÷", makeKeyDescriptor("+", Flag.SHIFT) to "⌹",
             // Second row
             // q is unassigned
@@ -49,12 +49,12 @@ class ExtendedCharsKeyboardInput {
             makeKeyDescriptor("z") to "⊂", makeKeyDescriptor("Z", Flag.SHIFT) to "⊆",
             makeKeyDescriptor("x") to "⊃", makeKeyDescriptor("X", Flag.SHIFT) to "⊇",
             makeKeyDescriptor("c") to "∩", makeKeyDescriptor("C", Flag.SHIFT) to "⍧",
-            makeKeyDescriptor("v") to "∪", makeKeyDescriptor("V", Flag.SHIFT) to "⍠",
+            makeKeyDescriptor("v") to "∪",
             makeKeyDescriptor("b") to "⊥", makeKeyDescriptor("B", Flag.SHIFT) to "£",
             makeKeyDescriptor("n") to "⊤", makeKeyDescriptor("N", Flag.SHIFT) to "λ",
-            makeKeyDescriptor("m") to "|",
+            makeKeyDescriptor("m") to "|", makeKeyDescriptor("M", Flag.SHIFT) to "∥",
             makeKeyDescriptor(",") to "⍝", makeKeyDescriptor("<", Flag.SHIFT) to "⍪",
-            makeKeyDescriptor(">", Flag.SHIFT) to "⍀",
+            makeKeyDescriptor(".") to "⍀", makeKeyDescriptor(">", Flag.SHIFT) to "⑊",
             makeKeyDescriptor("/") to "⌿", makeKeyDescriptor("?", Flag.SHIFT) to "⫽")
     }
 
