@@ -12,6 +12,7 @@ import javafx.scene.layout.AnchorPane
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.Priority
+import javafx.scene.text.Font
 import javafx.stage.Stage
 
 class KeyboardHelpWindow(renderContext: ClientRenderContext) {
@@ -46,7 +47,7 @@ class KeyboardHelp {
     fun init(context: ClientRenderContext) {
         renderContext = context
         forEachKeyLabel { label ->
-            label.initLabel()
+            label.initLabel(renderContext.font())
         }
         updateShortcuts()
     }
@@ -144,11 +145,11 @@ class KeyboardButtonLabel : AnchorPane() {
         altLowerFx.text = s
     }
 
-    fun initLabel() {
-//        altUpperFx.font = font
-//        altLowerFx.font = font
-//        upperFx.font = font
-//        lowerFx.font = font
+    fun initLabel(font: Font) {
+        altUpperFx.font = font
+        altLowerFx.font = font
+        upperFx.font = font
+        lowerFx.font = font
 
         if (clickable) {
             altUpperFx.apply {

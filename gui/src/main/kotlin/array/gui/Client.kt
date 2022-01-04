@@ -29,10 +29,10 @@ class Client(val application: ClientApplication, val stage: Stage) {
     val engine: Engine
     val calculationQueue: CalculationQueue
     val sourceEditors = ArrayList<SourceEditor>()
+    private var inputFont: Font
     private val functionListWindow: FunctionListWindow
     private val keyboardHelpWindow: KeyboardHelpWindow
     private val aboutWindow: AboutWindow
-    private val settingsWindow: SettingsWindow
     private var settings: Settings
     private val directoryTextField = TextField()
     private val breakButton = Button("Stop")
@@ -55,6 +55,10 @@ class Client(val application: ClientApplication, val stage: Stage) {
             }
         }
 
+        makeSettingsData().let { settingsData ->
+            inputFont = Font(settingsData.fontFamily, settingsData.fontSize.toDouble())
+        }
+
         resultList = ResultList3(this)
 
         stage.title = "Test ui"
@@ -67,15 +71,8 @@ class Client(val application: ClientApplication, val stage: Stage) {
         functionListWindow = FunctionListWindow.create(renderContext, engine)
         keyboardHelpWindow = KeyboardHelpWindow(renderContext)
         aboutWindow = AboutWindow()
-        settingsWindow = SettingsWindow()
 
-        settings.directory.let { dir ->
-            if (dir == null) {
-                updateWorkingDirectory(currentDirectory())
-            } else {
-                updateWorkingDirectory(dir)
-            }
-        }
+        updateWorkingDirectory(settings.directory ?: currentDirectory())
 
         calculationQueue.start()
         stage.onCloseRequest = EventHandler { calculationQueue.stop() }
@@ -235,7 +232,16 @@ class Client(val application: ClientApplication, val stage: Stage) {
     }
 
     private fun openSettingsWindow() {
-        settingsWindow.show()
+        val dialog =
+            SettingsDialog(stage, makeSettingsData())
+        dialog.showAndWait().ifPresent { result ->
+            settings = settings.copy(fontFamily = result.fontFamily, fontSize = result.fontSize)
+            saveSettings(settings)
+        }
+    }
+
+    private fun makeSettingsData(): SettingsData {
+        return SettingsData(fontFamily = settings.fontFamily ?: "Iosevka Fixed", fontSize = settings.fontSize ?: 10)
     }
 
     fun sendInput(text: String) {
@@ -302,6 +308,7 @@ class Client(val application: ClientApplication, val stage: Stage) {
         private val extendedInput = ExtendedCharsKeyboardInput()
 
         override fun engine() = engine
+        override fun font() = inputFont
         override fun extendedInput() = extendedInput
     }
 

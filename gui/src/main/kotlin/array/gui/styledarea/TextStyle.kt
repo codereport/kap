@@ -15,6 +15,7 @@ open class TextStyle(val type: Type = Type.DEFAULT, val promptTag: Boolean = fal
         if (css != null) {
             content.styleClass.add(css)
         }
+//        content.font = renderContext.font()
     }
 
     override fun equals(other: Any?): Boolean {
