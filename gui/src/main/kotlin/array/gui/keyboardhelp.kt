@@ -34,14 +34,8 @@ class KeyboardHelpWindow(renderContext: ClientRenderContext) {
 }
 
 class KeyboardHelp {
-    @get:FXML
-    @set:FXML
     lateinit var borderPane: BorderPane
-
-    @get:FXML
-    @set:FXML
     lateinit var gridPane: GridPane
-
     lateinit var renderContext: ClientRenderContext
 
     fun init(context: ClientRenderContext) {
@@ -113,8 +107,6 @@ class KeyboardButtonLabel : AnchorPane() {
         setRightAnchor(lowerFx, margin)
     }
 
-    @get:FXML
-    @set:FXML
     var upperLabel: String = ""
         get() = field
         set(s) {
@@ -122,8 +114,6 @@ class KeyboardButtonLabel : AnchorPane() {
             field = s
         }
 
-    @get:FXML
-    @set:FXML
     var lowerLabel: String = ""
         get() = field
         set(s) {
@@ -146,10 +136,10 @@ class KeyboardButtonLabel : AnchorPane() {
     }
 
     fun initLabel(font: Font) {
-        altUpperFx.font = font
-        altLowerFx.font = font
-        upperFx.font = font
-        lowerFx.font = font
+//        altUpperFx.font = font
+//        altLowerFx.font = font
+//        upperFx.font = font
+//        lowerFx.font = font
 
         if (clickable) {
             altUpperFx.apply {
