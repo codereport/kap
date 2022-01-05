@@ -276,7 +276,7 @@ The currently implemented functions include:
 
 Both APL and KAP has two ways of declaring functions, either tradfns or using dfns.
 
-In KAP, functions that are defined using the tradfn style are global functions, while dfns are local to the current.
+In KAP, functions that are defined using the tradfn style are global functions, while dfns are local to the current lexical context.
 
 === Tradfn
 

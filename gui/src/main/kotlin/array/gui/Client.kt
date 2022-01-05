@@ -7,9 +7,12 @@ import array.gui.settings.Settings
 import array.gui.settings.loadSettings
 import array.gui.settings.saveSettings
 import array.gui.viewer.StructureViewer
+import com.panemu.tiwulfx.control.dock.DetachableTab
+import com.panemu.tiwulfx.control.dock.DetachableTabPane
 import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.geometry.Insets
+import javafx.geometry.Orientation
 import javafx.geometry.Pos
 import javafx.scene.Node
 import javafx.scene.Scene
@@ -32,10 +35,12 @@ class Client(val application: ClientApplication, val stage: Stage) {
     private var inputFont: Font
     private val functionListWindow: FunctionListWindow
     private val keyboardHelpWindow: KeyboardHelpWindow
+    private var dtPane: DetachableTabPane
     private val aboutWindow: AboutWindow
     private var settings: Settings
     private val directoryTextField = TextField()
     private val breakButton = Button("Stop")
+    private val stackTraceWindow: StackTrace
 
     init {
         settings = loadSettings()
@@ -63,10 +68,20 @@ class Client(val application: ClientApplication, val stage: Stage) {
 
         stage.title = "Test ui"
 
+        val splitPane = SplitPane()
+        splitPane.orientation = Orientation.VERTICAL
+        splitPane.setDividerPosition(0, 0.75)
+        dtPane = DetachableTabPane()
+        dtPane.setOnClosedPassSibling { sibling -> dtPane = sibling }
+        splitPane.items.add(resultList.getNode())
+        splitPane.items.add(dtPane)
         val border = BorderPane().apply {
             top = makeTopBar()
-            center = resultList.getNode()
+            center = splitPane
         }
+
+        stackTraceWindow = StackTrace.makeStackTraceWindow(this)
+        dtPane.tabs.add(DetachableTab("Stack trace", stackTraceWindow.borderPane))
 
         functionListWindow = FunctionListWindow.create(renderContext, engine)
         keyboardHelpWindow = KeyboardHelpWindow(renderContext)
@@ -257,8 +272,6 @@ class Client(val application: ClientApplication, val stage: Stage) {
         }
     }
 
-    val stackTraceWindow by lazy { StackTrace.makeStackTraceWindow(this) }
-
     private fun displayResult(result: Either<APLValue, Exception>) {
         when (result) {
             is Either.Left -> resultList.addResult(result.value)
@@ -274,7 +287,6 @@ class Client(val application: ClientApplication, val stage: Stage) {
                     }
                     if (ex is APLEvalException) {
                         stackTraceWindow.updateException(ex)
-                        stackTraceWindow.show()
                     }
                 }
             }

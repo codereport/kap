@@ -6,34 +6,18 @@ import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
 import javafx.collections.FXCollections
-import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
 import javafx.scene.Parent
-import javafx.scene.Scene
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
-import javafx.stage.Stage
 import javafx.util.Callback
 
 class StackTrace {
-    private lateinit var stage: Stage
-
-    @FXML
-    @JvmField
-    var stackTraceTable: TableView<StackTraceRow>? = null
-
-    @FXML
-    @JvmField
-    var stackTraceLevelColumn: TableColumn<StackTraceRow, Int>? = null
-
-    @FXML
-    @JvmField
-    var stackTraceNameColumn: TableColumn<StackTraceRow, String>? = null
-
-    fun show() {
-        stage.show()
-    }
+    lateinit var borderPane: Parent
+    lateinit var stackTraceTable: TableView<StackTraceRow>
+    lateinit var stackTraceLevelColumn: TableColumn<StackTraceRow, Int>
+    lateinit var stackTraceNameColumn: TableColumn<StackTraceRow, String>
 
     fun updateException(ex: APLEvalException) {
         val rows = ArrayList<StackTraceRow>().apply {
@@ -44,21 +28,21 @@ class StackTrace {
                 }
             }
         }
-        stackTraceTable!!.items.setAll(rows)
+        stackTraceTable.items.setAll(rows)
     }
 
     companion object {
         fun makeStackTraceWindow(client: Client): StackTrace {
             val loader = FXMLLoader(StackTrace::class.java.getResource("stack.fxml"))
-            val root = loader.load<Parent>()
+            loader.load<Parent>()
             val controller = loader.getController<StackTrace>()
 
-            controller.stackTraceTable!!.items = FXCollections.observableArrayList()
-            controller.stackTraceLevelColumn!!.apply {
+            controller.stackTraceTable.items = FXCollections.observableArrayList()
+            controller.stackTraceLevelColumn.apply {
                 cellValueFactory = StackTraceLevelCellValueFactory()
                 cellFactory = StackTraceLevelCellFactory()
             }
-            controller.stackTraceNameColumn!!.apply {
+            controller.stackTraceNameColumn.apply {
                 cellValueFactory = StackTraceNameCellValueFactory()
                 cellFactory = StackTraceNameCellFactory()
             }
@@ -69,12 +53,7 @@ class StackTrace {
                     client.highlightSourceLocation(entryPos, newValue.message)
                 }
             }
-            controller.stackTraceTable!!.selectionModel.selectedItemProperty().addListener(listener)
-
-            controller.stage = Stage()
-            val scene = Scene(root, 800.0, 300.0)
-            controller.stage.title = "Stack Trace"
-            controller.stage.scene = scene
+            controller.stackTraceTable.selectionModel.selectedItemProperty().addListener(listener)
 
             return controller
         }
