@@ -73,11 +73,6 @@ repositories {
 }
 
 kotlin {
-    // For ARM, should be changed to iosArm32 or iosArm64
-    // For Linux, should be changed to e.g. linuxX64
-    // For MacOS, should be changed to e.g. macosX64
-    // For Windows, should be changed to e.g. mingwX64
-
     jvm() {
         compilations.main.kotlinOptions {
             jvmTarget = "11"
@@ -166,11 +161,5 @@ kotlin {
             languageSettings.enableLanguageFeature("InlineClasses")
             languageSettings.useExperimentalAnnotation("kotlin.RequiresOptIn")
         }
-        // Note: To enable common source sets please comment out 'kotlin.import.noCommonSourceSets' property
-        // in gradle.properties file and re-import your project in IDE.
     }
 }
-
-// Use the following Gradle tasks to run your application:
-// :runReleaseExecutableLinux - without debug symbols
-// :runDebugExecutableLinux - with debug symbols
