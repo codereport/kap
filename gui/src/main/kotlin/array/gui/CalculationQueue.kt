@@ -10,28 +10,27 @@ class WrappedException(cause: Throwable) : APLGenericException("JVM exception wh
 class CalculationQueue(val engine: Engine) {
     private val queue: TransferQueue<Request> = LinkedTransferQueue()
     private val thread = Thread { computeLoop() }
-    private val statusHandlers = CopyOnWriteArrayList<(Boolean) -> Unit>()
+    private val taskCompletedHandlers = CopyOnWriteArrayList<(Engine) -> Unit>()
 
     private fun computeLoop() {
         try {
             while (!Thread.interrupted()) {
-                fireStatusCallbacks(false)
                 val request = queue.take()
-                fireStatusCallbacks(true)
                 engine.clearInterrupted()
                 request.processRequest()
+                fireTaskCompletedHandlers()
             }
         } catch (e: InterruptedException) {
             println("Closing calculation queue")
         }
     }
 
-    fun addStatusCallback(callback: (Boolean) -> Unit) {
-        statusHandlers.add(callback)
+    fun addTaskCompletedHandler(fn: (Engine) -> Unit) {
+        taskCompletedHandlers.add(fn)
     }
 
-    private fun fireStatusCallbacks(status: Boolean) {
-        statusHandlers.forEach { fn -> fn(status) }
+    private fun fireTaskCompletedHandlers() {
+        taskCompletedHandlers.forEach { fn -> fn(engine) }
     }
 
     interface Request {

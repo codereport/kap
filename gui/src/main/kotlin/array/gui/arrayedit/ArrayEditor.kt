@@ -8,7 +8,6 @@ import javafx.application.Platform
 import javafx.collections.FXCollections
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
-import javafx.fxml.FXML
 import javafx.fxml.FXMLLoader
 import javafx.scene.Parent
 import javafx.scene.Scene
@@ -19,14 +18,9 @@ import org.jsoup.Jsoup
 
 class ArrayEditor {
     private lateinit var stage: Stage
-
-    @FXML
+    lateinit var client: Client
     lateinit var table: TableView<ArrayEditorRow>
-
-    @FXML
     lateinit var variableField: TextField
-
-    var client: Client? = null
 
     fun show() {
         stage.show()
@@ -36,10 +30,12 @@ class ArrayEditor {
         loadFromField()
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun getClicked(event: ActionEvent) {
         loadFromField()
     }
 
+    @Suppress("UNUSED_PARAMETER")
     fun putClicked(event: ActionEvent) {
         saveFromField()
     }
@@ -47,7 +43,7 @@ class ArrayEditor {
     private fun loadFromField() {
         println("Variable name: ${variableField.text}")
         val name = variableField.text.trim()
-        client!!.calculationQueue.pushReadVariableRequest(name) { result ->
+        client.calculationQueue.pushReadVariableRequest(name) { result ->
             if (result != null) {
                 val v = result.collapse()
                 Platform.runLater {
@@ -60,10 +56,8 @@ class ArrayEditor {
     private fun saveFromField() {
         println("Variable name: ${variableField.text}")
         val name = variableField.text.trim()
-        client!!.calculationQueue.pushWriteVariableRequest(name, makeArrayContent()) { result ->
-            if (result != null) {
-                result.printStackTrace()
-            }
+        client.calculationQueue.pushWriteVariableRequest(name, makeArrayContent()) { result ->
+            result?.printStackTrace()
         }
     }
 

@@ -1,83 +1,90 @@
 package array.gui
 
 import array.*
-import javafx.beans.property.SimpleObjectProperty
-import javafx.beans.value.ObservableValue
+import javafx.application.Platform
+import javafx.beans.property.SimpleBooleanProperty
 import javafx.collections.FXCollections
-import javafx.scene.Scene
-import javafx.scene.control.Button
+import javafx.collections.ObservableList
+import javafx.fxml.FXMLLoader
+import javafx.scene.Parent
 import javafx.scene.control.TableCell
 import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
+import javafx.scene.control.cell.CheckBoxTableCell
+import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.layout.BorderPane
-import javafx.scene.layout.HBox
-import javafx.stage.Stage
 import javafx.util.Callback
+import org.controlsfx.control.tableview2.FilteredTableColumn
+import org.controlsfx.control.tableview2.filter.popupfilter.PopupStringFilter
 import java.util.*
 
-class FunctionListWindow private constructor(val renderContext: ClientRenderContext, engine: Engine) {
-    private val stage = Stage()
-    private var functionListPanel: FunctionListPanel
+
+class FunctionListController(engine: Engine) {
+    lateinit var borderPane: BorderPane
+    lateinit var table: TableView<FunctionWrapper>
+
+    val items: ObservableList<FunctionWrapper> = FXCollections.observableArrayList()
+
+    val node get() = borderPane
 
     init {
-        stage.title = "Functions"
+        val loader = FXMLLoader(FunctionListController::class.java.getResource("functionlist.fxml"))
+        loader.setController(this)
+        loader.load<Parent>()
 
-        functionListPanel = FunctionListPanel(engine)
-        val buttonPanel = makeButtonPanel()
-
-        val border = BorderPane().apply {
-            center = functionListPanel
-            bottom = buttonPanel
+        val namespaceNameColumn = FilteredTableColumn<FunctionWrapper, String>("N")
+        namespaceNameColumn.cellValueFactory = PropertyValueFactory("namespaceName")
+        PopupStringFilter(namespaceNameColumn).let { f ->
+            namespaceNameColumn.setOnFilterAction { f.showPopup() }
         }
-        stage.scene = Scene(border, 400.0, 400.0)
-    }
 
-    private fun makeButtonPanel(): HBox {
-        val addButton = Button("Add")
-        val editButton = Button("Edit")
-        val removeButton = Button("Remove")
-        return HBox(addButton, editButton, removeButton)
-    }
-
-    fun show() {
-        stage.show()
-    }
-
-    companion object {
-        fun create(renderContext: ClientRenderContext, engine: Engine): FunctionListWindow {
-            return FunctionListWindow(renderContext, engine)
+        val symbolNameColumn = FilteredTableColumn<FunctionWrapper, String>("Name")
+        symbolNameColumn.cellValueFactory = PropertyValueFactory("symbolName")
+        PopupStringFilter(symbolNameColumn).let { f ->
+            symbolNameColumn.setOnFilterAction { f.showPopup() }
         }
-    }
 
-}
+        val userFunctionColumn = FilteredTableColumn<FunctionWrapper, Boolean>("U")
+        userFunctionColumn.cellValueFactory = PropertyValueFactory("userFunction")
+        userFunctionColumn.cellFactory = makeCheckBoxFactory()
 
-class FunctionListPanel(engine: Engine) : TableView<FunctionRow>() {
-    private val listener: FunctionDefinitionListener
+        val exportedFunctionColumn = FilteredTableColumn<FunctionWrapper, Boolean>("E")
+        exportedFunctionColumn.cellValueFactory = PropertyValueFactory("exported")
+        exportedFunctionColumn.cellFactory = makeCheckBoxFactory()
 
-    init {
-        val list = engine.getUserDefinedFunctions().map { FunctionRow(it.key, it.value) }.sortedBy { it.name }
-        items = FXCollections.observableArrayList(list)
+        table.columns.setAll(namespaceNameColumn, symbolNameColumn, userFunctionColumn, exportedFunctionColumn)
 
-        listener = FunctionListener()
+        fillFunctionList(engine)
+
+        table.items = items
+
+        val listener = FunctionListener()
         engine.addFunctionDefinitionListener(listener)
+    }
 
-        columns.add(TableColumn<FunctionRow, APLSymbolWrapper>().apply {
-            cellValueFactory = SymbolValueFactory()
-            cellFactory = Callback { NamespaceNameCell() }
-            text = "Namespace"
-        })
-        columns.add(TableColumn<FunctionRow, APLSymbolWrapper>().apply {
-            cellValueFactory = SymbolValueFactory()
-            cellFactory = Callback { FunctionNameCell() }
-            text = "Name"
-        })
+    private fun makeCheckBoxFactory() =
+        Callback<TableColumn<FunctionWrapper, Boolean>, TableCell<FunctionWrapper, Boolean>> { tableColumn ->
+            CheckBoxTableCell { i ->
+                if (i == null) {
+                    null
+                } else {
+                    SimpleBooleanProperty(tableColumn.getCellData(i))
+                }
+            }
+        }
+
+    private fun fillFunctionList(engine: Engine) {
+        val fnList =
+            engine.getFunctions().sortedBy(Pair<Symbol, APLFunctionDescriptor>::first)
+                .map { (name, fn) -> FunctionWrapper(name, fn) }
+        items.addAll(fnList)
     }
 
     private inner class FunctionListener : FunctionDefinitionListener {
         override fun functionDefined(name: Symbol, fn: APLFunctionDescriptor) {
-            if (fn is UserFunction) {
-                val functionRow = FunctionRow(name, fn)
-                val result = Collections.binarySearch(items, functionRow, { a, b -> a.name.compareTo(b.name) })
+            Platform.runLater {
+                val functionRow = FunctionWrapper(name, fn)
+                val result = Collections.binarySearch(items, functionRow) { a, b -> a.sym.compareTo(b.sym) }
                 if (result >= 0) {
                     items[result] = functionRow
                 } else {
@@ -87,44 +94,20 @@ class FunctionListPanel(engine: Engine) : TableView<FunctionRow>() {
         }
 
         override fun functionRemoved(name: Symbol) {
-            val result = items.indexOfFirst { name == it.name }
-            if (result >= 0) {
-                items.removeAt(result)
+            Platform.runLater {
+                val result = items.indexOfFirst { name == it.sym }
+                if (result >= 0) {
+                    items.removeAt(result)
+                }
             }
         }
     }
 }
 
-class NamespaceNameCell : TableCell<FunctionRow, APLSymbolWrapper>() {
-    override fun updateItem(item: APLSymbolWrapper?, empty: Boolean) {
-        super.updateItem(item, empty)
-        if (empty || item == null) {
-            text = null
-            graphic = null
-        } else {
-            text = item.symbol.namespace.name
-        }
-    }
+@Suppress("unused")
+class FunctionWrapper(val sym: Symbol, val fn: APLFunctionDescriptor) {
+    val namespaceName get() = sym.namespace.name
+    val symbolName get() = sym.symbolName
+    val userFunction get() = fn is APLParser.UpdateableFunction
+    val exported get() = sym.namespace.findSymbol(sym.symbolName, includePrivate = false) != null
 }
-
-class FunctionNameCell : TableCell<FunctionRow, APLSymbolWrapper>() {
-    override fun updateItem(item: APLSymbolWrapper?, empty: Boolean) {
-        super.updateItem(item, empty)
-        if (empty || item == null) {
-            text = null
-            graphic = null
-        } else {
-            text = item.symbol.symbolName
-        }
-    }
-}
-
-class SymbolValueFactory :
-    Callback<TableColumn.CellDataFeatures<FunctionRow, APLSymbolWrapper>, ObservableValue<APLSymbolWrapper>> {
-    override fun call(param: TableColumn.CellDataFeatures<FunctionRow, APLSymbolWrapper>): ObservableValue<APLSymbolWrapper> {
-        return SimpleObjectProperty(APLSymbolWrapper(param.value.name))
-    }
-}
-
-data class FunctionRow(val name: Symbol, val aplFunction: UserFunction)
-data class APLSymbolWrapper(val symbol: Symbol)

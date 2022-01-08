@@ -8,7 +8,6 @@ import array.gui.settings.loadSettings
 import array.gui.settings.saveSettings
 import array.gui.viewer.StructureViewer
 import com.panemu.tiwulfx.control.dock.DetachableTab
-import com.panemu.tiwulfx.control.dock.DetachableTabPane
 import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.geometry.Insets
@@ -26,16 +25,18 @@ import javafx.stage.FileChooser
 import javafx.stage.Stage
 import java.io.File
 
-class Client(val application: ClientApplication, val stage: Stage) {
+class Client(val stage: Stage) {
     val renderContext: ClientRenderContext = ClientRenderContextImpl()
     val resultList: ResultList3
     val engine: Engine
     val calculationQueue: CalculationQueue
     val sourceEditors = ArrayList<SourceEditor>()
     private var inputFont: Font
-    private val functionListWindow: FunctionListWindow
+    private val functionListWindow: FunctionListController
+    private val varListWindow: VariableListController
     private val keyboardHelpWindow: KeyboardHelpWindow
-    private var dtPane: DetachableTabPane
+    private var leftDtPane: DetachablePaneWrapper
+    private var bottomDtPane: DetachablePaneWrapper
     private val aboutWindow: AboutWindow
     private var settings: Settings
     private val directoryTextField = TextField()
@@ -66,24 +67,38 @@ class Client(val application: ClientApplication, val stage: Stage) {
 
         resultList = ResultList3(this)
 
-        stage.title = "Test ui"
+        stage.title = "KAP"
 
-        val splitPane = SplitPane()
-        splitPane.orientation = Orientation.VERTICAL
-        splitPane.setDividerPosition(0, 0.75)
-        dtPane = DetachableTabPane()
-        dtPane.setOnClosedPassSibling { sibling -> dtPane = sibling }
-        splitPane.items.add(resultList.getNode())
-        splitPane.items.add(dtPane)
+        bottomDtPane = DetachablePaneWrapper()
+        val vertSplitPane = SplitPane().apply {
+            orientation = Orientation.VERTICAL
+            items.add(resultList.getNode())
+            items.add(bottomDtPane.pane)
+            setDividerPosition(0, 0.75)
+        }
+
+        leftDtPane = DetachablePaneWrapper()
+        val horizSplitPane = SplitPane().apply {
+            orientation = Orientation.HORIZONTAL
+            items.add(leftDtPane.pane)
+            items.add(vertSplitPane)
+            setDividerPosition(0, 0.25)
+        }
+
         val border = BorderPane().apply {
             top = makeTopBar()
-            center = splitPane
+            center = horizSplitPane
         }
 
         stackTraceWindow = StackTrace.makeStackTraceWindow(this)
-        dtPane.tabs.add(DetachableTab("Stack trace", stackTraceWindow.borderPane))
+        bottomDtPane.pane.tabs.add(DetachableTab("Stack trace", stackTraceWindow.borderPane).apply { isClosable = false })
 
-        functionListWindow = FunctionListWindow.create(renderContext, engine)
+        functionListWindow = FunctionListController(engine)
+        leftDtPane.pane.tabs.add(DetachableTab("Function list", functionListWindow.node).apply { isClosable = false })
+
+        varListWindow = VariableListController(this)
+        leftDtPane.pane.tabs.add(DetachableTab("Variable list", varListWindow.node).apply { isClosable = false })
+
         keyboardHelpWindow = KeyboardHelpWindow(renderContext)
         aboutWindow = AboutWindow()
 
@@ -126,9 +141,6 @@ class Client(val application: ClientApplication, val stage: Stage) {
             val windowMenu = Menu("Window").apply {
                 items.add(MenuItem("Keyboard").apply {
                     onAction = EventHandler { keyboardHelpWindow.show() }
-                })
-                items.add(MenuItem("Functions").apply {
-                    onAction = EventHandler { functionListWindow.show() }
                 })
                 items.add(MenuItem("Array Editor").apply {
                     onAction = EventHandler { ArrayEditor.open(this@Client) }

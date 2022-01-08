@@ -262,7 +262,7 @@ class APLParser(val tokeniser: TokenGenerator) {
 
     data class DefinedUserFunction(val fn: APLFunctionDescriptor, val name: Symbol, val pos: Position)
 
-    class UpdateableFunction(private var innerFnDescriptor: APLFunctionDescriptor) : APLFunctionDescriptor {
+    class UpdateableFunction(var innerFnDescriptor: APLFunctionDescriptor) : APLFunctionDescriptor {
         inner class UpdateableFunctionImpl(pos: Position) : DelegatedAPLFunctionImpl(pos) {
             private var prevDescriptor: APLFunctionDescriptor = innerFnDescriptor
             private var inner: APLFunction = prevDescriptor.make(pos)
@@ -309,7 +309,6 @@ class APLParser(val tokeniser: TokenGenerator) {
             is UpdateableFunction -> oldDefinition.replaceFunctionDefinition(definedUserFunction.fn)
             else -> throw InvalidFunctionRedefinition(definedUserFunction.name, definedUserFunction.pos)
         }
-        tokeniser.engine.registerFunction(definedUserFunction.name, UpdateableFunction(definedUserFunction.fn))
     }
 
     private fun parseAndDefineUserDefinedFn(pos: Position) {

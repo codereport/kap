@@ -8,7 +8,7 @@ public class ClientApplication extends Application {
 
     @Override
     public void start(Stage stage) {
-        client = new Client(this, stage);
+        client = new Client(stage);
     }
 
     @Override

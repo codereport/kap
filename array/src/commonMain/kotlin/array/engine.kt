@@ -441,16 +441,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerOperator(sym, fn)
     }
 
-    fun getUserDefinedFunctions(): Map<Symbol, UserFunction> {
-        val res = HashMap<Symbol, UserFunction>()
-        functions.forEach {
-            val v = it.value
-            if (v is UserFunction) {
-                res[it.key] = v
-            }
-        }
-        return res
-    }
+    fun getFunctions() = functions.toList()
 
     fun getFunction(name: Symbol) = functions[resolveAlias(name)]
     fun getOperator(name: Symbol) = operators[resolveAlias(name)]
@@ -673,6 +664,8 @@ class RuntimeContext(val engine: Engine, val environment: Environment, val paren
         val holder = localVariables.entries.find { it.key.name === sym } ?: return false
         return holder.value.value != null
     }
+
+    fun findVariables() = localVariables.map { (k, v) -> k.name to v.value }.toList()
 
     private fun findOrThrow(name: EnvironmentBinding): VariableHolder {
         return localVariables[name]
