@@ -1,7 +1,7 @@
 package array.gui
 
-import array.APLValue
-import array.Symbol
+import array.*
+import array.rendertext.renderStringValue
 import javafx.application.Platform
 import javafx.collections.FXCollections
 import javafx.fxml.FXMLLoader
@@ -15,6 +15,7 @@ import javafx.scene.layout.BorderPane
 import org.controlsfx.control.table.TableRowExpanderColumn
 import org.controlsfx.control.tableview2.FilteredTableColumn
 import org.controlsfx.control.tableview2.filter.popupfilter.PopupStringFilter
+import java.lang.Integer.min
 
 
 class VariableListController(val client: Client) {
@@ -30,7 +31,7 @@ class VariableListController(val client: Client) {
         loader.load<Parent>()
 
         val expanderColumn: TableRowExpanderColumn<ValueWrapper> =
-            TableRowExpanderColumn<ValueWrapper> { dataFeatures -> createEditor(dataFeatures.value.value) }
+            TableRowExpanderColumn<ValueWrapper> { dataFeatures -> createEditor(dataFeatures.value.valueInt) }
 
         val namespaceNameColumn = FilteredTableColumn<ValueWrapper, String>("N")
         namespaceNameColumn.cellValueFactory = PropertyValueFactory("namespaceName")
@@ -47,7 +48,7 @@ class VariableListController(val client: Client) {
         val valueColumn = TableColumn<ValueWrapper, APLValue>("Value")
         valueColumn.cellValueFactory = PropertyValueFactory("value")
 
-        table.columns.setAll(expanderColumn, namespaceNameColumn, symbolNameColumn, valueColumn)
+        table.columns.setAll(/*expanderColumn,*/ namespaceNameColumn, symbolNameColumn, valueColumn)
 
         content.clear()
         content.addAll(loadVariableContent(client.engine.rootContext.findVariables()))
@@ -77,8 +78,44 @@ class VariableListController(val client: Client) {
     }
 }
 
-@Suppress("unused")
-class ValueWrapper(val sym: Symbol, val value: APLValue) {
-    val namespaceName get() = sym.namespace.name
-    val symbolName get() = sym.symbolName
+class ValueWrapper(val sym: Symbol, val valueInt: APLValue) {
+    @Suppress("unused")
+    val namespaceName
+        get() = sym.namespace.name
+
+    @Suppress("unused")
+    val symbolName
+        get() = sym.symbolName
+
+    val value
+        get() = valueInt.dimensions.let { d ->
+            renderSimple(valueInt)
+                ?: when (d.size) {
+                    0 -> valueInt.toString()
+                    1 -> StringBuilder().let { buf ->
+                        (0 until min(5, d[0])).forEach { i ->
+                            if (i > 0) {
+                                buf.append(" ")
+                            }
+                            val v = valueInt.valueAt(i)
+                            buf.append(renderSimple(valueInt.valueAt(i)) ?: "(dimensions: ${v.dimensions})")
+                        }
+                        if (d[0] >= 5) {
+                            buf.append(" (${d[0]} elements)")
+                        }
+                        buf.toString()
+                    }
+                    else -> "(array: ${d})"
+                }
+        }
+
+    private fun renderSimple(value: APLValue): String? {
+        value.dimensions
+        return when {
+            isNullValue(value) -> "⍬"
+            value is APLSingleValue -> value.formatted(FormatStyle.PLAIN)
+            value.isStringValue() -> renderStringValue(value, FormatStyle.PRETTY)
+            else -> null
+        }
+    }
 }

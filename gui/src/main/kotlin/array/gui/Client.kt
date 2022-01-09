@@ -69,25 +69,25 @@ class Client(val stage: Stage) {
 
         stage.title = "KAP"
 
-        bottomDtPane = DetachablePaneWrapper()
-        val vertSplitPane = SplitPane().apply {
-            orientation = Orientation.VERTICAL
-            items.add(resultList.getNode())
-            items.add(bottomDtPane.pane)
-            setDividerPosition(0, 0.75)
-        }
-
         leftDtPane = DetachablePaneWrapper()
         val horizSplitPane = SplitPane().apply {
             orientation = Orientation.HORIZONTAL
             items.add(leftDtPane.pane)
-            items.add(vertSplitPane)
+            items.add(BorderPane().apply { center = resultList.getNode() })
             setDividerPosition(0, 0.25)
+        }
+
+        bottomDtPane = DetachablePaneWrapper()
+        val vertSplitPane = SplitPane().apply {
+            orientation = Orientation.VERTICAL
+            items.add(horizSplitPane)
+            items.add(BorderPane().apply { center = bottomDtPane.pane })
+            setDividerPosition(0, 0.75)
         }
 
         val border = BorderPane().apply {
             top = makeTopBar()
-            center = horizSplitPane
+            center = vertSplitPane
         }
 
         stackTraceWindow = StackTrace.makeStackTraceWindow(this)
