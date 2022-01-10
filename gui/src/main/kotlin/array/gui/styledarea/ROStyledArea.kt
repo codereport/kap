@@ -38,6 +38,7 @@ class ROStyledArea(
     private val historyListeners = ArrayList<HistoryListener>()
 
     init {
+        undoManager = null
         displayPrompt()
     }
 
