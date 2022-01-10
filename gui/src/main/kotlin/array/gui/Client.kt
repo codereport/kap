@@ -36,6 +36,7 @@ class Client(val stage: Stage) {
     private val varListWindow: VariableListController
     private val keyboardHelpWindow: KeyboardHelpWindow
     private var leftDtPane: DetachablePaneWrapper
+    private var rightDtPane: DetachablePaneWrapper
     private var bottomDtPane: DetachablePaneWrapper
     private val aboutWindow: AboutWindow
     private var settings: Settings
@@ -70,11 +71,13 @@ class Client(val stage: Stage) {
         stage.title = "KAP"
 
         leftDtPane = DetachablePaneWrapper()
+        rightDtPane = DetachablePaneWrapper()
         val horizSplitPane = SplitPane().apply {
             orientation = Orientation.HORIZONTAL
             items.add(leftDtPane.pane)
             items.add(BorderPane().apply { center = resultList.getNode() })
-            setDividerPosition(0, 0.25)
+            items.add(rightDtPane.pane)
+            setDividerPositions(0.0, 0.75)
         }
 
         bottomDtPane = DetachablePaneWrapper()
@@ -94,10 +97,10 @@ class Client(val stage: Stage) {
         bottomDtPane.pane.tabs.add(DetachableTab("Stack trace", stackTraceWindow.borderPane).apply { isClosable = false })
 
         functionListWindow = FunctionListController(engine)
-        leftDtPane.pane.tabs.add(DetachableTab("Function list", functionListWindow.node).apply { isClosable = false })
+        rightDtPane.pane.tabs.add(DetachableTab("Function list", functionListWindow.node).apply { isClosable = false })
 
         varListWindow = VariableListController(this)
-        leftDtPane.pane.tabs.add(DetachableTab("Variable list", varListWindow.node).apply { isClosable = false })
+        rightDtPane.pane.tabs.add(DetachableTab("Variable list", varListWindow.node).apply { isClosable = false })
 
         keyboardHelpWindow = KeyboardHelpWindow(renderContext)
         aboutWindow = AboutWindow()
