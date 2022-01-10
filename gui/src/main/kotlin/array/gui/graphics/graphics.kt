@@ -225,7 +225,9 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int, val settings: S
                 }
             }
             canvas.graphicsContext2D.drawImage(image, 0.0, 0.0)
-            drawCellValues()
+            if(settings.labels) {
+                drawCellValues()
+            }
         }
 
         private fun repaintCanvas3D() {
