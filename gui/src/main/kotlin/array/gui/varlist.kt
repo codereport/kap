@@ -12,10 +12,9 @@ import javafx.scene.control.TableColumn
 import javafx.scene.control.TableView
 import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.layout.BorderPane
-import org.controlsfx.control.table.TableRowExpanderColumn
 import org.controlsfx.control.tableview2.FilteredTableColumn
 import org.controlsfx.control.tableview2.filter.popupfilter.PopupStringFilter
-import java.lang.Integer.min
+import kotlin.math.min
 
 
 class VariableListController(val client: Client) {
@@ -26,12 +25,12 @@ class VariableListController(val client: Client) {
     val content = FXCollections.observableArrayList<ValueWrapper>()
 
     init {
-        val loader = FXMLLoader(FunctionListController::class.java.getResource("varlist.fxml"))
+        val loader = FXMLLoader(VariableListController::class.java.getResource("varlist.fxml"))
         loader.setController(this)
         loader.load<Parent>()
 
-        val expanderColumn: TableRowExpanderColumn<ValueWrapper> =
-            TableRowExpanderColumn<ValueWrapper> { dataFeatures -> createEditor(dataFeatures.value.valueInt) }
+//        val expanderColumn: TableRowExpanderColumn<ValueWrapper> =
+//            TableRowExpanderColumn<ValueWrapper> { dataFeatures -> createEditor(dataFeatures.value.valueInt) }
 
         val namespaceNameColumn = FilteredTableColumn<ValueWrapper, String>("N")
         namespaceNameColumn.cellValueFactory = PropertyValueFactory("namespaceName")
@@ -50,8 +49,7 @@ class VariableListController(val client: Client) {
 
         table.columns.setAll(/*expanderColumn,*/ namespaceNameColumn, symbolNameColumn, valueColumn)
 
-        content.clear()
-        content.addAll(loadVariableContent(client.engine.rootContext.findVariables()))
+        content.setAll(loadVariableContent(client.engine.rootContext.findVariables()))
         client.calculationQueue.addTaskCompletedHandler { engine ->
             val updated = engine.rootContext.findVariables()
             Platform.runLater {

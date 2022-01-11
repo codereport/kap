@@ -18,7 +18,6 @@ import org.controlsfx.control.tableview2.FilteredTableColumn
 import org.controlsfx.control.tableview2.filter.popupfilter.PopupStringFilter
 import java.util.*
 
-
 class FunctionListController(engine: Engine) {
     lateinit var borderPane: BorderPane
     lateinit var table: TableView<FunctionWrapper>
@@ -77,7 +76,7 @@ class FunctionListController(engine: Engine) {
         val fnList =
             engine.getFunctions().sortedBy(Pair<Symbol, APLFunctionDescriptor>::first)
                 .map { (name, fn) -> FunctionWrapper(name, fn) }
-        items.addAll(fnList)
+        items.setAll(fnList)
     }
 
     private inner class FunctionListener : FunctionDefinitionListener {

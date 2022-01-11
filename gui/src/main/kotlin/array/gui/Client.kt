@@ -74,9 +74,9 @@ class Client(val stage: Stage) {
         rightDtPane = DetachablePaneWrapper()
         val horizSplitPane = SplitPane().apply {
             orientation = Orientation.HORIZONTAL
-            items.add(leftDtPane.pane)
+            items.add(BorderPane().apply { center = leftDtPane.pane })
             items.add(BorderPane().apply { center = resultList.getNode() })
-            items.add(rightDtPane.pane)
+            items.add(BorderPane().apply { center = rightDtPane.pane })
             setDividerPositions(0.0, 0.75)
         }
 
