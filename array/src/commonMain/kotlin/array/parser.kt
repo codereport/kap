@@ -714,7 +714,7 @@ class APLParser(val tokeniser: TokenGenerator) {
             }
         } else {
             val instruction = parseValueToplevel(endToken)
-            DeclaredNonBoundFunction(instruction, currentEnvironment())
+            DeclaredNonBoundFunction(instruction)
         }
     }
 
