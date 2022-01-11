@@ -40,6 +40,8 @@ value class OptimisationFlags(val flags: Int) {
     val masked1Arg get() = OptimisationFlags(flags and OPTIMISATION_FLAGS_1ARG_MASK)
     val masked2Arg get() = OptimisationFlags(flags and OPTIMISATION_FLAGS_2ARG_MASK)
 
+    override fun toString() = flagsString()
+
     companion object {
         const val OPTIMISATION_FLAG_1ARG_LONG = 0x1
         const val OPTIMISATION_FLAG_1ARG_DOUBLE = 0x2
@@ -162,7 +164,7 @@ class DeclaredFunction(
  * A special declared function which ignores its arguments. Its primary use is inside defsyntax rules
  * where the functions are only used to provide code structure and not directly called by the user.
  */
-class DeclaredNonBoundFunction(val instruction: Instruction, val env: Environment) : APLFunctionDescriptor {
+class DeclaredNonBoundFunction(val instruction: Instruction) : APLFunctionDescriptor {
     inner class DeclaredNonBoundFunctionImpl(pos: Position) : APLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             return instruction.evalWithContext(context)
@@ -361,6 +363,10 @@ class Engine(numComputeEngines: Int? = null) {
         addModule(UnicodeModule())
         addModule(JsonAPLModule())
         addModule(RegexpModule())
+    }
+
+    fun close() {
+        backgroundDispatcher.close()
     }
 
     fun interruptEvaluation() {

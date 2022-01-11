@@ -59,6 +59,7 @@ interface BackgroundTask<T> {
 interface MPThreadPoolExecutor {
     val numThreads: Int
     fun <T> start(fn: () -> T): BackgroundTask<T>
+    fun close()
 }
 
 class SingleThreadedThreadPoolExecutor : MPThreadPoolExecutor {
@@ -71,6 +72,8 @@ class SingleThreadedThreadPoolExecutor : MPThreadPoolExecutor {
             }
         }
     }
+
+    override fun close() {}
 }
 
 expect fun makeBackgroundDispatcher(numThreads: Int): MPThreadPoolExecutor

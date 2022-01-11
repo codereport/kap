@@ -103,5 +103,6 @@ class CalculationQueue(val engine: Engine) {
     fun stop() {
         thread.interrupt()
         thread.join()
+        engine.close()
     }
 }

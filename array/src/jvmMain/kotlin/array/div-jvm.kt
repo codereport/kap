@@ -63,6 +63,10 @@ class JvmMPThreadPoolExecutor(val maxNumParallel: Int) : MPThreadPoolExecutor {
         return JvmTExecutorTask(future)
     }
 
+    override fun close() {
+        executor.shutdown()
+    }
+
     inner class JvmTExecutorTask<T>(val future: Future<T>) : BackgroundTask<T> {
         override fun await(): T {
             return future.get()
