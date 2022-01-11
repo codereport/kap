@@ -22,9 +22,8 @@ class FunctionListController(engine: Engine) {
     lateinit var borderPane: BorderPane
     lateinit var table: TableView<FunctionWrapper>
 
-    val items: ObservableList<FunctionWrapper> = FXCollections.observableArrayList()
-
     val node get() = borderPane
+    val items: ObservableList<FunctionWrapper> = FXCollections.observableArrayList()
 
     init {
         val loader = FXMLLoader(FunctionListController::class.java.getResource("functionlist.fxml"))
