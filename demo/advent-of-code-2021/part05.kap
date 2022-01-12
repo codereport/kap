@@ -1,5 +1,5 @@
 ∇ solvePart1 {
-  content ← ⊃ {⍎¨ ↓ "^([0-9]+),([0-9]+) -> ([0-9]+),([0-9]+)$" regex:finderror ⍵}¨ io:read "ex.txt"
+  content ← ⊃ {⍎¨ ↓ "^([0-9]+),([0-9]+) -> ([0-9]+),([0-9]+)$" regex:finderror ⍵}¨ io:read "part05.txt"
 
   ⍝ Compute size of array
   width ← 1+⌈/,content[;0 2]
