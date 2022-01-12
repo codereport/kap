@@ -7,7 +7,7 @@ abstract class APLNumber : APLSingleValue() {
     override fun formattedAsCodeRequiresParens() = false
     override fun ensureNumber(pos: Position?) = this
 
-    abstract fun asDouble(): Double
+    abstract fun asDouble(pos: Position? = null): Double
     abstract fun asLong(): Long
     abstract fun asComplex(): Complex
 
@@ -27,7 +27,7 @@ abstract class APLNumber : APLSingleValue() {
 
 class APLLong(val value: Long) : APLNumber() {
     override val aplValueType: APLValueType get() = APLValueType.INTEGER
-    override fun asDouble() = value.toDouble()
+    override fun asDouble(pos: Position?) = value.toDouble()
     override fun asLong() = value
     override fun asComplex() = Complex(value.toDouble())
     override fun isComplex() = false
@@ -63,7 +63,7 @@ private fun throwComplexComparisonException(pos: Position?): Nothing {
 
 class APLDouble(val value: Double) : APLNumber() {
     override val aplValueType: APLValueType get() = APLValueType.FLOAT
-    override fun asDouble() = value
+    override fun asDouble(pos: Position?) = value
     override fun asLong() = value.toLong()
     override fun asComplex() = Complex(value)
     override fun isComplex() = false
@@ -108,9 +108,9 @@ class NumberComplexException(value: Complex, pos: Position? = null) : Incompatib
 class APLComplex(val value: Complex) : APLNumber() {
     override val aplValueType: APLValueType get() = APLValueType.COMPLEX
 
-    override fun asDouble(): Double {
+    override fun asDouble(pos: Position?): Double {
         if (value.imaginary != 0.0) {
-            throwAPLException(NumberComplexException(value))
+            throwAPLException(NumberComplexException(value, pos))
         }
         return value.real
     }

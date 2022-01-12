@@ -1,7 +1,6 @@
 package array.gui.graphics
 
 import array.*
-import array.gui.Client
 import array.gui.ResizableCanvas
 import javafx.application.Platform
 import javafx.scene.Scene
@@ -286,18 +285,21 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int, val settings: S
     data class Settings(val labels: Boolean = false)
 }
 
-fun initGraphicCommands(client: Client) {
-    val engine = client.engine
-    val guiNamespace = engine.makeNamespace("gui")
+class GuiModule : KapModule {
+    override val name get() = "gui"
 
-    fun addFn(name: String, fn: APLFunctionDescriptor) {
-        engine.registerFunction(engine.internSymbol(name, guiNamespace), fn)
+    override fun init(engine: Engine) {
+        val guiNamespace = engine.makeNamespace("gui")
+
+        fun addFn(name: String, fn: APLFunctionDescriptor) {
+            engine.registerFunction(guiNamespace.internAndExport(name), fn)
+        }
+
+        addFn("create", MakeGraphicFunction())
+        addFn("draw", DrawGraphicFunction())
+        addFn("nextEvent", ReadEventFunction())
+        addFn("nextEventBlocking", ReadEventBlockingFunction())
+        addFn("enableEvents", EnableEventsFunction())
+        addFn("disableEvents", DisableEventsFunction())
     }
-
-    addFn("create", MakeGraphicFunction())
-    addFn("draw", DrawGraphicFunction())
-    addFn("nextEvent", ReadEventFunction())
-    addFn("nextEventBlocking", ReadEventBlockingFunction())
-    addFn("enableEvents", EnableEventsFunction())
-    addFn("disableEvents", DisableEventsFunction())
 }

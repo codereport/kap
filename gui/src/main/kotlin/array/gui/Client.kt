@@ -2,7 +2,8 @@ package array.gui
 
 import array.*
 import array.gui.arrayedit.ArrayEditor
-import array.gui.graphics.initGraphicCommands
+import array.gui.graph.GraphModule
+import array.gui.graphics.GuiModule
 import array.gui.settings.Settings
 import array.gui.settings.loadSettings
 import array.gui.settings.saveSettings
@@ -49,7 +50,7 @@ class Client(val stage: Stage) {
 
         engine = Engine()
         engine.addLibrarySearchPath("../array/standard-lib")
-        initCustomFunctions()
+        initModules()
         engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"), false)
 
         engine.standardOutput = SendToMainCharacterOutput()
@@ -322,8 +323,9 @@ class Client(val stage: Stage) {
 
     }
 
-    private fun initCustomFunctions() {
-        initGraphicCommands(this)
+    private fun initModules() {
+        engine.addModule(GuiModule())
+        engine.addModule(GraphModule())
     }
 
     fun stopRequest() {
