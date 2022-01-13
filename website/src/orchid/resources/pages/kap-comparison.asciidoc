@@ -324,6 +324,26 @@ As these are vastly different types of operations, different symbols are used to
 foo ⇐ { ⍵+1 }
 ----
 
+=== Multiple arguments
+
+Multiple arguments are passed to KAP functions as lists.
+The tradfn syntax allows for declaring a function as accepting multiple arguments which are then automatically destructured when the function is called.
+
+[source,kap]
+----
+∇ foo (a;b) {
+  io:println "Argument 1: ",a
+  io:println "Argument 2: ",b
+}
+----
+
+The function can then be called as:
+
+[source,kap]
+----
+foo (1;2)
+----
+
 == Parse-time vs. evaluation-time
 
 In APL, a function declared using `←` takes effect immediately.
