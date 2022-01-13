@@ -139,9 +139,8 @@ class SaveExcelFileFunction : APLFunctionDescriptor {
     class SaveExcelFileFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val fileName = a.toStringValue(pos)
-            val b0 = b.collapse()
             saveExcelFile(b, fileName)
-            return b0
+            return b
         }
     }
 
