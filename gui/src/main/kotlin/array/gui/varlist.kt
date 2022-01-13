@@ -38,12 +38,14 @@ class VariableListController(val client: Client) {
         PopupStringFilter(namespaceNameColumn).let { f ->
             namespaceNameColumn.setOnFilterAction { f.showPopup() }
         }
+        namespaceNameColumn.cellFactory = VarListCellFactory(client)
 
         val symbolNameColumn = FilteredTableColumn<ValueWrapper, String>("Name")
         symbolNameColumn.cellValueFactory = PropertyValueFactory("symbolName")
         PopupStringFilter(symbolNameColumn).let { f ->
             symbolNameColumn.setOnFilterAction { f.showPopup() }
         }
+        symbolNameColumn.cellFactory = VarListCellFactory(client)
 
         val valueColumn = TableColumn<ValueWrapper, String>("Value")
         valueColumn.cellValueFactory = PropertyValueFactory("value")
