@@ -1,17 +1,18 @@
 package array.gui
 
 import array.*
+import array.msofficereader.saveExcelFile
 import array.rendertext.renderStringValue
 import javafx.application.Platform
 import javafx.collections.FXCollections
+import javafx.event.EventHandler
 import javafx.fxml.FXMLLoader
 import javafx.scene.Node
 import javafx.scene.Parent
-import javafx.scene.control.Label
-import javafx.scene.control.TableColumn
-import javafx.scene.control.TableView
+import javafx.scene.control.*
 import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.layout.BorderPane
+import javafx.util.Callback
 import org.controlsfx.control.tableview2.FilteredTableColumn
 import org.controlsfx.control.tableview2.filter.popupfilter.PopupStringFilter
 import kotlin.math.min
@@ -44,8 +45,9 @@ class VariableListController(val client: Client) {
             symbolNameColumn.setOnFilterAction { f.showPopup() }
         }
 
-        val valueColumn = TableColumn<ValueWrapper, APLValue>("Value")
+        val valueColumn = TableColumn<ValueWrapper, String>("Value")
         valueColumn.cellValueFactory = PropertyValueFactory("value")
+        valueColumn.cellFactory = VarListCellFactory(client)
 
         table.columns.setAll(/*expanderColumn,*/ namespaceNameColumn, symbolNameColumn, valueColumn)
 
@@ -73,6 +75,30 @@ class VariableListController(val client: Client) {
 
     private fun createEditor(value: APLValue): Node {
         return Label("foo")
+    }
+}
+
+class VarListCellFactory(val client: Client) : Callback<TableColumn<ValueWrapper, String>, TableCell<ValueWrapper, String>> {
+    override fun call(param: TableColumn<ValueWrapper, String>?): TableCell<ValueWrapper, String> {
+        return object : TableCell<ValueWrapper, String>() {
+            init {
+                contextMenu = ContextMenu(
+                    MenuItem("Export to Excel").apply { onAction = EventHandler { exportToExcel(client, tableRow.item.valueInt) } })
+            }
+
+            override fun updateItem(item: String?, empty: Boolean) {
+                if (item !== getItem()) {
+                    text = if (empty) null else item
+                }
+            }
+        }
+    }
+}
+
+private fun exportToExcel(client: Client, value: APLValue) {
+    val file = client.selectFile(forSave = true)
+    if (file != null) {
+        saveExcelFile(value, file.path)
     }
 }
 

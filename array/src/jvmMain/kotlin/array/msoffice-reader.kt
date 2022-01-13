@@ -3,9 +3,11 @@ package array.msofficereader
 import array.*
 import array.builtins.TagCatch
 import array.builtins.makeBoolean
+import org.apache.poi.hssf.usermodel.HSSFWorkbook
 import org.apache.poi.ss.usermodel.*
 import java.io.File
 import java.io.FileNotFoundException
+import java.io.FileOutputStream
 
 fun readExcelFile(name: String): APLValue {
     val workbook = WorkbookFactory.create(File(name))
@@ -77,10 +79,46 @@ fun parseEvaluatedCell(cell: Cell, evaluator: FormulaEvaluator): APLValue {
     }
 }
 
+fun saveExcelFile(value: APLValue, fileName: String) {
+    val dimensions = value.dimensions
+    val width = when (dimensions.size) {
+        1 -> 1
+        2 -> dimensions[1]
+        else -> throw IllegalArgumentException("Array must be rank 1 or 2. Dimensions: $dimensions")
+    }
+    val workbook: Workbook = HSSFWorkbook()
+    val sheet = workbook.createSheet()
+    var rowIndex = 0
+    var colIndex = 0
+    var row: Row? = null
+    value.iterateMembers { v ->
+        if (colIndex == 0) {
+            row = sheet.createRow(rowIndex)
+        }
+        val cell = row!!.createCell(colIndex)
+        fillInCell(cell, v)
+        if (++colIndex >= width) {
+            rowIndex++
+            colIndex = 0
+        }
+    }
+    FileOutputStream(fileName).use { s ->
+        workbook.write(s)
+    }
+}
+
+fun fillInCell(cell: Cell, v: APLValue) {
+    when {
+        v is APLNumber -> if (v.isComplex()) cell.setCellValue("complex") else cell.setCellValue(v.asDouble())
+        v.isStringValue() -> cell.setCellValue(v.toStringValue())
+        else -> cell.setCellValue("error")
+    }
+}
+
 class LoadExcelFileFunction : APLFunctionDescriptor {
     class LoadExcelFileFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            val filename = arrayToString(a)
+            val filename = a.toStringValue(pos)
             try {
                 return readExcelFile(filename)
             } catch (e: FileNotFoundException) {
@@ -92,35 +130,31 @@ class LoadExcelFileFunction : APLFunctionDescriptor {
                         pos))
             }
         }
-
-        private fun arrayToString(a: APLValue): String {
-            if (a.rank != 1) {
-                throwAPLException(InvalidDimensionsException("String must be rank 1", pos))
-            }
-            val buf = StringBuilder()
-            for (i in 0 until a.size) {
-                val charValue = a.valueAt(i)
-                if (charValue !is APLChar) {
-                    throwAPLException(IncompatibleTypeException("Value at position $i is not a character", pos))
-                }
-                buf.addCodepoint(charValue.value)
-            }
-            return buf.toString()
-        }
-
-        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            TODO("not implemented")
-        }
     }
 
     override fun make(pos: Position) = LoadExcelFileFunctionImpl(pos)
 }
+
+class SaveExcelFileFunction : APLFunctionDescriptor {
+    class SaveExcelFileFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            val fileName = a.toStringValue(pos)
+            val b0 = b.collapse()
+            saveExcelFile(b, fileName)
+            return b0
+        }
+    }
+
+    override fun make(pos: Position) = SaveExcelFileFunctionImpl(pos)
+}
+
 
 class MsOfficeModule : KapModule {
     override val name get() = "msoffice"
 
     override fun init(engine: Engine) {
         val ns = engine.makeNamespace("msoffice")
-        engine.registerFunction(engine.internSymbol("read", ns), LoadExcelFileFunction())
+        engine.registerFunction(ns.internAndExport("read"), LoadExcelFileFunction())
+        engine.registerFunction(ns.internAndExport("write"), SaveExcelFileFunction())
     }
 }
