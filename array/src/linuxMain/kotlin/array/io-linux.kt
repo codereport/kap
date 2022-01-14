@@ -49,8 +49,36 @@ actual fun makeKeyboardInput(): KeyboardInput {
     return KeyboardInputNative()
 }
 
-actual fun openCharFile(name: String): CharacterProvider {
-    return ByteToCharacterProvider(LinuxByteProvider(openFileWithTranslatedExceptions(name), name))
+actual fun openInputCharFile(name: String): CharacterProvider {
+    return ByteToCharacterProvider(LinuxByteProvider(openInputWithTranslatedExceptions(name), name))
+}
+
+class LinuxCharConsumer(val fd: Int) : CharacterConsumer {
+    override fun writeChar(ch: Int) {
+        memScoped {
+            val utf = charToString(ch).encodeToByteArray()
+            val buf = allocArray<ByteVar>(utf.size)
+            utf.forEachIndexed { i, value ->
+                buf[i] = value
+            }
+            val result = write(fd, buf, utf.size.toULong())
+            if (result == -1L) {
+                translateErrno(errno)
+            }
+        }
+    }
+
+    override fun close() {
+        val result = close(fd)
+        if (result == -1) {
+            translateErrno(errno)
+        }
+    }
+}
+
+actual fun openOutputCharFile(name: String): CharacterConsumer {
+    val fd = openOutputWithTranslatedExceptions(name)
+    return LinuxCharConsumer(fd)
 }
 
 @OptIn(ExperimentalUnsignedTypes::class)
@@ -91,20 +119,32 @@ class LinuxByteProvider(val fd: Int, val name: String) : ByteProvider {
     }
 }
 
-actual fun openFile(name: String): ByteProvider {
-    return LinuxByteProvider(openFileWithTranslatedExceptions(name), name)
+actual fun openInputFile(name: String): ByteProvider {
+    return LinuxByteProvider(openInputWithTranslatedExceptions(name), name)
 }
 
-private fun openFileWithTranslatedExceptions(name: String): Int {
+private fun openInputWithTranslatedExceptions(name: String): Int {
     val fd = open(name, O_RDONLY)
     if (fd == -1) {
-        if (errno == ENOENT) {
-            throw MPFileNotFoundException(nativeErrorString())
-        } else {
-            throw MPFileException(nativeErrorString())
-        }
+        translateErrno(errno)
     }
     return fd
+}
+
+private fun openOutputWithTranslatedExceptions(name: String): Int {
+    val fd = open(name, O_WRONLY or O_CREAT, 438) // rwxrwxrwx
+    if (fd == -1) {
+        translateErrno(errno)
+    }
+    return fd
+}
+
+private fun translateErrno(err: Int): Nothing {
+    if (err == ENOENT) {
+        throw MPFileNotFoundException(nativeErrorString())
+    } else {
+        throw MPFileException(nativeErrorString())
+    }
 }
 
 private fun nativeErrorString(): String {

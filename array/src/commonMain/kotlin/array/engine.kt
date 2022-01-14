@@ -303,7 +303,8 @@ class Engine(numComputeEngines: Int? = null) {
         // io functions
         registerNativeFunction("read", ReadFunction(), "io")
         registerNativeFunction("print", PrintAPLFunction(), "io")
-        registerNativeFunction("readCsvFile", ReadCSVFunction(), "io")
+        registerNativeFunction("writeCsv", WriteCsvFunction(), "io")
+        registerNativeFunction("readCsv", ReadCsvFunction(), "io")
         registerNativeFunction("readFile", ReadFileFunction(), "io")
         registerNativeFunction("load", LoadFunction(), "io")
         registerNativeFunction("httpRequest", HttpRequestFunction(), "io")

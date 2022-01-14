@@ -53,6 +53,22 @@ interface CharacterProvider : NativeCloseable {
     fun lines() = generateSequence { nextLine() }
 }
 
+interface ByteConsumer : NativeCloseable {
+    fun writeByte(value: Byte)
+
+    fun writeBlock(buffer: ByteArray) {
+        buffer.forEach(::writeByte)
+    }
+}
+
+interface CharacterConsumer : NativeCloseable {
+    fun writeChar(ch: Int)
+
+    fun writeString(s: String) {
+        s.asCodepointList().forEach(::writeChar)
+    }
+}
+
 class PushBackCharacterProvider(val sourceLocation: SourceLocation) : CharacterProvider {
     private class CharWithPosition(val character: Int, val line: Int, val col: Int)
 
@@ -168,6 +184,20 @@ class ByteToCharacterProvider(val source: ByteProvider) : CharacterProvider {
     }
 }
 
+class CharacterToByteConsumer(val dest: ByteConsumer) : CharacterConsumer {
+    override fun writeChar(ch: Int) {
+        dest.writeBlock(charToString(ch).encodeToByteArray())
+    }
+
+    override fun writeString(s: String) {
+        dest.writeBlock(s.encodeToByteArray())
+    }
+
+    override fun close() {
+        dest.close()
+    }
+}
+
 expect class StringCharacterProvider(s: String) : CharacterProvider
 
 interface KeyboardInput {
@@ -176,8 +206,9 @@ interface KeyboardInput {
 
 expect fun makeKeyboardInput(): KeyboardInput
 
-expect fun openFile(name: String): ByteProvider
-expect fun openCharFile(name: String): CharacterProvider
+expect fun openInputFile(name: String): ByteProvider
+expect fun openInputCharFile(name: String): CharacterProvider
+expect fun openOutputCharFile(name: String): CharacterConsumer
 
 interface CharacterOutput {
     fun writeString(s: String)

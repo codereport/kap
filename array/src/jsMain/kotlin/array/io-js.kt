@@ -1,5 +1,7 @@
 package array
 
+import kotlin.math.max
+
 actual class StringCharacterProvider actual constructor(private val s: String) : CharacterProvider {
     private var pos = 0
 
@@ -44,12 +46,74 @@ class ByteArrayByteProvider(val content: ByteArray, val name: String? = null) : 
     }
 }
 
+class FileEntryDataByteConsumer(private val entry: FileEntryData) : ByteConsumer {
+    override fun writeByte(value: Byte) {
+        entry.append(value)
+    }
+
+    override fun writeBlock(buffer: ByteArray) {
+        buffer.forEach { value -> entry.append(value) }
+    }
+
+    override fun close() {
+    }
+}
+
 actual fun makeKeyboardInput(): KeyboardInput {
     TODO("Not implemented")
 }
 
+class FileEntryData(initialData: ByteArray? = null) {
+    private var data: ByteArray
+    private var sizeInt: Int
+
+    val size get() = sizeInt
+
+    init {
+        if (initialData == null) {
+            data = ByteArray(BLOCK_SIZE) { 0.toByte() }
+            sizeInt = 0
+        } else {
+            data = initialData.copyOf()
+            sizeInt = initialData.size
+        }
+    }
+
+    operator fun get(index: Int): Byte {
+        checkIndex(index)
+        return data[index]
+    }
+
+    operator fun set(index: Int, value: Byte) {
+        checkIndex(index)
+        data[index] = value
+    }
+
+    fun append(value: Byte) {
+        if (sizeInt >= data.size) {
+            val newSize = max(data.size * 2, BLOCK_SIZE)
+            val newArray = data.copyOf(newSize)
+            data = newArray
+            sizeInt = newSize
+        }
+        data[sizeInt++] = value
+    }
+
+    private fun checkIndex(index: Int) {
+        if (index < 0 || index >= sizeInt) {
+            throw IllegalArgumentException("Attempt to read byte outside of array")
+        }
+    }
+
+    fun toByteArray() = data.copyOf(sizeInt)
+
+    companion object {
+        const val BLOCK_SIZE = 1024
+    }
+}
+
 sealed class RegisteredEntry(val name: String) {
-    class File(name: String, val content: ByteArray) : RegisteredEntry(name)
+    class File(name: String, val content: FileEntryData) : RegisteredEntry(name)
 
     class Directory(name: String) : RegisteredEntry(name) {
         val files = HashMap<String, RegisteredEntry>()
@@ -59,14 +123,16 @@ sealed class RegisteredEntry(val name: String) {
             return findPathElement(parts, false)
         }
 
-        fun registerFile(path: String, content: ByteArray) {
+        fun registerFile(path: String, content: ByteArray): FileEntryData {
             val parts = splitName(path)
             val dir = findPathElement(parts.subList(0, parts.size - 1), createDirs = true, lastElementIsDir = true)
             if (dir !is Directory) {
                 throw MPFileException("Parent path does not represent a directory")
             }
             val namepart = parts.last()
-            dir.files[namepart] = File(namepart, content)
+            val data = FileEntryData(content)
+            dir.files[namepart] = File(namepart, data)
+            return data
         }
 
         private fun splitName(path: String) = path.split("/").filter { s -> s.isNotEmpty() }
@@ -113,16 +179,25 @@ sealed class RegisteredEntry(val name: String) {
 
 val registeredFilesRoot = RegisteredEntry.Directory("/")
 
-actual fun openFile(name: String): ByteProvider {
+actual fun openInputFile(name: String): ByteProvider {
     val found = registeredFilesRoot.find(name) ?: throw MPFileNotFoundException("File not found: ${name}")
     if (found !is RegisteredEntry.File) {
         throw MPFileException("Pathname is not a file file: ${name}")
     }
-    return ByteArrayByteProvider(found.content, name)
+    return ByteArrayByteProvider(found.content.toByteArray(), name)
 }
 
-actual fun openCharFile(name: String): CharacterProvider {
-    return ByteToCharacterProvider(openFile(name))
+actual fun openInputCharFile(name: String): CharacterProvider {
+    return ByteToCharacterProvider(openInputFile(name))
+}
+
+actual fun openOutputCharFile(name: String): CharacterConsumer {
+    val fileData = when (val entry = registeredFilesRoot.find(name)) {
+        null -> registeredFilesRoot.registerFile(name, ByteArray(0))
+        is RegisteredEntry.File -> entry.content
+        is RegisteredEntry.Directory -> throw MPFileException("Name is a directory: ${name}")
+    }
+    return CharacterToByteConsumer(FileEntryDataByteConsumer(fileData))
 }
 
 actual fun fileType(path: String): FileNameType? {

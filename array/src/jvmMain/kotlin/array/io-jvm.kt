@@ -124,7 +124,7 @@ class CharacterProviderReaderWrapper(val provider: CharacterProvider) : Reader()
     }
 }
 
-actual fun openCharFile(name: String): CharacterProvider {
+actual fun openInputCharFile(name: String): CharacterProvider {
     transformIOException {
         return ReaderCharacterProvider(BufferedReader(FileReader(name, Charsets.UTF_8)))
     }
@@ -170,9 +170,34 @@ class ByteProviderInputStream(private val input: ByteProvider) : InputStream() {
     }
 }
 
-actual fun openFile(name: String): ByteProvider {
+actual fun openInputFile(name: String): ByteProvider {
     transformIOException {
         return InputStreamByteProvider(FileInputStream(name))
+    }
+}
+
+class WriterCharacterConsumer(private val output: Writer) : CharacterConsumer {
+    override fun writeString(s: String) {
+        output.write(s)
+    }
+
+    override fun writeChar(ch: Int) {
+        if (Character.isSupplementaryCodePoint(ch)) {
+            output.write(Character.highSurrogate(ch).code)
+            output.write(Character.lowSurrogate(ch).code)
+        } else {
+            output.write(ch)
+        }
+    }
+
+    override fun close() {
+        output.close()
+    }
+}
+
+actual fun openOutputCharFile(name: String): CharacterConsumer {
+    transformIOException {
+        return WriterCharacterConsumer(FileWriter(name, Charsets.UTF_8))
     }
 }
 

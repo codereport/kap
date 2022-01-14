@@ -144,7 +144,7 @@ class FileSourceLocation(private val file: String) : SourceLocation {
         TODO("not implemented")
     }
 
-    override fun open() = openCharFile(file)
+    override fun open() = openInputCharFile(file)
 }
 
 data class Position(val source: SourceLocation, val line: Int, val col: Int, val name: String? = null, val callerName: String? = null) {

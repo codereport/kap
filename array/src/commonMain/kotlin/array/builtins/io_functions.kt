@@ -2,6 +2,7 @@ package array.builtins
 
 import array.*
 import array.csv.readCsv
+import array.csv.writeCsv
 
 class ReadFunction : APLFunctionDescriptor {
     class ReadFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
@@ -9,7 +10,7 @@ class ReadFunction : APLFunctionDescriptor {
             val file = a.toStringValue(pos)
             val result = ArrayList<APLValue>()
             try {
-                openCharFile(context.engine.resolvePathName(file)).use { provider ->
+                openInputCharFile(context.engine.resolvePathName(file)).use { provider ->
                     provider.lines().forEach { s ->
                         result.add(APLString(s))
                     }
@@ -60,22 +61,36 @@ class PrintAPLFunction : APLFunctionDescriptor {
     override fun make(pos: Position) = PrintAPLFunctionImpl(pos.withName("print"))
 }
 
-class ReadCSVFunction : APLFunctionDescriptor {
-    class ReadCSVFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+class WriteCsvFunction : APLFunctionDescriptor {
+    class WriteCsvFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            val fileName = a.toStringValue(pos)
+            openOutputCharFile(fileName).use { dest ->
+                writeCsv(dest, b, pos)
+            }
+            return b
+        }
+    }
+
+    override fun make(pos: Position) = WriteCsvFunctionImpl(pos)
+}
+
+class ReadCsvFunction : APLFunctionDescriptor {
+    class ReadCsvFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            openCharFile(a.toStringValue(pos)).use { source ->
+            openInputCharFile(a.toStringValue(pos)).use { source ->
                 return readCsv(source)
             }
         }
     }
 
-    override fun make(pos: Position) = ReadCSVFunctionImpl(pos.withName("readCsvFile"))
+    override fun make(pos: Position) = ReadCsvFunctionImpl(pos.withName("readCsvFile"))
 }
 
 class ReadFileFunction : APLFunctionDescriptor {
     class ReadFileFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            openCharFile(a.toStringValue(pos)).use { source ->
+            openInputCharFile(a.toStringValue(pos)).use { source ->
                 val buf = StringBuilder()
                 while (true) {
                     val ch = source.nextCodepoint() ?: break

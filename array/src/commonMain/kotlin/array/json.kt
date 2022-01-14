@@ -134,7 +134,7 @@ class ReadJsonAPLFunction : APLFunctionDescriptor {
     class ReadJsonAPLFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val filename = a.toStringValue(pos)
-            val json = openCharFile(context.engine.resolvePathName(filename)).use { input ->
+            val json = openInputCharFile(context.engine.resolvePathName(filename)).use { input ->
                 parseJsonToAPLWithExceptions(input, pos)
             }
             return json

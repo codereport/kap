@@ -5,7 +5,7 @@ import kotlin.test.*
 class IoTest {
     @Test
     fun testBinaryFile() {
-        openFile("test-data/plain.txt").use { input ->
+        openInputFile("test-data/plain.txt").use { input ->
             val buf = ByteArray(3)
             val result = input.readBlock(buf)
             assertEquals(3, result)
@@ -15,7 +15,7 @@ class IoTest {
 
     @Test
     fun testPartialBlock() {
-        openFile("test-data/plain.txt").use { input ->
+        openInputFile("test-data/plain.txt").use { input ->
             val buf = ByteArray(10) { 0 }
             val result = input.readBlock(buf, 2, 3)
             assertEquals(3, result)
@@ -25,7 +25,7 @@ class IoTest {
 
     @Test
     fun testMultipleReads() {
-        openFile("test-data/plain.txt").use { input ->
+        openInputFile("test-data/plain.txt").use { input ->
             val buf = ByteArray(5) { 0 }
             val result1 = input.readBlock(buf, 2, 3)
             assertEquals(3, result1)
@@ -38,7 +38,7 @@ class IoTest {
 
     @Test
     fun testCharacterContent() {
-        openCharFile("test-data/char-tests.txt").use { input ->
+        openInputCharFile("test-data/char-tests.txt").use { input ->
             assertEquals(0x61, input.nextCodepoint())
             assertEquals(0x62, input.nextCodepoint())
             assertEquals(0x2283, input.nextCodepoint())
@@ -52,7 +52,7 @@ class IoTest {
 
     @Test
     fun testReadline() {
-        openCharFile("test-data/plain.txt").use { input ->
+        openInputCharFile("test-data/plain.txt").use { input ->
             assertEquals("abcbar", input.nextLine())
             assertNull(input.nextCodepoint())
         }
@@ -60,7 +60,7 @@ class IoTest {
 
     @Test
     fun characterProviderLines() {
-        openCharFile("test-data/multi.txt").use { input ->
+        openInputCharFile("test-data/multi.txt").use { input ->
             val expected = listOf("foo", "bar", "test", "abcdef", "testtest", "  testline", "", "aa", "ab", "ac", "ad")
             val res = ArrayList<String>()
             input.lines().forEach { s ->
@@ -73,7 +73,7 @@ class IoTest {
     @Test
     fun fileNotFoundError() {
         assertFailsWith<MPFileException> {
-            openCharFile("test-data/this-file-should-not-be-found")
+            openInputCharFile("test-data/this-file-should-not-be-found")
 
         }
     }
@@ -123,7 +123,7 @@ class IoTest {
 
     @Test
     fun astralPlaneStringCharProv() {
-        openCharFile("test-data/char-tests.txt").use { input ->
+        openInputCharFile("test-data/char-tests.txt").use { input ->
             val s = input.nextLine()
             assertNotNull(s)
             val prov = StringCharacterProvider(s)
