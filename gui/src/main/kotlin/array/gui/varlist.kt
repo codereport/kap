@@ -1,6 +1,7 @@
 package array.gui
 
 import array.*
+import array.csv.writeCsv
 import array.msofficereader.saveExcelFile
 import array.rendertext.renderStringValue
 import javafx.application.Platform
@@ -15,6 +16,7 @@ import javafx.scene.layout.BorderPane
 import javafx.util.Callback
 import org.controlsfx.control.tableview2.FilteredTableColumn
 import org.controlsfx.control.tableview2.filter.popupfilter.PopupStringFilter
+import java.io.FileWriter
 import kotlin.math.min
 
 
@@ -85,7 +87,8 @@ class VarListCellFactory(val client: Client) : Callback<TableColumn<ValueWrapper
         return object : TableCell<ValueWrapper, String>() {
             init {
                 contextMenu = ContextMenu(
-                    MenuItem("Export to Excel").apply { onAction = EventHandler { exportToExcel(client, tableRow.item.valueInt) } })
+                    MenuItem("Export to Excel").apply { onAction = EventHandler { exportToExcel(client, tableRow.item.valueInt) } },
+                    MenuItem("Export to CSV").apply { onAction = EventHandler { exportToCsv(client, tableRow.item.valueInt) } })
             }
 
             override fun updateItem(item: String?, empty: Boolean) {
@@ -98,9 +101,22 @@ class VarListCellFactory(val client: Client) : Callback<TableColumn<ValueWrapper
 }
 
 private fun exportToExcel(client: Client, value: APLValue) {
-    val file = client.selectFile(forSave = true)
+    val file = client.selectFile(forSave = true, nameHeader = "Select file")
     if (file != null) {
-        saveExcelFile(value, file.path)
+        client.withErrorDialog("Export to Excel") {
+            saveExcelFile(value, file.path)
+        }
+    }
+}
+
+private fun exportToCsv(client: Client, value: APLValue) {
+    val file = client.selectFile(forSave = true, nameHeader = "Select file")
+    if (file != null) {
+        client.withErrorDialog("Export to CSV") {
+            WriterCharacterConsumer(FileWriter(file, Charsets.UTF_8)).use { dest ->
+                writeCsv(dest, value)
+            }
+        }
     }
 }
 

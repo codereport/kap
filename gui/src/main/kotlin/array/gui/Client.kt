@@ -25,6 +25,9 @@ import javafx.stage.DirectoryChooser
 import javafx.stage.FileChooser
 import javafx.stage.Stage
 import java.io.File
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 class Client(val stage: Stage) {
     val renderContext: ClientRenderContext = ClientRenderContextImpl()
@@ -239,9 +242,9 @@ class Client(val stage: Stage) {
         editor.show()
     }
 
-    fun selectFile(forSave: Boolean = false): File? {
+    fun selectFile(forSave: Boolean = false, nameHeader: String = "Open KAP file"): File? {
         val fileSelector = FileChooser().apply {
-            title = "Open KAP file"
+            title = nameHeader
             selectedExtensionFilter = FileChooser.ExtensionFilter("KAP files", ".kap")
             val dir = settings.recentPath
             if (dir != null) {
@@ -354,6 +357,22 @@ class Client(val stage: Stage) {
             Platform.runLater {
                 resultList.addOutput(s)
             }
+        }
+    }
+
+    @OptIn(ExperimentalContracts::class)
+    fun withErrorDialog(name: String, details: String? = null, fn: () -> Unit) {
+        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+        try {
+            fn()
+        } catch (e: Exception) {
+            val dialog = Alert(Alert.AlertType.ERROR)
+            dialog.initOwner(stage)
+            dialog.title = "Error: ${name}"
+            if (details != null) {
+                dialog.dialogPane.contentText = details
+            }
+            dialog.showAndWait()
         }
     }
 
