@@ -29,7 +29,7 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-class Client(val stage: Stage) {
+class Client(val stage: Stage, extraPaths: List<String>? = null) {
     val renderContext: ClientRenderContext = ClientRenderContextImpl()
     val resultList: ResultList3
     val engine: Engine
@@ -53,6 +53,7 @@ class Client(val stage: Stage) {
 
         engine = Engine()
         engine.addLibrarySearchPath("../array/standard-lib")
+        extraPaths?.forEach(engine::addLibrarySearchPath)
         initModules()
         engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"), false)
 

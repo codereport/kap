@@ -1,23 +1,29 @@
-package array.gui;
+package array.gui
 
-import javafx.application.Application;
-import javafx.stage.Stage;
+import array.options.ArgParser
+import array.options.Option
+import javafx.application.Application
+import javafx.stage.Stage
 
-public class ClientApplication extends Application {
-    private Client client = null;
+class ClientApplication : Application() {
+    private var client: Client? = null
 
-    @Override
-    public void start(Stage stage) {
-        client = new Client(stage);
+    override fun start(stage: Stage) {
+        val parser = ArgParser(Option("lib-path", true, "Path to add to search path"))
+        val options = parser.parse(parameters.raw.toTypedArray())
+        val path = options["lib-path"]
+        val extraPaths = if (path == null) emptyList() else listOf(path)
+        client = Client(stage, extraPaths)
     }
 
-    @Override
-    public void stop() throws Exception {
-        client.stopRequest();
-        super.stop();
+    override fun stop() {
+        client!!.stopRequest()
+        super.stop()
     }
 
-    public static void main(String[] args) {
-        launch(args);
+    companion object {
+        fun main(args: Array<String>) {
+            launch(ClientApplication::class.java, *args)
+        }
     }
 }

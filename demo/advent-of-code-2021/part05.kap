@@ -15,3 +15,15 @@
 
   +/, 1 < +⌿ ({(⊂⍵) checkCoords¨parallel ⍳ height width}⍤1) xcoords,ycoords
 }
+
+∇ solve2 {
+  content ← {⍎¨ ↓ "^([0-9]+),([0-9]+) -> ([0-9]+),([0-9]+)$" regex:finderror ⍵}¨ io:read "ex.txt"
+
+  line ⇐ {
+     (x1 y1 x2 y2) ← ⍵
+     length ← (|x2-x1) ⌈ |y2-y1
+     ((x1⌊x2)+⍳length) ,[0.5] (y1⌊y2)+⍳length
+  }
+  ⍝sorted ← (⍋⊇⊢) (⊂⍤1) ⊃,[0]/line¨ content
+  ⊃,[0]/line¨ content
+}
