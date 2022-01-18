@@ -69,22 +69,18 @@ abstract class APLTest {
         }
     }
 
-    fun assertArrayContent(expectedValue: Array<out Any>, value: APLValue) {
+    fun assertArrayContent(expectedValue: Array<out Any>, value: APLValue, message: String? = null) {
+        val prefix = if (message == null) "" else "${message}: "
         assertEquals(expectedValue.size, value.size, "Array dimensions mismatch")
         for (i in expectedValue.indices) {
-            when (val expected = expectedValue[i]) {
-                is Int -> assertSimpleNumber(expected.toLong(), value.valueAt(i), "index: ${i}")
-                is Long -> assertSimpleNumber(expected, value.valueAt(i), "index: ${i}")
-                is Double -> assertSimpleDouble(expected, value.valueAt(i), "index: ${i}")
-                is NearDouble -> expected.assertNear(value.valueAt(i).ensureNumber().asDouble(), "index: ${i}")
-                else -> throw IllegalArgumentException("Cannot check array member at index ${i}, type = ${expected::class.simpleName}")
-            }
+            assertAPLValue(expectedValue[i], value.valueAt(i), prefix)
         }
     }
 
-    fun assertDimension(expectDimensions: Dimensions, result: APLValue) {
+    fun assertDimension(expectDimensions: Dimensions, result: APLValue, message: String? = null) {
         val dimensions = result.dimensions
-        assertTrue(result.dimensions.compareEquals(expectDimensions), "expected dimension: $expectDimensions, actual $dimensions")
+        val prefix = if (message == null) "" else "${message}: "
+        assertTrue(result.dimensions.compareEquals(expectDimensions), "${prefix}expected dimension: $expectDimensions, actual $dimensions")
     }
 
     fun assertPairs(v: APLValue, vararg values: Array<Int>) {
@@ -161,6 +157,7 @@ abstract class APLTest {
             is Complex -> assertSimpleComplex(expected, result, message)
             is String -> assertString(expected, result, message)
             is NearDouble -> assertNearDouble(expected, result, message)
+            is InnerTest -> expected.assertContent(result, message)
             else -> throw IllegalArgumentException("No support for comparing values of type: ${expected::class.simpleName}")
         }
     }
@@ -173,9 +170,37 @@ abstract class APLTest {
         assertSame(engine.internSymbol(name, engine.coreNamespace), value.ensureSymbol().value)
     }
 
+    fun assert1DArray(expected: Array<out Any>, result: APLValue, message: String? = null) {
+        assertDimension(dimensionsOfSize(expected.size), result, message)
+        assertArrayContent(expected, result, message)
+    }
+
     @BeforeTest
     fun initTest() {
         nativeTestInit()
+    }
+
+    interface InnerTest {
+        fun assertContent(result: APLValue, message: String? = null)
+    }
+
+    inner class InnerArray(val expectedDimensions: Dimensions, val expected: Array<out Any>) : InnerTest {
+        override fun assertContent(result: APLValue, message: String?) {
+            assertDimension(expectedDimensions, result, message)
+            assertArrayContent(expected, result, message)
+        }
+    }
+
+    inner class Inner1D(val expected: Array<out Any>) : InnerTest {
+        override fun assertContent(result: APLValue, message: String?) {
+            assert1DArray(expected, result, message)
+        }
+    }
+
+    inner class InnerAPLNull() : InnerTest {
+        override fun assertContent(result: APLValue, message: String?) {
+            assertDimension(dimensionsOfSize(0), result, message)
+        }
     }
 }
 

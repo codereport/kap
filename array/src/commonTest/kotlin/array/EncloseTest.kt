@@ -332,4 +332,11 @@ class EncloseTest : APLTest() {
             assertString("llo", result.valueAt(0))
         }
     }
+
+    @Test
+    fun twoArgEncloseWithEmptyLeftArg() {
+        parseAPLExpression("⍬ ⊂ ⍬").let { result ->
+            assertDimension(dimensionsOfSize(0), result)
+        }
+    }
 }

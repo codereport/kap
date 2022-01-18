@@ -164,24 +164,16 @@ class EncloseAPLFunction : APLFunctionDescriptor {
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            val bDimensions = b.dimensions
-            val axisInt = if (axis == null) {
-                bDimensions.lastAxis()
-            } else {
-                axis.ensureNumber(pos).asInt()
-            }
-            if (axisInt < 0 || axisInt >= bDimensions.size) {
-                throw IllegalAxisException(axisInt, bDimensions, pos)
-            }
+            val axisInt = computeAxis(b, axis, pos)
             val aDimensions = a.dimensions
             val partitionArgs = when (aDimensions.size) {
                 0 -> intArrayOf(a.ensureNumber(pos).asInt())
                 1 -> a.toIntArray(pos)
                 else -> throw APLIllegalArgumentException("Left argument to partition must be a scalar or a one-dimensional array")
             }
-            if (partitionArgs.size != bDimensions[axisInt]) {
+            if (partitionArgs.size != b.dimensions[axisInt]) {
                 throw InvalidDimensionsException(
-                    "Size of A must be the same size as the dimension of B along the selected axis (size of A: ${partitionArgs.size}, size of axis in B: ${bDimensions[axisInt]})",
+                    "Size of A must be the same size as the dimension of B along the selected axis (size of A: ${partitionArgs.size}, size of axis in B: ${b.dimensions[axisInt]})",
                     pos)
             }
             val partitionIndexes = computePartitionIndexes(partitionArgs)
@@ -237,7 +229,7 @@ class DisclosedArrayValue(value: APLValue, pos: Position) : APLArray() {
         val d = valueInt.dimensions
         assertx(d.size > 0)
 
-        val m = maxShapeOf(valueInt, pos)
+        val m = maxShapeOf(valueInt)
         val resultDimension = Dimensions(IntArray(d.size + m.size) { i ->
             if (i < d.size) {
                 d[i]
@@ -284,7 +276,7 @@ class DisclosedArrayValue(value: APLValue, pos: Position) : APLArray() {
         }
     }
 
-    private fun maxShapeOf(v: APLValue, pos: Position? = null): Dimensions {
+    private fun maxShapeOf(v: APLValue): Dimensions {
         if (v.dimensions.contentSize() == 0) {
             return emptyDimensions()
         }
@@ -421,4 +413,65 @@ class DiscloseAPLFunction : APLFunctionDescriptor {
 
         }
     }
+}
+
+class PartitionedEncloseFunction : APLFunctionDescriptor {
+    class PartitionedEncloseFunctionImpl(pos: Position) : APLFunction(pos) {
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            val axisInt = computeAxis(b, axis, pos)
+            val aDimensions = a.dimensions
+            val partitionArgs = when (aDimensions.size) {
+                0 -> intArrayOf(a.ensureNumber(pos).asInt())
+                1 -> a.toIntArray(pos)
+                else -> throw APLIllegalArgumentException("Left argument to partition must be a scalar or a one-dimensional array")
+            }
+            if (partitionArgs.size != b.dimensions[axisInt]) {
+                throw InvalidDimensionsException(
+                    "Size of A must be the same size as the dimension of B along the selected axis (size of A: ${partitionArgs.size}, size of axis in B: ${b.dimensions[axisInt]})",
+                    pos)
+            }
+            val partitionIndexes = computePartitionIndexes(partitionArgs)
+            return PartitionedValue(b, axisInt, partitionIndexes)
+        }
+
+        private fun computePartitionIndexes(partitionArgs: IntArray): List<Int> {
+            val result = ArrayList<Int>()
+            var currStart = 0
+
+            fun collectPartition(i: Int) {
+                result.add(currStart)
+                result.add(i)
+                currStart = i
+            }
+
+            partitionArgs.forEachIndexed { i, partitionIndicator ->
+                if (partitionIndicator > 0 && i > 0) {
+                    collectPartition(i)
+                }
+                if (partitionIndicator > 1) {
+                    repeat(partitionIndicator - 1) {
+                        result.add(i)
+                        result.add(i)
+                    }
+                }
+            }
+            collectPartition(partitionArgs.size)
+            return result
+        }
+    }
+
+    override fun make(pos: Position) = PartitionedEncloseFunctionImpl(pos.withName("partitioned enclose"))
+}
+
+private fun computeAxis(b: APLValue, axis: APLValue?, pos: Position? = null): Int {
+    val bDimensions = b.dimensions
+    val axisInt = if (axis == null) {
+        bDimensions.lastAxis()
+    } else {
+        axis.ensureNumber(pos).asInt()
+    }
+    if (axisInt < 0 || axisInt >= bDimensions.size) {
+        throw IllegalAxisException(axisInt, bDimensions, pos)
+    }
+    return axisInt
 }
