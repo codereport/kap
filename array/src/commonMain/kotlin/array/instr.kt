@@ -2,8 +2,13 @@ package array
 
 import array.complex.Complex
 
+interface LvalueReader {
+    fun makeInstruction(rightArgs: Instruction, pos: Position): Instruction
+}
+
 abstract class Instruction(val pos: Position) {
     abstract fun evalWithContext(context: RuntimeContext): APLValue
+    open fun deriveLvalueReader(): LvalueReader? = null
 }
 
 class DummyInstr(pos: Position) : Instruction(pos) {
@@ -101,6 +106,14 @@ class VariableRef(val name: Symbol, val binding: EnvironmentBinding, pos: Positi
         return context.getVar(binding) ?: throwAPLException(VariableNotAssigned(binding.name, pos))
     }
 
+    override fun deriveLvalueReader(): LvalueReader {
+        return object : LvalueReader {
+            override fun makeInstruction(rightArgs: Instruction, pos: Position): Instruction {
+                return AssignmentInstruction(arrayOf(binding), rightArgs, pos)
+            }
+        }
+    }
+
     override fun toString() = "Var(${name})"
 }
 
@@ -112,6 +125,17 @@ class Literal1DArray private constructor(val values: List<Instruction>, pos: Pos
             result[i] = values[i].evalWithContext(context)
         }
         return APLArrayImpl.make(dimensionsOfSize(size)) { result[it]!! }
+    }
+
+    override fun deriveLvalueReader(): LvalueReader {
+        if (values.any { instr -> instr !is VariableRef }) {
+            throw IncompatibleTypeParseException("Destructuring variable list must only contain variable names", pos)
+        }
+        return object : LvalueReader {
+            override fun makeInstruction(rightArgs: Instruction, pos: Position): Instruction {
+                return AssignmentInstruction(values.map { instr -> (instr as VariableRef).binding }.toTypedArray(), rightArgs, pos)
+            }
+        }
     }
 
     override fun toString() = "Literal1DArray(${values})"

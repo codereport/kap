@@ -224,27 +224,16 @@ class APLParser(val tokeniser: TokenGenerator) {
     }
 
     private fun processAssignment(pos: Position, leftArgs: List<Instruction>): ParseResultHolder.InstrParseResult {
-        // Ensure that the left argument to leftarrow is a single value (either a symbol or a list of symbols)
         unless(leftArgs.size == 1) {
             throw IncompatibleTypeParseException("Can only assign to a single variable", pos)
         }
-        val varList = when (val dest = leftArgs[0]) {
-            is VariableRef -> arrayOf(dest.binding)
-            is Literal1DArray -> Array(dest.values.size) { i ->
-                val instr = dest.values[i]
-                if (instr !is VariableRef) {
-                    throw IncompatibleTypeParseException("Destructuring variable list must only contain variable names", pos)
-                }
-                instr.binding
-            }
-            else -> throw IncompatibleTypeParseException("Attempt to assign to a type which is not a variable or variable list", pos)
-        }
+        val dest = leftArgs[0]
+        val lvalueReader = dest.deriveLvalueReader() ?: throw IncompatibleTypeParseException("Cannot assign to value", pos)
         return when (val holder = parseValue()) {
             is ParseResultHolder.InstrParseResult -> ParseResultHolder.InstrParseResult(
-                AssignmentInstruction(
-                    varList,
+                lvalueReader.makeInstruction(
                     holder.instr,
-                    pos), holder.lastToken, pos)
+                    holder.pos), holder.lastToken, pos)
             is ParseResultHolder.FnParseResult -> throw IllegalContextForFunction(holder.pos)
             is ParseResultHolder.EmptyParseResult -> throw ParseException("No right-side value in assignment instruction", pos)
         }
