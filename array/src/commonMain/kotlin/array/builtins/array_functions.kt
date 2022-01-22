@@ -33,7 +33,7 @@ object IotaArrayImpls {
         private val multipliers = dimensions.multipliers()
 
         init {
-            assertx(indexes.isNotEmpty())
+            assertx(indexes.isNotEmpty()) { "indexes is empty" }
         }
 
         override fun valueAt(p: Int): APLValue {

@@ -1,0 +1,97 @@
+plugins {
+    id 'org.jetbrains.kotlin.multiplatform'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.6.0'
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://kotlin.bintray.com/kotlinx' }
+}
+
+var fritz2Version = "0.14"
+
+kotlin {
+    js("webworker") {
+        binaries.executable()
+        browser {
+            commonWebpackConfig {
+                outputFileName = "compute-queue-worker.js"
+//                outputPath = new File("/home/elias/prog/array_kotlin/clientweb2/build/webworker-output")
+            }
+//            contents {
+//                from('../array/standard-lib') {
+//                    into 'standard-lib'
+//                }
+//            }
+        }
+    }
+    js {
+        browser {
+            binaries.executable()
+            webpackTask {
+//                dependsOn("compileDevelopmentExecutableKotlinWebworker")
+                cssSupport.enabled = true
+            }
+            runTask {
+                dependsOn("webworkerBrowserDistribution")
+                cssSupport.enabled = true
+                // https://gist.github.com/karlrwjohnson/a631cbda6b2fb316bc0a9f37156eae5d
+                var list = new ArrayList()
+                list.addAll(devServer.static)
+                list.add(new File(compilation.output.resourcesDir.path + "/../../../distributions").canonicalPath)
+                devServer.static = list
+//                devServer.open = false
+
+//                devServer = devServer.copy(
+//                        devServer.open,
+//                        devServer.port,
+//                        devServer.proxy,
+//                        s, //devServer.static,
+//                        devServer.contentBase)
+
+                /*
+        @Suppress("unused")
+        data class DevServer(
+            var open: Any = true,
+            var port: Int? = null,
+            var proxy: MutableMap<String, Any>? = null,
+            var static: MutableList<String>? = null,
+            var contentBase: MutableList<String>? = null
+        ) : Serializable
+                 */
+            }
+            testTask {
+                useKarma {
+                    useChromeHeadless()
+                    webpackConfig.cssSupport.enabled = true
+                }
+            }
+        }
+    }
+
+    sourceSets {
+        commonMain {
+            dependencies {
+                implementation kotlin('stdlib-common')
+                implementation project(':array')
+                implementation "dev.fritz2:core:$fritz2Version"
+                implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-json', version: '1.3.2'
+            }
+        }
+        commonTest {
+            dependencies {
+                implementation kotlin('test-common')
+                implementation kotlin('test-annotations-common')
+            }
+        }
+        jsMain {
+        }
+        jsTest {
+        }
+        webworkerMain {
+        }
+        all {
+            languageSettings.enableLanguageFeature("InlineClasses")
+        }
+    }
+}

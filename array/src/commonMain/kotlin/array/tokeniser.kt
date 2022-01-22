@@ -193,7 +193,7 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
     }
 
     fun registerSingleCharFunction(name: String) {
-        assertx(name.asCodepointList().size == 1)
+        assertx(name.asCodepointList().size == 1) { "registering single char function which is not single char: ${name}" }
         singleCharFunctions.add(name)
     }
 

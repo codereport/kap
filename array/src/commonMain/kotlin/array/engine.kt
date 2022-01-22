@@ -530,7 +530,7 @@ class Engine(numComputeEngines: Int? = null) {
         contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
         checkInterrupted(pos)
         val threadLocalCallStack = threadLocalCallstackRef.value
-        assertx(threadLocalCallStack != null)
+        assertx(threadLocalCallStack != null) { "threadLocalCallStack is not null" }
         val callStack = threadLocalCallStack.callStack
         if (callStack.size >= 100) {
             throwAPLException(APLEvalException("Stack overflow", pos))
@@ -541,7 +541,7 @@ class Engine(numComputeEngines: Int? = null) {
         try {
             return fn(callStackElement)
         } finally {
-            assertx(prevSize == callStack.size)
+            assertx(prevSize == callStack.size) { "previous size is not the same as the callstack size" }
             val removedElement = callStack.removeLast()
             assertx(removedElement === callStackElement)
         }

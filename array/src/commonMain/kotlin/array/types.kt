@@ -73,7 +73,7 @@ class DimensionLabels(val labels: List<List<AxisLabel?>?>) {
                 val newLabelsList = newLabels[i]
                 val v = when {
                     newLabelsList != null -> {
-                        assertx(newLabelsList.size == dimensions[i])
+                        assertx(newLabelsList.size == dimensions[i]) { "newLabelsList does not have correct size" }
                         newLabelsList
                     }
                     oldLabelsList != null -> oldLabelsList[i]

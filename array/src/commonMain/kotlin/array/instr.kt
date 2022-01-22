@@ -142,7 +142,7 @@ class Literal1DArray private constructor(val values: List<Instruction>, pos: Pos
 
     companion object {
         fun make(values: List<Instruction>): Instruction {
-            assertx(values.isNotEmpty())
+            assertx(values.isNotEmpty()) { "attempt to create empty Literal1DArray" }
             return when (val firstElement = values[0]) {
                 is LiteralInteger -> {
                     collectLongValues(firstElement.value, values, firstElement.pos)

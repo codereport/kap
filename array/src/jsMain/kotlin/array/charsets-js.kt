@@ -36,8 +36,8 @@ actual fun StringBuilder.addCodepoint(codepoint: Int): StringBuilder {
 fun makeCharFromSurrogatePair(high: Char, low: Char): Int {
     val highInt = high.code
     val lowInt = low.code
-    assertx(highInt in 0xD800..0xDBFF)
-    assertx(lowInt in 0xDC00..0xDFFF)
+    assertx(highInt in 0xD800..0xDBFF) { "high character is outside valid range: 0x${highInt.toString(16)}" }
+    assertx(lowInt in 0xDC00..0xDFFF) { "high character is outside valid range: 0x${lowInt.toString(16)}" }
     val off = 0x10000 - (0xD800 shl 10) - 0xDC00
     return (highInt shl 10) + lowInt + off
 }
