@@ -8,6 +8,8 @@ import dev.fritz2.dom.html.Input
 import dev.fritz2.dom.html.RenderContext
 import dev.fritz2.dom.html.render
 import dev.fritz2.dom.values
+import kotlinx.browser.document
+import kotlinx.browser.window
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -174,6 +176,14 @@ fun RenderContext.inputField(store: Store<String>, enterPressCallback: () -> Uni
 
         content()
     }
+
+    prefixState.data.render { active ->
+        if (active) {
+            span {
+                +"Prefix active"
+            }
+        }
+    }
 }
 
 fun renderClient() {
@@ -193,6 +203,7 @@ fun renderClient() {
             }
             is Output -> CurrentOutputLine.addString(response.text)
         }
+        window.scrollTo(0.0, document.body!!.scrollHeight.toDouble())
     }
 
     fun sendCurrentInputState() {
