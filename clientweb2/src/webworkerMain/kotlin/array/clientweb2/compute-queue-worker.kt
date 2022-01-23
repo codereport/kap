@@ -64,10 +64,18 @@ fun initQueue() {
             }
             EvalResponse(value.formatted(FormatStyle.PRETTY))
         } catch (e: APLGenericException) {
-            EvalExceptionDescriptor(e.formattedError(), PosDescriptor.make(e.pos))
+            EvalExceptionDescriptor(e.formattedError(), makePosDescriptor(e.pos))
         } catch (e: Exception) {
             ExceptionDescriptor(e.message ?: "empty")
         }
         self.postMessage(Json.encodeToString(result))
+    }
+}
+
+fun makePosDescriptor(pos: Position?): PosDescriptor? {
+    return if (pos == null) {
+        null
+    } else {
+        PosDescriptor(pos.line, pos.col, pos.name, pos.callerName)
     }
 }
