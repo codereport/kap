@@ -152,10 +152,13 @@ fun RenderContext.inputField(store: Store<String>, enterPressCallback: () -> Uni
             prefixState.prefixActive(false)
 
             val s = input.domNode.value
-            val left = s.substring(0, input.domNode.selectionStart!!)
+            val sel = input.domNode.selectionStart!!
+            val left = s.substring(0, sel)
             val right = s.substring(input.domNode.selectionEnd!!)
             val sym = Keymap.lookup(event.key)
             input.domNode.value = "${left}${sym}${right}"
+            input.domNode.selectionStart = sel + 1
+            input.domNode.selectionEnd = sel + 1
         } else if (event.key == "`") {
             event.preventDefault()
             prefixState.prefixActive(true)
