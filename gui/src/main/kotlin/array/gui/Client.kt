@@ -8,6 +8,7 @@ import array.gui.settings.Settings
 import array.gui.settings.loadSettings
 import array.gui.settings.saveSettings
 import array.gui.viewer.StructureViewer
+import array.keyboard.ExtendedCharsKeyboardInput
 import com.panemu.tiwulfx.control.dock.DetachableTab
 import javafx.application.Platform
 import javafx.event.EventHandler

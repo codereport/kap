@@ -57,15 +57,15 @@ fun initQueue() {
     }
     engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"), false)
     self.onmessage = { event ->
-        console.log("Got event: ${event.data}")
         val request = Json.decodeFromString<EvalRequest>(event.data as String)
         val result = try {
-            println("Computing: ${request.src}")
-            val value = engine.parseAndEval(StringSourceLocation(request.src), newContext = true).collapse()
-            println("computed")
-            println("result:\n${value.formatted(FormatStyle.PRETTY)}")
+            val value = engine.withThreadLocalAssigned {
+                engine.parseAndEval(StringSourceLocation(request.src), newContext = false).collapse()
+            }
             EvalResponse(value.formatted(FormatStyle.PRETTY))
-        } catch(e: Exception) {
+        } catch (e: APLGenericException) {
+            EvalExceptionDescriptor(e.formattedError(), PosDescriptor.make(e.pos))
+        } catch (e: Exception) {
             ExceptionDescriptor(e.message ?: "empty")
         }
         self.postMessage(Json.encodeToString(result))

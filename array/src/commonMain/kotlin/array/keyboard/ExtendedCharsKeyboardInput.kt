@@ -1,4 +1,4 @@
-package array.gui
+package array.keyboard
 
 class ExtendedCharsKeyboardInput {
     val keymap: Map<KeyDescriptor, String>
@@ -57,21 +57,6 @@ class ExtendedCharsKeyboardInput {
             makeKeyDescriptor(".") to "⍀", makeKeyDescriptor(">", Flag.SHIFT) to "⑊",
             makeKeyDescriptor("/") to "⌿", makeKeyDescriptor("?", Flag.SHIFT) to "⫽")
     }
-
-//    fun addEventHandlerToNode(node: TextInputControl) {
-//        node.onKeyTyped = EventHandler { event -> handleKeyTyped(node, event) }
-//    }
-//
-//    private fun handleKeyTyped(node: TextInputControl, event: KeyEvent) {
-//        if (event.isAltDown) {
-//            val flags = if (event.isShiftDown) arrayOf(Flag.SHIFT) else emptyArray()
-//            val desc = keymap[makeKeyDescriptor(event.character, *flags)]
-//            if (desc != null) {
-//                node.insertText(node.caretPosition, desc)
-//                event.consume()
-//            }
-//        }
-//    }
 
     enum class Flag {
         SHIFT

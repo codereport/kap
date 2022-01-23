@@ -1,5 +1,6 @@
 package array.clientweb2
 
+import array.Position
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 
@@ -7,11 +8,28 @@ import kotlinx.serialization.Serializable
 data class EvalRequest(val src: String)
 
 @Serializable
-sealed abstract class ResponseMessage
+data class PosDescriptor(val line: Int, val col: Int, val name: String?, val callerName: String?) {
+    companion object {
+        fun make(pos: Position?): PosDescriptor? {
+            return if (pos == null) {
+                null
+            } else {
+                PosDescriptor(pos.line, pos.col, pos.name, pos.callerName)
+            }
+        }
+    }
+}
+
+@Serializable
+sealed class ResponseMessage
 
 @Serializable
 @SerialName("error")
 data class ExceptionDescriptor(val message: String) : ResponseMessage()
+
+@Serializable
+@SerialName("evalexception")
+data class EvalExceptionDescriptor(val message: String, val pos: PosDescriptor?) : ResponseMessage()
 
 @Serializable
 @SerialName("response")

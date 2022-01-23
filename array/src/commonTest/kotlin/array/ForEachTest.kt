@@ -128,6 +128,5 @@ class ForEachTest : APLTest() {
                 assertArrayContent(arrayOf(10013, 10023, 10033), v)
             }
         }
-
     }
 }

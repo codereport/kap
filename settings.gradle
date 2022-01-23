@@ -11,5 +11,6 @@ rootProject.name = 'array'
 include ":array"
 include ":gui"
 include ":clientweb"
+include ":clientweb2"
 include ":text-client"
 include ":client-java"

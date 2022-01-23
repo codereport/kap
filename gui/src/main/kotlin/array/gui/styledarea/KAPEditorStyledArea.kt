@@ -1,7 +1,7 @@
 package array.gui.styledarea
 
 import array.gui.Client
-import array.gui.ExtendedCharsKeyboardInput
+import array.keyboard.ExtendedCharsKeyboardInput
 import javafx.event.Event
 import javafx.scene.Node
 import javafx.scene.input.KeyCombination

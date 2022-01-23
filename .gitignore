@@ -33,6 +33,7 @@
 /gui/out
 /array/build
 /clientweb/build
+/clientweb2/build
 /website/build
 /text-client/build
 /client-java/build
