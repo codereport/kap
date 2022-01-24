@@ -511,7 +511,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                 }
                 is OpenParen -> when (val expr = parseExprToplevel(CloseParen)) {
                     is ParseResultHolder.InstrParseResult -> leftArgs.add(expr.instr)
-                    is ParseResultHolder.FnParseResult -> return processFn(expr.fn, leftArgs)
+                    is ParseResultHolder.FnParseResult -> return processFn(expr.fn, leftArgs, functionChainContext = functionChainContext)
                     is ParseResultHolder.EmptyParseResult -> throw ParseException("Empty expression", pos)
                 }
                 is OpenFnDef -> return processFn(parseFnDefinition(pos).make(pos), leftArgs)

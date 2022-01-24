@@ -225,4 +225,11 @@ class ComplexExpressionsTest : APLTest() {
             assertArrayContent(arrayOf(20, 30, 40, 50, 10), result.valueAt(4))
         }
     }
+
+    @Test
+    fun findWithSelect() {
+        parseAPLExpression("\"abcabc\" (⊣(⫽⍨)∊) @c").let { result ->
+            assertString("cc", result)
+        }
+    }
 }
