@@ -52,7 +52,7 @@ interface ValueRenderer {
 }
 
 class Array2ValueRenderer(private val client: Client, override val value: APLValue) : ValueRenderer {
-    override val text = value.formatted(FormatStyle.PLAIN)
+    override val text = possiblyOversizeDescription(value)
     override fun renderValue() = makeArrayNode(client, value)
 
     override fun addToMenu(contextMenu: ContextMenu) {
@@ -63,6 +63,7 @@ class Array2ValueRenderer(private val client: Client, override val value: APLVal
     }
 }
 
+// foo ← msoffice:read "/home/elias/Downloads/MurexJan18-18-1-2022.xlsx"
 private class Array2ContentEntry(val renderer: ValueRenderer) : EditorContent {
     override fun length() = renderer.text.length
 
@@ -111,7 +112,7 @@ private fun makeArrayNode(client: Client, value: APLValue): Region {
 
     val d = value.dimensions
     val node = when {
-        d.dimensions.any { it > 100 } -> renderOversizeValue(value)
+        isOversize(value) -> renderOversizeValue(value)
         d.size == 1 && d[0] == 0 -> renderAsString()
         value.isStringValue() -> makeStringDisp(value)
         d.size == 1 -> makeArray1(client, value)
@@ -121,10 +122,15 @@ private fun makeArrayNode(client: Client, value: APLValue): Region {
     return node
 }
 
+private fun possiblyOversizeDescription(value: APLValue) =
+    if (isOversize(value)) oversizeDescription(value) else value.formatted(FormatStyle.PRETTY)
+
+private fun isOversize(value: APLValue) = value.dimensions.dimensions.any { it > 100 }
+
+private fun oversizeDescription(value: APLValue) = "Oversized array: ${value.dimensions.dimensions.joinToString(", ")}"
+
 private fun renderOversizeValue(value: APLValue): Region {
-    val d = value.dimensions
-    val s = d.dimensions.joinToString(", ")
-    val text = Label("Oversized array: ${s}")
+    val text = Label(oversizeDescription(value))
     text.border = Border(BorderStroke(Color.BLACK, BorderStrokeStyle.SOLID, CornerRadii.EMPTY, BorderWidths(1.0)))
     return text
 }

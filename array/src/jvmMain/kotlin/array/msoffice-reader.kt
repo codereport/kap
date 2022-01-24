@@ -10,29 +10,30 @@ import java.io.FileNotFoundException
 import java.io.FileOutputStream
 
 fun readExcelFile(name: String): APLValue {
-    val workbook = WorkbookFactory.create(File(name))
-    val evaluator = workbook.creationHelper.createFormulaEvaluator()
-    val sheet = workbook.getSheetAt(0)
-    if (sheet.physicalNumberOfRows == 0) {
-        return APLNullValue.APL_NULL_INSTANCE
-    }
+    WorkbookFactory.create(File(name)).use { workbook ->
+        val evaluator = workbook.creationHelper.createFormulaEvaluator()
+        val sheet = workbook.getSheetAt(0)
+        if (sheet.physicalNumberOfRows == 0) {
+            return APLNullValue.APL_NULL_INSTANCE
+        }
 
-    val lastRowIndex = sheet.lastRowNum
-    val rows = ArrayList<List<APLValue>>()
-    for (i in 0..lastRowIndex) {
-        val row = readRow(sheet.getRow(i), evaluator)
-        rows.add(row)
-    }
+        val lastRowIndex = sheet.lastRowNum
+        val rows = ArrayList<List<APLValue>>()
+        for (i in 0..lastRowIndex) {
+            val row = readRow(sheet.getRow(i), evaluator)
+            rows.add(row)
+        }
 
-    val width = rows.maxValueBy { it.size }
-    return APLArrayImpl.make(dimensionsOfSize(rows.size, width)) { i ->
-        val rowIndex = i / width
-        val colIndex = i % width
-        val row = rows[rowIndex]
-        if (colIndex < row.size) {
-            row[colIndex]
-        } else {
-            APLNullValue.APL_NULL_INSTANCE
+        val width = rows.maxValueBy { it.size }
+        return APLArrayImpl.make(dimensionsOfSize(rows.size, width)) { i ->
+            val rowIndex = i / width
+            val colIndex = i % width
+            val row = rows[rowIndex]
+            if (colIndex < row.size) {
+                row[colIndex]
+            } else {
+                APLNullValue.APL_NULL_INSTANCE
+            }
         }
     }
 }
