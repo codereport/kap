@@ -46,7 +46,6 @@ KAP grew out of a desire to see if it was possible to nicely integrate these pro
 The question as to whether that goal has been achieved is left to the reader to determine.
 
 Another difference that makes KAP almost unique among APL dialects is that it is centred around lazy evaluation.
-It's almost unique, as APL/3000 had a similar feature all the way back in the 70's.
 
 === What KAP can be used for
 
@@ -391,6 +390,7 @@ The principles that are illustrated in the previous paragraphs extend naturally 
 
 To create an array of different dimensionality, the function `⍴` is used.
 When called dyadically, this function takes an array of numbers to the left that indicates the sizes of the resulting array's dimensions, and changes the dimensions of the array specified on the right to conform to the requested dimensions.
+This operation is called "`reshape`" in APL, and is called that because it gives a new shape to existing data.
 
 That description was probably a bit confusing, so an example is in order:
 
@@ -521,7 +521,8 @@ These function belong to a category of functions which either act on single elem
 These functions are referred to in the APL literature as "Scalar Functions".
 
 For monadic invocation on arrays, the function acts on each array element individually, returing a new array with the same dimensions as its argument.
-For example:
+The below example calls `×` monadically on an array.
+This function returns the signum of its argument (1 if positive, 0 if it was zero and -1 if the value was negative):
 
 [source,kap]
 ----
@@ -588,8 +589,8 @@ The error message here explains that the arguments to the "add" function does no
 Functions that are not scalar are called structural, which means that the behaviour of the function does not follow the simple rules outlined above.
 
 A few structural functions have already been introduced, `⍴` and `⍳`.
-The value returned from these functions depend on the arguments, and not just their dimensions.
-For example, the size of the array returned by the dyadic invocation of `⍴` depends on the arguments on the left side of the function.
+The dimensionality of the values returned from these functions depend on the arguments, and not just their dimensions.
+For example, the dimensionality of the array returned by the dyadic invocation of `⍴` depends on the arguments on the left side of the function.
 
 == Operators
 
@@ -612,9 +613,7 @@ The new function performs an additive reduction on its argument:
 ----
 
 The above returns the sum of the values in the array.
-In other words: `10+20+30+40+50+60`.
-However, as opposed to other versions of APL, `+/` is not identical to simply placing the function between the values and evaluating the result.
-In KAP, the reduction is performed left-to-right, with the above example evaluated as follows:
+In KAP, the reduction is performed left-to-right (which is different to how other versions of APL performs this operation), with the above example evaluated as follows:
 
 ----
  10+20 → 30

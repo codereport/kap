@@ -86,8 +86,7 @@ Unicode uses the term "`grapheme cluster`" to describe a single unit (what most 
 KAP provides the function `unicode:toGraphemes` to convert a string into an array of graphemes.
 
 Strings are specified using double quotes rather than single quotes in APL.
-The reason for this is to make it clear that they work differently compared to APL.
-In KAP, a single character string is simply `"a"`.
+In KAP, a string containing a single character is simply `"a"`.
 This is different compared to APL where a single-character string has a special case where it represents just the character.
 In APL, to type a single-character string, one has to type `,'a'`.
 To specify a single character in KAP, use the `@` symbol, followed by the character.
@@ -190,7 +189,7 @@ list
 
 === Enclose and disclose: `⊂`, `⊃`
 
-In KAP, the `⊂` and `⊃` functions follow the APL2 style, which is more consistent than the style used by for example Dyalog.
+In KAP, the `⊂` and `⊃` functions follow the APL2 style, which can be argued is more consistent than the style used by for example Dyalog.
 The function `⊂` encloses the value in a scalar wrapper, and `⊃` undoes this operation, returning the contained value.
 
 [source,kap]
