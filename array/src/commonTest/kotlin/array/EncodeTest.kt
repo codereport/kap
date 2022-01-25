@@ -126,4 +126,17 @@ class EncodeTest : APLTest() {
             assertArrayContent(arrayOf(0, 0, 0), result)
         }
     }
+
+    // TODO: This triggers a real bug, but it needs some more work before it can be addressed
+    @Ignore
+    @Test
+    fun decodeOutsideRangeOfInteger() {
+        parseAPLExpression("(40⍴10) ⊤ 12", true).let { result ->
+            assertDimension(dimensionsOfSize(40), result)
+            assertArrayContent(
+                arrayOf(
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2), result)
+        }
+    }
 }
