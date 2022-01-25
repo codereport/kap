@@ -124,22 +124,25 @@ class FindIndexArray(val a: APLValue, val b: APLValue, val context: RuntimeConte
 
 class IotaAPLFunction : APLFunctionDescriptor {
     class IotaAPLFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        val pos1Arg = pos.withName("Iota")
+        val pos2Arg = pos.withName("Index")
+
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val aDimensions = a.dimensions
             return when (aDimensions.size) {
-                0 -> IotaArrayImpls.IotaArrayLong(a.ensureNumber(pos).asInt())
+                0 -> IotaArrayImpls.IotaArrayLong(a.ensureNumber(pos1Arg).asInt())
                 1 -> if (aDimensions[0] == 0) {
                     EnclosedAPLValue.make(APLNullValue.APL_NULL_INSTANCE)
                 } else {
-                    IotaArrayImpls.IotaArray(IntArray(aDimensions[0]) { i -> a.valueAtInt(i, pos) })
+                    IotaArrayImpls.IotaArray(IntArray(aDimensions[0]) { i -> a.valueAtInt(i, pos1Arg) })
                 }
-                else -> throwAPLException(InvalidDimensionsException("Right argument must be rank 0 or 1", pos))
+                else -> throwAPLException(InvalidDimensionsException("Right argument must be rank 0 or 1", pos1Arg))
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             if (a.rank > 1) {
-                throwAPLException(InvalidDimensionsException("Left argument must be rank 0 or 1", pos))
+                throwAPLException(InvalidDimensionsException("Left argument must be rank 0 or 1", pos2Arg))
             }
             return FindIndexArray(a.arrayify(), b, context)
         }
