@@ -1,5 +1,6 @@
 package array
 
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -242,5 +243,18 @@ class ComposeTest : APLTest() {
         val (result, out) = parseAPLExpressionWithOutput(src, withStandardLib = true)
         assertEquals("(xEy)(xCy)(B(xCy))((B(xCy))D(xEy))(A((B(xCy))D(xEy)))", out)
         assertSimpleNumber(3, result)
+    }
+
+    @Ignore
+    @Test
+    fun chainWithAxisTest() {
+        parseAPLExpression("a ⇐ ({9,⊂⍵}+[1]) ◊ 1 2 a 2 2 ⍴ ⍳4").let { result ->
+            assertDimension(dimensionsOfSize(2), result)
+            assertArrayContent(
+                arrayOf(
+                    9,
+                    InnerArray(dimensionsOfSize(2, 2), arrayOf(1, 3, 3, 5))),
+                result)
+        }
     }
 }
