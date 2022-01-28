@@ -56,10 +56,8 @@ class Array2ValueRenderer(private val client: Client, override val value: APLVal
     override fun renderValue() = makeArrayNode(client, value)
 
     override fun addToMenu(contextMenu: ContextMenu) {
-        if (value.dimensions.size == 2) {
-            val item = MenuItem("Open in editor").apply { onAction = EventHandler { ArrayEditor.open(client, value) } }
-            contextMenu.items.add(item)
-        }
+        val item = MenuItem("Open in editor").apply { onAction = EventHandler { ArrayEditor.open(client, value) } }
+        contextMenu.items.add(item)
     }
 }
 

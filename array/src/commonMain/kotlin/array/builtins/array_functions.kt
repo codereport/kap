@@ -816,13 +816,13 @@ class DropArrayValue(val selection: IntArray, val source: APLValue) : APLArray()
     }
 }
 
-class DropResultValueOneArg(val a: APLValue) : APLArray() {
+class DropResultValueOneArg(val a: APLValue, pos: Position) : APLArray() {
     override val dimensions: Dimensions
 
     init {
         val d = a.dimensions
         if (d.size != 1) {
-            TODO("One-argument drop is only supported for 1-dimensional arrays")
+            throwAPLException(APLIllegalArgumentException("Expected 1-dimensional array. Dimensions: ${d}", pos))
         }
         dimensions = dimensionsOfSize(d[0] - 1)
     }
@@ -833,7 +833,7 @@ class DropResultValueOneArg(val a: APLValue) : APLArray() {
 class DropAPLFunction : APLFunctionDescriptor {
     class DropAPLFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            return DropResultValueOneArg(a)
+            return DropResultValueOneArg(a, pos)
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {

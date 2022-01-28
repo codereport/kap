@@ -1,17 +1,98 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
+<?import java.lang.*?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
-            fx:controller="array.gui.arrayedit.ArrayEditor">
+<BorderPane prefHeight="400.0" prefWidth="600.0" stylesheets="@arrayeditor.css" xmlns="http://javafx.com/javafx/16"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="array.gui.arrayedit.ArrayEditor">
     <center>
-        <TableView fx:id="table" prefHeight="200.0" prefWidth="200.0" BorderPane.alignment="CENTER">
-            <columns>
-                <TableColumn prefWidth="75.0" text="C1"/>
-                <TableColumn prefWidth="75.0" text="C2"/>
-            </columns>
-        </TableView>
+        <BorderPane BorderPane.alignment="CENTER">
+            <center>
+                <TableView fx:id="table" prefHeight="200.0" prefWidth="200.0">
+                    <columns>
+                        <TableColumn prefWidth="75.0" text="C1"/>
+                        <TableColumn prefWidth="75.0" text="C2"/>
+                    </columns>
+                </TableView>
+            </center>
+            <top>
+                <HBox fx:id="axisEditPanel" alignment="BASELINE_LEFT" BorderPane.alignment="CENTER">
+                    <children>
+                        <Label text="Dimensions:">
+                            <HBox.margin>
+                                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                            </HBox.margin>
+                        </Label>
+                        <GridPane fx:id="axisGrid" styleClass="axisGrid">
+                            <children>
+                                <Label text="Label" GridPane.columnIndex="0" GridPane.rowIndex="0">
+                                    <styleClass>
+                                        <String fx:value="axisGrid-entry"/>
+                                        <String fx:value="axisGrid-header"/>
+                                    </styleClass>
+                                </Label>
+                                <Label text="Label" GridPane.columnIndex="1" GridPane.rowIndex="0">
+                                    <styleClass>
+                                        <String fx:value="axisGrid-entry"/>
+                                        <String fx:value="axisGrid-header"/>
+                                    </styleClass>
+                                </Label>
+                                <Label text="Label" GridPane.columnIndex="2" GridPane.rowIndex="0">
+                                    <styleClass>
+                                        <String fx:value="axisGrid-entry"/>
+                                        <String fx:value="axisGrid-header"/>
+                                    </styleClass>
+                                </Label>
+                                <Label text="Label" GridPane.columnIndex="3" GridPane.rowIndex="0">
+                                    <styleClass>
+                                        <String fx:value="axisGrid-entry"/>
+                                        <String fx:value="axisGrid-header"/>
+                                    </styleClass>
+                                </Label>
+                                <Spinner prefWidth="80.0" GridPane.columnIndex="0" GridPane.rowIndex="1">
+                                    <styleClass>
+                                        <String fx:value="axisGrid-entry"/>
+                                        <String fx:value="axisGrid-edit"/>
+                                    </styleClass>
+                                </Spinner>
+                                <Spinner prefWidth="80.0" GridPane.columnIndex="1" GridPane.rowIndex="1">
+                                    <styleClass>
+                                        <String fx:value="axisGrid-entry"/>
+                                        <String fx:value="axisGrid-edit"/>
+                                    </styleClass>
+                                </Spinner>
+                                <Label text="Label" GridPane.columnIndex="2" GridPane.rowIndex="1">
+                                    <styleClass>
+                                        <String fx:value="axisGrid-entry"/>
+                                        <String fx:value="axisGrid-axisLabel"/>
+                                    </styleClass>
+                                </Label>
+                                <Label text="Label" GridPane.columnIndex="3" GridPane.rowIndex="1">
+                                    <styleClass>
+                                        <String fx:value="axisGrid-entry"/>
+                                        <String fx:value="axisGrid-axisLabel"/>
+                                    </styleClass>
+                                </Label>
+                            </children>
+                            <columnConstraints>
+                                <ColumnConstraints/>
+                                <ColumnConstraints/>
+                                <ColumnConstraints/>
+                                <ColumnConstraints/>
+                            </columnConstraints>
+                            <rowConstraints>
+                                <RowConstraints/>
+                                <RowConstraints/>
+                            </rowConstraints>
+                        </GridPane>
+                    </children>
+                    <BorderPane.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                    </BorderPane.margin>
+                </HBox>
+            </top>
+        </BorderPane>
     </center>
     <top>
         <HBox alignment="BASELINE_LEFT" prefWidth="200.0" BorderPane.alignment="CENTER">
@@ -25,24 +106,24 @@
                     <HBox.margin>
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
                     </HBox.margin>
-            </TextField>
-            <Button mnemonicParsing="false" onAction="#getClicked" text="Get">
-               <HBox.margin>
-                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-               </HBox.margin>
-            </Button>
-            <Button mnemonicParsing="false" onAction="#putClicked" text="Put">
-               <HBox.margin>
-                  <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-               </HBox.margin>
-            </Button>
-         </children>
-         <BorderPane.margin>
-            <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
-         </BorderPane.margin>
-         <opaqueInsets>
-            <Insets />
-         </opaqueInsets>
-      </HBox>
-   </top>
+                </TextField>
+                <Button mnemonicParsing="false" onAction="#getClicked" text="Get">
+                    <HBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                    </HBox.margin>
+                </Button>
+                <Button mnemonicParsing="false" onAction="#putClicked" text="Put">
+                    <HBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                    </HBox.margin>
+                </Button>
+            </children>
+            <BorderPane.margin>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+            </BorderPane.margin>
+            <opaqueInsets>
+                <Insets/>
+            </opaqueInsets>
+        </HBox>
+    </top>
 </BorderPane>

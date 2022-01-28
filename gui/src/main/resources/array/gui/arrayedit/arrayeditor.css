@@ -1,0 +1,18 @@
+.axisGrid {
+}
+
+.axisGrid-entry {
+    -fx-padding: 5px;
+    -fx-column-halignment: center;
+}
+
+.axisGrid-header {
+    -fx-font-weight: bold;
+}
+
+.axisGrid-axisLabel {
+    -fx-alignment: center;
+}
+
+.axisGrid-edit {
+}
