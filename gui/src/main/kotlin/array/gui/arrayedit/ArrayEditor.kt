@@ -32,6 +32,7 @@ class ArrayEditor {
     lateinit var axisEditPanel: HBox
 
     private val axisInputFields = ArrayList<Spinner<Int>>()
+    private var content: MutableAPLValue = MutableAPLValue(APLArrayImpl(dimensionsOfSize(0, 2), emptyArray()))
 
     fun show() {
         stage.show()
@@ -65,10 +66,24 @@ class ArrayEditor {
     private fun saveFromField() {
         println("Variable name: ${variableField.text}")
         val name = variableField.text.trim()
-        TODO("Need new implementation")
-//        client.calculationQueue.pushWriteVariableRequest(name, makeArrayContent()) { result ->
-//            result?.printStackTrace()
-//        }
+        unless(TokenGenerator.isValidSymbolName(name)) {
+            displayError("Not a valid symbol name: ${name}")
+            return
+        }
+        client.calculationQueue.pushWriteVariableRequest(name, content.makeAPLArray()) { result ->
+            if (result != null) {
+                displayError("Error writing result to variable", result.message)
+            }
+        }
+    }
+
+    private fun displayError(title: String, details: String? = null) {
+        val dialog = Alert(Alert.AlertType.ERROR, title, ButtonType.CLOSE)
+        dialog.initOwner(stage)
+        if (details != null) {
+            dialog.dialogPane.contentText = details
+        }
+        dialog.showAndWait()
     }
 
     fun loadArray(value: APLValue) {
@@ -76,6 +91,8 @@ class ArrayEditor {
         if (d.size == 0) {
             throw IllegalArgumentException("Scalars cannot be loaded")
         }
+
+        content = MutableAPLValue(value)
 
         axisGrid.children.clear()
         axisInputFields.clear()
@@ -98,7 +115,7 @@ class ArrayEditor {
             repeat(d.size - 2) { i ->
                 val field = Spinner(SpinnerValueFactory.IntegerSpinnerValueFactory(0, max(d[i] - 1, 0), 0))
                 field.prefWidth = 70.0
-                field.valueProperty().addListener { _, _, _ -> fillInItemsFromAxisFields(value) }
+                field.valueProperty().addListener { _, _, _ -> fillInItemsFromAxisFields() }
                 addCol(field, "axisGrid-edit")
                 axisInputFields.add(field)
             }
@@ -109,11 +126,11 @@ class ArrayEditor {
         }
         addCol(Label(d[d.size - 1].toString()), "axisGrid-axisLabel")
 
-        fillInItemsFromAxisFields(value)
+        fillInItemsFromAxisFields()
     }
 
-    private fun fillInItemsFromAxisFields(value: APLValue) {
-        val d = value.dimensions
+    private fun fillInItemsFromAxisFields() {
+        val d = content.dimensions
         assert(axisInputFields.size == max(d.size - 2, 0))
         val position = IntArray(d.size) { i ->
             if (i < d.size - 2) {
@@ -122,11 +139,11 @@ class ArrayEditor {
                 0
             }
         }
-        table.grid = makeGridBase(value, position)
+        table.grid = makeGridBase(position)
     }
 
-    private fun makeGridBase(value: APLValue, position: IntArray): Grid {
-        val d = value.dimensions
+    private fun makeGridBase(position: IntArray): Grid {
+        val d = content.dimensions
         assert(d.size == position.size)
         assert(position[position.size - 1] == 0)
         if (d.size > 1) {
@@ -141,9 +158,10 @@ class ArrayEditor {
             repeat(numCols) { colIndex ->
                 row.add(
                     KapValueSpreadsheetCellType.createCell(
+                        content,
                         rowIndex,
                         colIndex,
-                        value.valueAt(baseIndex + (rowIndex * numCols) + colIndex)))
+                        baseIndex + (rowIndex * numCols) + colIndex))
             }
             rows.add(row)
         }
@@ -152,14 +170,14 @@ class ArrayEditor {
         val colHeaders = if (d.size == 1) {
             listOf("0")
         } else {
-            val columnLabels = value.labels?.labels?.get(d.size - 1)
+            val columnLabels = content.labels?.labels?.get(d.size - 1)
             (0 until numCols).mapIndexed { i, v ->
                 columnLabels?.get(i)?.title ?: i.toString()
             }
         }
         gridBase.columnHeaders.setAll(colHeaders)
 
-        val rowLabels = value.labels?.labels?.get(if (d.size == 1) 0 else d.size - 2)
+        val rowLabels = content.labels?.labels?.get(if (d.size == 1) 0 else d.size - 2)
         val rowHeaders = (0 until numRows).mapIndexed { i, v ->
             rowLabels?.get(i)?.title ?: i.toString()
         }

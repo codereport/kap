@@ -174,14 +174,6 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
         "⍞" to ApplyToken,
         ";" to ListSeparator)
 
-    private val stringToKeywordMap = hashMapOf(
-        "namespace" to NamespaceToken,
-        "import" to ImportToken,
-        "defsyntaxsub" to DefsyntaxSubToken,
-        "defsyntax" to DefsyntaxToken,
-        "use" to IncludeToken,
-        "declare" to DeclareToken)
-
     init {
         singleCharFunctions = hashSetOf(
             "!", "#", "%", "&", "*", "+", ",", "-", "/", "<", "=", ">", "?", "^", "|",
@@ -268,19 +260,6 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
         pushBackQueue.add(token)
     }
 
-    private fun isNegationSign(ch: Int) = ch == '¯'.code
-    private fun isQuoteChar(ch: Int) = ch == '"'.code
-    private fun isCommentChar(ch: Int) = ch == '⍝'.code
-    private fun isSymbolStartChar(ch: Int) = isLetter(ch) || ch == '_'.code || ch == ':'.code
-    private fun isSymbolContinuation(ch: Int) = isSymbolStartChar(ch) || isDigit(ch)
-    private fun isNumericConstituent(ch: Int) =
-        isDigit(ch) || isNegationSign(ch) || ch == '.'.code || ch == 'j'.code || ch == 'J'.code
-
-    private fun isCharQuote(ch: Int) = ch == '@'.code
-    private fun isQuotePrefixChar(ch: Int) = ch == '\''.code
-    private fun isNewline(ch: Int) = ch == '\n'.code
-    private fun isBackquote(ch: Int) = ch == '`'.code
-
     private fun skipUntilNewline(): Whitespace {
         while (true) {
             val ch = content.nextCodepoint()
@@ -344,48 +323,21 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
     }
 
     private fun collectSymbolOrKeyword(firstChar: Int, posBeforeParse: Position): Token {
-        val buf = StringBuilder()
-        buf.addCodepoint(firstChar)
-        var foundColon = false
-        while (true) {
-            val ch = content.nextCodepoint() ?: break
-            if (ch == ':'.code) {
-                if (foundColon) {
-                    throw ParseException("Multiple : characters in symbol")
-                }
-                foundColon = true
-            } else if (!isSymbolContinuation(ch)) {
-                content.pushBack()
-                break
+        val (nsName, symbolName) = collectSymbol(firstChar, content, posBeforeParse)
+        val namespace = if (nsName == null) {
+            val keyword = stringToKeywordMap[symbolName]
+            if (keyword != null) {
+                return keyword
             }
-            buf.addCodepoint(ch)
-        }
-        val name = buf.toString()
-        val keywordResult = "^:([^:]+)$".toRegex().matchEntire(name)
-        if (keywordResult != null) {
-            return engine.keywordNamespace.internSymbol(keywordResult.groups.get(1)!!.value)
+            val sym = findSymbolInImports(symbolName)
+            if (sym != null) {
+                return sym
+            }
+            null
         } else {
-            val result =
-                "^(?:([^:]+):)?([^:]+)$".toRegex().matchEntire(name) ?: throw ParseException("Malformed symbol: '${name}'", posBeforeParse)
-            val symbolString = result.groups.get(2)!!.value
-            val nsName = result.groups.get(1)
-
-            val namespace = if (nsName == null) {
-                val keyword = stringToKeywordMap[name]
-                if (keyword != null) {
-                    return keyword
-                }
-                val sym = findSymbolInImports(symbolString)
-                if (sym != null) {
-                    return sym
-                }
-                null
-            } else {
-                engine.makeNamespace(nsName.value)
-            }
-
-            return engine.internSymbol(symbolString, namespace)
+            engine.makeNamespace(nsName)
         }
+        return engine.internSymbol(symbolName, namespace)
     }
 
     private fun findSymbolInImports(name: String): Symbol? {
@@ -452,6 +404,81 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
 
     companion object {
         private fun withNeg(isNegative: Boolean, s: String) = if (isNegative) "-$s" else s
+
+        fun isValidSymbolName(name: String): Boolean {
+            return parseStringToSymbol(name) != null
+        }
+
+        fun parseStringToSymbol(string: String): Pair<String?, String>? {
+            val content = PushBackCharacterProvider(StringSourceLocation(string))
+            val (ch, pos) = content.nextCodepointWithPos()
+            if (ch == null) {
+                return null
+            }
+            try {
+                val (nsName, symbolName) = collectSymbol(ch, content, pos)
+                return Pair(nsName, symbolName)
+            } catch (e: ParseException) {
+                return null
+            }
+        }
+
+        private fun isNegationSign(ch: Int) = ch == '¯'.code
+        private fun isQuoteChar(ch: Int) = ch == '"'.code
+        private fun isCommentChar(ch: Int) = ch == '⍝'.code
+        private fun isSymbolStartChar(ch: Int) = isLetter(ch) || ch == '_'.code || ch == ':'.code
+        private fun isSymbolContinuation(ch: Int) = isSymbolStartChar(ch) || isDigit(ch)
+        private fun isNumericConstituent(ch: Int) =
+            isDigit(ch) || isNegationSign(ch) || ch == '.'.code || ch == 'j'.code || ch == 'J'.code
+
+        private fun isCharQuote(ch: Int) = ch == '@'.code
+        private fun isQuotePrefixChar(ch: Int) = ch == '\''.code
+        private fun isNewline(ch: Int) = ch == '\n'.code
+        private fun isBackquote(ch: Int) = ch == '`'.code
+
+        private val stringToKeywordMap = hashMapOf(
+            "namespace" to NamespaceToken,
+            "import" to ImportToken,
+            "defsyntaxsub" to DefsyntaxSubToken,
+            "defsyntax" to DefsyntaxToken,
+            "use" to IncludeToken,
+            "declare" to DeclareToken)
+
+        private fun collectSymbol(
+            firstChar: Int,
+            content: PushBackCharacterProvider,
+            posBeforeParse: Position
+        ): Pair<String?, String> {
+            val buf = StringBuilder()
+            buf.addCodepoint(firstChar)
+            var foundColon = false
+            while (true) {
+                val ch = content.nextCodepoint() ?: break
+                if (ch == ':'.code) {
+                    if (foundColon) {
+                        throw ParseException("Multiple : characters in symbol")
+                    }
+                    foundColon = true
+                } else if (!isSymbolContinuation(ch)) {
+                    content.pushBack()
+                    break
+                }
+                buf.addCodepoint(ch)
+            }
+            val name = buf.toString()
+            val keywordResult = "^:([^:]+)$".toRegex().matchEntire(name)
+            if (keywordResult != null) {
+                return Pair("keyword", keywordResult.groups.get(1)!!.value)
+            } else {
+                val result =
+                    "^(?:([^:]+):)?([^:]+)$".toRegex().matchEntire(name) ?: throw ParseException(
+                        "Malformed symbol: '${name}'",
+                        posBeforeParse)
+                val symbolString = result.groups.get(2)!!.value
+                val nsName = result.groups.get(1)
+                return Pair(nsName?.value, symbolString)
+            }
+        }
 
         private val NUMBER_PARSERS = listOf(
             NumberParser("^(¯?)([0-9]+\\.[0-9]*)\$".toRegex()) { result ->
