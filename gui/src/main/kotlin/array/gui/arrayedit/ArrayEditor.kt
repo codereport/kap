@@ -4,6 +4,7 @@ import array.*
 import array.gui.Client
 import javafx.application.Platform
 import javafx.collections.FXCollections
+import javafx.collections.ObservableList
 import javafx.event.ActionEvent
 import javafx.event.EventHandler
 import javafx.fxml.FXMLLoader
@@ -15,13 +16,17 @@ import javafx.scene.input.Clipboard
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
 import javafx.stage.Stage
+import org.controlsfx.control.spreadsheet.Grid
+import org.controlsfx.control.spreadsheet.GridBase
+import org.controlsfx.control.spreadsheet.SpreadsheetCell
+import org.controlsfx.control.spreadsheet.SpreadsheetView
 import org.jsoup.Jsoup
 import kotlin.math.max
 
 class ArrayEditor {
     private lateinit var stage: Stage
     lateinit var client: Client
-    lateinit var table: TableView<ArrayEditorRow>
+    lateinit var table: SpreadsheetView
     lateinit var variableField: TextField
     lateinit var axisGrid: GridPane
     lateinit var axisEditPanel: HBox
@@ -36,13 +41,11 @@ class ArrayEditor {
         loadFromField()
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    fun getClicked(event: ActionEvent) {
+    fun getClicked(@Suppress("UNUSED_PARAMETER") event: ActionEvent) {
         loadFromField()
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    fun putClicked(event: ActionEvent) {
+    fun putClicked(@Suppress("UNUSED_PARAMETER") event: ActionEvent) {
         saveFromField()
     }
 
@@ -62,9 +65,10 @@ class ArrayEditor {
     private fun saveFromField() {
         println("Variable name: ${variableField.text}")
         val name = variableField.text.trim()
-        client.calculationQueue.pushWriteVariableRequest(name, makeArrayContent()) { result ->
-            result?.printStackTrace()
-        }
+        TODO("Need new implementation")
+//        client.calculationQueue.pushWriteVariableRequest(name, makeArrayContent()) { result ->
+//            result?.printStackTrace()
+//        }
     }
 
     fun loadArray(value: APLValue) {
@@ -90,10 +94,9 @@ class ArrayEditor {
             col++
         }
 
-
         if (d.size > 2) {
             repeat(d.size - 2) { i ->
-                val field = Spinner(SpinnerValueFactory.IntegerSpinnerValueFactory(0, d[i], 0))
+                val field = Spinner(SpinnerValueFactory.IntegerSpinnerValueFactory(0, max(d[i] - 1, 0), 0))
                 field.prefWidth = 70.0
                 field.valueProperty().addListener { _, _, _ -> fillInItemsFromAxisFields(value) }
                 addCol(field, "axisGrid-edit")
@@ -106,25 +109,6 @@ class ArrayEditor {
         }
         addCol(Label(d[d.size - 1].toString()), "axisGrid-axisLabel")
 
-        val colList = if (d.size < 2) {
-            listOf(TableColumn<ArrayEditorRow, ArrayEditorCell>().apply {
-                cellValueFactory = ArrayEditorCellValueFactory(0)
-                cellFactory = ArrayEditorCellFactory()
-                text = "0"
-            })
-        } else {
-            val columnLabels = value.labels?.labels?.get(1)
-            (0 until d.lastDimension()).map { index ->
-                TableColumn<ArrayEditorRow, ArrayEditorCell>().apply {
-                    cellValueFactory = ArrayEditorCellValueFactory(index)
-                    cellFactory = ArrayEditorCellFactory()
-                    text = columnLabels?.get(index)?.title ?: index.toString()
-                }
-            }
-        }
-        table.columns.setAll(colList)
-
-        table.items = FXCollections.observableArrayList()
         fillInItemsFromAxisFields(value)
     }
 
@@ -138,10 +122,10 @@ class ArrayEditor {
                 0
             }
         }
-        fillInItems(value, position)
+        table.grid = makeGridBase(value, position)
     }
 
-    private fun fillInItems(value: APLValue, position: IntArray) {
+    private fun makeGridBase(value: APLValue, position: IntArray): Grid {
         val d = value.dimensions
         assert(d.size == position.size)
         assert(position[position.size - 1] == 0)
@@ -150,20 +134,38 @@ class ArrayEditor {
         }
         val baseIndex = if (d.contentSize() == 0) 0 else d.indexFromPosition(position)
         val (numRows, numCols) = if (d.size == 1) Pair(d[0], 1) else Pair(d[d.size - 2], d[d.size - 1])
-        val rows = Array(numRows) { i -> ArrayEditorRow(value, baseIndex, i, numCols) }
-        table.items.setAll(*rows)
-    }
-
-    private fun makeArrayContent(): APLValue {
-        val items = table.items
-        val numRows = items.size
-        val numCols = table.columns.size
-        val content = ArrayList<APLValue>()
-        items.forEach { row ->
-            content.addAll(row.values)
+        val gridBase = GridBase(numRows, numCols)
+        val rows = FXCollections.observableArrayList<ObservableList<SpreadsheetCell>>()
+        repeat(numRows) { rowIndex ->
+            val row = FXCollections.observableArrayList<SpreadsheetCell>()
+            repeat(numCols) { colIndex ->
+                row.add(
+                    KapValueSpreadsheetCellType.createCell(
+                        rowIndex,
+                        colIndex,
+                        value.valueAt(baseIndex + (rowIndex * numCols) + colIndex)))
+            }
+            rows.add(row)
         }
-        assert(items.size == numRows * numCols)
-        return APLArrayList(dimensionsOfSize(numRows, numCols), content)
+        gridBase.setRows(rows)
+
+        val colHeaders = if (d.size == 1) {
+            listOf("0")
+        } else {
+            val columnLabels = value.labels?.labels?.get(d.size - 1)
+            (0 until numCols).mapIndexed { i, v ->
+                columnLabels?.get(i)?.title ?: i.toString()
+            }
+        }
+        gridBase.columnHeaders.setAll(colHeaders)
+
+        val rowLabels = value.labels?.labels?.get(if (d.size == 1) 0 else d.size - 2)
+        val rowHeaders = (0 until numRows).mapIndexed { i, v ->
+            rowLabels?.get(i)?.title ?: i.toString()
+        }
+        gridBase.rowHeaders.setAll(rowHeaders)
+
+        return gridBase
     }
 
     private fun pasteToTable() {

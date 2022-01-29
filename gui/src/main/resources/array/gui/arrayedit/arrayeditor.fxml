@@ -4,17 +4,14 @@
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import org.controlsfx.control.spreadsheet.SpreadsheetView?>
 <BorderPane prefHeight="400.0" prefWidth="600.0" stylesheets="@arrayeditor.css" xmlns="http://javafx.com/javafx/16"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="array.gui.arrayedit.ArrayEditor">
     <center>
         <BorderPane BorderPane.alignment="CENTER">
             <center>
-                <TableView fx:id="table" prefHeight="200.0" prefWidth="200.0">
-                    <columns>
-                        <TableColumn prefWidth="75.0" text="C1"/>
-                        <TableColumn prefWidth="75.0" text="C2"/>
-                    </columns>
-                </TableView>
+                <SpreadsheetView fx:id="table" prefHeight="200.0" prefWidth="200.0">
+                </SpreadsheetView>
             </center>
             <top>
                 <HBox fx:id="axisEditPanel" alignment="BASELINE_LEFT" BorderPane.alignment="CENTER">
