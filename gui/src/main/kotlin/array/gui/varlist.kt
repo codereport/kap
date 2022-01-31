@@ -15,6 +15,7 @@ import javafx.scene.control.cell.PropertyValueFactory
 import javafx.scene.layout.BorderPane
 import javafx.util.Callback
 import org.controlsfx.control.tableview2.FilteredTableColumn
+import org.controlsfx.control.tableview2.FilteredTableView
 import org.controlsfx.control.tableview2.filter.popupfilter.PopupStringFilter
 import java.io.FileWriter
 import kotlin.math.min
@@ -22,7 +23,7 @@ import kotlin.math.min
 
 class VariableListController(val client: Client) {
     lateinit var borderPane: BorderPane
-    lateinit var table: TableView<ValueWrapper>
+    lateinit var table: FilteredTableView<ValueWrapper>
 
     val node get() = borderPane
     val content = FXCollections.observableArrayList<ValueWrapper>()
@@ -92,9 +93,9 @@ class VarListCellFactory(val client: Client) : Callback<TableColumn<ValueWrapper
             }
 
             override fun updateItem(item: String?, empty: Boolean) {
-                if (item !== getItem()) {
-                    text = if (empty) null else item
-                }
+                super.updateItem(item, empty)
+                text = if (empty) null else item
+                graphic = null
             }
         }
     }

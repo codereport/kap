@@ -43,7 +43,6 @@ object KapValueStringConverter : StringConverter<APLValue>() {
     }
 
     override fun fromString(string: String): APLValue {
-        println("Tokenising string: '${string}'")
         val tokeniser = TokenGenerator(Engine(), StringSourceLocation(string))
         try {
             val token = tokeniser.nextToken()
