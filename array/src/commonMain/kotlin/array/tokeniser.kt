@@ -412,11 +412,14 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
         fun parseStringToSymbol(string: String): Pair<String?, String>? {
             val content = PushBackCharacterProvider(StringSourceLocation(string))
             val (ch, pos) = content.nextCodepointWithPos()
-            if (ch == null) {
+            if (ch == null || !isSymbolStartChar(ch)) {
                 return null
             }
             try {
                 val (nsName, symbolName) = collectSymbol(ch, content, pos)
+                if (content.nextCodepoint() != null) {
+                    return null
+                }
                 return Pair(nsName, symbolName)
             } catch (e: ParseException) {
                 return null
@@ -452,16 +455,28 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
             val buf = StringBuilder()
             buf.addCodepoint(firstChar)
             var foundColon = false
+            var prevCharIsColon = false
             while (true) {
                 val ch = content.nextCodepoint() ?: break
-                if (ch == ':'.code) {
-                    if (foundColon) {
-                        throw ParseException("Multiple : characters in symbol")
+                when {
+                    ch == ':'.code -> {
+                        if (foundColon) {
+                            throw ParseException("Multiple : characters in symbol")
+                        }
+                        foundColon = true
+                        prevCharIsColon = true
                     }
-                    foundColon = true
-                } else if (!isSymbolContinuation(ch)) {
-                    content.pushBack()
-                    break
+                    prevCharIsColon -> {
+                        prevCharIsColon = false
+                        if (!isSymbolStartChar(ch)) {
+                            content.pushBack()
+                            break
+                        }
+                    }
+                    !isSymbolContinuation(ch) -> {
+                        content.pushBack()
+                        break
+                    }
                 }
                 buf.addCodepoint(ch)
             }

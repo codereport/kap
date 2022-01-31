@@ -329,6 +329,51 @@ class TokenGeneratorTest {
         }
     }
 
+    @Test
+    fun parsePlainSymbol() {
+        val res = TokenGenerator.parseStringToSymbol("foo:ab")
+        assertNotNull(res)
+        assertEquals("foo", res.first)
+        assertEquals("ab", res.second)
+    }
+
+    @Test
+    fun parsePlainSymbolNoNamespace() {
+        val res = TokenGenerator.parseStringToSymbol("ab")
+        assertNotNull(res)
+        assertNull(res.first)
+        assertEquals("ab", res.second)
+    }
+
+    @Test
+    fun parseIllegalNames() {
+        assertNull(TokenGenerator.parseStringToSymbol("  foo"))
+        assertNull(TokenGenerator.parseStringToSymbol("foo  "))
+        assertNull(TokenGenerator.parseStringToSymbol("  foo  "))
+        assertNull(TokenGenerator.parseStringToSymbol("  foo:ab"))
+        assertNull(TokenGenerator.parseStringToSymbol("foo:ab  "))
+        assertNull(TokenGenerator.parseStringToSymbol("  foo:ab  "))
+        assertNull(TokenGenerator.parseStringToSymbol("foo abcdef"))
+        assertNull(TokenGenerator.parseStringToSymbol("12"))
+        assertNull(TokenGenerator.parseStringToSymbol("12foo"))
+        assertNull(TokenGenerator.parseStringToSymbol("12:foo"))
+        assertNull(TokenGenerator.parseStringToSymbol("foo:99"))
+        assertNull(TokenGenerator.parseStringToSymbol("99:77"))
+        assertNull(TokenGenerator.parseStringToSymbol("foo:99ab"))
+        assertNull(TokenGenerator.parseStringToSymbol("aa,ww"))
+        assertNull(TokenGenerator.parseStringToSymbol("aa:"))
+        assertNull(TokenGenerator.parseStringToSymbol("aa::"))
+        assertNull(TokenGenerator.parseStringToSymbol("1a1"))
+    }
+
+    @Test
+    fun parseKeyword() {
+        val res = TokenGenerator.parseStringToSymbol(":foo")
+        assertNotNull(res)
+        assertEquals("keyword", res.first)
+        assertEquals("foo", res.second)
+    }
+
     private fun makeGenerator(content: String): TokenGenerator {
         val engine = Engine()
         return TokenGenerator(engine, StringSourceLocation(content))
