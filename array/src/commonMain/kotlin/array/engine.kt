@@ -463,7 +463,10 @@ class Engine(numComputeEngines: Int? = null) {
         return parser.parseValueToplevel(EndOfFile)
     }
 
-    fun parseAndEval(source: SourceLocation, newContext: Boolean): APLValue {
+    fun parseAndEval(source: SourceLocation, newContext: Boolean = true, extraBindings: Map<Symbol, APLValue>? = null): APLValue {
+        if (!newContext && extraBindings != null) {
+            throw IllegalArgumentException("newContext is required when specifying bindings")
+        }
         withThreadLocalAssigned {
             val tokeniser = TokenGenerator(this, source)
             exportedSingleCharFunctions.forEach { token ->
@@ -472,9 +475,15 @@ class Engine(numComputeEngines: Int? = null) {
             val parser = APLParser(tokeniser)
             return if (newContext) {
                 withSavedNamespace {
-                    val instr = parser.parseValueToplevel(EndOfFile)
-                    val newInstr = RootEnvironmentInstruction(parser.currentEnvironment(), instr, instr.pos)
-                    newInstr.evalWithNewContext(this)
+                    val (newInstr, mapped) = parser.withEnvironment { env ->
+                        val mapped = extraBindings?.map { e ->
+                            Pair(env.bindLocal(e.key), e.value)
+                        }
+                        val instr = parser.parseValueToplevel(EndOfFile)
+                        val newInstr = RootEnvironmentInstruction(parser.currentEnvironment(), instr, instr.pos)
+                        Pair(newInstr, mapped)
+                    }
+                    newInstr.evalWithNewContext(this, mapped)
                 }
             } else {
                 val instr = parser.parseValueToplevel(EndOfFile)

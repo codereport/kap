@@ -36,8 +36,8 @@ class ResultList3(val client: Client) {
             segment.segment.createNode(client.renderContext, segment.style)
         }
 
-        val document = GenericEditableStyledDocument(ParStyle(), TextStyle(), styledOps)
-        styledArea = ROStyledArea(client, applyParagraphStyle, document, styledOps, nodeFactory)
+        GenericEditableStyledDocument(ParStyle(), TextStyle(), styledOps)
+        styledArea = ROStyledArea(client, applyParagraphStyle, styledOps, nodeFactory)
 
         styledArea.addCommandListener(::processCommand)
 

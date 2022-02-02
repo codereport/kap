@@ -1,6 +1,5 @@
 package array.gui.styledarea
 
-import array.gui.Client
 import array.keyboard.ExtendedCharsKeyboardInput
 import javafx.event.Event
 import javafx.scene.Node
@@ -8,7 +7,7 @@ import javafx.scene.input.KeyCombination
 import javafx.scene.input.KeyEvent
 import javafx.scene.text.TextFlow
 import org.fxmisc.richtext.GenericStyledArea
-import org.fxmisc.richtext.model.EditableStyledDocument
+import org.fxmisc.richtext.model.GenericEditableStyledDocument
 import org.fxmisc.richtext.model.StyledSegment
 import org.fxmisc.richtext.model.TextOps
 import org.fxmisc.wellbehaved.event.EventPattern
@@ -18,24 +17,23 @@ import org.fxmisc.wellbehaved.event.Nodes
 import java.util.function.BiConsumer
 import java.util.function.Function
 
-open class KAPEditorStyledArea<P, S>(
-    val client: Client,
-    parStyle: P,
-    applyParagraphStyle: BiConsumer<TextFlow, P>,
-    textStyle: TextStyle,
-    document: EditableStyledDocument<P, S, TextStyle>,
-    segmentOps: TextOps<S, TextStyle>,
-    nodeFactory: Function<StyledSegment<S, TextStyle>, Node>
-) : GenericStyledArea<P, S, TextStyle>(
+open class KAPEditorStyledArea<PS, SEG, S>(
+    parStyle: PS,
+    applyParagraphStyle: BiConsumer<TextFlow, PS>,
+    textStyle: S,
+    segmentOps: TextOps<SEG, S>,
+    nodeFactory: Function<StyledSegment<SEG, S>, Node>
+) : GenericStyledArea<PS, SEG, S>(
     parStyle,
     applyParagraphStyle,
     textStyle,
-    document,
+    GenericEditableStyledDocument(parStyle, textStyle, segmentOps),
     segmentOps,
     nodeFactory
 ) {
     private var defaultKeymap: InputMap<*> = Nodes.getInputMap(this)
     private var prefixActive = false
+    private val extendedInput = ExtendedCharsKeyboardInput()
 
     init {
         stylesheets.add("/array/gui/interactor.css")
@@ -47,7 +45,7 @@ open class KAPEditorStyledArea<P, S>(
         val entries = ArrayList<InputMap<out Event>>()
 
         // Keymap
-        client.renderContext.extendedInput().keymap.forEach { e ->
+        extendedInput.keymap.forEach { e ->
             val modifiers =
                 if (e.key.shift) arrayOf(KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN) else arrayOf(KeyCombination.ALT_DOWN)
             val v = InputMap.consume(EventPattern.keyTyped(e.key.character, *modifiers), { replaceSelectionWithDisplay(e.value) })
@@ -73,7 +71,7 @@ open class KAPEditorStyledArea<P, S>(
         }
 
         fun processKey(event: KeyEvent) {
-            val charMapping = client.renderContext.extendedInput().keymap[ExtendedCharsKeyboardInput.KeyDescriptor(
+            val charMapping = extendedInput.keymap[ExtendedCharsKeyboardInput.KeyDescriptor(
                 event.character,
                 event.isShiftDown)]
             if(charMapping == null) {
@@ -107,7 +105,7 @@ open class KAPEditorStyledArea<P, S>(
                 }
                 else -> {
                     prefixActive = false
-                    val charMapping = client.renderContext.extendedInput().keymap[ExtendedCharsKeyboardInput.KeyDescriptor(
+                    val charMapping = extendedInput.keymap[ExtendedCharsKeyboardInput.KeyDescriptor(
                         event.character,
                         event.isShiftDown)]
                     if (charMapping == null) {

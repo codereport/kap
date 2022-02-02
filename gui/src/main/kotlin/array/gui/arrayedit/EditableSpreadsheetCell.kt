@@ -5,8 +5,8 @@ import javafx.beans.value.ChangeListener
 import javafx.util.StringConverter
 import org.controlsfx.control.spreadsheet.*
 
-object KapValueSpreadsheetCellType : SpreadsheetCellType<APLValue>(KapValueStringConverter) {
-    override fun toString(obj: APLValue): String {
+object KapValueSpreadsheetCellType : SpreadsheetCellType<APLValueSpreadsheetCell>(KapValueStringConverter) {
+    override fun toString(obj: APLValueSpreadsheetCell): String {
         return converter.toString(obj)
     }
 
@@ -18,31 +18,32 @@ object KapValueSpreadsheetCellType : SpreadsheetCellType<APLValue>(KapValueStrin
         return true
     }
 
-    override fun convertValue(value: Any?): APLValue? {
+    override fun convertValue(value: Any?): APLValueSpreadsheetCell? {
         return when (value) {
             null -> null
-            is APLValue -> value
+            is APLValueSpreadsheetCell -> value
             else -> converter.fromString(value.toString())
         }
     }
 
     fun createCell(value: MutableAPLValue, row: Int, col: Int, index: Int): SpreadsheetCell {
         return SpreadsheetCellBase(row, col, 1, 1, this).apply {
-            item = value.elements[index]
+            item = APLValueSpreadsheetCell(value.elements[index])
             val l = ChangeListener<Any> { observable, oldValue, newValue ->
-                value.elements[index] = if (newValue == null) APLNullValue.APL_NULL_INSTANCE else newValue as APLValue
+                value.elements[index] =
+                    if (newValue == null) APLNullValue.APL_NULL_INSTANCE else (newValue as APLValueSpreadsheetCell).value
             }
             itemProperty().addListener(l)
         }
     }
 }
 
-object KapValueStringConverter : StringConverter<APLValue>() {
-    override fun toString(obj: APLValue): String {
-        return obj.formatted(FormatStyle.READABLE)
+object KapValueStringConverter : StringConverter<APLValueSpreadsheetCell>() {
+    override fun toString(obj: APLValueSpreadsheetCell): String {
+        return obj.value.formatted(FormatStyle.READABLE)
     }
 
-    override fun fromString(string: String): APLValue {
+    override fun fromString(string: String): APLValueSpreadsheetCell {
         val tokeniser = TokenGenerator(Engine(), StringSourceLocation(string))
         try {
             val token = tokeniser.nextToken()
@@ -51,18 +52,31 @@ object KapValueStringConverter : StringConverter<APLValue>() {
             }
             tokeniser.nextToken().let { next ->
                 unless(next == EndOfFile) {
-                    throw Exception("Expected EndOfFile, found: ${next}")
+                    throw Exception("Expected EndOfFile, found: ${next} (string='${string}')")
                 }
             }
-            return when (token) {
+            val value = when (token) {
                 is StringToken -> APLString(token.value)
                 is ParsedLong -> token.value.makeAPLNumber()
                 is ParsedDouble -> token.value.makeAPLNumber()
                 is ParsedComplex -> token.value.makeAPLNumber()
                 else -> throw Exception("Illegal input")
             }
+            return APLValueSpreadsheetCell(value)
         } catch (e: ParseException) {
             throw Exception("Parse exception", e)
+        }
+    }
+}
+
+class APLValueSpreadsheetCell(val value: APLValue) {
+    override fun toString(): String {
+        return when {
+            value.isStringValue() -> "\"${value.toStringValue()}\""
+            value is APLLong -> value.formatted(FormatStyle.READABLE)
+            value is APLDouble -> value.formatted(FormatStyle.READABLE)
+            value is APLComplex -> value.formatted(FormatStyle.READABLE)
+            else -> "\"cannot parse\""
         }
     }
 }

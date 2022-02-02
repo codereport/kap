@@ -48,7 +48,15 @@ run {
             "--add-exports=javafx.base/com.sun.javafx.collections=ALL-UNNAMED",
             "--add-exports=javafx.controls/com.sun.javafx.scene.control.behavior.TableViewBehavior=ALL-UNNAMED",
             "--add-exports=javafx.base/com.sun.javafx.event.EventHandlerManager=ALL-UNNAMED",
-            "--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED"
+            "--add-opens=javafx.graphics/javafx.scene=ALL-UNNAMED",
+
+            "--add-exports=javafx.controls/com.sun.javafx.scene.control.behavior=org.controlsfx.controls",
+            "--add-exports=javafx.controls/com.sun.javafx.scene.control=org.controlsfx.controls",
+            "--add-exports=javafx.base/com.sun.javafx.event=org.controlsfx.controls",
+            "--add-exports=javafx.base/com.sun.javafx.collections=org.controlsfx.controls",
+            "--add-exports=javafx.controls/com.sun.javafx.scene.control.behavior.TableViewBehavior=org.controlsfx.controls",
+            "--add-exports=javafx.base/com.sun.javafx.event.EventHandlerManager=org.controlsfx.controls",
+            "--add-opens=javafx.graphics/javafx.scene=org.controlsfx.controls"
     ]
 }
 

@@ -80,13 +80,12 @@ class SourceEditor(val client: Client) {
             StyledTextArea.createStyledTextNode(seg.segment, seg.style, applyStyle)
         }
         val styledTextOps = SegmentOps.styledTextOps<TextStyle>()
-        val doc = GenericEditableStyledDocument(SourceEditorParStyle(), TextStyle(), styledTextOps)
+        GenericEditableStyledDocument(SourceEditorParStyle(), TextStyle(), styledTextOps)
         val srcEdit = SourceEditorStyledArea(
             this,
             SourceEditorParStyle(),
             applyParagraphStyle,
             TextStyle(),
-            doc,
             styledTextOps,
             nodeFactory)
 
@@ -217,15 +216,12 @@ class SourceEditorStyledArea(
     parStyle: SourceEditorParStyle,
     applyParagraphStyle: BiConsumer<TextFlow, SourceEditorParStyle>,
     textStyle: TextStyle,
-    doc: GenericEditableStyledDocument<SourceEditorParStyle, String, TextStyle>,
     styledTextOps: TextOps<String, TextStyle>,
     nodeFactory: Function<StyledSegment<String, TextStyle>, Node>
-) : KAPEditorStyledArea<SourceEditorParStyle, String>(
-    sourceEditor.client,
+) : KAPEditorStyledArea<SourceEditorParStyle, String, TextStyle>(
     parStyle,
     applyParagraphStyle,
     textStyle,
-    doc,
     styledTextOps,
     nodeFactory
 ) {

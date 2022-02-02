@@ -8,7 +8,10 @@ import javafx.scene.Node
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCombination
 import javafx.scene.text.TextFlow
-import org.fxmisc.richtext.model.*
+import org.fxmisc.richtext.model.ReadOnlyStyledDocumentBuilder
+import org.fxmisc.richtext.model.StyledDocument
+import org.fxmisc.richtext.model.StyledSegment
+import org.fxmisc.richtext.model.TextOps
 import org.fxmisc.wellbehaved.event.EventPattern
 import org.fxmisc.wellbehaved.event.InputMap
 import java.util.function.BiConsumer
@@ -19,17 +22,14 @@ import kotlin.contracts.contract
 
 @OptIn(ExperimentalContracts::class)
 class ROStyledArea(
-    client: Client,
+    val client: Client,
     applyParagraphStyle: BiConsumer<TextFlow, ParStyle>,
-    document: EditableStyledDocument<ParStyle, EditorContent, TextStyle>,
     styledTextOps: TextOps<EditorContent, TextStyle>,
     nodeFactory: Function<StyledSegment<EditorContent, TextStyle>, Node>
-) : KAPEditorStyledArea<ParStyle, EditorContent>(
-    client,
+) : KAPEditorStyledArea<ParStyle, EditorContent, TextStyle>(
     ParStyle(),
     applyParagraphStyle,
     TextStyle(),
-    document,
     styledTextOps,
     nodeFactory
 ) {

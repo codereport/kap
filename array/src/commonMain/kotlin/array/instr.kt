@@ -19,11 +19,15 @@ class DummyInstr(pos: Position) : Instruction(pos) {
 
 class RootEnvironmentInstruction(val environment: Environment, val instr: Instruction, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
-        return evalWithNewContext(context.engine)
+        throw IllegalStateException("Root environment called with context")
     }
 
-    fun evalWithNewContext(engine: Engine): APLValue {
-        return instr.evalWithContext(RuntimeContext(engine, environment, engine.rootContext))
+    fun evalWithNewContext(engine: Engine, extraBindings: List<Pair<EnvironmentBinding, APLValue>>?): APLValue {
+        val context = RuntimeContext(engine, environment, engine.rootContext)
+        extraBindings?.forEach { (binding, value) ->
+            context.setVar(binding, value)
+        }
+        return instr.evalWithContext(context)
     }
 }
 

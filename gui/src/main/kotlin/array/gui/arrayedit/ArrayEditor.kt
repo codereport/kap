@@ -2,6 +2,8 @@ package array.gui.arrayedit
 
 import array.*
 import array.gui.Client
+import array.gui.displayErrorWithStage
+import array.gui.styledarea.InputFieldStyledArea
 import javafx.application.Platform
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -15,24 +17,24 @@ import javafx.scene.control.*
 import javafx.scene.input.Clipboard
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
+import javafx.scene.layout.Priority
+import javafx.scene.layout.VBox
+import javafx.stage.Modality
 import javafx.stage.Stage
-import org.controlsfx.control.spreadsheet.Grid
-import org.controlsfx.control.spreadsheet.GridBase
+import javafx.stage.StageStyle
 import org.controlsfx.control.spreadsheet.SpreadsheetCell
-import org.controlsfx.control.spreadsheet.SpreadsheetView
 import org.jsoup.Jsoup
 import kotlin.math.max
 
 class ArrayEditor {
     private lateinit var stage: Stage
     lateinit var client: Client
-    lateinit var table: SpreadsheetView
+    lateinit var table: ArrayEditSpreadsheetView
     lateinit var variableField: TextField
     lateinit var axisGrid: GridPane
     lateinit var axisEditPanel: HBox
 
     private val axisInputFields = ArrayList<Spinner<Int>>()
-    private var content: MutableAPLValue = MutableAPLValue(APLArrayImpl(dimensionsOfSize(0, 2), emptyArray()))
 
     fun show() {
         stage.show()
@@ -70,20 +72,16 @@ class ArrayEditor {
             displayError("Not a valid symbol name: ${name}")
             return
         }
-        client.calculationQueue.pushWriteVariableRequest(name, content.makeAPLArray()) { result ->
+        client.calculationQueue.pushWriteVariableRequest(name, table.content.makeAPLArray()) { result ->
             if (result != null) {
                 displayError("Error writing result to variable", result.message)
             }
         }
     }
 
+
     private fun displayError(title: String, details: String? = null) {
-        val dialog = Alert(Alert.AlertType.ERROR, title, ButtonType.CLOSE)
-        dialog.initOwner(stage)
-        if (details != null) {
-            dialog.dialogPane.contentText = details
-        }
-        dialog.showAndWait()
+        displayErrorWithStage(stage, title, details)
     }
 
     fun loadArray(value: APLValue) {
@@ -92,7 +90,7 @@ class ArrayEditor {
             throw IllegalArgumentException("Scalars cannot be loaded")
         }
 
-        content = MutableAPLValue(value)
+        val content = MutableAPLValue(value)
 
         axisGrid.children.clear()
         axisInputFields.clear()
@@ -115,7 +113,7 @@ class ArrayEditor {
             repeat(d.size - 2) { i ->
                 val field = Spinner(SpinnerValueFactory.IntegerSpinnerValueFactory(0, max(d[i] - 1, 0), 0))
                 field.prefWidth = 70.0
-                field.valueProperty().addListener { _, _, _ -> fillInItemsFromAxisFields() }
+                field.valueProperty().addListener { _, _, _ -> fillInItemsFromAxisFields(content) }
                 addCol(field, "axisGrid-edit")
                 axisInputFields.add(field)
             }
@@ -126,65 +124,26 @@ class ArrayEditor {
         }
         addCol(Label(d[d.size - 1].toString()), "axisGrid-axisLabel")
 
-        fillInItemsFromAxisFields()
+        fillInItemsFromAxisFields(content)
     }
 
-    private fun fillInItemsFromAxisFields() {
+    private fun axisFieldsToPosition(content: MutableAPLValue): IntArray {
         val d = content.dimensions
         assert(axisInputFields.size == max(d.size - 2, 0))
-        val position = IntArray(d.size) { i ->
+        return IntArray(d.size) { i ->
             if (i < d.size - 2) {
                 axisInputFields[i].value
             } else {
                 0
             }
         }
-        table.grid = makeGridBase(position)
     }
 
-    private fun makeGridBase(position: IntArray): Grid {
-        val d = content.dimensions
-        assert(d.size == position.size)
-        assert(position[position.size - 1] == 0)
-        if (d.size > 1) {
-            assert(position[position.size - 2] == 0)
-        }
-        val baseIndex = if (d.contentSize() == 0) 0 else d.indexFromPosition(position)
-        val (numRows, numCols) = if (d.size == 1) Pair(d[0], 1) else Pair(d[d.size - 2], d[d.size - 1])
-        val gridBase = GridBase(numRows, numCols)
-        val rows = FXCollections.observableArrayList<ObservableList<SpreadsheetCell>>()
-        repeat(numRows) { rowIndex ->
-            val row = FXCollections.observableArrayList<SpreadsheetCell>()
-            repeat(numCols) { colIndex ->
-                row.add(
-                    KapValueSpreadsheetCellType.createCell(
-                        content,
-                        rowIndex,
-                        colIndex,
-                        baseIndex + (rowIndex * numCols) + colIndex))
-            }
-            rows.add(row)
-        }
-        gridBase.setRows(rows)
-
-        val colHeaders = if (d.size == 1) {
-            listOf("0")
-        } else {
-            val columnLabels = content.labels?.labels?.get(d.size - 1)
-            (0 until numCols).mapIndexed { i, v ->
-                columnLabels?.get(i)?.title ?: i.toString()
-            }
-        }
-        gridBase.columnHeaders.setAll(colHeaders)
-
-        val rowLabels = content.labels?.labels?.get(if (d.size == 1) 0 else d.size - 2)
-        val rowHeaders = (0 until numRows).mapIndexed { i, v ->
-            rowLabels?.get(i)?.title ?: i.toString()
-        }
-        gridBase.rowHeaders.setAll(rowHeaders)
-
-        return gridBase
+    private fun fillInItemsFromAxisFields(content: MutableAPLValue) {
+        val position = axisFieldsToPosition(content)
+        table.replaceContent(content, position)
     }
+
 
     private fun pasteToTable() {
         val clipboard = Clipboard.getSystemClipboard()
@@ -203,7 +162,170 @@ class ArrayEditor {
         }
     }
 
+    private fun displayInsertExpressionMenu() {
+        val selection = SelectedArea.computeSelectedArea(table.selectionModel.selectedCells)
+        println("Selected area: ${selection}")
+        if (selection == null || selection.width == 0 || selection.height == 0) {
+            return
+        }
+
+        val stage = Stage(StageStyle.UTILITY).apply {
+            initModality(Modality.WINDOW_MODAL)
+            title = "Expression"
+        }
+
+        val vbox = VBox()
+        val hbox = HBox()
+        hbox.children.add(Label("Expression:"))
+        val styledArea = InputFieldStyledArea()
+        HBox.setHgrow(styledArea, Priority.ALWAYS)
+        styledArea.setPrefSize(300.0, 40.0)
+        hbox.children.add(styledArea)
+
+        vbox.children.add(hbox)
+
+        ButtonBar(ButtonBar.BUTTON_ORDER_LINUX).let { buttonBar ->
+            Button("OK").let { okButton ->
+                okButton.onAction = EventHandler {
+                    sendExpressionRequest(styledArea.text, selection)
+                    stage.close()
+                }
+                ButtonBar.setButtonData(okButton, ButtonBar.ButtonData.OK_DONE)
+                buttonBar.buttons.add(okButton)
+            }
+            Button("Cancel").let { cancelButton ->
+                cancelButton.onAction = EventHandler { stage.close() }
+                ButtonBar.setButtonData(cancelButton, ButtonBar.ButtonData.CANCEL_CLOSE)
+                buttonBar.buttons.add(cancelButton)
+            }
+            vbox.children.add(buttonBar)
+        }
+
+        stage.scene = Scene(vbox)
+        stage.show()
+        stage.requestFocus()
+        styledArea.requestFocus()
+    }
+
+    private fun sendExpressionRequest(text: String, selection: SelectedArea) {
+        println("Sending request for: ${text}")
+        val position = axisFieldsToPosition(table.content)
+        val selectedValues = selection.computeSelectedValuesFromTable(table, position)
+        val b = listOf(Pair("kap", "⍵") to selectedValues)
+        client.calculationQueue.pushRequest(StringSourceLocation(text), linkNewContext = true, variableBindings = b) { result ->
+            println("Got result: ${result}")
+            Platform.runLater {
+                when (result) {
+                    is Either.Left -> insertExpressionResult(position, selection, result.value)
+                    is Either.Right -> displayError("Error evaluating expression", formatExceptionDescription(result.value))
+                }
+            }
+        }
+    }
+
+    private fun insertExpressionResult(position: IntArray, selection: SelectedArea, value: APLValue) {
+        fun updateCellValue(currRow: ObservableList<SpreadsheetCell>, row: Int, col: Int, newValue: APLValue) {
+            val p = updatePositionForInnerPos(position, selection.row, selection.column)
+            val index = table.content.dimensions.indexFromPosition(p)
+            table.content.updateValueAt(index, newValue)
+//            val rowValue = table.grid.rows[row]
+            currRow[col] = KapValueSpreadsheetCellType.createCell(table.content, row, col, index)
+        }
+
+        // This stuff is only needed becuase SpreadsheetView does not update its content
+        // immediately unless the entire row is marked as updated.
+        // If this is not done, then the visual representation of the spreadsheet
+        // will remain unchanged until the selection is changed.
+        fun copyRow(y: Int): ObservableList<SpreadsheetCell> {
+            val newRow = FXCollections.observableArrayList<SpreadsheetCell>()
+            newRow.addAll(table.grid.rows[y])
+            return newRow
+        }
+
+        if (selection.isSingleElement) {
+            val newRow = copyRow(selection.row)
+            updateCellValue(newRow, selection.row, selection.column, value)
+            table.grid.rows[selection.row] = newRow
+        } else {
+            var index = 0
+            val size = value.dimensions.contentSize()
+            repeat(selection.height) { rowIndex ->
+                val newRow = copyRow(rowIndex + selection.row)
+                repeat(selection.width) { colIndex ->
+                    val v = value.valueAt(index.mod(size))
+                    index++
+                    updateCellValue(newRow, rowIndex + selection.row, colIndex + selection.column, v)
+                }
+                table.grid.rows[rowIndex + selection.row] = newRow
+            }
+        }
+    }
+
+    // The warning is caused by a bug in IDEA
+    // See https://youtrack.jetbrains.com/issue/KTIJ-20744 for details
+    @Suppress("KotlinConstantConditions")
+    private fun formatExceptionDescription(e: Exception) = when (e) {
+        is APLGenericException -> e.formattedError()
+        else -> e.message ?: "no information available"
+    }
+
+    data class SelectedArea(val column: Int, val row: Int, val width: Int, val height: Int) {
+        val isSingleElement get() = width == 1 && height == 1
+
+        fun computeSelectedValuesFromTable(table: ArrayEditSpreadsheetView, position: IntArray): APLValue {
+            return if (isSingleElement) {
+                val p = updatePositionForInnerPos(position, row, column)
+                table.content.valueAt(table.content.dimensions.indexFromPosition(p))
+            } else {
+                val result = ArrayList<APLValue>()
+                repeat(height) { rowIndex ->
+                    repeat(width) { colIndex ->
+                        val p = updatePositionForInnerPos(position, rowIndex + row, colIndex + column)
+                        result.add(table.content.valueAt(table.content.dimensions.indexFromPosition(p)))
+                    }
+                }
+                APLArrayList(dimensionsOfSize(height, width), result)
+            }
+        }
+
+        companion object {
+            fun computeSelectedArea(selectedCells: ObservableList<TablePosition<*, *>>): SelectedArea? {
+                if (selectedCells.size == 0) {
+                    return null
+                }
+
+                val minCol = selectedCells.minOf { it.column }
+                val maxCol = selectedCells.maxOf { it.column }
+                val minRow = selectedCells.minOf { it.row }
+                val maxRow = selectedCells.maxOf { it.row }
+
+                val numCols = (maxCol - minCol) + 1
+                val numRows = (maxRow - minRow) + 1
+                val markers = IntArray(numRows * numCols)
+                selectedCells.forEach { p ->
+                    markers[((p.row - minRow) * numCols) + (p.column - minCol)]++
+                }
+                if (!markers.all { it == 1 }) {
+                    return null
+                }
+
+                return SelectedArea(minCol, minRow, numCols, numRows)
+            }
+        }
+    }
+
     companion object {
+        private fun updatePositionForInnerPos(position: IntArray, row: Int, col: Int): IntArray {
+            val p = IntArray(position.size) { i ->
+                when (i) {
+                    position.size - 1 -> col
+                    position.size - 2 -> row
+                    else -> position[i]
+                }
+            }
+            return p
+        }
+
         private fun makeArrayEditor(client: Client): ArrayEditor {
             val loader = FXMLLoader(ArrayEditor::class.java.getResource("arrayeditor.fxml"))
             val root = loader.load<Parent>()
@@ -211,12 +333,13 @@ class ArrayEditor {
 
             controller.client = client
             controller.stage = Stage()
-            val scene = Scene(root, 800.0, 300.0)
+            val scene = Scene(root, 900.0, 850.0)
             controller.stage.title = "Array Editor"
             controller.stage.scene = scene
 
-            controller.table.contextMenu = ContextMenu(MenuItem("Paste").apply { onAction = EventHandler { controller.pasteToTable() } })
+//            controller.table.contextMenu = ContextMenu(MenuItem("Paste").apply { onAction = EventHandler { controller.pasteToTable() } })
 
+            controller.table.insertExpressionCallback = controller::displayInsertExpressionMenu
             controller.loadArray(makeDefaultContent())
 
             return controller

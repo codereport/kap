@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import java.lang.*?>
+<?import array.gui.arrayedit.ArrayEditSpreadsheetView?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
-<?import org.controlsfx.control.spreadsheet.SpreadsheetView?>
 <BorderPane prefHeight="400.0" prefWidth="600.0" stylesheets="@arrayeditor.css" xmlns="http://javafx.com/javafx/16"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="array.gui.arrayedit.ArrayEditor">
     <center>
         <BorderPane BorderPane.alignment="CENTER">
             <center>
-                <SpreadsheetView fx:id="table" prefHeight="200.0" prefWidth="200.0">
-                </SpreadsheetView>
+                <ArrayEditSpreadsheetView fx:id="table" prefHeight="200.0" prefWidth="200.0"/>
             </center>
             <top>
                 <HBox fx:id="axisEditPanel" alignment="BASELINE_LEFT" BorderPane.alignment="CENTER">
