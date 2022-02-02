@@ -3,7 +3,6 @@ package array.gui.arrayedit
 import array.*
 import array.gui.Client
 import array.gui.displayErrorWithStage
-import array.gui.styledarea.InputFieldStyledArea
 import javafx.application.Platform
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -17,8 +16,6 @@ import javafx.scene.control.*
 import javafx.scene.input.Clipboard
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
-import javafx.scene.layout.Priority
-import javafx.scene.layout.VBox
 import javafx.stage.Modality
 import javafx.stage.Stage
 import javafx.stage.StageStyle
@@ -35,6 +32,7 @@ class ArrayEditor {
     lateinit var axisEditPanel: HBox
 
     private val axisInputFields = ArrayList<Spinner<Int>>()
+    private var defaultInsertionType = InsertStyleOption.RESHAPE
 
     fun show() {
         stage.show()
@@ -174,40 +172,56 @@ class ArrayEditor {
             title = "Expression"
         }
 
-        val vbox = VBox()
-        val hbox = HBox()
-        hbox.children.add(Label("Expression:"))
-        val styledArea = InputFieldStyledArea()
-        HBox.setHgrow(styledArea, Priority.ALWAYS)
-        styledArea.setPrefSize(300.0, 40.0)
-        hbox.children.add(styledArea)
+//        val vbox = VBox()
+//        val hbox = HBox()
+//        hbox.children.add(Label("Expression:"))
+//        val styledArea = InputFieldStyledArea()
+//        HBox.setHgrow(styledArea, Priority.ALWAYS)
+//        styledArea.setPrefSize(300.0, 40.0)
+//        hbox.children.add(styledArea)
+//
+//        vbox.children.add(hbox)
+//
+//        ButtonBar(ButtonBar.BUTTON_ORDER_LINUX).let { buttonBar ->
+//            Button("OK").let { okButton ->
+//                okButton.onAction = EventHandler {
+//                    sendExpressionRequest(styledArea.text, selection)
+//                    stage.close()
+//                }
+//                ButtonBar.setButtonData(okButton, ButtonBar.ButtonData.OK_DONE)
+//                buttonBar.buttons.add(okButton)
+//            }
+//            Button("Cancel").let { cancelButton ->
+//                cancelButton.onAction = EventHandler { stage.close() }
+//                ButtonBar.setButtonData(cancelButton, ButtonBar.ButtonData.CANCEL_CLOSE)
+//                buttonBar.buttons.add(cancelButton)
+//            }
+//            vbox.children.add(buttonBar)
+//        }
 
-        vbox.children.add(hbox)
+        val loader = FXMLLoader(ArrayEditor::class.java.getResource("insertexpression.fxml"))
+        val root = loader.load<Parent>()
+        val controller = loader.getController<InsertExpression>()
 
-        ButtonBar(ButtonBar.BUTTON_ORDER_LINUX).let { buttonBar ->
-            Button("OK").let { okButton ->
-                okButton.onAction = EventHandler {
-                    sendExpressionRequest(styledArea.text, selection)
-                    stage.close()
-                }
-                ButtonBar.setButtonData(okButton, ButtonBar.ButtonData.OK_DONE)
-                buttonBar.buttons.add(okButton)
-            }
-            Button("Cancel").let { cancelButton ->
-                cancelButton.onAction = EventHandler { stage.close() }
-                ButtonBar.setButtonData(cancelButton, ButtonBar.ButtonData.CANCEL_CLOSE)
-                buttonBar.buttons.add(cancelButton)
-            }
-            vbox.children.add(buttonBar)
+        controller.updateInsertionType(defaultInsertionType)
+
+        controller.ok.onAction = EventHandler {
+            sendExpressionRequest(controller.styledArea.text, selection, controller.insertStyleSelector.value.option)
+            defaultInsertionType = controller.insertStyleSelector.value.option
+            stage.close()
         }
 
-        stage.scene = Scene(vbox)
+        controller.cancel.onAction = EventHandler {
+            stage.close()
+        }
+
+        stage.scene = Scene(root)
         stage.show()
         stage.requestFocus()
-        styledArea.requestFocus()
+        controller.styledArea.requestFocus()
     }
 
-    private fun sendExpressionRequest(text: String, selection: SelectedArea) {
+    private fun sendExpressionRequest(text: String, selection: SelectedArea, insertionStyle: InsertStyleOption) {
         println("Sending request for: ${text}")
         val position = axisFieldsToPosition(table.content)
         val selectedValues = selection.computeSelectedValuesFromTable(table, position)
@@ -216,23 +230,23 @@ class ArrayEditor {
             println("Got result: ${result}")
             Platform.runLater {
                 when (result) {
-                    is Either.Left -> insertExpressionResult(position, selection, result.value)
+                    is Either.Left -> insertExpressionResult(position, selection, result.value, insertionStyle)
                     is Either.Right -> displayError("Error evaluating expression", formatExceptionDescription(result.value))
                 }
             }
         }
     }
 
-    private fun insertExpressionResult(position: IntArray, selection: SelectedArea, value: APLValue) {
+    private fun insertExpressionResult(position: IntArray, selection: SelectedArea, value: APLValue, insertionStyle: InsertStyleOption) {
         fun updateCellValue(currRow: ObservableList<SpreadsheetCell>, row: Int, col: Int, newValue: APLValue) {
-            val p = updatePositionForInnerPos(position, selection.row, selection.column)
+            val p = updatePositionForInnerPos(position, row, col)
             val index = table.content.dimensions.indexFromPosition(p)
             table.content.updateValueAt(index, newValue)
 //            val rowValue = table.grid.rows[row]
             currRow[col] = KapValueSpreadsheetCellType.createCell(table.content, row, col, index)
         }
 
-        // This stuff is only needed becuase SpreadsheetView does not update its content
+        // This stuff is only needed because SpreadsheetView does not update its content
         // immediately unless the entire row is marked as updated.
         // If this is not done, then the visual representation of the spreadsheet
         // will remain unchanged until the selection is changed.
@@ -242,17 +256,45 @@ class ArrayEditor {
             return newRow
         }
 
+        val dimensions = value.dimensions
+        if (insertionStyle == InsertStyleOption.ERROR && (dimensions.size != 2 || dimensions[0] != selection.height || dimensions[1] != selection.width)) {
+            displayError("Error inserting result", "Dimensions of result does not match size of selection")
+            return
+        }
+
+        val size = dimensions.contentSize()
+        val resultWidth = if (dimensions.size >= 2) dimensions[1] else 1
+
+        fun computeValue(row: Int, col: Int): APLValue {
+            return when (insertionStyle) {
+                InsertStyleOption.REPEAT -> value
+                InsertStyleOption.RESHAPE -> value.valueAt((row * selection.width + col).mod(size))
+                InsertStyleOption.REPLICATE -> {
+                    if (row < selection.height && col < selection.width) {
+                        value.valueAt(row * resultWidth + col)
+                    } else {
+                        APLLONG_0
+                    }
+                }
+                InsertStyleOption.ERROR -> if (row < selection.height && col < selection.width) {
+                    value.valueAt(row * resultWidth + col)
+                } else {
+                    throw IllegalStateException("Dimensions doesn't match")
+                }
+
+            }
+        }
+
         if (selection.isSingleElement) {
             val newRow = copyRow(selection.row)
             updateCellValue(newRow, selection.row, selection.column, value)
             table.grid.rows[selection.row] = newRow
         } else {
             var index = 0
-            val size = value.dimensions.contentSize()
             repeat(selection.height) { rowIndex ->
                 val newRow = copyRow(rowIndex + selection.row)
                 repeat(selection.width) { colIndex ->
-                    val v = value.valueAt(index.mod(size))
+                    val v = computeValue(rowIndex, colIndex)
                     index++
                     updateCellValue(newRow, rowIndex + selection.row, colIndex + selection.column, v)
                 }

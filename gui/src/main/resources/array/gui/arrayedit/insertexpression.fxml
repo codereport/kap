@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import array.gui.styledarea.InputFieldStyledArea?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+<BorderPane prefHeight="400.0" prefWidth="600.0" stylesheets="@arrayeditor.css" xmlns="http://javafx.com/javafx/16"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="array.gui.arrayedit.InsertExpression">
+    <center>
+        <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
+            <children>
+                <HBox alignment="BASELINE_LEFT" prefHeight="100.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
+                    <children>
+                        <Label text="Expression:"/>
+                        <InputFieldStyledArea fx:id="styledArea" HBox.hgrow="ALWAYS"/>
+                    </children>
+                    <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                    </VBox.margin>
+                </HBox>
+                <HBox alignment="BASELINE_LEFT">
+                    <children>
+                        <Label text="Insertion style:"/>
+                        <ChoiceBox fx:id="insertStyleSelector" prefWidth="150.0"/>
+                    </children>
+                    <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                    </VBox.margin>
+                </HBox>
+                <ButtonBar>
+                    <buttons>
+                        <Button fx:id="ok" mnemonicParsing="false" text="OK"/>
+                        <Button fx:id="cancel" mnemonicParsing="false" text="Cancel"/>
+                    </buttons>
+                </ButtonBar>
+            </children>
+            <opaqueInsets>
+                <Insets/>
+            </opaqueInsets>
+        </VBox>
+    </center>
+</BorderPane>
