@@ -212,10 +212,13 @@ class ComposedFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) : A
             val res = fn2.eval1ArgDouble(context, b, null)
             return fn1.eval2ArgDoubleDouble(context, a, res, null)
         }
+
+        fun fn1() = fn1
+        fun fn2() = fn2
     }
 
     override fun make(pos: Position) =
-        ComposedFunctionImpl(pos.withName("compose [${fn1.pos.name ?: "<unnamed>"}, ${fn2.pos.name ?: "<unnamed>"}]"))
+        ComposedFunctionImpl(pos.withName("compose [${fn1.pos.name ?: "<unnamed>"}], [${fn2.pos.name ?: "<unnamed>"}]"))
 }
 
 class ComposeOp : APLOperatorTwoArg {
@@ -239,6 +242,9 @@ class OverDerivedFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) 
             val result1 = fn2.eval1Arg(context, a, null)
             return fn1.eval2Arg(context, result1, result0, null)
         }
+
+        fun fn1() = fn1
+        fun fn2() = fn2
     }
 
     override fun make(pos: Position) =

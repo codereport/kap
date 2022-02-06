@@ -1,7 +1,10 @@
 package array.gui.viewer
 
 import array.*
+import array.builtins.ComposedFunctionDescriptor
+import array.builtins.OverDerivedFunctionDescriptor
 import array.gui.Client
+import array.keyboard.ExtendedCharsKeyboardInput
 import javafx.event.ActionEvent
 import javafx.fxml.FXMLLoader
 import javafx.scene.Group
@@ -10,6 +13,7 @@ import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.control.Label
 import javafx.scene.control.TextField
+import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
@@ -23,6 +27,21 @@ class StructureViewer {
     lateinit var client: Client
     lateinit var expressionField: TextField
     lateinit var borderPane: BorderPane
+
+    private val keyboardInput = ExtendedCharsKeyboardInput()
+
+    fun initialize() {
+        expressionField.addEventHandler(KeyEvent.KEY_TYPED) { event ->
+            if (event.isAltDown) {
+                val keyDescriptor = ExtendedCharsKeyboardInput.KeyDescriptor(event.character, event.isShiftDown)
+                val ch = keyboardInput.keymap[keyDescriptor]
+                if (ch != null) {
+                    expressionField.replaceSelection(ch)
+                    event.consume()
+                }
+            }
+        }
+    }
 
     fun showClicked(@Suppress("UNUSED_PARAMETER") actionEvent: ActionEvent) {
         parseExpression(expressionField.text)
@@ -229,6 +248,8 @@ private fun makeFunctionCall1ArgGraphNodeFromFunction(
     return when (fn) {
         is FunctionCallChain.Chain2 -> Chain2A1GraphNode(graph, fn, rightArgsNode)
         is FunctionCallChain.Chain3 -> Chain3A1GraphNode(graph, fn, rightArgsNode)
+        is ComposedFunctionDescriptor.ComposedFunctionImpl -> ComposeA1GraphNode(graph, fn, rightArgsNode)
+        is OverDerivedFunctionDescriptor.OpenDerivedFunctionImpl -> OverA1GraphNode(graph, fn, rightArgsNode)
         else -> FunctionCall1ArgGraphNode(graph, fn, rightArgsNode)
     }
 }
@@ -254,6 +275,8 @@ private fun makeFunctionCall2ArgGraphNodeFromFunction(
     return when (fn) {
         is FunctionCallChain.Chain2 -> Chain2A2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
         is FunctionCallChain.Chain3 -> Chain3A2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
+        is ComposedFunctionDescriptor.ComposedFunctionImpl -> ComposeA2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
+        is OverDerivedFunctionDescriptor.OpenDerivedFunctionImpl -> OverA2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
         else -> FunctionCall2ArgGraphNode(graph, fn, leftArgsNode, rightArgsNode)
     }
 }
@@ -349,9 +372,9 @@ class FunctionCall2ArgGraphNode(
     }
 }
 
-class Chain2A1GraphNode(graph: Graph, fn: FunctionCallChain.Chain2, rightArgLink: KNode) : KNode(graph) {
-    val rightNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn1, graph, rightArgLink)
-    val leftNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn0, graph, rightNode)
+abstract class AbstractCallSeq2A1GraphNode(graph: Graph, fn0: APLFunction, fn1: APLFunction, rightArgLink: KNode) : KNode(graph) {
+    val rightNode = makeFunctionCall1ArgGraphNodeFromFunction(fn1, graph, rightArgLink)
+    val leftNode = makeFunctionCall1ArgGraphNodeFromFunction(fn0, graph, rightNode)
 
     override fun bounds(): BoundsDimensions {
         val lBounds = leftNode.bounds()
@@ -369,6 +392,10 @@ class Chain2A1GraphNode(graph: Graph, fn: FunctionCallChain.Chain2, rightArgLink
 
     override fun upPos() = leftNode.upPos()
 }
+
+class Chain2A1GraphNode(graph: Graph, fn: FunctionCallChain.Chain2, rightArgsNode: KNode) :
+    AbstractCallSeq2A1GraphNode(graph, fn.fn0, fn.fn1, rightArgsNode)
+
 
 class Chain2A2GraphNode(graph: Graph, fn: FunctionCallChain.Chain2, leftArgLink: KNode, rightArgLink: KNode) : KNode(graph) {
     val rightNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn1, graph, leftArgLink, rightArgLink)
@@ -425,28 +452,39 @@ class Chain3A2GraphNode(graph: Graph, fn: FunctionCallChain.Chain3, leftArgLink:
     val leftNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn0, graph, leftArgLink, rightArgLink)
     val rightNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn2, graph, leftArgLink, rightArgLink)
     val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn1, graph, leftNode, rightNode)
+    val container = ContainerGraphNode(graph, middleNode, leftNode, rightNode)
 
-    override fun bounds(): BoundsDimensions {
-        val mBounds = middleNode.bounds()
-        val lBounds = leftNode.bounds()
-        val rBounds = rightNode.bounds()
-        val width = max(mBounds.width, lBounds.width + rBounds.width + NODE_SPACING_HORIZ)
-        val height = mBounds.height + NODE_SPACING_VERT + max(lBounds.height, rBounds.height)
-        return BoundsDimensions(width, height)
-    }
+    override fun bounds() = container.bounds()
+    override fun computePosition(x: Double, y: Double) = container.computePosition(x, y)
+    override fun upPos() = container.upPos()
+}
 
-    override fun computePosition(x: Double, y: Double) {
-        val b = bounds()
-        val mBounds = middleNode.bounds()
-        val lBounds = leftNode.bounds()
-        val rBounds = rightNode.bounds()
-        val bottomWidth = lBounds.width + rBounds.width + NODE_SPACING_HORIZ
-        middleNode.computePosition(x + (b.width - mBounds.width) / 2, y)
-        val yOffset = y + mBounds.height + NODE_SPACING_VERT
-        val lx = x + (b.width - bottomWidth) / 2
-        leftNode.computePosition(lx, yOffset)
-        rightNode.computePosition(lx + lBounds.width + NODE_SPACING_HORIZ, yOffset)
-    }
+class ComposeA1GraphNode(graph: Graph, fn: ComposedFunctionDescriptor.ComposedFunctionImpl, rightArgsNode: KNode) :
+    AbstractCallSeq2A1GraphNode(graph, fn.fn1(), fn.fn2(), rightArgsNode)
 
-    override fun upPos() = middleNode.upPos()
+
+class ComposeA2GraphNode(graph: Graph, fn: ComposedFunctionDescriptor.ComposedFunctionImpl, leftNode: KNode, rightArgLink: KNode) :
+    KNode(graph) {
+    val rightNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn2(), graph, rightArgLink)
+    val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn1(), graph, leftNode, rightNode)
+    val container = ContainerGraphNode(graph, middleNode, leftNode, rightNode)
+
+    override fun bounds() = container.bounds()
+    override fun computePosition(x: Double, y: Double) = container.computePosition(x, y)
+    override fun upPos() = container.upPos()
+}
+
+class OverA1GraphNode(graph: Graph, fn: OverDerivedFunctionDescriptor.OpenDerivedFunctionImpl, rightArgsNode: KNode) :
+    AbstractCallSeq2A1GraphNode(graph, fn.fn1(), fn.fn2(), rightArgsNode)
+
+class OverA2GraphNode(graph: Graph, fn: OverDerivedFunctionDescriptor.OpenDerivedFunctionImpl, leftArgsNode: KNode, rightArgsNode: KNode) :
+    KNode(graph) {
+    val leftNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn2(), graph, leftArgsNode)
+    val rightNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn2(), graph, rightArgsNode)
+    val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn1(), graph, leftNode, rightNode)
+    val container = ContainerGraphNode(graph, middleNode, leftNode, rightNode)
+
+    override fun bounds() = container.bounds()
+    override fun computePosition(x: Double, y: Double) = container.computePosition(x, y)
+    override fun upPos() = container.upPos()
 }
