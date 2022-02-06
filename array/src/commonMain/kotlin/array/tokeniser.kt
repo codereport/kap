@@ -150,6 +150,22 @@ class FileSourceLocation(private val file: String) : SourceLocation {
 data class Position(val source: SourceLocation, val line: Int, val col: Int, val name: String? = null, val callerName: String? = null) {
     fun withName(s: String) = copy(name = s)
     fun withCallerName(s: String) = copy(callerName = s)
+
+    fun description(): String {
+        val buf = StringBuilder()
+        if (name != null) {
+            buf.append(name)
+            if (callerName != null) {
+                buf.append(": ")
+                buf.append(callerName)
+            }
+        } else if (callerName != null) {
+            buf.append(callerName)
+        } else {
+            buf.append("<unnamed>")
+        }
+        return buf.toString()
+    }
 }
 
 class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
@@ -181,7 +197,7 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
             "≢", "≤", "≥", "⊂", "⊃", "⊖", "⊢", "⊣", "⊤", "⊥", "⋆", "⌈", "⌊", "⌶", "⌷", "⌹",
             "⌺", "⌽", "⌿", "⍀", "⍉", "⍋", "⍎", "⍒", "⍕", "⍙", "⍞", "⍟", "⍠", "⍣", "⍤", "⍥",
             "⍨", "⍪", "⍫", "⍱", "⍲", "⍳", "⍴", "⍵", "⍶", "⍷", "⍸", "⍹", "⍺", "◊",
-            "○", "$", "¥", "χ", "\\", ".", "∵", "⍓", "⫽", "⑊", "⊆")
+            "○", "$", "¥", "χ", "\\", ".", "∵", "⍓", "⫽", "⑊", "⊆", "⍥")
     }
 
     fun registerSingleCharFunction(name: String) {

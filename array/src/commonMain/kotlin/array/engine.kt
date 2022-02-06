@@ -354,6 +354,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeOperator("⍤", RankOperator())
         registerNativeOperator("∵", BitwiseOp())
         registerNativeOperator("∘", ComposeOp())
+        registerNativeOperator("⍥", OverOp())
         registerNativeOperator("parallel", ParallelOp())
 
         // function aliases                             

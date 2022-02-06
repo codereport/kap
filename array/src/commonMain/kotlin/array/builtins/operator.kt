@@ -226,3 +226,31 @@ class ComposeOp : APLOperatorTwoArg {
         return ComposedFunctionDescriptor(fn1, fn2)
     }
 }
+
+class OverDerivedFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) : APLFunctionDescriptor {
+    inner class OpenDerivedFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val result0 = fn2.eval1Arg(context, a, null)
+            return fn1.eval1Arg(context, result0, null)
+        }
+
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            val result0 = fn2.eval1Arg(context, b, null)
+            val result1 = fn2.eval1Arg(context, a, null)
+            return fn1.eval2Arg(context, result1, result0, null)
+        }
+    }
+
+    override fun make(pos: Position) =
+        OpenDerivedFunctionImpl(pos.withName("over: derived from: [${fn1.pos.description()}], [${fn2.pos.description()}]"))
+}
+
+
+class OverOp : APLOperatorTwoArg {
+    override fun combineFunction(fn1: APLFunction, fn2: APLFunction, operatorAxis: Instruction?, opPos: Position): APLFunctionDescriptor {
+        if (operatorAxis != null) {
+            throw AxisNotSupported(opPos)
+        }
+        return OverDerivedFunctionDescriptor(fn1, fn2)
+    }
+}
