@@ -385,7 +385,7 @@ class Chain2A2GraphNode(graph: Graph, fn: FunctionCallChain.Chain2, leftArgLink:
         val lBounds = leftNode.bounds()
         val rBounds = rightNode.bounds()
         leftNode.computePosition(x + (b.width - lBounds.width) / 2, y)
-        rightNode.computePosition(x + (b.width - rBounds.width) / 2, y + rBounds.height + NODE_SPACING_VERT)
+        rightNode.computePosition(x + (b.width - rBounds.width) / 2, y + lBounds.height + NODE_SPACING_VERT)
     }
 
     override fun upPos() = leftNode.upPos()
