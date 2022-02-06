@@ -180,3 +180,13 @@ inline fun singleArgNumericRelationOperation(
         else -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos))
     }
 }
+
+class CompareObjectsFunction : APLFunctionDescriptor {
+    class CompareObjectsFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            return a.compare(b).makeAPLNumber()
+        }
+    }
+
+    override fun make(pos: Position) = CompareObjectsFunctionImpl(pos)
+}

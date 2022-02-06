@@ -2,6 +2,7 @@ package array
 
 import array.complex.Complex
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class SortTest : APLTest() {
@@ -37,10 +38,10 @@ class SortTest : APLTest() {
     @Test
     fun sortingScalarsShouldFail() {
         assertFailsWith<APLEvalException> {
-            parseAPLExpression("⍋1").collapse()
+            parseAPLExpression("⍋1")
         }
         assertFailsWith<APLEvalException> {
-            parseAPLExpression("⍒1").collapse()
+            parseAPLExpression("⍒1")
         }
     }
 
@@ -52,63 +53,43 @@ class SortTest : APLTest() {
     }
 
     @Test
-    fun compareNumbersAndCharsShouldFail() {
-        assertFailsWith<APLEvalException> {
-            parseAPLExpression("⍋ @a 1 2 @b").collapse()
-        }
-        assertFailsWith<APLEvalException> {
-            parseAPLExpression("⍒ @a 1 2 @b").collapse()
-        }
+    fun compareNumbersAndChars() {
+        assert1DArray(arrayOf(1, 2, 0, 3), parseAPLExpression("⍋ @a 1 2 @b"))
+        assert1DArray(arrayOf(3, 0, 2, 1), parseAPLExpression("⍒ @a 1 2 @b"))
     }
 
     @Test
-    fun compareListsShouldFail() {
-        assertFailsWith<APLEvalException> {
-            parseAPLExpression("⍋ (1;2) (2;1)").collapse()
-        }
-        assertFailsWith<APLEvalException> {
-            parseAPLExpression("⍒ (1;2) (2;1)").collapse()
-        }
+    fun compareLists() {
+        assert1DArray(arrayOf(0, 1), parseAPLExpression("⍋ (1;2) (2;1)"))
+        assert1DArray(arrayOf(1, 0), parseAPLExpression("⍒ (1;2) (2;1)"))
     }
 
     @Test
     fun compareComplexShouldFail() {
-        assertFailsWith<APLEvalException> {
-            parseAPLExpression("⍋ 1J2 2J3").collapse()
-        }
-        assertFailsWith<APLEvalException> {
-            parseAPLExpression("⍒ 1J2 2J3").collapse()
-        }
+        assert1DArray(arrayOf(0, 1), parseAPLExpression("⍋ 1J2 2J3"))
+        assert1DArray(arrayOf(1, 0), parseAPLExpression("⍒ 1J2 2J3"))
     }
 
     @Test
     fun mixStringsAndSymbolsShouldFail() {
         assertFailsWith<APLEvalException> {
-            parseAPLExpression("⍋ \"foo\" \"bar\" 'somename").collapse()
+            parseAPLExpression("⍋ \"foo\" \"bar\" 'somename")
         }
         assertFailsWith<APLEvalException> {
-            parseAPLExpression("⍒ \"foo\" \"bar\" 'somename").collapse()
+            parseAPLExpression("⍒ \"foo\" \"bar\" 'somename")
         }
     }
 
     @Test
-    fun symbolsAndNumberShouldFail() {
-        assertFailsWith<APLEvalException> {
-            parseAPLExpression("⍋ 1 2 3 'somename").collapse()
-        }
-        assertFailsWith<APLEvalException> {
-            parseAPLExpression("⍒ 1 2 3 'somename").collapse()
-        }
+    fun symbolsAndNumber() {
+        assert1DArray(arrayOf(0, 1, 2, 3), parseAPLExpression("⍋ 1 2 3 'somename"))
+        assert1DArray(arrayOf(3, 2, 1, 0), parseAPLExpression("⍒ 1 2 3 'somename"))
     }
 
     @Test
-    fun numbersAndComplexShouldFail() {
-        assertFailsWith<APLEvalException> {
-            parseAPLExpression("⍋ 1 2 3 1J2").collapse()
-        }
-        assertFailsWith<APLEvalException> {
-            parseAPLExpression("⍒ 1 2 3 1J2").collapse()
-        }
+    fun numbersAndComplex() {
+        assert1DArray(arrayOf(0, 3, 1, 2), parseAPLExpression("⍋ 1 2 3 1J2"))
+        assert1DArray(arrayOf(2, 1, 3, 0), parseAPLExpression("⍒ 1 2 3 1J2"))
     }
 
     @Test
@@ -134,48 +115,32 @@ class SortTest : APLTest() {
         val engine = Engine()
         val num = 1.makeAPLNumber()
         val sym = APLSymbol(engine.internSymbol("foo"))
-        assertFailsWith<APLEvalException> {
-            num.compare(sym)
-        }
-        assertFailsWith<APLEvalException> {
-            sym.compare(num)
-        }
+        assertEquals(-1, num.compare(sym))
+        assertEquals(1, sym.compare(num))
     }
 
     @Test
     fun numberComplexComparison() {
         val num = 1.makeAPLNumber()
         val complex = Complex(2.0, 3.0).makeAPLNumber()
-        assertFailsWith<APLEvalException> {
-            num.compare(complex)
-        }
-        assertFailsWith<APLEvalException> {
-            complex.compare(num)
-        }
+        assertEquals(-1, num.compare(complex))
+        assertEquals(1, complex.compare(num))
     }
 
     @Test
     fun listComparison() {
         val list1 = APLList(listOf(1.makeAPLNumber(), 2.makeAPLNumber()))
         val list2 = APLList(listOf(2.makeAPLNumber(), 4.makeAPLNumber()))
-        assertFailsWith<APLEvalException> {
-            list1.compare(list2)
-        }
-        assertFailsWith<APLEvalException> {
-            list2.compare(list1)
-        }
+        assertEquals(-1, list1.compare(list2))
+        assertEquals(1, list2.compare(list1))
     }
 
     @Test
     fun numberCharComparison() {
         val char1 = APLChar('a'.code)
         val num1 = 1.makeAPLNumber()
-        assertFailsWith<APLEvalException> {
-            char1.compare(num1)
-        }
-        assertFailsWith<APLEvalException> {
-            num1.compare(char1)
-        }
+        assertEquals(1, char1.compare(num1))
+        assertEquals(-1, num1.compare(char1))
     }
 
     @Test
@@ -183,12 +148,8 @@ class SortTest : APLTest() {
         val engine = Engine()
         val sym = APLSymbol(engine.internSymbol("foo"))
         val ch = APLChar('a'.code)
-        assertFailsWith<APLEvalException> {
-            sym.compare(ch)
-        }
-        assertFailsWith<APLEvalException> {
-            ch.compare(sym)
-        }
+        assertEquals(1, sym.compare(ch))
+        assertEquals(-1, ch.compare(sym))
     }
 
     private fun sortTest(content: String, expected: Array<Int>) {

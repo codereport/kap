@@ -107,4 +107,89 @@ class CompareTest : APLTest() {
     fun oneArgumentIdenticalWithComplex() {
         assertSimpleNumber(0, parseAPLExpression("≡1J3"))
     }
+
+    @Test
+    fun compareIntegers() {
+        assertSimpleNumber(1, parseAPLExpression("3 cmp 1"))
+        assertSimpleNumber(-1, parseAPLExpression("10 cmp 110"))
+        assertSimpleNumber(0, parseAPLExpression("1 cmp 1"))
+        assertSimpleNumber(0, parseAPLExpression("¯3 cmp ¯3"))
+    }
+
+    @Test
+    fun compareDouble() {
+        assertSimpleNumber(1, parseAPLExpression("3.0 cmp 1.0"))
+        assertSimpleNumber(-1, parseAPLExpression("10.0 cmp 110.0"))
+        assertSimpleNumber(0, parseAPLExpression("1.0 cmp 1.0"))
+        assertSimpleNumber(0, parseAPLExpression("¯3.0 cmp ¯3.0"))
+    }
+
+    @Test
+    fun compareIntWithDouble() {
+        assertSimpleNumber(-1, parseAPLExpression("2.0 cmp 4"))
+        assertSimpleNumber(-1, parseAPLExpression("2 cmp 4.0"))
+        assertSimpleNumber(1, parseAPLExpression("9.0 cmp 1"))
+        assertSimpleNumber(1, parseAPLExpression("9 cmp 1.0"))
+        assertSimpleNumber(0, parseAPLExpression("9 cmp 9.0"))
+        assertSimpleNumber(0, parseAPLExpression("9.0 cmp 9"))
+    }
+
+    @Test
+    fun compareChars() {
+        assertSimpleNumber(-1, parseAPLExpression("@a cmp @b"))
+        assertSimpleNumber(1, parseAPLExpression("@b cmp @a"))
+        assertSimpleNumber(0, parseAPLExpression("@b cmp @b"))
+        assertSimpleNumber(1, parseAPLExpression("@a cmp @A"))
+        assertSimpleNumber(0, parseAPLExpression("@a cmp @a"))
+    }
+
+    @Test
+    fun compareStrings() {
+        assertSimpleNumber(-1, parseAPLExpression("\"abc\" cmp \"bcd\""))
+        assertSimpleNumber(-1, parseAPLExpression("\"ABC\" cmp \"abc\""))
+        assertSimpleNumber(0, parseAPLExpression("⍬ cmp ⍬"))
+        assertSimpleNumber(0, parseAPLExpression("\"a\" cmp \"a\""))
+        assertSimpleNumber(-1, parseAPLExpression("\"abc\" cmp \"abcc\""))
+    }
+
+    @Test
+    fun compareNestedStrings() {
+        assertSimpleNumber(1, parseAPLExpression("\"abc\" \"def\" cmp \"abc\" \"cde\""))
+        assertSimpleNumber(-1, parseAPLExpression("\"abc\" \"def\" cmp \"abc\" \"ghi\""))
+    }
+
+    @Test
+    fun compareIntAndChar() {
+        assertSimpleNumber(-1, parseAPLExpression("1 cmp @c"))
+        assertSimpleNumber(1, parseAPLExpression("@c cmp 1"))
+    }
+
+    @Test
+    fun compareIntAndComplex() {
+        assertSimpleNumber(-1, parseAPLExpression("1 cmp 2J1"))
+        assertSimpleNumber(1, parseAPLExpression("3 cmp 2J1"))
+        assertSimpleNumber(-1, parseAPLExpression("2J1 cmp 3"))
+        assertSimpleNumber(1, parseAPLExpression("3J1 cmp 3"))
+        assertSimpleNumber(0, parseAPLExpression("1J0 cmp 1"))
+        assertSimpleNumber(0, parseAPLExpression("1 cmp 1J0"))
+    }
+
+    @Test
+    fun compareDoubleAndComplex() {
+        assertSimpleNumber(-1, parseAPLExpression("2.1 cmp 2.2J5"))
+        assertSimpleNumber(1, parseAPLExpression("3.1 cmp 2.2J5"))
+        assertSimpleNumber(1, parseAPLExpression("2.2J1 cmp 2.0"))
+        assertSimpleNumber(-1, parseAPLExpression("1J1 cmp 2.0"))
+        assertSimpleNumber(0, parseAPLExpression("2J0 cmp 2.0"))
+        assertSimpleNumber(0, parseAPLExpression("2.0 cmp 2J0"))
+    }
+
+    @Test
+    fun compareLists() {
+        assertSimpleNumber(-1, parseAPLExpression("(1;2;3) cmp (1;2;4)"))
+        assertSimpleNumber(1, parseAPLExpression("(1;2;4) cmp (1;2;3)"))
+        assertSimpleNumber(0, parseAPLExpression("(1;2;3) cmp (1;2;3)"))
+        assertSimpleNumber(-1, parseAPLExpression("(10;11;12) cmp (1;2;3;4)"))
+        assertSimpleNumber(1, parseAPLExpression("(1;2;3;4) cmp (10;11;12)"))
+    }
 }

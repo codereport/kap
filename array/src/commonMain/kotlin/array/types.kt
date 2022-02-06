@@ -123,8 +123,23 @@ abstract class APLValue {
     open fun unwrapDeferredValue(): APLValue = this
 
     abstract fun compareEquals(reference: APLValue): Boolean
-    open fun compare(reference: APLValue, pos: Position? = null): Int =
-        throwAPLException(IncompatibleTypeException("Comparison not implemented for objects of type ${this.aplValueType.typeName}", pos))
+
+    open fun compare(reference: APLValue, pos: Position? = null): Int {
+        fun throwError(): Nothing {
+            throwAPLException(
+                IncompatibleTypeException(
+                    "Comparison not implemented for objects of type ${this.aplValueType.typeName} to ${reference.aplValueType.typeName}",
+                    pos))
+        }
+
+        if (this::class == reference::class) {
+            throw IllegalStateException("Comparison function not implemented for objects of type: ${this::class}")
+        }
+        val pos0 = typeToPosition[this::class] ?: throwError()
+        val pos1 = typeToPosition[reference::class] ?: throwError()
+        assertx(pos0 != pos1)
+        return if (pos0 < pos1) -1 else 1
+    }
 
     abstract fun disclose(): APLValue
 
@@ -211,6 +226,11 @@ abstract class APLValue {
         } else {
             v.asBoolean()
         }
+    }
+
+    companion object {
+        val typeSortOrder = arrayOf(APLLong::class, APLDouble::class, APLComplex::class, APLChar::class, APLArray::class, APLSymbol::class)
+        val typeToPosition = typeSortOrder.mapIndexed { i, cl -> cl to i }.toMap()
     }
 
     abstract class APLValueKey(val value: APLValue) {
@@ -489,6 +509,7 @@ class APLMap(val content: ImmutableMap2<APLValueKey, APLValue>) : APLSingleValue
         return content[key.makeKey()] ?: APLNullValue.APL_NULL_INSTANCE
     }
 
+    @Suppress("unused")
     fun updateValue(key: APLValue, value: APLValue): APLMap {
         return APLMap(content.copyAndPut(key.makeKey(), value))
     }
@@ -556,6 +577,24 @@ class APLList(val elements: List<APLValue>) : APLSingleValue() {
 
     fun listSize() = elements.size
     fun listElement(index: Int) = elements[index]
+
+    override fun compare(reference: APLValue, pos: Position?): Int {
+        return if (reference is APLList) {
+            if (elements.size == reference.elements.size) {
+                repeat(elements.size) { i ->
+                    val res = this.elements[i].compare(reference.elements[i])
+                    if (res != 0) {
+                        return res
+                    }
+                }
+                return 0
+            } else {
+                elements.size.compareTo(reference.elements.size)
+            }
+        } else {
+            super.compare(reference, pos)
+        }
+    }
 }
 
 class ComparableList<T> : MutableList<T> by ArrayList() {
@@ -751,10 +790,10 @@ class APLChar(val value: Int) : APLSingleValue() {
     override fun compareEquals(reference: APLValue) = reference is APLChar && value == reference.value
 
     override fun compare(reference: APLValue, pos: Position?): Int {
-        if (reference is APLChar) {
-            return value.compareTo(reference.value)
+        return if (reference is APLChar) {
+            value.compareTo(reference.value)
         } else {
-            throwAPLException(IncompatibleTypeException("Comparing char to non-char type", pos))
+            super.compare(reference, pos)
         }
     }
 
@@ -815,11 +854,10 @@ class APLSymbol(val value: Symbol) : APLSingleValue() {
     override fun compareEquals(reference: APLValue) = reference is APLSymbol && value == reference.value
 
     override fun compare(reference: APLValue, pos: Position?): Int {
-        if (reference is APLSymbol) {
-            return value.compareTo(reference.value)
+        return if (reference is APLSymbol) {
+            value.compareTo(reference.value)
         } else {
-            throwAPLException(
-                IncompatibleTypeException("Symbols can't be compared to values with type: ${reference.aplValueType.typeName}", pos))
+            super.compare(reference, pos)
         }
     }
 

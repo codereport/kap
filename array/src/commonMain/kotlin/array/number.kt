@@ -48,17 +48,13 @@ class APLLong(val value: Long) : APLNumber() {
     override fun compare(reference: APLValue, pos: Position?) = when (reference) {
         is APLLong -> value.compareTo(reference.value)
         is APLDouble -> value.compareTo(reference.value)
-        is APLComplex -> throwComplexComparisonException(pos)
+        is APLComplex -> compareComplex(asComplex(), reference.value)
         else -> super.compare(reference, pos)
     }
 
     override fun toString() = "APLLong(${formatted(FormatStyle.PRETTY)})"
     override fun makeKey() = APLValueKeyImpl(this, value)
     override fun asBoolean() = value != 0L
-}
-
-private fun throwComplexComparisonException(pos: Position?): Nothing {
-    throwAPLException(APLEvalException("Complex numbers does not have a total order", pos))
 }
 
 class APLDouble(val value: Double) : APLNumber() {
@@ -94,7 +90,7 @@ class APLDouble(val value: Double) : APLNumber() {
     override fun compare(reference: APLValue, pos: Position?) = when (reference) {
         is APLLong -> value.compareTo(reference.value)
         is APLDouble -> value.compareTo(reference.value)
-        is APLComplex -> throwComplexComparisonException(pos)
+        is APLComplex -> compareComplex(asComplex(), reference.value)
         else -> super.compare(reference, pos)
     }
 
@@ -139,11 +135,21 @@ class APLComplex(val value: Complex) : APLNumber() {
     override fun makeKey() = APLValueKeyImpl(this, value)
 
     override fun asBoolean() = value != Complex.ZERO
+
+    override fun compare(reference: APLValue, pos: Position?): Int {
+        return if (reference is APLNumber) {
+            compareComplex(value, reference.asComplex())
+        } else {
+            super.compare(reference, pos)
+        }
+    }
 }
 
 val APLLONG_0 = APLLong(0)
 val APLLONG_1 = APLLong(1)
 val APLDOUBLE_0 = APLDouble(0.0)
+
+@Suppress("unused")
 val APLDOUBLE_1 = APLDouble(1.0)
 
 private const val NUMBER_CACHE_SIZE = 1024
@@ -162,3 +168,11 @@ fun Long.makeAPLNumber(): APLLong {
 
 fun Double.makeAPLNumber() = APLDouble(this)
 fun Complex.makeAPLNumber() = if (this.imaginary == 0.0) APLDouble(real) else APLComplex(this)
+
+private fun compareComplex(a: Complex, b: Complex): Int {
+    return if (a.real == b.real) {
+        a.imaginary.compareTo(b.imaginary)
+    } else {
+        a.real.compareTo(b.real)
+    }
+}

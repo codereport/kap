@@ -35,9 +35,13 @@ value class OptimisationFlags(val flags: Int) {
     }
 
     fun andWith(other: OptimisationFlags) = OptimisationFlags(flags and other.flags)
+
+    @Suppress("unused")
     fun orWith(other: OptimisationFlags) = OptimisationFlags(flags or other.flags)
 
     val masked1Arg get() = OptimisationFlags(flags and OPTIMISATION_FLAGS_1ARG_MASK)
+
+    @Suppress("unused")
     val masked2Arg get() = OptimisationFlags(flags and OPTIMISATION_FLAGS_2ARG_MASK)
 
     override fun toString() = flagsString()
@@ -293,6 +297,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("⍎", ParseNumberFunction())
         registerNativeFunction("%", CaseFunction())
         registerNativeFunction("⊆", PartitionedEncloseFunction())
+        registerNativeFunction("cmp", CompareObjectsFunction())
 
         // hash tables
         registerNativeFunction("map", MapAPLFunction())
@@ -424,6 +429,7 @@ class Engine(numComputeEngines: Int? = null) {
         functionDefinitionListeners.add(listener)
     }
 
+    @Suppress("unused")
     fun removeFunctionDefinitionListener(listener: FunctionDefinitionListener) {
         functionDefinitionListeners.remove(listener)
     }
