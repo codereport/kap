@@ -1,5 +1,6 @@
 package array
 
+import array.complex.Complex
 import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
@@ -51,6 +52,9 @@ class NumbersTest : APLTest() {
         assertSimpleNumber(0, parseAPLExpression("5|0"))
         assertSimpleNumber(0, parseAPLExpression("0|0"))
         assertSimpleNumber(3, parseAPLExpression("0|3"))
+        assertAPLValue(NearComplex(Complex(1.0, 1.0), 4, 4), parseAPLExpression("2J3 | 10J8"))
+        assertAPLValue(NearComplex(Complex(2.7, 3.1), 4, 4), parseAPLExpression("2.6J3.8 | 10.7J31.1"))
+        assertAPLValue(NearComplex(Complex(10.2, 9.9), 4, 4), parseAPLExpression("0 | 10.2J9.9"))
     }
 
     @Test
@@ -179,7 +183,7 @@ class NumbersTest : APLTest() {
     }
 
     @Test
-    fun positiveDoubleGamme() {
+    fun positiveDoubleGamma() {
         parseAPLExpression("!1.2 1.3 1.4 10.1 2.2 4.2").let { result ->
             assertDimension(dimensionsOfSize(6), result)
             assertArrayContent(

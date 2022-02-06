@@ -15,7 +15,7 @@ class NearDouble(val expected: Double, val precision: Int) {
     }
 }
 
-class NearComplex(val expected: Complex, val realPrecision: Int, val imPrecision: Int) {
+class NearComplex(val expected: Complex, val realPrecision: Int, val imPrecision: Int) : APLTest.InnerTest {
     fun assertNear(v: Complex, message: String? = null) {
         val realDist = 10.0.pow(-realPrecision)
         val imDist = 10.0.pow(-imPrecision)
@@ -25,6 +25,11 @@ class NearComplex(val expected: Complex, val realPrecision: Int, val imPrecision
                     && expected.real < v.real + realDist
                     && expected.imaginary > v.imaginary - imDist
                     && expected.imaginary < v.imaginary + imDist, "expected=${expected}, result=${v}${messageWithPrefix}")
+    }
+
+    override fun assertContent(result: APLValue, message: String?) {
+        assertTrue(result is APLNumber)
+        assertNear(result.asComplex())
     }
 }
 

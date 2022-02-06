@@ -12,10 +12,7 @@ import kotlin.reflect.KClass
 
 interface APLFunctionDescriptor {
     fun make(pos: Position): APLFunction
-    val invocationName: String get() = "<unnamed>"
 }
-
-abstract class NamedFunctionDescriptor(override val invocationName: String) : APLFunctionDescriptor
 
 @JvmInline
 value class OptimisationFlags(val flags: Int) {
@@ -244,7 +241,7 @@ class Engine(numComputeEngines: Int? = null) {
         }
 
         // core functions
-        "+".let { n -> registerNativeFunction(n, AddAPLFunction(n)) } // TODO: Experimental named functions
+        registerNativeFunction("+", AddAPLFunction())
         registerNativeFunction("-", SubAPLFunction())
         registerNativeFunction("×", MulAPLFunction())
         registerNativeFunction("÷", DivAPLFunction())

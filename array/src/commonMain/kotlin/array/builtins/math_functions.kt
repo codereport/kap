@@ -280,7 +280,7 @@ abstract class MathNumericCombineAPLFunction(pos: Position) : MathCombineAPLFunc
     open fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue = throwAPLException(Unimplemented2ArgException(pos2Arg))
 }
 
-class AddAPLFunction(name: String) : NamedFunctionDescriptor(name) {
+class AddAPLFunction : APLFunctionDescriptor {
     class AddAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber): APLValue {
             return singleArgNumericRelationOperation(
@@ -522,7 +522,7 @@ class ModAPLFunction : APLFunctionDescriptor {
                 b,
                 { x, y -> opLong(x, y).makeAPLNumber() },
                 { x, y -> opDouble(x, y).makeAPLNumber() },
-                { _, _ -> TODO("Not implemented") })
+                { x, y -> complexMod(x, y).makeAPLNumber() })
         }
 
         private fun opLong(x: Long, y: Long) =
@@ -594,6 +594,10 @@ fun complexFloor(z: Complex): Complex {
         dr < di -> Complex(fr, fi + 1.0)
         else -> Complex(fr + 1.0, fi)
     }
+}
+
+fun complexMod(a: Complex, b: Complex): Complex {
+    return b - a * complexFloor(b / (a + if (a == Complex.ZERO) 1.0 else 0.0))
 }
 
 class MinAPLFunction : APLFunctionDescriptor {
