@@ -796,6 +796,7 @@ class DropArrayValue(val selection: IntArray, val source: APLValue) : APLArray()
     private val sourceDimensions: Dimensions
 
     init {
+        println("selection: ${selection.joinToString()}")
         sourceDimensions = source.dimensions
         dimensions =
             Dimensions(selection.mapIndexed { index, v -> sourceDimensions[index] - v.absoluteValue }.toIntArray())
@@ -837,13 +838,23 @@ class DropAPLFunction : APLFunctionDescriptor {
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            val aDimensions = a.dimensions
-            if (!((aDimensions.size == 0 && b.rank == 1) ||
-                            (aDimensions.size == 1 && aDimensions[0] == b.rank))
-            ) {
-                throwAPLException(InvalidDimensionsException("Size of A must match the rank of B", pos))
+            val a0 = a.arrayify()
+            val aDimensions = a0.dimensions
+            if (aDimensions.size != 1) {
+                throwAPLException(InvalidDimensionsException("Left argument to drop must be a scalar or 1-dimensional array", pos))
             }
-            return DropArrayValue(if (aDimensions.size == 0) intArrayOf(a.ensureNumber(pos).asInt()) else a.toIntArray(pos), b)
+            val bDimensions = b.dimensions
+            if (aDimensions[0] > bDimensions.size) {
+                throwAPLException(InvalidDimensionsException("Size of A must be less than or equal to the rank of B", pos))
+            }
+            val axisArray = IntArray(bDimensions.size) { i ->
+                if (i < aDimensions[0]) {
+                    a0.valueAtInt(i, pos)
+                } else {
+                    0
+                }
+            }
+            return DropArrayValue(axisArray, b)
         }
     }
 

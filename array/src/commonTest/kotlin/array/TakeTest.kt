@@ -2,6 +2,7 @@ package array
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class TakeTest : APLTest() {
@@ -292,4 +293,41 @@ class TakeTest : APLTest() {
         }
     }
 
+    @Test
+    fun dropSkippedDimensions0() {
+        parseAPLExpression("1 ↓ 3 5 ⍴ ⍳100").let { result ->
+            assertDimension(dimensionsOfSize(2, 5), result)
+            assertArrayContent(arrayOf(5, 6, 7, 8, 9, 10, 11, 12, 13, 14), result)
+        }
+    }
+
+    @Test
+    fun dropSkippedDimensions1() {
+        parseAPLExpression("2 ↓ 5 5 ⍴ ⍳100").let { result ->
+            assertDimension(dimensionsOfSize(3, 5), result)
+            assertArrayContent(arrayOf(10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24), result)
+        }
+    }
+
+    @Test
+    fun dropSkippedDimensions2() {
+        parseAPLExpression("4 4 ↓ 5 5 5 ⍴ ⍳100").let { result ->
+            assertDimension(dimensionsOfSize(1, 1, 5), result)
+            assertArrayContent(arrayOf(20, 21, 22, 23, 24), result)
+        }
+    }
+
+    @Test
+    fun dropWithTooManyDimensions() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("1 2 ↓ 1 2 3 4")
+        }
+    }
+
+    @Test
+    fun dropLeftArgTooBigRank() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("(1 1 ⍴ 1) ↓ 1 2 3 4 5 6")
+        }
+    }
 }
