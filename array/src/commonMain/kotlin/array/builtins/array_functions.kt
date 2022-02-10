@@ -796,7 +796,6 @@ class DropArrayValue(val selection: IntArray, val source: APLValue) : APLArray()
     private val sourceDimensions: Dimensions
 
     init {
-        println("selection: ${selection.joinToString()}")
         sourceDimensions = source.dimensions
         dimensions =
             Dimensions(selection.mapIndexed { index, v -> sourceDimensions[index] - v.absoluteValue }.toIntArray())
