@@ -229,8 +229,13 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
         }
     }
 
+    private var isClosed = false
+
     override fun close() {
-        content.close()
+        if (!isClosed) {
+            content.close()
+            isClosed = true
+        }
     }
 
     fun nextTokenOrSpace(): Pair<Token, Position> {
@@ -240,6 +245,8 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
         if (!pushBackQueue.isEmpty()) {
             return mkpos(pushBackQueue.removeAt(pushBackQueue.size - 1))
         }
+
+        assertx(!isClosed) { "tokeniser has been closed" }
 
         val ch = content.nextCodepoint()
         if (ch == null) {
