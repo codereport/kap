@@ -459,25 +459,22 @@ class Engine(numComputeEngines: Int? = null) {
     fun getOperator(name: Symbol) = operators[resolveAlias(name)]
 
     fun parse(source: SourceLocation): Instruction {
-        val tokeniser = TokenGenerator(this, source)
-        exportedSingleCharFunctions.forEach { token ->
-            tokeniser.registerSingleCharFunction(token)
-        }
-        val parser = APLParser(tokeniser)
-        return parser.parseValueToplevel(EndOfFile)
-    }
-
-    fun parseAndEval(source: SourceLocation, newContext: Boolean = true, extraBindings: Map<Symbol, APLValue>? = null): APLValue {
-        if (!newContext && extraBindings != null) {
-            throw IllegalArgumentException("newContext is required when specifying bindings")
-        }
-        withThreadLocalAssigned {
-            val tokeniser = TokenGenerator(this, source)
+        TokenGenerator(this, source).use { tokeniser ->
             exportedSingleCharFunctions.forEach { token ->
                 tokeniser.registerSingleCharFunction(token)
             }
             val parser = APLParser(tokeniser)
-            return if (newContext) {
+            return parser.parseValueToplevel(EndOfFile)
+        }
+    }
+
+    private fun parseAndEvalNewContext(source: SourceLocation, extraBindings: Map<Symbol, APLValue>? = null): APLValue {
+        withThreadLocalAssigned {
+            TokenGenerator(this, source).use { tokeniser ->
+                exportedSingleCharFunctions.forEach { token ->
+                    tokeniser.registerSingleCharFunction(token)
+                }
+                val parser = APLParser(tokeniser)
                 withSavedNamespace {
                     val (newInstr, mapped) = parser.withEnvironment { env ->
                         val mapped = extraBindings?.map { e ->
@@ -487,13 +484,34 @@ class Engine(numComputeEngines: Int? = null) {
                         val newInstr = RootEnvironmentInstruction(parser.currentEnvironment(), instr, instr.pos)
                         Pair(newInstr, mapped)
                     }
-                    newInstr.evalWithNewContext(this, mapped)
+                    return newInstr.evalWithNewContext(this, mapped)
                 }
-            } else {
+            }
+        }
+    }
+
+    private fun parseAndEvalNoContext(source: SourceLocation): APLValue {
+        withThreadLocalAssigned {
+            TokenGenerator(this, source).use { tokeniser ->
+                exportedSingleCharFunctions.forEach { token ->
+                    tokeniser.registerSingleCharFunction(token)
+                }
+                val parser = APLParser(tokeniser)
                 val instr = parser.parseValueToplevel(EndOfFile)
                 rootContext.reinitRootBindings()
-                instr.evalWithContext(rootContext)
+                return instr.evalWithContext(rootContext)
             }
+        }
+    }
+
+    fun parseAndEval(source: SourceLocation, newContext: Boolean = true, extraBindings: Map<Symbol, APLValue>? = null): APLValue {
+        return if (newContext) {
+            parseAndEvalNewContext(source, extraBindings)
+        } else {
+            if (extraBindings != null) {
+                throw IllegalArgumentException("newContext is required when specifying bindings")
+            }
+            parseAndEvalNoContext(source)
         }
     }
 

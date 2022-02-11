@@ -168,7 +168,7 @@ data class Position(val source: SourceLocation, val line: Int, val col: Int, val
     }
 }
 
-class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
+class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeCloseable {
     private val content = PushBackCharacterProvider(contentArg)
     private val singleCharFunctions: MutableSet<String>
     private val pushBackQueue = ArrayList<Token>()
@@ -229,7 +229,7 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
         }
     }
 
-    fun close() {
+    override fun close() {
         content.close()
     }
 
@@ -426,19 +426,20 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
         }
 
         fun parseStringToSymbol(string: String): Pair<String?, String>? {
-            val content = PushBackCharacterProvider(StringSourceLocation(string))
-            val (ch, pos) = content.nextCodepointWithPos()
-            if (ch == null || !isSymbolStartChar(ch)) {
-                return null
-            }
-            try {
-                val (nsName, symbolName) = collectSymbol(ch, content, pos)
-                if (content.nextCodepoint() != null) {
+            PushBackCharacterProvider(StringSourceLocation(string)).use { content ->
+                val (ch, pos) = content.nextCodepointWithPos()
+                if (ch == null || !isSymbolStartChar(ch)) {
                     return null
                 }
-                return Pair(nsName, symbolName)
-            } catch (e: ParseException) {
-                return null
+                try {
+                    val (nsName, symbolName) = collectSymbol(ch, content, pos)
+                    if (content.nextCodepoint() != null) {
+                        return null
+                    }
+                    return Pair(nsName, symbolName)
+                } catch (e: ParseException) {
+                    return null
+                }
             }
         }
 
