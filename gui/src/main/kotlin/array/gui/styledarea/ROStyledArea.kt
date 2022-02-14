@@ -8,10 +8,7 @@ import javafx.scene.Node
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCombination
 import javafx.scene.text.TextFlow
-import org.fxmisc.richtext.model.ReadOnlyStyledDocumentBuilder
-import org.fxmisc.richtext.model.StyledDocument
-import org.fxmisc.richtext.model.StyledSegment
-import org.fxmisc.richtext.model.TextOps
+import org.fxmisc.richtext.model.*
 import org.fxmisc.wellbehaved.event.EventPattern
 import org.fxmisc.wellbehaved.event.InputMap
 import java.util.function.BiConsumer
@@ -49,17 +46,35 @@ class ROStyledArea(
         // History navigation
         entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.UP), { atEditboxStart() }, { prevHistory() }))
         entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.DOWN), { atEditboxEnd() }, { nextHistory() }))
-        entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.P, KeyCombination.CONTROL_DOWN), { atEditboxStart() }, { prevHistory() }))
-        entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.N, KeyCombination.CONTROL_DOWN), { atEditboxEnd() }, { nextHistory() }))
+        entries.add(InputMap.consumeWhen(
+            EventPattern.keyPressed(KeyCode.P, KeyCombination.CONTROL_DOWN),
+            { atEditboxStart() },
+            { prevHistory() }))
+        entries.add(InputMap.consumeWhen(
+            EventPattern.keyPressed(KeyCode.N, KeyCombination.CONTROL_DOWN),
+            { atEditboxEnd() },
+            { nextHistory() }))
 
         // Cursor movement
         entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.HOME), { atEditbox() }, { moveToBeginningOfInput() }))
-        entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.HOME, KeyCombination.SHIFT_DOWN), { atEditbox() }, { moveToBeginningOfInput() }))
+        entries.add(InputMap.consumeWhen(
+            EventPattern.keyPressed(KeyCode.HOME, KeyCombination.SHIFT_DOWN),
+            { atEditbox() },
+            { moveToBeginningOfInput() }))
 
         // Emacs-style cursor movement
-        entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.F, KeyCombination.CONTROL_DOWN), { true }, { caretSelectionBind.moveToNextChar() }))
-        entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.B, KeyCombination.CONTROL_DOWN), { true }, { caretSelectionBind.moveToPrevChar() }))
-        entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.A, KeyCombination.CONTROL_DOWN), { atEditbox() }, { moveToBeginningOfInput() }))
+        entries.add(InputMap.consumeWhen(
+            EventPattern.keyPressed(KeyCode.F, KeyCombination.CONTROL_DOWN),
+            { true },
+            { caretSelectionBind.moveToNextChar() }))
+        entries.add(InputMap.consumeWhen(
+            EventPattern.keyPressed(KeyCode.B, KeyCombination.CONTROL_DOWN),
+            { true },
+            { caretSelectionBind.moveToPrevChar() }))
+        entries.add(InputMap.consumeWhen(
+            EventPattern.keyPressed(KeyCode.A, KeyCombination.CONTROL_DOWN),
+            { atEditbox() },
+            { moveToBeginningOfInput() }))
         entries.add(InputMap.consumeWhen(
             EventPattern.keyPressed(KeyCode.E, KeyCombination.CONTROL_DOWN),
             { atEditbox() },
@@ -179,14 +194,21 @@ class ROStyledArea(
         }
     }
 
-    fun appendTextEnd(text: String, style: TextStyle, parStyle: ParStyle? = null) {
-        withUpdateEnabled {
+    fun appendTextEnd(
+        text: String,
+        style: TextStyle,
+        parStyle: ParStyle? = null
+    ): ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle> {
+        val doc = withUpdateEnabled {
             val builder = ReadOnlyStyledDocumentBuilder(segOps, parStyle ?: ParStyle())
             text.split("\n").forEach { part -> builder.addParagraph(EditorContent.makeString(part), style) }
             val inputPos = findInputStartEnd()
-            insert(inputPos.promptStartPos, builder.build())
+            builder.build().also { doc ->
+                insert(inputPos.promptStartPos, doc)
+            }
         }
         showBottomParagraphAtTop()
+        return doc
     }
 
     fun appendAPLValueEnd(value: APLValue, style: TextStyle, parStyle: ParStyle = ParStyle()) {

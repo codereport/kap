@@ -7,6 +7,7 @@ import array.gui.graphics.GuiModule
 import array.gui.settings.Settings
 import array.gui.settings.loadSettings
 import array.gui.settings.saveSettings
+import array.gui.styledarea.TextStyle
 import array.gui.viewer.StructureViewer
 import array.keyboard.ExtendedCharsKeyboardInput
 import com.panemu.tiwulfx.control.dock.DetachableTab
@@ -115,6 +116,7 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
 
         varListWindow = VariableListController(this)
         rightDtPane.pane.tabs.add(DetachableTab("Variable list", varListWindow.node).apply { isClosable = false })
+        rightDtPane.pane.selectionModel.select(1)
 
         keyboardHelpWindow = KeyboardHelpWindow(renderContext)
         aboutWindow = AboutWindow()
@@ -288,10 +290,6 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
         return SettingsData(fontFamily = settings.fontFamily ?: "Iosevka Fixed", fontSize = settings.fontSize ?: 10)
     }
 
-    fun sendInput(text: String) {
-        evalSource(StringSourceLocation(text))
-    }
-
     fun evalSource(source: SourceLocation, linkNewContext: Boolean = false) {
         calculationQueue.pushRequest(source, linkNewContext) { result ->
             if (result is Either.Right) {
@@ -301,6 +299,8 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
         }
     }
 
+    // Suppress here because of this issue https://youtrack.jetbrains.com/issue/KTIJ-20744
+    @Suppress("KotlinConstantConditions")
     private fun displayResult(result: Either<APLValue, Exception>) {
         when (result) {
             is Either.Left -> resultList.addResult(result.value)
@@ -323,17 +323,38 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
     }
 
     fun highlightSourceLocation(pos: Position, message: String? = null) {
-        val sourceLocation = pos.source
-        if (sourceLocation is SourceEditor.EditorSourceLocation) {
-            sourceLocation.editor?.let { editor ->
-                sourceEditors.forEach { e ->
-                    if (e === editor) {
-                        editor.highlightError(pos, message)
+        when (val sourceLocation = pos.source) {
+            is SourceEditor.EditorSourceLocation -> {
+                sourceLocation.editor?.let { editor ->
+                    sourceEditors.forEach { e ->
+                        if (e === editor) {
+                            editor.highlightError(pos, message)
+                        }
                     }
                 }
             }
+            is REPLSourceLocation -> {
+                highlightErrorInRepl(sourceLocation, pos)
+            }
         }
+    }
 
+    private fun highlightErrorInRepl(sourceLocation: REPLSourceLocation, pos: Position) {
+        println("Original text: ${sourceLocation.doc.text}")
+        val text = sourceLocation.sourceText()
+        var currLine = 0
+        var i = 0
+        while (i < text.length && currLine < pos.line) {
+            if (text[i] == '\n') {
+                currLine++
+            }
+            i++
+        }
+        i += pos.col
+        if (i >= text.length) {
+            println("Calculated position is beyond the end of the string: text=${text}, position=${pos}")
+        }
+        resultList.updateStyle(sourceLocation.doc, i, i + 1, TextStyle(TextStyle.Type.SINGLE_CHAR_HIGHLIGHT))
     }
 
     private fun initModules() {

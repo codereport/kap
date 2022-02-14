@@ -2,19 +2,28 @@ package array.gui
 
 import array.APLGenericException
 import array.APLValue
+import array.SourceLocation
+import array.StringCharacterProvider
 import array.gui.styledarea.*
 import javafx.scene.Node
 import javafx.scene.layout.*
 import javafx.scene.paint.Color
 import javafx.scene.text.TextFlow
 import org.fxmisc.flowless.VirtualizedScrollPane
-import org.fxmisc.richtext.model.GenericEditableStyledDocument
-import org.fxmisc.richtext.model.SegmentOpsBase
-import org.fxmisc.richtext.model.StyledSegment
-import org.fxmisc.richtext.model.TextOps
+import org.fxmisc.richtext.model.*
 import java.util.*
 import java.util.function.BiConsumer
 import java.util.function.Function
+import java.util.function.UnaryOperator
+
+class REPLSourceLocation(
+    private val text: String,
+    val parent: ResultList3,
+    val doc: ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle>
+) : SourceLocation {
+    override fun sourceText() = text
+    override fun open() = StringCharacterProvider(text)
+}
 
 class ResultList3(val client: Client) {
     private val styledOps = CodeSegmentOps()
@@ -58,8 +67,9 @@ class ResultList3(val client: Client) {
             history.add(text)
             historyPos = history.size
             pendingInput = null
-            addInput(text)
-            client.sendInput(text)
+            val doc = addInput(text)
+            val source = REPLSourceLocation(text, this, doc)
+            client.evalSource(source)
         }
     }
 
@@ -69,6 +79,8 @@ class ResultList3(val client: Client) {
         styledArea.appendAPLValueEnd(v, TextStyle(TextStyle.Type.RESULT))
     }
 
+    // Need to suppress error warning here because of https://youtrack.jetbrains.com/issue/KTIJ-20744
+    @Suppress("KotlinConstantConditions")
     fun addExceptionResult(e: Exception) {
         val message = if (e is APLGenericException) {
             e.formattedError()
@@ -82,8 +94,20 @@ class ResultList3(val client: Client) {
         styledArea.appendOutputEnd(text)
     }
 
-    private fun addInput(text: String) {
-        styledArea.appendTextEnd(text + "\n", TextStyle(TextStyle.Type.LOG_INPUT), ParStyle(ParStyle.ParStyleType.INDENT))
+    private fun addInput(text: String): ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle> {
+        return styledArea.appendTextEnd(text + "\n", TextStyle(TextStyle.Type.LOG_INPUT), ParStyle(ParStyle.ParStyleType.INDENT))
+    }
+
+    fun updateStyle(doc: ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle>, start: Int, end: Int, textStyle: TextStyle) {
+        styledArea.withUpdateEnabled {
+            val fn = UnaryOperator<ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle>> { t ->
+                println("t = ${t}, text=${t.text}")
+                val builder = ReadOnlyStyledDocumentBuilder(CodeSegmentOps(), t.getParagraphStyle(0))
+                builder.addParagraph(EditorContent.makeString("X"), textStyle)
+                builder.build()
+            }
+            doc.replace(start, end, fn)
+        }
     }
 
     inner class ResultHistoryListener : HistoryListener {

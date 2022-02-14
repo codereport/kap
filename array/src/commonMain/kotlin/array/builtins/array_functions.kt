@@ -883,7 +883,7 @@ class RandomAPLFunction : APLFunctionDescriptor {
                 throwAPLException(APLIncompatibleDomainsException("A should not be negative, was: ${aInt}", pos))
             }
             if (bLong < 0) {
-                throwAPLException(APLIncompatibleDomainsException("B should not be negative, was: ${aInt}", pos))
+                throwAPLException(APLIncompatibleDomainsException("B should not be negative, was: ${bLong}", pos))
             }
             if (aInt > bLong) {
                 throwAPLException(
@@ -1637,5 +1637,3 @@ class CaseFunction : APLFunctionDescriptor {
 
     override fun make(pos: Position) = CaseFunctionImpl(pos.withName("case"))
 }
-
-

@@ -48,10 +48,10 @@ open class KAPEditorStyledArea<PS, SEG, S>(
         extendedInput.keymap.forEach { e ->
             val modifiers =
                 if (e.key.shift) arrayOf(KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN) else arrayOf(KeyCombination.ALT_DOWN)
-            val v = InputMap.consume(EventPattern.keyTyped(e.key.character, *modifiers), { replaceSelectionWithDisplay(e.value) })
+            val v = InputMap.consume(EventPattern.keyTyped(e.key.character, *modifiers), { replaceSelectionAndDisplay(e.value) })
             entries.add(v)
         }
-        entries.add(InputMap.consume(EventPattern.keyTyped(" ", KeyCombination.ALT_DOWN), { replaceSelectionWithDisplay(" ") }))
+        entries.add(InputMap.consume(EventPattern.keyTyped(" ", KeyCombination.ALT_DOWN), { replaceSelectionAndDisplay(" ") }))
         addInputMappings(entries)
 
         // Prefix input
@@ -64,17 +64,17 @@ open class KAPEditorStyledArea<PS, SEG, S>(
 
     open fun addInputMappings(entries: MutableList<InputMap<out Event>>) {}
 
-    private fun makePrefixInputKeymap(prefixChar: String): InputMap<out Event> {
+    private fun makePrefixInputKeymap(@Suppress("SameParameterValue") prefixChar: String): InputMap<out Event> {
         fun disableAndAdd(s: String) {
             prefixActive = false
-            replaceSelectionWithDisplay(s)
+            replaceSelectionAndDisplay(s)
         }
 
         fun processKey(event: KeyEvent) {
             val charMapping = extendedInput.keymap[ExtendedCharsKeyboardInput.KeyDescriptor(
                 event.character,
                 event.isShiftDown)]
-            if(charMapping == null) {
+            if (charMapping == null) {
                 disableAndAdd(prefixChar)
             } else {
                 disableAndAdd(charMapping)
@@ -100,7 +100,7 @@ open class KAPEditorStyledArea<PS, SEG, S>(
                 }
                 event.character == " " && emptyKeyModifiers(event) -> {
                     prefixActive = false
-                    replaceSelectionWithDisplay(prefixChar)
+                    replaceSelectionAndDisplay(prefixChar)
                     InputHandler.Result.CONSUME
                 }
                 else -> {
@@ -111,7 +111,7 @@ open class KAPEditorStyledArea<PS, SEG, S>(
                     if (charMapping == null) {
                         InputHandler.Result.PROCEED
                     } else {
-                        replaceSelectionWithDisplay(charMapping)
+                        replaceSelectionAndDisplay(charMapping)
                         InputHandler.Result.CONSUME
                     }
                 }
@@ -124,7 +124,7 @@ open class KAPEditorStyledArea<PS, SEG, S>(
         showParagraphAtTop(document.paragraphs.size - 1)
     }
 
-    fun replaceSelectionWithDisplay(s: String) {
+    fun replaceSelectionAndDisplay(s: String) {
         replaceSelection(s)
         showBottomParagraphAtTop()
     }

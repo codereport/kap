@@ -4,6 +4,7 @@ import array.gui.ClientRenderContext
 import org.fxmisc.richtext.TextExt
 
 open class TextStyle(val type: Type = Type.DEFAULT, val promptTag: Boolean = false) {
+    @Suppress("UNUSED_PARAMETER")
     fun styleContent(content: TextExt, renderContext: ClientRenderContext) {
         val css = when (type) {
             Type.ERROR -> "editcontent-error"
@@ -47,6 +48,7 @@ open class TextStyle(val type: Type = Type.DEFAULT, val promptTag: Boolean = fal
         LOG_INPUT,
         OUTPUT,
         RESULT,
-        ERROR
+        ERROR,
+        SINGLE_CHAR_HIGHLIGHT
     }
 }
