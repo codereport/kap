@@ -4,18 +4,20 @@ import array.syntax.processCustomSyntax
 import array.syntax.processDefsyntax
 import array.syntax.processDefsyntaxSub
 
-sealed class ParseResultHolder(val lastToken: Token, val pos: Position) {
-    class InstrParseResult(val instr: Instruction, lastToken: Token, pos: Position) : ParseResultHolder(lastToken, pos)
-    class FnParseResult(val fn: APLFunction, leftArgs: List<Instruction>, lastToken: Token, pos: Position) :
-        ParseResultHolder(lastToken, pos) {
+sealed class ParseResultHolder(val lastToken: TokenWithPosition) {
+    val pos: Position get() = lastToken.pos
+
+    class InstrParseResult(val instr: Instruction, lastToken: TokenWithPosition) : ParseResultHolder(lastToken)
+    class FnParseResult(val fn: APLFunction, leftArgs: List<Instruction>, lastToken: TokenWithPosition) :
+        ParseResultHolder(lastToken) {
         init {
             if (leftArgs.isNotEmpty()) {
-                throw ParseException("Left arguments are not allowed with functions with no right argument", pos)
+                throw ParseException("Left arguments are not allowed with functions with no right argument", lastToken.pos)
             }
         }
     }
 
-    class EmptyParseResult(lastToken: Token, pos: Position) : ParseResultHolder(lastToken, pos)
+    class EmptyParseResult(lastToken: TokenWithPosition) : ParseResultHolder(lastToken)
 }
 
 class EnvironmentBinding(val environment: Environment, val name: Symbol) {
@@ -106,23 +108,27 @@ class APLParser(val tokeniser: TokenGenerator) {
         return currentEnvironment().bindLocal(sym)
     }
 
-    fun parseValueToplevel(endToken: Token): Instruction {
+    fun parseValueToplevelWithPosition(endToken: Token): Pair<Instruction, Position> {
         return when (val result = parseExprToplevel(endToken)) {
-            is ParseResultHolder.EmptyParseResult -> EmptyValueMarker(result.pos)
-            is ParseResultHolder.InstrParseResult -> result.instr
+            is ParseResultHolder.EmptyParseResult -> Pair(EmptyValueMarker(result.pos), result.pos)
+            is ParseResultHolder.InstrParseResult -> Pair(result.instr, result.pos)
             is ParseResultHolder.FnParseResult -> throw ParseException("Function expression not allowed", result.pos)
         }
     }
 
+    fun parseValueToplevel(endToken: Token): Instruction {
+        return parseValueToplevelWithPosition(endToken).first
+    }
+
     fun parseExprToplevel(endToken: Token): ParseResultHolder {
         val firstExpr = parseList()
-        if (firstExpr.lastToken == endToken) {
+        if (firstExpr.lastToken.token == endToken) {
             return firstExpr
         }
 
         fun throwIfInvalidToken(holder: ParseResultHolder) {
-            if (holder.lastToken != StatementSeparator && holder.lastToken != Newline) {
-                throw UnexpectedToken(holder.lastToken, holder.pos)
+            if (holder.lastToken.token != StatementSeparator && holder.lastToken.token != Newline) {
+                throw UnexpectedToken(holder.lastToken.token, holder.pos)
             }
         }
 
@@ -143,11 +149,11 @@ class APLParser(val tokeniser: TokenGenerator) {
         while (true) {
             val holder = parseList()
             addInstr(holder)
-            if (holder.lastToken == endToken) {
+            if (holder.lastToken.token == endToken) {
                 return when (statementList.size) {
-                    0 -> ParseResultHolder.InstrParseResult(EmptyValueMarker(holder.pos), holder.lastToken, holder.pos)
-                    1 -> ParseResultHolder.InstrParseResult(statementList[0], holder.lastToken, holder.pos)
-                    else -> ParseResultHolder.InstrParseResult(InstructionList(statementList), holder.lastToken, holder.pos)
+                    0 -> ParseResultHolder.InstrParseResult(EmptyValueMarker(holder.pos), holder.lastToken)
+                    1 -> ParseResultHolder.InstrParseResult(statementList[0], holder.lastToken)
+                    else -> ParseResultHolder.InstrParseResult(InstructionList(statementList), holder.lastToken)
                 }
             } else {
                 throwIfInvalidToken(holder)
@@ -157,7 +163,7 @@ class APLParser(val tokeniser: TokenGenerator) {
 
     private fun parseList(): ParseResultHolder {
         val firstValue = parseValue()
-        if (firstValue.lastToken == ListSeparator) {
+        if (firstValue.lastToken.token == ListSeparator) {
             if (firstValue is ParseResultHolder.FnParseResult) {
                 throw ParseException("Function expressions can't be part of a list", firstValue.pos)
             }
@@ -175,8 +181,8 @@ class APLParser(val tokeniser: TokenGenerator) {
             while (true) {
                 val holder = parseValue()
                 statementList.add(mkInstr(holder))
-                if (holder.lastToken != ListSeparator) {
-                    return ParseResultHolder.InstrParseResult(ParsedAPLList(statementList), holder.lastToken, firstValue.pos)
+                if (holder.lastToken.token != ListSeparator) {
+                    return ParseResultHolder.InstrParseResult(ParsedAPLList(statementList), holder.lastToken)
                 }
             }
         } else {
@@ -197,28 +203,25 @@ class APLParser(val tokeniser: TokenGenerator) {
         val parsedFn = parseOperator(fn)
         return when (val holder = parseValue(functionChainContext = true)) {
             is ParseResultHolder.EmptyParseResult -> {
-                ParseResultHolder.FnParseResult(parsedFn, leftArgs, holder.lastToken, holder.pos)
+                ParseResultHolder.FnParseResult(parsedFn, leftArgs, holder.lastToken)
             }
             is ParseResultHolder.InstrParseResult -> {
                 if (leftArgs.isEmpty()) {
                     ParseResultHolder.InstrParseResult(
                         FunctionCall1Arg(parsedFn, holder.instr, axis, fn.pos),
-                        holder.lastToken,
-                        holder.pos)
+                        holder.lastToken)
                 } else {
                     val leftArgsChecked = makeResultList(leftArgs) ?: throw ParseException("Left args is empty", holder.pos)
                     ParseResultHolder.InstrParseResult(
                         FunctionCall2Arg(parsedFn, leftArgsChecked, holder.instr, axis, fn.pos),
-                        holder.lastToken,
-                        holder.pos)
+                        holder.lastToken)
                 }
             }
             is ParseResultHolder.FnParseResult -> {
                 ParseResultHolder.FnParseResult(
                     FunctionCallChain.make(parsedFn.pos, parsedFn, holder.fn, functionChainContext = functionChainContext),
                     leftArgs,
-                    holder.lastToken,
-                    holder.pos)
+                    holder.lastToken)
             }
         }
     }
@@ -233,7 +236,7 @@ class APLParser(val tokeniser: TokenGenerator) {
             is ParseResultHolder.InstrParseResult -> ParseResultHolder.InstrParseResult(
                 lvalueReader.makeInstruction(
                     holder.instr,
-                    holder.pos), holder.lastToken, pos)
+                    holder.pos), holder.lastToken)
             is ParseResultHolder.FnParseResult -> throw IllegalContextForFunction(holder.pos)
             is ParseResultHolder.EmptyParseResult -> throw ParseException("No right-side value in assignment instruction", pos)
         }
@@ -288,7 +291,7 @@ class APLParser(val tokeniser: TokenGenerator) {
             throw ParseException("Right side of the arrow must be a function", pos)
         }
         currentEnvironment().registerLocalFunction(sym, RelocalisedFunctionDescriptor(holder.fn))
-        return ParseResultHolder.EmptyParseResult(holder.lastToken, holder.pos)
+        return ParseResultHolder.EmptyParseResult(holder.lastToken)
     }
 
     private fun registerDefinedUserFunction(definedUserFunction: DefinedUserFunction) {
@@ -468,18 +471,20 @@ class APLParser(val tokeniser: TokenGenerator) {
                 throw ParseException("Index referencing without argument", pos)
             }
             val element = leftArgs.removeLast()
-            val index = parseValueToplevel(CloseBracket)
-            leftArgs.add(ArrayIndex(element, index, pos))
+            val (index, lastTokenPos) = parseValueToplevelWithPosition(CloseBracket)
+            leftArgs.add(ArrayIndex(element, index, pos.copy(endLine = lastTokenPos.computedEndLine, endCol = lastTokenPos.computedEndCol)))
         }
 
         while (true) {
-            val (token, pos) = tokeniser.nextTokenWithPosition()
-            if (listOf(CloseParen, EndOfFile, StatementSeparator, CloseFnDef, CloseBracket, ListSeparator, Newline).contains(token)) {
+            val tokenWithPosition = tokeniser.nextTokenWithPosition()
+            val (token, pos) = tokenWithPosition
+            if (listOf(CloseParen, EndOfFile, StatementSeparator, CloseFnDef, CloseBracket, ListSeparator, Newline).contains(
+                        tokenWithPosition.token)) {
                 val resultList = makeResultList(leftArgs)
                 return if (resultList == null) {
-                    ParseResultHolder.EmptyParseResult(token, pos)
+                    ParseResultHolder.EmptyParseResult(tokenWithPosition)
                 } else {
-                    ParseResultHolder.InstrParseResult(resultList, token, pos)
+                    ParseResultHolder.InstrParseResult(resultList, tokenWithPosition)
                 }
             }
 
@@ -489,15 +494,15 @@ class APLParser(val tokeniser: TokenGenerator) {
                     if (customSyntax != null) {
                         leftArgs.add(processCustomSyntax(this, customSyntax))
                     } else {
-                        val (fnDefToken, fnDefPos) = tokeniser.nextTokenWithPosition()
+                        val fnDefTokenWithPosition = tokeniser.nextTokenWithPosition()
                         // If the next  symbol is a function assignment, it needs to be treated specially
-                        if (fnDefToken is FnDefArrow) {
+                        if (fnDefTokenWithPosition.token is FnDefArrow) {
                             if (leftArgs.size != 0) {
-                                throw ParseException("Left side of the arrow must be a single symbol", pos)
+                                throw ParseException("Left side of the arrow must be a single symbol", tokenWithPosition.pos)
                             }
-                            return processShortFormFn(fnDefPos, token)
+                            return processShortFormFn(fnDefTokenWithPosition.pos, token)
                         }
-                        tokeniser.pushBackToken(fnDefToken)
+                        tokeniser.pushBackToken(fnDefTokenWithPosition)
                         val fn = lookupFunction(token)
                         if (fn != null) {
                             return processFn(
@@ -709,25 +714,25 @@ class APLParser(val tokeniser: TokenGenerator) {
 
     private fun parseOperator(fn: APLFunction): APLFunction {
         var currentFn = fn
-        var token: Token
+        var currToken: TokenWithPosition
         loop@ while (true) {
-            val (readToken, opPos) = tokeniser.nextTokenWithPosition()
-            token = readToken
-            when (token) {
+            val readToken = tokeniser.nextTokenWithPosition()
+            currToken = readToken
+            when (val token = currToken.token) {
                 is Symbol -> {
                     val op = tokeniser.engine.getOperator(token) ?: break
-                    currentFn = op.parseAndCombineFunctions(this, currentFn, opPos.withCallerName(token.symbolName))
+                    currentFn = op.parseAndCombineFunctions(this, currentFn, currToken.pos.withCallerName(token.symbolName))
                 }
                 else -> break
             }
         }
-        tokeniser.pushBackToken(token)
+        tokeniser.pushBackToken(currToken)
         return currentFn
     }
 
     fun parseAxis(): Instruction? {
-        val token = tokeniser.nextToken()
-        if (token != OpenBracket) {
+        val token = tokeniser.nextTokenWithPosition()
+        if (token.token != OpenBracket) {
             tokeniser.pushBackToken(token)
             return null
         }

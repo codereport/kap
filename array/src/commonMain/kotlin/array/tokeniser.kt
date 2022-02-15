@@ -153,11 +153,14 @@ data class Position(
     val col: Int,
     val name: String? = null,
     val callerName: String? = null,
-    val numLines: Int = 1,
-    val width: Int = 1
+    val endLine: Int? = null,
+    val endCol: Int? = null,
 ) {
     fun withName(s: String) = copy(name = s)
     fun withCallerName(s: String) = copy(callerName = s)
+
+    val computedEndCol get() = endCol ?: (col + 1)
+    val computedEndLine get() = endLine ?: line
 
     fun description(): String {
         val buf = StringBuilder()
@@ -176,10 +179,12 @@ data class Position(
     }
 }
 
+data class TokenWithPosition(val token: Token, val pos: Position)
+
 class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeCloseable {
     private val content = PushBackCharacterProvider(contentArg)
     private val singleCharFunctions: MutableSet<String>
-    private val pushBackQueue = ArrayList<Token>()
+    private val pushBackList = ArrayList<TokenWithPosition>()
 
     private val charToTokenMap = hashMapOf(
         "(" to OpenParen,
@@ -214,9 +219,9 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
     }
 
     fun peekToken(): Token {
-        return nextToken().also { token ->
-            pushBackToken(token)
-        }
+        val res = nextTokenWithPosition()
+        pushBackToken(res)
+        return res.token
     }
 
     inline fun <reified T : Token> nextTokenWithType(): T {
@@ -246,12 +251,15 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
         }
     }
 
-    fun nextTokenOrSpace(): Pair<Token, Position> {
+    fun nextTokenOrSpace(): TokenWithPosition {
         val posBeforeParse = content.pos()
-        fun mkpos(token: Token) = Pair(token, posBeforeParse.copy(width = content.pos().col - posBeforeParse.col))
+        fun mkpos(token: Token): TokenWithPosition {
+            val newPos = content.pos()
+            return TokenWithPosition(token, posBeforeParse.copy(endLine = newPos.line, endCol = newPos.col))
+        }
 
-        if (!pushBackQueue.isEmpty()) {
-            return mkpos(pushBackQueue.removeAt(pushBackQueue.size - 1))
+        if (pushBackList.isNotEmpty()) {
+            return pushBackList.removeLast()
         }
 
         assertx(!isClosed) { "tokeniser has been closed" }
@@ -287,8 +295,8 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
         )
     }
 
-    fun pushBackToken(token: Token) {
-        pushBackQueue.add(token)
+    fun pushBackToken(token: TokenWithPosition) {
+        pushBackList.add(token)
     }
 
     private fun skipUntilNewline(): Whitespace {
@@ -400,13 +408,13 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
     }
 
     fun nextToken(): Token {
-        return nextTokenWithPosition().first
+        return nextTokenWithPosition().token
     }
 
-    fun nextTokenWithPosition(): Pair<Token, Position> {
+    fun nextTokenWithPosition(): TokenWithPosition {
         while (true) {
             val tokenAndPos = nextTokenOrSpace()
-            if (tokenAndPos.first != Whitespace) {
+            if (tokenAndPos.token != Whitespace) {
                 return tokenAndPos
             }
         }

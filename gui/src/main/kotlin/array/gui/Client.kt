@@ -340,21 +340,14 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
     }
 
     private fun highlightErrorInRepl(sourceLocation: REPLSourceLocation, pos: Position) {
-        println("Original text: ${sourceLocation.doc.text}")
-        val text = sourceLocation.sourceText()
-        var currLine = 0
-        var i = 0
-        while (i < text.length && currLine < pos.line) {
-            if (text[i] == '\n') {
-                currLine++
-            }
-            i++
-        }
-        i += pos.col
-        if (i >= text.length) {
-            println("Calculated position is beyond the end of the string: text=${text}, position=${pos}")
-        }
-        resultList.updateStyle(sourceLocation.doc, i, i + pos.width, TextStyle(TextStyle.Type.SINGLE_CHAR_HIGHLIGHT))
+        println("Original text: ${sourceLocation.sourceText()}")
+        resultList.updateStyle(
+            sourceLocation.tag,
+            pos.line,
+            pos.col,
+            pos.computedEndLine,
+            pos.computedEndCol,
+            TextStyle(TextStyle.Type.SINGLE_CHAR_HIGHLIGHT))
     }
 
     private fun initModules() {

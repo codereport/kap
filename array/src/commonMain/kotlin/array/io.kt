@@ -84,7 +84,7 @@ class PushBackCharacterProvider(val sourceLocation: SourceLocation) : CharacterP
 
     override fun nextCodepoint(): Int? {
         val ch = if (pushBackList.isNotEmpty()) {
-            pushBackList.removeAt(pushBackList.size - 1)
+            pushBackList.removeLast()
         } else {
             val ch = source.nextCodepoint() ?: return null
             val chWithPos = CharWithPosition(ch, line, col)

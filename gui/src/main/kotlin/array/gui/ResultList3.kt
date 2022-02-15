@@ -10,7 +10,10 @@ import javafx.scene.layout.*
 import javafx.scene.paint.Color
 import javafx.scene.text.TextFlow
 import org.fxmisc.flowless.VirtualizedScrollPane
-import org.fxmisc.richtext.model.*
+import org.fxmisc.richtext.model.GenericEditableStyledDocument
+import org.fxmisc.richtext.model.SegmentOpsBase
+import org.fxmisc.richtext.model.StyledSegment
+import org.fxmisc.richtext.model.TextOps
 import java.util.*
 import java.util.function.BiConsumer
 import java.util.function.Function
@@ -18,11 +21,13 @@ import java.util.function.Function
 class REPLSourceLocation(
     private val text: String,
     val parent: ResultList3,
-    val doc: StyledDocument<ParStyle, EditorContent, TextStyle>
+    val tag: InputLogTag
 ) : SourceLocation {
     override fun sourceText() = text
     override fun open() = StringCharacterProvider(text)
 }
+
+class InputLogTag
 
 class ResultList3(val client: Client) {
     private val styledOps = CodeSegmentOps()
@@ -66,8 +71,8 @@ class ResultList3(val client: Client) {
             history.add(text)
             historyPos = history.size
             pendingInput = null
-            val doc = addInput(text)
-            val source = REPLSourceLocation(text, this, doc)
+            val tag = addInput(text)
+            val source = REPLSourceLocation(text, this, tag)
             client.evalSource(source)
         }
     }
@@ -93,33 +98,51 @@ class ResultList3(val client: Client) {
         styledArea.appendOutputEnd(text)
     }
 
-    private fun addInput(text: String): StyledDocument<ParStyle, EditorContent, TextStyle> {
-        return styledArea.appendTextEnd(text + "\n", TextStyle(TextStyle.Type.LOG_INPUT), ParStyle(ParStyle.ParStyleType.INDENT))
+    private fun addInput(text: String): InputLogTag {
+        val tag = InputLogTag()
+        styledArea.appendTextEnd(text + "\n", TextStyle(TextStyle.Type.LOG_INPUT), ParStyle(ParStyle.ParStyleType.INDENT, tag = tag))
+        return tag
     }
 
-    fun updateStyle(doc: StyledDocument<ParStyle, EditorContent, TextStyle>, start: Int, end: Int, textStyle: TextStyle) {
-//            val fn = UnaryOperator<ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle>> { t ->
-//                println("t = ${t}, text=${t.text}")
-//                val builder = ReadOnlyStyledDocumentBuilder(CodeSegmentOps(), t.getParagraphStyle(0))
-//                builder.addParagraph(EditorContent.makeString("X"), textStyle)
-//                builder.build()
-//            }
-//            doc.replace(start, end, fn)
-
-//            val builder: ReadOnlyStyledDocumentBuilder<ParStyle, EditorContent, TextStyle> = ReadOnlyStyledDocumentBuilder(styledOps, ParStyle())
-//            builder.addParagraph(StringEditorContentEntry("X"), TextStyle(TextStyle.Type.SINGLE_CHAR_HIGHLIGHT))
-//            val newDoc: ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle> = builder.build()
-//            val res: Tuple3<
-//                    ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle>,
-//                    RichTextChange<ParStyle, EditorContent, TextStyle>,
-//                    MaterializedListModification<Paragraph<ParStyle, EditorContent, TextStyle>>> = doc.replace(start, end, newDoc)
-        //styledArea.replace(start, end, newDoc)
-
+    fun updateStyle(tag: InputLogTag, startLine: Int, startCol: Int, endLine: Int, endCol: Int, textStyle: TextStyle) {
         styledArea.withUpdateEnabled {
-//            val p = doc.paragraphs[0]
-//            doc.paragraphs.add(0, p)
-            styledArea.setStyle(start, end, textStyle)
+            val startIndex = indexOfTag(tag)
+            if (startIndex != null) {
+                val numLines = endLine - startLine + 1
+                when {
+                    numLines == 1 -> {
+                        styledArea.setStyle(startIndex + startLine, startCol, endCol, textStyle)
+                    }
+                    numLines > 1 -> {
+                        styledArea.setStyle(
+                            startIndex + startLine,
+                            startCol,
+                            styledArea.paragraphs[startIndex + startLine].length(),
+                            textStyle)
+                        repeat(numLines - 2) { i ->
+                            val rowIndex = startIndex + startLine + i + 1
+                            styledArea.setStyle(rowIndex, 0, styledArea.paragraphs[startIndex + startLine].length(), textStyle)
+                        }
+                        styledArea.setStyle(startIndex + endLine, 0, endCol, textStyle)
+                    }
+                }
+            }
         }
+    }
+
+    private fun indexOfTag(tag: Any): Int? {
+        var foundIndex: Int? = null
+        for (i in styledArea.paragraphs.size - 1 downTo 0) {
+            val paragraph = styledArea.paragraphs[i]
+            if (paragraph.paragraphStyle.tag === tag) {
+                foundIndex = i
+            } else {
+                if (foundIndex != null) {
+                    break
+                }
+            }
+        }
+        return foundIndex
     }
 
     inner class ResultHistoryListener : HistoryListener {

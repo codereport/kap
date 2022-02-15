@@ -14,12 +14,13 @@ interface APLOperatorOneArg : APLOperator {
 }
 
 private fun parseFunctionOrNull(parser: APLParser): Either<APLFunction, Pair<Token, Position>> {
-    val (token, pos) = parser.tokeniser.nextTokenWithPosition()
+    val tokenWithPos = parser.tokeniser.nextTokenWithPosition()
+    val (token, pos) = tokenWithPos
     return when (token) {
         is Symbol -> {
             val fn = parser.lookupFunction(token)
             if (fn == null) {
-                parser.tokeniser.pushBackToken(token)
+                parser.tokeniser.pushBackToken(tokenWithPos)
                 Either.Right(Pair(token, pos))
             } else {
                 Either.Left(fn.make(pos))
@@ -39,7 +40,7 @@ private fun parseFunctionOrNull(parser: APLParser): Either<APLFunction, Pair<Tok
             Either.Left(parser.parseApplyDefinition().make(pos))
         }
         else -> {
-            parser.tokeniser.pushBackToken(token)
+            parser.tokeniser.pushBackToken(tokenWithPos)
             Either.Right(Pair(token, pos))
         }
     }

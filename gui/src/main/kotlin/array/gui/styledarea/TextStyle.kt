@@ -4,7 +4,7 @@ import array.gui.ClientRenderContext
 import javafx.scene.paint.Color
 import org.fxmisc.richtext.TextExt
 
-open class TextStyle(val type: Type = Type.DEFAULT, val promptTag: Boolean = false) {
+class TextStyle(val type: Type = Type.DEFAULT, val promptTag: Boolean = false, @Suppress("unused") val contentTag: Any? = null) {
     @Suppress("UNUSED_PARAMETER")
     fun styleContent(content: TextExt, renderContext: ClientRenderContext) {
         val css = when (type) {

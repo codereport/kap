@@ -374,15 +374,124 @@ class TokenGeneratorTest {
         assertEquals("foo", res.second)
     }
 
+    @Test
+    fun pushBackTokenTest() {
+        val gen = makeGenerator("aa abc abcd")
+        gen.nextToken().let { token ->
+            assertTokenIsSymbol(gen, token, "aa", gen.engine.initialNamespace.name)
+        }
+        val a = gen.nextTokenWithPosition()
+        assertTokenIsSymbol(gen, a.token, "abc", gen.engine.initialNamespace.name)
+        assertEquals(0, a.pos.line)
+        assertEquals(3, a.pos.col)
+        assertEquals(6, a.pos.computedEndCol)
+        gen.pushBackToken(a)
+        val (b, bPos) = gen.nextTokenWithPosition()
+        assertTokenIsSymbol(gen, b, "abc", gen.engine.initialNamespace.name)
+        assertEquals(0, bPos.line)
+        assertEquals(3, bPos.col)
+        assertEquals(6, bPos.computedEndCol)
+        gen.nextTokenWithPosition().let { (c, cPos) ->
+            assertTokenIsSymbol(gen, c, "abcd", gen.engine.initialNamespace.name)
+            assertEquals(0, cPos.line)
+            assertEquals(7, cPos.col)
+            assertEquals(11, cPos.computedEndCol)
+        }
+        assertSame(EndOfFile, gen.nextToken())
+    }
+
+    @Test
+    fun integerTokenPosition() {
+        val gen = makeGenerator("aa abc 1234 abcd")
+        gen.nextToken().let { token ->
+            assertTokenIsSymbol(gen, token, "aa", gen.engine.initialNamespace.name)
+        }
+        gen.nextToken().let { token ->
+            assertTokenIsSymbol(gen, token, "abc", gen.engine.initialNamespace.name)
+        }
+        gen.nextTokenWithPosition().let { (token, pos) ->
+            assertTrue(token is ParsedLong)
+            assertEquals(1234, token.value)
+            assertEquals(0, pos.line)
+            assertEquals(7, pos.col)
+            assertEquals(11, pos.computedEndCol)
+        }
+        gen.nextToken().let { token ->
+            assertTokenIsSymbol(gen, token, "abcd", gen.engine.initialNamespace.name)
+        }
+        assertSame(EndOfFile, gen.nextToken())
+    }
+
+    @Test
+    fun multilineTokenPosition() {
+        val gen = makeGenerator(
+            """
+            |aa bb
+            |cccc dddd
+            """.trimMargin())
+        gen.nextTokenWithPosition().let { (token, pos) ->
+            assertTokenIsSymbol(gen, token, "aa", gen.engine.initialNamespace.name)
+            assertPosition(0, 0, 0, 2, pos)
+        }
+        gen.nextTokenWithPosition().let { (token, pos) ->
+            assertTokenIsSymbol(gen, token, "bb", gen.engine.initialNamespace.name)
+            assertPosition(0, 3, 0, 5, pos)
+        }
+        assertSame(Newline, gen.nextToken())
+        gen.nextTokenWithPosition().let { (token, pos) ->
+            assertTokenIsSymbol(gen, token, "cccc", gen.engine.initialNamespace.name)
+            assertPosition(1, 0, 1, 4, pos)
+        }
+        gen.nextTokenWithPosition().let { (token, pos) ->
+            assertTokenIsSymbol(gen, token, "dddd", gen.engine.initialNamespace.name)
+            assertPosition(1, 5, 1, 9, pos)
+        }
+        assertSame(EndOfFile, gen.nextToken())
+    }
+
+    @Test
+    fun multilinePositionWithContinuationChars() {
+        val gen = makeGenerator(
+            """
+            |aa bb `
+            |cc dd
+            """.trimMargin())
+        gen.nextTokenWithPosition().let { (token, pos) ->
+            assertTokenIsSymbol(gen, token, "aa", gen.engine.initialNamespace.name)
+            assertPosition(0, 0, 0, 2, pos)
+        }
+        gen.nextTokenWithPosition().let { (token, pos) ->
+            assertTokenIsSymbol(gen, token, "bb", gen.engine.initialNamespace.name)
+            assertPosition(0, 3, 0, 5, pos)
+        }
+        gen.nextTokenWithPosition().let { (token, pos) ->
+            assertTokenIsSymbol(gen, token, "cc", gen.engine.initialNamespace.name)
+            assertPosition(1, 0, 1, 2, pos)
+        }
+        gen.nextTokenWithPosition().let { (token, pos) ->
+            assertTokenIsSymbol(gen, token, "dd", gen.engine.initialNamespace.name)
+            assertPosition(1, 3, 1, 5, pos)
+        }
+        assertSame(EndOfFile, gen.nextToken())
+    }
+
+
     private fun makeGenerator(content: String): TokenGenerator {
         val engine = Engine()
         return TokenGenerator(engine, StringSourceLocation(content))
     }
 
     private fun assertTokenIsSymbol(gen: TokenGenerator, token: Token, name: String, namespace: String) {
-        assertTrue(token is Symbol)
+        assertTrue(token is Symbol, "Token was: ${token}")
         assertEquals(gen.engine.internSymbol(name, gen.engine.makeNamespace(namespace)), token)
         assertEquals(name, token.symbolName)
         assertEquals(namespace, token.namespace.name)
+    }
+
+    private fun assertPosition(line: Int, col: Int, endLine: Int, endCol: Int, pos: Position) {
+        assertEquals(line, pos.line)
+        assertEquals(col, pos.col)
+        assertEquals(endLine, pos.endLine)
+        assertEquals(endCol, pos.endCol)
     }
 }
