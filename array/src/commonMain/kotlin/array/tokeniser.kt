@@ -176,7 +176,7 @@ data class Position(
     }
 }
 
-class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
+class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeCloseable {
     private val content = PushBackCharacterProvider(contentArg)
     private val singleCharFunctions: MutableSet<String>
     private val pushBackQueue = ArrayList<Token>()
@@ -237,8 +237,13 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
         }
     }
 
-    fun close() {
-        content.close()
+    private var isClosed = false
+
+    override fun close() {
+        if (!isClosed) {
+            content.close()
+            isClosed = true
+        }
     }
 
     fun nextTokenOrSpace(): Pair<Token, Position> {
@@ -248,6 +253,8 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
         if (!pushBackQueue.isEmpty()) {
             return mkpos(pushBackQueue.removeAt(pushBackQueue.size - 1))
         }
+
+        assertx(!isClosed) { "tokeniser has been closed" }
 
         val ch = content.nextCodepoint()
         if (ch == null) {
@@ -434,19 +441,20 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
         }
 
         fun parseStringToSymbol(string: String): Pair<String?, String>? {
-            val content = PushBackCharacterProvider(StringSourceLocation(string))
-            val (ch, pos) = content.nextCodepointWithPos()
-            if (ch == null || !isSymbolStartChar(ch)) {
-                return null
-            }
-            try {
-                val (nsName, symbolName) = collectSymbol(ch, content, pos)
-                if (content.nextCodepoint() != null) {
+            PushBackCharacterProvider(StringSourceLocation(string)).use { content ->
+                val (ch, pos) = content.nextCodepointWithPos()
+                if (ch == null || !isSymbolStartChar(ch)) {
                     return null
                 }
-                return Pair(nsName, symbolName)
-            } catch (e: ParseException) {
-                return null
+                try {
+                    val (nsName, symbolName) = collectSymbol(ch, content, pos)
+                    if (content.nextCodepoint() != null) {
+                        return null
+                    }
+                    return Pair(nsName, symbolName)
+                } catch (e: ParseException) {
+                    return null
+                }
             }
         }
 
