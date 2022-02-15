@@ -14,12 +14,11 @@ import org.fxmisc.richtext.model.*
 import java.util.*
 import java.util.function.BiConsumer
 import java.util.function.Function
-import java.util.function.UnaryOperator
 
 class REPLSourceLocation(
     private val text: String,
     val parent: ResultList3,
-    val doc: ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle>
+    val doc: StyledDocument<ParStyle, EditorContent, TextStyle>
 ) : SourceLocation {
     override fun sourceText() = text
     override fun open() = StringCharacterProvider(text)
@@ -94,19 +93,32 @@ class ResultList3(val client: Client) {
         styledArea.appendOutputEnd(text)
     }
 
-    private fun addInput(text: String): ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle> {
+    private fun addInput(text: String): StyledDocument<ParStyle, EditorContent, TextStyle> {
         return styledArea.appendTextEnd(text + "\n", TextStyle(TextStyle.Type.LOG_INPUT), ParStyle(ParStyle.ParStyleType.INDENT))
     }
 
-    fun updateStyle(doc: ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle>, start: Int, end: Int, textStyle: TextStyle) {
+    fun updateStyle(doc: StyledDocument<ParStyle, EditorContent, TextStyle>, start: Int, end: Int, textStyle: TextStyle) {
+//            val fn = UnaryOperator<ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle>> { t ->
+//                println("t = ${t}, text=${t.text}")
+//                val builder = ReadOnlyStyledDocumentBuilder(CodeSegmentOps(), t.getParagraphStyle(0))
+//                builder.addParagraph(EditorContent.makeString("X"), textStyle)
+//                builder.build()
+//            }
+//            doc.replace(start, end, fn)
+
+//            val builder: ReadOnlyStyledDocumentBuilder<ParStyle, EditorContent, TextStyle> = ReadOnlyStyledDocumentBuilder(styledOps, ParStyle())
+//            builder.addParagraph(StringEditorContentEntry("X"), TextStyle(TextStyle.Type.SINGLE_CHAR_HIGHLIGHT))
+//            val newDoc: ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle> = builder.build()
+//            val res: Tuple3<
+//                    ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle>,
+//                    RichTextChange<ParStyle, EditorContent, TextStyle>,
+//                    MaterializedListModification<Paragraph<ParStyle, EditorContent, TextStyle>>> = doc.replace(start, end, newDoc)
+        //styledArea.replace(start, end, newDoc)
+
         styledArea.withUpdateEnabled {
-            val fn = UnaryOperator<ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle>> { t ->
-                println("t = ${t}, text=${t.text}")
-                val builder = ReadOnlyStyledDocumentBuilder(CodeSegmentOps(), t.getParagraphStyle(0))
-                builder.addParagraph(EditorContent.makeString("X"), textStyle)
-                builder.build()
-            }
-            doc.replace(start, end, fn)
+//            val p = doc.paragraphs[0]
+//            doc.paragraphs.add(0, p)
+            styledArea.setStyle(start, end, textStyle)
         }
     }
 

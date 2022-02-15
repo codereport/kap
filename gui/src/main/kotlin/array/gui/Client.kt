@@ -354,7 +354,7 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
         if (i >= text.length) {
             println("Calculated position is beyond the end of the string: text=${text}, position=${pos}")
         }
-        resultList.updateStyle(sourceLocation.doc, i, i + 1, TextStyle(TextStyle.Type.SINGLE_CHAR_HIGHLIGHT))
+        resultList.updateStyle(sourceLocation.doc, i, i + pos.width, TextStyle(TextStyle.Type.SINGLE_CHAR_HIGHLIGHT))
     }
 
     private fun initModules() {

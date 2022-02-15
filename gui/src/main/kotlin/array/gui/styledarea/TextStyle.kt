@@ -1,6 +1,7 @@
 package array.gui.styledarea
 
 import array.gui.ClientRenderContext
+import javafx.scene.paint.Color
 import org.fxmisc.richtext.TextExt
 
 open class TextStyle(val type: Type = Type.DEFAULT, val promptTag: Boolean = false) {
@@ -11,10 +12,15 @@ open class TextStyle(val type: Type = Type.DEFAULT, val promptTag: Boolean = fal
             Type.PROMPT -> "editcontent-prompt"
             Type.OUTPUT -> "editcontent-output"
             Type.RESULT -> "editcontent-result"
+            Type.SINGLE_CHAR_HIGHLIGHT -> "editcontent-warninghighlight"
             else -> null
         }
         if (css != null) {
             content.styleClass.add(css)
+        }
+        if (type == Type.SINGLE_CHAR_HIGHLIGHT) {
+            content.underlineWidth = 1.0
+            content.underlineColor = Color.RED
         }
 //        content.font = renderContext.font()
     }

@@ -19,6 +19,10 @@
     -fx-fill: #005000;
 }
 
+.editcontent-warninghighlight {
+    -fx-fill: #b04040;
+}
+
 .kapresult {
     -fx-font-size: 14pt;
 }

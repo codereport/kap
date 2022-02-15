@@ -8,7 +8,10 @@ import javafx.scene.Node
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCombination
 import javafx.scene.text.TextFlow
-import org.fxmisc.richtext.model.*
+import org.fxmisc.richtext.model.ReadOnlyStyledDocumentBuilder
+import org.fxmisc.richtext.model.StyledDocument
+import org.fxmisc.richtext.model.StyledSegment
+import org.fxmisc.richtext.model.TextOps
 import org.fxmisc.wellbehaved.event.EventPattern
 import org.fxmisc.wellbehaved.event.InputMap
 import java.util.function.BiConsumer
@@ -198,14 +201,21 @@ class ROStyledArea(
         text: String,
         style: TextStyle,
         parStyle: ParStyle? = null
-    ): ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle> {
-        val doc = withUpdateEnabled {
-            val builder = ReadOnlyStyledDocumentBuilder(segOps, parStyle ?: ParStyle())
-            text.split("\n").forEach { part -> builder.addParagraph(EditorContent.makeString(part), style) }
-            val inputPos = findInputStartEnd()
-            builder.build().also { doc ->
-                insert(inputPos.promptStartPos, doc)
-            }
+    ): StyledDocument<ParStyle, EditorContent, TextStyle> {
+        val p = parStyle ?: ParStyle()
+//        val doc = GenericEditableStyledDocument(p, style, segOps)
+        val builder = ReadOnlyStyledDocumentBuilder(segOps, parStyle ?: ParStyle())
+        text.split("\n").forEach { part ->
+//            doc.paragraphs.add(Paragraph(p, segOps, StringEditorContentEntry(part), style))
+            builder.addParagraph(EditorContent.makeString(part), style)
+        }
+        val inputPos = findInputStartEnd()
+//            builder.build().also { doc ->
+//                insert(inputPos.promptStartPos, doc)
+//            }
+        val doc = builder.build()
+        withUpdateEnabled {
+            insert(inputPos.promptStartPos, doc)
         }
         showBottomParagraphAtTop()
         return doc

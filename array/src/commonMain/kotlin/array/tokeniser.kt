@@ -147,7 +147,15 @@ class FileSourceLocation(private val file: String) : SourceLocation {
     override fun open() = openInputCharFile(file)
 }
 
-data class Position(val source: SourceLocation, val line: Int, val col: Int, val name: String? = null, val callerName: String? = null) {
+data class Position(
+    val source: SourceLocation,
+    val line: Int,
+    val col: Int,
+    val name: String? = null,
+    val callerName: String? = null,
+    val numLines: Int = 1,
+    val width: Int = 1
+) {
     fun withName(s: String) = copy(name = s)
     fun withCallerName(s: String) = copy(callerName = s)
 
@@ -235,7 +243,7 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) {
 
     fun nextTokenOrSpace(): Pair<Token, Position> {
         val posBeforeParse = content.pos()
-        fun mkpos(token: Token) = Pair(token, posBeforeParse)
+        fun mkpos(token: Token) = Pair(token, posBeforeParse.copy(width = content.pos().col - posBeforeParse.col))
 
         if (!pushBackQueue.isEmpty()) {
             return mkpos(pushBackQueue.removeAt(pushBackQueue.size - 1))
