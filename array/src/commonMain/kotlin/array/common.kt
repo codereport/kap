@@ -169,10 +169,10 @@ class Arrays {
 }
 
 @OptIn(ExperimentalContracts::class)
-fun assertx(condition: Boolean, message: (() -> String)? = null) {
+inline fun assertx(condition: Boolean, message: () -> String = { "Assertion error" }) {
     contract { returns() implies condition }
     if (!condition) {
-        throw AssertionError(if (message == null) "Assertion error" else message())
+        throw AssertionError(message())
     }
 }
 
