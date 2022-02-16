@@ -25,6 +25,11 @@ class TextStyle(val type: Type = Type.DEFAULT, val promptTag: Boolean = false, @
 //        content.font = renderContext.font()
     }
 
+
+    override fun toString(): String {
+        return "TextStyle(type=$type, promptTag=$promptTag)"
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -33,6 +38,7 @@ class TextStyle(val type: Type = Type.DEFAULT, val promptTag: Boolean = false, @
 
         if (type != other.type) return false
         if (promptTag != other.promptTag) return false
+        if (contentTag != other.contentTag) return false
 
         return true
     }
@@ -40,11 +46,8 @@ class TextStyle(val type: Type = Type.DEFAULT, val promptTag: Boolean = false, @
     override fun hashCode(): Int {
         var result = type.hashCode()
         result = 31 * result + promptTag.hashCode()
+        result = 31 * result + (contentTag?.hashCode() ?: 0)
         return result
-    }
-
-    override fun toString(): String {
-        return "TextStyle(type=$type, promptTag=$promptTag)"
     }
 
     enum class Type {
