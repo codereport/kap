@@ -47,7 +47,7 @@ class TokenSyntaxRule(val matchToken: Token) : SyntaxRule {
                 "openBrace" -> OpenFnDef
                 "closeBrace" -> CloseFnDef
                 "newline" -> Newline
-                else -> throw(ParseException("Invalid special token", pos))
+                else -> throw ParseException("Invalid special token", pos)
             }
             return TokenSyntaxRule(token)
         }
@@ -63,14 +63,6 @@ class ValueSyntaxRule(val variable: EnvironmentBinding) : SyntaxRule {
         syntaxRuleBindings.add(SyntaxRuleVariableBinding(variable, instr))
     }
 }
-
-/*
-      defsyntax foo (:function X) {
-        ⍞X 1
-      }
-
-      foo { print ⍵ }
- */
 
 abstract class FunctionSyntaxRule(private val variable: EnvironmentBinding) : SyntaxRule {
     override fun isValid(token: Token) = token == startToken()
@@ -266,7 +258,7 @@ class CallWithVarInstruction(
     val env: Environment,
     val bindings: List<Pair<EnvironmentBinding, Instruction>>,
     pos: Position
-                            ) : Instruction(pos) {
+) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
         return context.withLinkedContext(env, name, pos) { newContext ->
             bindings.forEach { (envBinding, instr) ->

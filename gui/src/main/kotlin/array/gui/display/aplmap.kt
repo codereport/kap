@@ -48,7 +48,7 @@ class APLMapCellImpl : TreeCell<APLValueTreeNode>() {
     var i = 0
 
     override fun updateItem(item: APLValueTreeNode?, empty: Boolean) {
-        if(item == null) {
+        if (item == null) {
             wrapper.center = null
         } else {
             wrapper.center = Label("Instance: ${i++}")

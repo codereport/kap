@@ -148,7 +148,8 @@ class UserDefinedOperatorTwoArg(
     val leftArgs: List<EnvironmentBinding>,
     val rightArgs: List<EnvironmentBinding>,
     val instr: Instruction,
-    val env: Environment) : APLOperator {
+    val env: Environment
+) : APLOperator {
     override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction {
         val axis = aplParser.parseAxis()
         if (axis != null) {

@@ -1,5 +1,5 @@
 site:
-#  baseUrl: https://kap.dhsdevelopments.com/
+  #  baseUrl: https://kap.dhsdevelopments.com/
   theme: 'Editorial'
 
 allPages:

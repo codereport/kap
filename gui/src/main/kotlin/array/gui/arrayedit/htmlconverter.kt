@@ -73,7 +73,7 @@ fun htmlTableToArray(doc: Document): APLValue? {
                     is Double -> n.makeAPLNumber()
                     else -> null
                 }
-            } catch(e: java.text.ParseException) {
+            } catch (e: java.text.ParseException) {
                 null
             }
             list.add(parsed ?: APLString(value))

@@ -2,8 +2,6 @@ package array.gui.graph
 
 import array.*
 import javafx.application.Platform
-import javafx.scene.Scene
-import javafx.stage.Stage
 
 class LineGraphFunction : APLFunctionDescriptor {
     class LineGraphFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {

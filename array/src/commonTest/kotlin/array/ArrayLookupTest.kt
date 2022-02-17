@@ -89,7 +89,7 @@ class ArrayLookupTest : APLTest() {
     fun lookupMultiAxes() {
         parseAPLExpression("0 1 ⌷[0 1] 4 4 4 ⍴ 100+⍳100").let { result ->
             assertDimension(dimensionsOfSize(4), result)
-            assertArrayContent(arrayOf(104,105,106,107), result)
+            assertArrayContent(arrayOf(104, 105, 106, 107), result)
         }
     }
 
