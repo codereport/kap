@@ -23,7 +23,7 @@ private fun parseFunctionOrNull(parser: APLParser): Either<APLFunction, Pair<Tok
                 parser.tokeniser.pushBackToken(tokenWithPos)
                 Either.Right(Pair(token, pos))
             } else {
-                Either.Left(fn.make(pos))
+                Either.Left(fn.make(pos.withCallerName(token.symbolName)))
             }
         }
         is OpenFnDef -> {
