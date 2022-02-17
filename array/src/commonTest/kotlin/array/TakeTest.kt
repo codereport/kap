@@ -73,6 +73,30 @@ class TakeTest : APLTest() {
     }
 
     @Test
+    fun takeSkippedDimensions0() {
+        parseAPLExpression("1 ↑ 3 3 ⍴ ⍳9").let { result ->
+            assertDimension(dimensionsOfSize(1, 3), result)
+            assertArrayContent(arrayOf(0, 1, 2), result)
+        }
+    }
+
+    @Test
+    fun takeSkippedDimensions1() {
+        parseAPLExpression("3 ↑ 10 2 ⍴ ⍳20").let { result ->
+            assertDimension(dimensionsOfSize(3, 2), result)
+            assertArrayContent(arrayOf(0, 1, 2, 3, 4, 5), result)
+        }
+    }
+
+    @Test
+    fun takeSkippedDimensions2() {
+        parseAPLExpression("4 ↑ 3 2 ⍴ ⍳20").let { result ->
+            assertDimension(dimensionsOfSize(4, 2), result)
+            assertArrayContent(arrayOf(0, 1, 2, 3, 4, 5, 0, 0), result)
+        }
+    }
+
+    @Test
     fun dropSingleDimension() {
         parseAPLExpression("2 ↓ 100 200 300 400 500 600 700 800").let { result ->
             assertDimension(dimensionsOfSize(6), result)

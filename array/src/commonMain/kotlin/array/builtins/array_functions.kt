@@ -778,13 +778,24 @@ class TakeAPLFunction : APLFunctionDescriptor {
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            val aDimensions = a.dimensions
-            if (!((aDimensions.size == 0 && b.rank == 1) || (aDimensions.size == 1 && aDimensions[0] == b.rank))) {
-                throwAPLException(InvalidDimensionsException("Size of A must match the rank of B", pos))
+            val a0 = a.arrayify()
+            val aDimensions = a0.dimensions
+            val bDimensions = b.dimensions
+            if (aDimensions.size != 1) {
+                throwAPLException(InvalidDimensionsException("A must be a scalar or one-dimensional array", pos))
             }
-            return TakeArrayValue(
-                if (aDimensions.size == 0) intArrayOf(a.ensureNumber(pos).asInt()) else a.toIntArray(
-                    pos), b, pos)
+            val numSelections = aDimensions[0]
+            if (numSelections > bDimensions.size) {
+                throwAPLException(InvalidDimensionsException("Size of A must be less than or equal to the rank of B", pos))
+            }
+            val selection = IntArray(bDimensions.size) { i ->
+                if (i < numSelections) {
+                    a0.valueAtInt(i, pos)
+                } else {
+                    bDimensions[i]
+                }
+            }
+            return TakeArrayValue(selection, b, pos)
         }
     }
 
@@ -792,14 +803,8 @@ class TakeAPLFunction : APLFunctionDescriptor {
 }
 
 class DropArrayValue(val selection: IntArray, val source: APLValue) : APLArray() {
-    override val dimensions: Dimensions
-    private val sourceDimensions: Dimensions
-
-    init {
-        sourceDimensions = source.dimensions
-        dimensions =
-            Dimensions(selection.mapIndexed { index, v -> sourceDimensions[index] - v.absoluteValue }.toIntArray())
-    }
+    private val sourceDimensions = source.dimensions
+    override val dimensions = Dimensions(selection.mapIndexed { index, v -> sourceDimensions[index] - v.absoluteValue }.toIntArray())
 
     override fun valueAt(p: Int): APLValue {
         val coords = dimensions.positionFromIndex(p)
