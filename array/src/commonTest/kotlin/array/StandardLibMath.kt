@@ -8,13 +8,13 @@ class StandardLibMath : APLTest() {
     fun testSimpleMatrixInverse() {
         parseAPLExpression("⌹ 5 5 ⍴ 1 0 0 0 0 0", true).let { result ->
             assertDimension(dimensionsOfSize(5, 5), result)
-            assertArrayContent(
-                arrayOf(
-                    1, 0, 0, 0, 0,
-                    0, 1, 0, 0, 0,
-                    0, 0, 1, 0, 0,
-                    0, 0, 0, 1, 0,
-                    0, 0, 0, 0, 1
+            assertArrayContentDouble(
+                doubleArrayOf(
+                    1.0, 0.0, 0.0, 0.0, 0.0,
+                    0.0, 1.0, 0.0, 0.0, 0.0,
+                    0.0, 0.0, 1.0, 0.0, 0.0,
+                    0.0, 0.0, 0.0, 1.0, 0.0,
+                    0.0, 0.0, 0.0, 0.0, 1.0
                 ), result)
         }
     }

@@ -21,8 +21,6 @@ private fun parseEntry(value: Any?): APLValue {
     return when (value) {
         is Array<*> -> parseArray(value)
         is String -> APLString(value)
-        is Int -> value.makeAPLNumber()
-        is Long -> value.makeAPLNumber()
         is Double -> value.makeAPLNumber()
         is Boolean -> if (value) APLLONG_1 else APLLONG_0
         else -> parseObject(value.asDynamic())

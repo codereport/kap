@@ -55,9 +55,16 @@ class ComposeTest : APLTest() {
 
     @Test
     fun doubleOptimisedArrays() {
-        parseAPLExpression("(int:ensureDouble 301 ¯302 303 ¯304 305) (+∘×) (int:ensureDouble ¯10 ¯11 12 13 14)").let { result ->
+        parseAPLExpression("(int:ensureDouble 301.0 ¯302.0 303.0 ¯304.0 305.0) (+∘×) (int:ensureDouble ¯10.0 ¯11.0 12.0 13.0 14.0)").let { result ->
             assertDimension(dimensionsOfSize(5), result)
-            assertArrayContent(arrayOf(300.0, -303.0, 304.0, -303.0, 306.0), result)
+            assertArrayContent(
+                arrayOf(
+                    InnerDouble(300.0),
+                    InnerDouble(-303.0),
+                    InnerDouble(304.0),
+                    InnerDouble(-303.0),
+                    InnerDouble(306.0)),
+                result)
         }
     }
 
@@ -131,7 +138,7 @@ class ComposeTest : APLTest() {
     @Test
     fun simple2Train1() {
         parseAPLExpression("2 (-*) 5").let { result ->
-            assertSimpleNumber(-32, result)
+            assertAPLValue(InnerDouble(-32.0), result)
         }
     }
 

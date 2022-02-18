@@ -187,7 +187,6 @@ actual fun currentDirectory(): String {
 
 @OptIn(ExperimentalUnsignedTypes::class)
 actual fun readDirectoryContent(dirName: String): List<PathEntry> {
-    println("Loading directory: ${dirName}")
     val dir = opendir(dirName) ?: throw MPFileException("Can't open directory: ${dirName}")
     try {
         memScoped {

@@ -82,6 +82,14 @@ abstract class APLTest {
         }
     }
 
+    fun assertArrayContentDouble(expectedValue: DoubleArray, value: APLValue, message: String? = null) {
+        val prefix = if (message == null) "" else "${message}: "
+        assertEquals(expectedValue.size, value.size, "Array dimensions mismatch")
+        for (i in expectedValue.indices) {
+            assertAPLValue(InnerDouble(expectedValue[i]), value.valueAt(i), prefix)
+        }
+    }
+
     fun assertDimension(expectDimensions: Dimensions, result: APLValue, message: String? = null) {
         val dimensions = result.dimensions
         val prefix = if (message == null) "" else "${message}: "
@@ -102,8 +110,7 @@ abstract class APLTest {
         val v = value.unwrapDeferredValue()
         val prefix = "Expected value: ${expected}, actual: ${value}"
         val exprMessage = if (expr == null) prefix else "${prefix}, expr: ${expr}"
-        assertTrue(v.isScalar(), exprMessage)
-        assertTrue(v is APLNumber, exprMessage)
+        assertTrue(v is APLLong, exprMessage)
         assertEquals(expected, value.ensureNumber().asLong(), exprMessage)
     }
 
@@ -117,10 +124,7 @@ abstract class APLTest {
     }
 
     fun assertSimpleDouble(expected: Double, value: APLValue, message: String? = null) {
-        assertTrue(value.isScalar(), message)
-        val v = value.unwrapDeferredValue()
-        assertTrue(v is APLNumber, message)
-        assertEquals(expected, v.ensureNumber().asDouble(), message)
+        assertAPLValue(InnerDouble(expected), value, message)
     }
 
     fun assertNearDouble(nearDouble: NearDouble, result: APLValue, message: String? = null) {
@@ -156,14 +160,17 @@ abstract class APLTest {
 
     fun assertAPLValue(expected: Any, result: APLValue, message: String? = null) {
         when (expected) {
-            is Int -> assertSimpleNumber(expected.toLong(), result, message)
+            // Note: The ordering here is important, since the JS target treats all number types as the same type.
+            //       Because of this, the check for Long has to be done first, and we throw an explicit error if
+            //       the value is a Double since that will fail on JS but work everywhere else.
             is Long -> assertSimpleNumber(expected, result, message)
-            is Double -> assertSimpleDouble(expected, result, message)
+            is Int -> assertSimpleNumber(expected.toLong(), result, message)
+            is Double -> throw IllegalArgumentException("Plain doubles are not supported")
             is Complex -> assertSimpleComplex(expected, result, message)
             is String -> assertString(expected, result, message)
             is NearDouble -> assertNearDouble(expected, result, message)
             is InnerTest -> expected.assertContent(result, message)
-            else -> throw IllegalArgumentException("No support for comparing values of type: ${expected::class.simpleName}")
+            else -> throw IllegalArgumentException("No support for comparing values of type: ${result::class.simpleName}")
         }
     }
 
@@ -202,9 +209,22 @@ abstract class APLTest {
         }
     }
 
-    inner class InnerAPLNull() : InnerTest {
+    inner class InnerAPLNull : InnerTest {
         override fun assertContent(result: APLValue, message: String?) {
             assertDimension(dimensionsOfSize(0), result, message)
+        }
+    }
+
+    inner class InnerDouble(val expectedDouble: Double) : InnerTest {
+        override fun assertContent(result: APLValue, message: String?) {
+            assertTrue(result is APLDouble, "Result should be double, was: ${result}")
+            assertEquals(expectedDouble, result.ensureNumber().asDouble())
+        }
+    }
+
+    inner class InnerDoubleOrLong(val expectedDouble: Double) : InnerTest {
+        override fun assertContent(result: APLValue, message: String?) {
+            assertEquals(expectedDouble, result.ensureNumber().asDouble())
         }
     }
 }

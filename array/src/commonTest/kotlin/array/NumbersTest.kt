@@ -18,9 +18,9 @@ class NumbersTest : APLTest() {
         assertSimpleNumber(0, parseAPLExpression("1÷0"))
         assertSimpleNumber(0, parseAPLExpression("100÷0"))
         assertSimpleNumber(0, parseAPLExpression("¯100÷0"))
-        assertSimpleNumber(0, parseAPLExpression("12.2÷0"))
-        assertSimpleNumber(0, parseAPLExpression("2÷0.0"))
-        assertSimpleNumber(0, parseAPLExpression("2.0÷0.0"))
+        assertSimpleDouble(0.0, parseAPLExpression("12.2÷0"))
+        assertSimpleDouble(0.0, parseAPLExpression("2÷0.0"))
+        assertSimpleDouble(0.0, parseAPLExpression("2.0÷0.0"))
         assertSimpleNumber(2, parseAPLExpression("4÷2"))
         assertSimpleNumber(20, parseAPLExpression("40÷2"))
         assertDoubleWithRange(Pair(3.33332, 3.33334), parseAPLExpression("10÷3"))
@@ -91,13 +91,13 @@ class NumbersTest : APLTest() {
 
     @Test
     fun testExponential() {
-        assertSimpleNumber(1024, parseAPLExpression("2⋆10"))
+        assertSimpleDouble(1024.0, parseAPLExpression("2⋆10"))
         assertDoubleWithRange(Pair(0.0009, 0.0011), parseAPLExpression("10⋆¯3"))
-        assertSimpleNumber(0, parseAPLExpression("0⋆10"))
-        assertSimpleNumber(1, parseAPLExpression("10⋆0"))
+        assertSimpleDouble(0.0, parseAPLExpression("0⋆10"))
+        assertSimpleDouble(1.0, parseAPLExpression("10⋆0"))
         assertComplexWithRange(Pair(-0.0000001, 0.0000001), Pair(1.732050807, 1.732050809), parseAPLExpression("¯3⋆0.5"))
         assertComplexWithRange(Pair(0.01342669136, 0.01342669138), Pair(0.04132310697, 0.04132310699), parseAPLExpression("¯7.1*¯1.6"))
-        assertSimpleNumber(-27, parseAPLExpression("¯3⋆3"))
+        assertSimpleDouble(-27.0, parseAPLExpression("¯3⋆3"))
     }
 
     @Test
@@ -135,7 +135,7 @@ class NumbersTest : APLTest() {
     @Test
     fun functionAliases() {
         val result = parseAPLExpression("2*4")
-        assertSimpleNumber(16, result)
+        assertSimpleDouble(16.0, result)
     }
 
     private fun assertMathsOperation(op: (Long, Long) -> Long, name: String) {
@@ -178,7 +178,7 @@ class NumbersTest : APLTest() {
     fun positiveIntegerGamma() {
         parseAPLExpression("!1 2 10 11").let { result ->
             assertDimension(dimensionsOfSize(4), result)
-            assertArrayContent(arrayOf(1, 2, 3628800, 39916800), result)
+            assertArrayContent(arrayOf(InnerDouble(1.0), InnerDouble(2.0), InnerDouble(3628800.0), InnerDouble(39916800.0)), result)
         }
     }
 

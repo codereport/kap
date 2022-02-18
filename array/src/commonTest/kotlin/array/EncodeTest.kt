@@ -90,7 +90,7 @@ class EncodeTest : APLTest() {
     fun decodeSimple() {
         parseAPLExpression("(3⍴2) ⊤ 3", true).let { result ->
             assertDimension(dimensionsOfSize(3), result)
-            assertArrayContent(arrayOf(0, 1, 1), result)
+            assertArrayContent(arrayOf(InnerDoubleOrLong(0.0), InnerDoubleOrLong(1.0), InnerDoubleOrLong(1.0)), result)
         }
     }
 
@@ -98,7 +98,7 @@ class EncodeTest : APLTest() {
     fun decodeOversized() {
         parseAPLExpression("(2⍴2) ⊤ 7", true).let { result ->
             assertDimension(dimensionsOfSize(2), result)
-            assertArrayContent(arrayOf(1, 1), result)
+            assertArrayContent(arrayOf(InnerDoubleOrLong(1.0), InnerDoubleOrLong(1.0)), result)
         }
     }
 
@@ -106,7 +106,7 @@ class EncodeTest : APLTest() {
     fun decodeDifferentValues() {
         parseAPLExpression("2 3 6 ⊤ 15", true).let { result ->
             assertDimension(dimensionsOfSize(3), result)
-            assertArrayContent(arrayOf(0, 2, 3), result)
+            assertArrayContent(arrayOf(InnerDoubleOrLong(0.0), InnerDoubleOrLong(2.0), InnerDoubleOrLong(3.0)), result)
         }
     }
 
