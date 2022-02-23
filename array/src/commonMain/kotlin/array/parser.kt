@@ -69,7 +69,7 @@ class APLParser(val tokeniser: TokenGenerator) {
 
     fun popEnvironment(): Environment {
         val env = environments.removeLast()
-        assertx(environments.size > 0) { "attempt to pop environment when envrionment list is empty" }
+        assertx(environments.size > 0) { "attempt to pop environment when environment list is empty" }
         return env
     }
 

@@ -699,7 +699,7 @@ class AccessFromIndexAPLFunction : APLFunctionDescriptor {
                     val axisInt = axesArray[p]
                     val v = if (m.dimensions.size == 0) {
                         Either.Left(m.ensureNumber(pos).asInt()
-                                        .also { posAlongAxis -> checkAxisPositionIsInRange(posAlongAxis, bd, axisInt, pos) })
+                            .also { posAlongAxis -> checkAxisPositionIsInRange(posAlongAxis, bd, axisInt, pos) })
                     } else {
                         Either.Right(IntArrayValue.fromAPLValue(m, pos))
                     }
@@ -1618,7 +1618,12 @@ class CaseValue(val selectionArray: APLValue, val values: List<APLValue>, val po
         if (index < 0 || index >= values.size) {
             throwAPLException(InvalidDimensionsException("Attempt to read index ${index} from array (n=${values.size}", pos))
         }
-        return values[index].valueAt(p)
+        val v = values[index]
+        return if (v.isScalar()) {
+            v
+        } else {
+            v.valueAt(p)
+        }
     }
 }
 
@@ -1631,7 +1636,8 @@ class CaseFunction : APLFunctionDescriptor {
             }
             val aDimensions = a.dimensions
             val values = b.membersSequence().map { v ->
-                unless(v.dimensions.compareEquals(aDimensions)) {
+                val d = v.dimensions
+                unless(d.size == 0 || d.compareEquals(aDimensions)) {
                     throwAPLException(InvalidDimensionsException("Unmatched dimensions in selection list", pos))
                 }
                 v

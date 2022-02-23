@@ -102,4 +102,33 @@ class CaseTest : APLTest() {
             assertArrayContent(arrayOf(0, 1001, 202, 203), result)
         }
     }
+
+    @Test
+    fun caseWithScalarArg0() {
+        parseAPLExpression("0 1 1 % 9 (5 6 7)").let { result ->
+            assert1DArray(arrayOf(9, 6, 7), result)
+        }
+    }
+
+    @Test
+    fun caseWithScalarArg1() {
+        parseAPLExpression("0 1 1 % (5 6 7) 9").let { result ->
+            assert1DArray(arrayOf(5, 9, 9), result)
+        }
+    }
+
+    @Test
+    fun caseWithScalarArg2() {
+        parseAPLExpression("(2 2 ⍴ 0 0 1 1) % 9 (2 2 ⍴ 3 4 5 6)").let { result ->
+            assertDimension(dimensionsOfSize(2, 2), result)
+            assertArrayContent(arrayOf(9, 9, 5, 6), result)
+        }
+    }
+
+    @Test
+    fun caseWithSingleArgument() {
+        parseAPLExpression("0 0 % (,⊂ 1 2)").let { result ->
+            assert1DArray(arrayOf(1, 2), result)
+        }
+    }
 }
