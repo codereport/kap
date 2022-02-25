@@ -9,6 +9,7 @@ import javafx.collections.ObservableList
 import javafx.event.EventHandler
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.MenuItem
+import javafx.scene.control.TablePosition
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
@@ -75,13 +76,34 @@ class ArrayEditSpreadsheetView : SpreadsheetView() {
         return gridBase
     }
 
+    private fun insertRowAbove() {
+        selectionModel.selectedCells.minOf { it.row }.let { row ->
+            content.insert(0, row, 1)
+        }
+    }
+
+    private fun insertRowBelow() {
+
+    }
+
     override fun getSpreadsheetViewContextMenu(): ContextMenu {
+        println("Creating menu")
         val menu = super.getSpreadsheetViewContextMenu()
         menu.items.add(MenuItem("Insert expression").apply {
             onAction = EventHandler { event ->
                 insertExpressionCallback!!()
             }
             accelerator = KeyCodeCombination(KeyCode.O, KeyCombination.SHORTCUT_DOWN)
+        })
+        menu.items.add(MenuItem("Insert row above").apply {
+            onAction = EventHandler { event ->
+                insertRowAbove()
+            }
+        })
+        menu.items.add(MenuItem("Insert row below").apply {
+            onAction = EventHandler { event ->
+                insertRowBelow()
+            }
         })
         return menu
     }

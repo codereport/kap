@@ -172,33 +172,6 @@ class ArrayEditor {
             title = "Expression"
         }
 
-//        val vbox = VBox()
-//        val hbox = HBox()
-//        hbox.children.add(Label("Expression:"))
-//        val styledArea = InputFieldStyledArea()
-//        HBox.setHgrow(styledArea, Priority.ALWAYS)
-//        styledArea.setPrefSize(300.0, 40.0)
-//        hbox.children.add(styledArea)
-//
-//        vbox.children.add(hbox)
-//
-//        ButtonBar(ButtonBar.BUTTON_ORDER_LINUX).let { buttonBar ->
-//            Button("OK").let { okButton ->
-//                okButton.onAction = EventHandler {
-//                    sendExpressionRequest(styledArea.text, selection)
-//                    stage.close()
-//                }
-//                ButtonBar.setButtonData(okButton, ButtonBar.ButtonData.OK_DONE)
-//                buttonBar.buttons.add(okButton)
-//            }
-//            Button("Cancel").let { cancelButton ->
-//                cancelButton.onAction = EventHandler { stage.close() }
-//                ButtonBar.setButtonData(cancelButton, ButtonBar.ButtonData.CANCEL_CLOSE)
-//                buttonBar.buttons.add(cancelButton)
-//            }
-//            vbox.children.add(buttonBar)
-//        }
-
         val loader = FXMLLoader(ArrayEditor::class.java.getResource("insertexpression.fxml"))
         val root = loader.load<Parent>()
         val controller = loader.getController<InsertExpression>()

@@ -13,7 +13,7 @@ interface APLOperatorOneArg : APLOperator {
     fun combineFunction(fn: APLFunction, operatorAxis: Instruction?, pos: Position): APLFunctionDescriptor
 }
 
-private fun parseFunctionOrNull(parser: APLParser): Either<APLFunction, Pair<Token, Position>> {
+private fun parseFunctionOrNull(parser: APLParser): Either<Pair<APLFunction, Position>, Pair<Token, Position>> {
     val tokenWithPos = parser.tokeniser.nextTokenWithPosition()
     val (token, pos) = tokenWithPos
     return when (token) {
@@ -23,21 +23,21 @@ private fun parseFunctionOrNull(parser: APLParser): Either<APLFunction, Pair<Tok
                 parser.tokeniser.pushBackToken(tokenWithPos)
                 Either.Right(Pair(token, pos))
             } else {
-                Either.Left(fn.make(pos.withCallerName(token.symbolName)))
+                Either.Left(Pair(fn.make(pos.withCallerName(token.symbolName)), pos))
             }
         }
         is OpenFnDef -> {
-            Either.Left(parser.parseFnDefinition(pos).make(pos))
+            Either.Left(Pair(parser.parseFnDefinition(pos).make(pos), pos))
         }
         is OpenParen -> {
             val holder = parser.parseExprToplevel(CloseParen)
             if (holder !is ParseResultHolder.FnParseResult) {
                 throw ParseException("Expected function", pos)
             }
-            Either.Left(holder.fn)
+            Either.Left(Pair(holder.fn, pos))
         }
         is ApplyToken -> {
-            Either.Left(parser.parseApplyDefinition().make(pos))
+            Either.Left(Pair(parser.parseApplyDefinition().make(pos), pos))
         }
         else -> {
             parser.tokeniser.pushBackToken(tokenWithPos)
@@ -51,7 +51,10 @@ interface APLOperatorTwoArg : APLOperator {
         val axis = aplParser.parseAxis()
         return when (val fn = parseFunctionOrNull(aplParser)) {
             is Either.Left -> {
-                combineFunction(currentFn, fn.value, axis, opPos).make(opPos)
+                combineFunction(currentFn, fn.value.first, axis, opPos).make(
+                    opPos.copy(
+                        endLine = fn.value.second.endLine,
+                        endCol = fn.value.second.endCol))
             }
             is Either.Right -> {
                 val (symbol, pos) = fn.value
@@ -156,7 +159,10 @@ class UserDefinedOperatorTwoArg(
             throw ParseException("Axis argument not supported", opPos)
         }
         return when (val fn = parseFunctionOrNull(aplParser)) {
-            is Either.Left -> FnCall(currentFn, fn.value, opPos)
+            is Either.Left -> FnCall(
+                currentFn,
+                fn.value.first,
+                opPos.copy(endLine = fn.value.second.endLine, endCol = fn.value.second.endCol))
             is Either.Right -> {
                 val valueArg = aplParser.parseValue()
                 aplParser.tokeniser.pushBackToken(valueArg.lastToken)

@@ -479,7 +479,8 @@ class APLParser(val tokeniser: TokenGenerator) {
             val tokenWithPosition = tokeniser.nextTokenWithPosition()
             val (token, pos) = tokenWithPosition
             if (listOf(CloseParen, EndOfFile, StatementSeparator, CloseFnDef, CloseBracket, ListSeparator, Newline).contains(
-                        tokenWithPosition.token)) {
+                    tokenWithPosition.token)
+            ) {
                 val resultList = makeResultList(leftArgs)
                 return if (resultList == null) {
                     ParseResultHolder.EmptyParseResult(tokenWithPosition)
@@ -721,7 +722,10 @@ class APLParser(val tokeniser: TokenGenerator) {
             when (val token = currToken.token) {
                 is Symbol -> {
                     val op = tokeniser.engine.getOperator(token) ?: break
-                    currentFn = op.parseAndCombineFunctions(this, currentFn, currToken.pos.withCallerName(token.symbolName))
+                    currentFn = op.parseAndCombineFunctions(
+                        this,
+                        currentFn,
+                        fn.pos.copy(callerName = token.symbolName, endLine = currToken.pos.endLine, endCol = currToken.pos.endCol))
                 }
                 else -> break
             }
