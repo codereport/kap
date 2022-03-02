@@ -34,8 +34,10 @@ class MutableAPLValue(value: APLValue) {
             val res = if (positionOnAxis >= index && positionOnAxis < index + n) {
                 APLLONG_0
             } else {
-                val offset = if (positionOnAxis >= index + n) index * newDimensionsMultipliers[axis] else 0
-                elements[i - offset]
+                if (positionOnAxis >= index + n) {
+                    p[axis] = positionOnAxis - n
+                }
+                elements[dimensions.indexFromPosition(p)]
             }
             newContent.add(res)
         }
