@@ -1,9 +1,6 @@
 package array.gui.arrayedit
 
-import array.APLArrayImpl
-import array.APLLONG_1
-import array.APLString
-import array.dimensionsOfSize
+import array.*
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
 import javafx.event.EventHandler
@@ -92,20 +89,11 @@ class ArrayEditSpreadsheetView : SpreadsheetView() {
         val d = content.dimensions
         if (d.size == 1) {
             content.insert(0, rowIndex, 1)
-            grid.rows.add(
-                rowIndex,
-                FXCollections.observableArrayList(KapValueSpreadsheetCellType.createCell(content, rowIndex, 0, rowIndex)))
         } else {
             content.insert(d.size - 2, rowIndex, 1)
-            val rowData = FXCollections.observableArrayList<SpreadsheetCell>()
-            val p = displayedPosition.copyOf()
-            p[d.size - 2] = rowIndex
-            val baseOffset = d.indexFromPosition(p)
-            repeat(d.lastDimension()) { i ->
-                rowData.add(KapValueSpreadsheetCellType.createCell(content, rowIndex, i, baseOffset + i))
-            }
-            grid.rows.add(rowIndex, rowData)
         }
+        grid = makeGridBase()
+        setGrid(grid)
     }
 
     private fun insertColLeft() {
@@ -122,16 +110,8 @@ class ArrayEditSpreadsheetView : SpreadsheetView() {
         val d = content.dimensions
         if (d.size > 1) {
             content.insert(d.size - 1, colIndex, 1)
-            val p = displayedPosition.copyOf()
-            val baseOffset = d.indexFromPosition(p)
-            val multipliers = d.multipliers()
-            val stride = multipliers[1]
-            val oldGrid = grid
-            grid.columnHeaders.add(colIndex, "new")
-            grid.rows.forEachIndexed { i, row ->
-                row.add(colIndex, KapValueSpreadsheetCellType.createCell(content, i, colIndex, baseOffset + i * stride + colIndex))
-            }
-            setGrid(oldGrid)
+            grid = makeGridBase()
+            setGrid(grid)
         }
     }
 
