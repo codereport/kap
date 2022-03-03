@@ -67,10 +67,10 @@ class GraphController {
                 if (++p >= n) {
                     p = 0
                     result.add(XYChart.Series(currList).apply { name = "foo" })
-                    assert(result.size < numLists)
+                    assertx(result.size < numLists)
                 }
             }
-            assert(p == 0)
+            assertx(p == 0)
 
             return result
         }

@@ -36,10 +36,10 @@ class ArrayEditSpreadsheetView : SpreadsheetView() {
 
     private fun makeGridBase(): Grid {
         val d = content.dimensions
-        assert(d.size == displayedPosition.size)
-        assert(displayedPosition[displayedPosition.size - 1] == 0)
+        assertx(d.size == displayedPosition.size)
+        assertx(displayedPosition[displayedPosition.size - 1] == 0)
         if (d.size > 1) {
-            assert(displayedPosition[displayedPosition.size - 2] == 0)
+            assertx(displayedPosition[displayedPosition.size - 2] == 0)
         }
         val baseIndex = if (d.contentSize() == 0) 0 else d.indexFromPosition(displayedPosition)
         val (numRows, numCols) = if (d.size == 1) Pair(d[0], 1) else Pair(d[d.size - 2], d[d.size - 1])

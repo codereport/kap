@@ -209,7 +209,7 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int, val settings: S
             val width = array!!.width
             val height = array!!.height
 
-            assert(arrayValues.size == width * height)
+            assertx(arrayValues.size == width * height)
             val imageWidth = image.width
             val imageHeight = image.height
             val xStride = width.toDouble() / imageWidth
@@ -234,7 +234,7 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int, val settings: S
             val width = array!!.width
             val height = array!!.height
 
-            assert(imageData.size == width * height * 3)
+            assertx(imageData.size == width * height * 3)
             val lineWidth = width * 3
             val imageWidth = image.width
             val imageHeight = image.height

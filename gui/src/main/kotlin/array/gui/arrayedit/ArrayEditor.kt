@@ -127,7 +127,7 @@ class ArrayEditor {
 
     private fun axisFieldsToPosition(content: MutableAPLValue): IntArray {
         val d = content.dimensions
-        assert(axisInputFields.size == max(d.size - 2, 0))
+        assertx(axisInputFields.size == max(d.size - 2, 0))
         return IntArray(d.size) { i ->
             if (i < d.size - 2) {
                 axisInputFields[i].value

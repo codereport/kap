@@ -1,6 +1,7 @@
 package array.gui.styledarea
 
 import array.APLValue
+import array.assertx
 import array.gui.Client
 import array.gui.display.ValueRenderer
 import javafx.application.Platform
@@ -155,7 +156,7 @@ class ROStyledArea(
             }
             pos--
         }
-        assert(pos >= 0)
+        assertx(pos >= 0)
 
         val inputStartPos = pos + 1
         while (pos >= 0) {

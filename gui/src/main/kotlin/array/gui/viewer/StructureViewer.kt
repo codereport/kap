@@ -140,7 +140,7 @@ abstract class KNodeLink(val upValue: KNode, val downValue: KNode) {
 
 private fun makeLabelLine(x1: Double, y1: Double, x2: Double, y2: Double, label: String): Node {
     // Make sure line is top-to-bottom
-    assert(y1 <= y2)
+    assertx(y1 <= y2)
 
     val line = Line(x1, y1, x2, y2).apply {
         styleClass.add("node-line")
@@ -286,7 +286,7 @@ class ContainerGraphNode(
 ) : KNode(graph) {
 
     init {
-        assert(subNodes.isNotEmpty())
+        assertx(subNodes.isNotEmpty())
     }
 
     override fun bounds(): BoundsDimensions {

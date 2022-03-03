@@ -14,7 +14,7 @@ class MutableAPLValue(value: APLValue) {
     }
 
     fun makeAPLArray(): APLValue {
-        assert(dimensions.contentSize() == elements.size)
+        assertx(dimensions.contentSize() == elements.size)
         return APLArrayImpl(dimensions, elements.toTypedArray())
     }
 
