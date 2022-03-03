@@ -76,4 +76,32 @@ class FindIndexTest : APLTest() {
         assertArrayContent(arrayOf(1, 2), result)
         assertEquals("1011101112", out)
     }
+
+    @Test
+    fun indexWithStringArrayRef() {
+        parseAPLExpression("foo ← \"jkc\" ⋄ \"abc\" ⍳ foo[2]").let { result ->
+            assertSimpleNumber(2, result)
+        }
+    }
+
+    @Test
+    fun indexWithString() {
+        parseAPLExpression("\"abc\" ⍳ @c").let { result ->
+            assertSimpleNumber(2, result)
+        }
+    }
+
+    @Test
+    fun indexWithDifferentTypes0() {
+        parseAPLExpression("\"abc\" ⍳ 0").let { result ->
+            assertSimpleNumber(3, result)
+        }
+    }
+
+    @Test
+    fun indexWithSubArrays() {
+        parseAPLExpression("(1 2 3) (4 5 6) ⍳ (⊂4 5 6)").let { result ->
+            assertSimpleNumber(1, result)
+        }
+    }
 }

@@ -98,15 +98,16 @@ class FindIndexArray(val a: APLValue, val b: APLValue, val context: RuntimeConte
     override val dimensions = b.dimensions
 
     override fun valueAt(p: Int): APLValue {
-        val reference = b.valueAt(p).unwrapDeferredValue()
+        val reference = b.valueAt(p)
         return findFromRef(reference)
     }
 
     private fun findFromRef(reference: APLValue): APLLong {
+        val refColl = reference.collapse()
         val elementCount = a.size
         for (i in 0 until elementCount) {
             val v = a.valueAt(i)
-            if (v.compareEquals(reference)) {
+            if (v.compareEquals(refColl)) {
                 return i.makeAPLNumber()
             }
         }
@@ -115,7 +116,7 @@ class FindIndexArray(val a: APLValue, val b: APLValue, val context: RuntimeConte
 
     override fun unwrapDeferredValue(): APLValue {
         return if (dimensions.isEmpty()) {
-            findFromRef(b)
+            findFromRef(b.disclose())
         } else {
             this
         }
