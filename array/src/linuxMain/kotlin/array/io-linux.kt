@@ -81,7 +81,6 @@ actual fun openOutputCharFile(name: String): CharacterConsumer {
     return LinuxCharConsumer(fd)
 }
 
-@OptIn(ExperimentalUnsignedTypes::class)
 class LinuxByteProvider(val fd: Int, val name: String) : ByteProvider {
     override fun sourceName() = name
 
@@ -151,7 +150,6 @@ private fun nativeErrorString(): String {
     return strerror(errno)?.toKString() ?: "unknown error"
 }
 
-@OptIn(ExperimentalUnsignedTypes::class)
 actual fun fileType(path: String): FileNameType? {
     memScoped {
         val statInfo = alloc<stat>()
@@ -185,7 +183,6 @@ actual fun currentDirectory(): String {
     }
 }
 
-@OptIn(ExperimentalUnsignedTypes::class)
 actual fun readDirectoryContent(dirName: String): List<PathEntry> {
     val dir = opendir(dirName) ?: throw MPFileException("Can't open directory: ${dirName}")
     try {

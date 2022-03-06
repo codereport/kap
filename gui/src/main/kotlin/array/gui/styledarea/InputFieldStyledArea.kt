@@ -6,10 +6,11 @@ import org.fxmisc.richtext.StyledTextArea
 import org.fxmisc.richtext.TextExt
 import org.fxmisc.richtext.model.SegmentOps
 import org.fxmisc.richtext.model.StyledSegment
+import org.fxmisc.richtext.model.TextOps
 import java.util.function.BiConsumer
 import java.util.function.Function
 
-class InputFieldStyledArea() : KAPEditorStyledArea<InputFieldParStyle, String, InputFieldTextStyle>(
+class InputFieldStyledArea : KAPEditorStyledArea<InputFieldParStyle, String, InputFieldTextStyle>(
     InputFieldParStyle(),
     applyParagraphStyle,
     InputFieldTextStyle(),
@@ -18,7 +19,7 @@ class InputFieldStyledArea() : KAPEditorStyledArea<InputFieldParStyle, String, I
 ) {
     companion object {
         val applyParagraphStyle = BiConsumer<TextFlow, InputFieldParStyle> { flow, parStyle -> }
-        val segOps = SegmentOps.styledTextOps<InputFieldTextStyle>()
+        val segOps: TextOps<String, InputFieldTextStyle> = SegmentOps.styledTextOps()
         val nodeFactory = Function<StyledSegment<String, InputFieldTextStyle>, Node> { seg ->
             val applyStyle = { a: TextExt, b: InputFieldTextStyle ->
             }

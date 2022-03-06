@@ -278,7 +278,7 @@ class ArrayEditor {
 
     // The warning is caused by a bug in IDEA
     // See https://youtrack.jetbrains.com/issue/KTIJ-20744 for details
-    @Suppress("KotlinConstantConditions")
+    @Suppress("KotlinConstantConditions", "USELESS_IS_CHECK")
     private fun formatExceptionDescription(e: Exception) = when (e) {
         is APLGenericException -> e.formattedError()
         else -> e.message ?: "no information available"

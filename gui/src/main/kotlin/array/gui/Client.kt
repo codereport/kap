@@ -299,7 +299,7 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
     }
 
     // Suppress here because of this issue https://youtrack.jetbrains.com/issue/KTIJ-20744
-    @Suppress("KotlinConstantConditions")
+    @Suppress("KotlinConstantConditions", "USELESS_IS_CHECK")
     private fun displayResult(result: Either<APLValue, Exception>) {
         when (result) {
             is Either.Left -> resultList.addResult(result.value)

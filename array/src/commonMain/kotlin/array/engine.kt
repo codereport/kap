@@ -611,10 +611,10 @@ class Engine(numComputeEngines: Int? = null) {
     var workingDirectory: String? = currentDirectory()
         get() = field
         set(s) {
-            if (s != null && fileType(s) != FileNameType.DIRECTORY) {
-                field = "/"
+            field = if (s != null && fileType(s) != FileNameType.DIRECTORY) {
+                "/"
             } else {
-                field = s
+                s
             }
         }
 }

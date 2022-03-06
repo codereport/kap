@@ -6,7 +6,6 @@ import kotlinx.cinterop.*
 
 actual val backendSupportsJson = true
 
-@OptIn(ExperimentalUnsignedTypes::class)
 actual fun parseJsonToAPL(input: CharacterProvider): APLValue {
     val buf = StringBuilder()
     input.lines().forEach { line ->
@@ -41,7 +40,6 @@ private fun parseEntry(value: CPointer<json_t>): APLValue {
     }
 }
 
-@OptIn(ExperimentalUnsignedTypes::class)
 private fun parseArray(obj: CPointer<json_t>): APLValue {
     val content = ArrayList<APLValue>()
     for (i in 0 until json_array_size(obj).toInt()) {

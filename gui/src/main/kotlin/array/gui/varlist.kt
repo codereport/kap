@@ -6,6 +6,7 @@ import array.msofficereader.saveExcelFile
 import array.rendertext.renderStringValue
 import javafx.application.Platform
 import javafx.collections.FXCollections
+import javafx.collections.ObservableList
 import javafx.event.EventHandler
 import javafx.fxml.FXMLLoader
 import javafx.scene.Node
@@ -26,7 +27,7 @@ class VariableListController(val client: Client) {
     lateinit var table: FilteredTableView<ValueWrapper>
 
     val node get() = borderPane
-    val content = FXCollections.observableArrayList<ValueWrapper>()
+    val content: ObservableList<ValueWrapper> = FXCollections.observableArrayList()
 
     init {
         val loader = FXMLLoader(VariableListController::class.java.getResource("varlist.fxml"))

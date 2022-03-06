@@ -16,7 +16,6 @@ class CurlTask {
         return httpPost(url, null, headers)
     }
 
-    @OptIn(ExperimentalUnsignedTypes::class)
     fun httpPost(url: String, postContent: ByteArray?, headers: Map<String, String>?): HttpResultLinux {
         val stableRef = StableRef.create(this)
         val curl = curl_easy_init() ?: throw IllegalStateException("Initialisation error in libcurl")
@@ -65,11 +64,8 @@ class CurlTask {
     }
 
     private fun escapeString(curl: COpaquePointer, s: String): String {
-        val result = curl_easy_escape(curl, s, 0)
+        val result = curl_easy_escape(curl, s, 0) ?: throw IllegalStateException("Unable to escape string")
         try {
-            if (result == null) {
-                throw IllegalStateException("Unable to escape string")
-            }
             return result.toKString()
         } finally {
             curl_free(result)
@@ -95,7 +91,6 @@ actual fun httpPost(url: String, content: ByteArray, headers: Map<String, String
     return task.httpPost(url, content, headers)
 }
 
-@OptIn(ExperimentalUnsignedTypes::class)
 private fun handleWrite(buffer: CPointer<ByteVar>?, size: size_t, nitems: size_t, userdata: COpaquePointer?): size_t {
     if (buffer == null) return 0u
     if (userdata != null) {

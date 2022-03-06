@@ -6,7 +6,6 @@ import kotlinx.browser.window
 import org.w3c.xhr.XMLHttpRequest
 import react.dom.render
 
-@OptIn(ExperimentalJsExport::class)
 fun main() {
     window.onload = {
         loadLibraries()

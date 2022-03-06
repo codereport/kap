@@ -49,7 +49,6 @@ actual fun String.asCodepointList(): List<Int> {
     return result
 }
 
-@OptIn(ExperimentalUnsignedTypes::class)
 actual fun String.asGraphemeList(): List<String> {
     val text = this
     memScoped {

@@ -84,7 +84,7 @@ class ResultList3(val client: Client) {
     }
 
     // Need to suppress error warning here because of https://youtrack.jetbrains.com/issue/KTIJ-20744
-    @Suppress("KotlinConstantConditions")
+    @Suppress("KotlinConstantConditions", "USELESS_IS_CHECK")
     fun addExceptionResult(e: Exception) {
         val message = if (e is APLGenericException) {
             e.formattedError()
