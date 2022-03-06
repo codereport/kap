@@ -78,7 +78,7 @@ abstract class APLTest {
         val prefix = if (message == null) "" else "${message}: "
         assertEquals(expectedValue.size, value.size, "Array dimensions mismatch")
         for (i in expectedValue.indices) {
-            assertAPLValue(expectedValue[i], value.valueAt(i), prefix)
+            assertAPLValue(expectedValue[i], value.valueAt(i), "at index: ${i}: ${prefix}")
         }
     }
 

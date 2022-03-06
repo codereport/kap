@@ -283,6 +283,8 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("⫽", SelectElementsLastAxisFunction())
         registerNativeFunction("/", SelectElementsLastAxisFunction()) // Temporary alias while migrating code
         registerNativeFunction("⌿", SelectElementsFirstAxisFunction())
+        registerNativeFunction("\\", ExpandLastAxisFunction())
+        registerNativeFunction("⍀", ExpandFirstAxisFunction())
         registerNativeFunction("∼", NotAPLFunction())
         registerNativeFunction("⍕", FormatAPLFunction())
         registerNativeFunction("⍸", WhereAPLFunction())
