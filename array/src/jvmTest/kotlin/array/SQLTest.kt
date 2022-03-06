@@ -123,19 +123,64 @@ class SQLTest : APLTest() {
         assertFailsWith<SQLAPLException> {
             parseAPLExpression(
                 """
-            |c ← sql:connect "jdbc:sqlite::memory:"
-            |c sql:update "create table foo (a int primary key, b varchar(10))"
-            |c sql:update "insert into foo values (1,'foo')"
-            |c sql:update "insert into foo values (2,'testing')"
-            |c sql:update "insert into foo values (3,'xx')"
-            |c sql:update "insert into foo values (4,'testing2')"
-            |c sql:update "insert into foo values (5,'testing-found')"
-            |statement ← c sql:prepare "select a, b from foo where a = ?"
-            |result ← statement sql:queryPrepared 5
-            |close statement
-            |close c
-            |result
+                |c ← sql:connect "jdbc:sqlite::memory:"
+                |c sql:update "create table foo (a int primary key, b varchar(10))"
+                |c sql:update "insert into foo values (1,'foo')"
+                |c sql:update "insert into foo values (2,'testing')"
+                |c sql:update "insert into foo values (3,'xx')"
+                |c sql:update "insert into foo values (4,'testing2')"
+                |c sql:update "insert into foo values (5,'testing-found')"
+                |statement ← c sql:prepare "select a, b from foo where a = ?"
+                |result ← statement sql:queryPrepared 5
+                |close statement
+                |close c
+                |result
             """.trimMargin())
+        }
+    }
+
+    @Test
+    fun invalidConnectString() {
+        assertFailsWith<SQLAPLException> {
+            parseAPLExpression("sql:connect \"jdbc:foo::memory:\"")
+        }
+    }
+
+    @Test
+    fun invalidQuery() {
+        assertFailsWith<SQLAPLException> {
+            parseAPLExpression(
+                """
+                |c ← sql:connect "jdbc:sqlite::memory:"
+                |c sql:query "select * from bar"
+                """.trimMargin()
+            )
+        }
+    }
+
+    @Test
+    fun invalidPreparedQuery() {
+        assertFailsWith<SQLAPLException> {
+            parseAPLExpression(
+                """
+                |c ← sql:connect "jdbc:sqlite::memory:"
+                |statement ← c sql:prepare "select a, b from foo where a = ?"
+                |result ← statement sql:queryPrepared ,5
+                """.trimMargin()
+            )
+        }
+    }
+
+    @Test
+    fun invalidPreparedUpdate() {
+        assertFailsWith<SQLAPLException> {
+            parseAPLExpression(
+                """
+                |c ← sql:connect "jdbc:sqlite::memory:"
+                |statement ← c sql:prepare "update foo set a = 1 where a = ?"
+                |result ← statement sql:updatePrepared ,5
+                """.trimMargin()
+            )
         }
     }
 }

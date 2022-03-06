@@ -41,7 +41,7 @@ fun <T : APLGenericException> T.details(description: String): T {
 
 class APLEvaluationInterrupted(pos: Position? = null) : APLGenericException("Interrupted", pos)
 
-open class APLEvalException(message: String, pos: Position? = null) : APLGenericException(message, pos) {
+open class APLEvalException(message: String, pos: Position? = null, cause: Throwable? = null) : APLGenericException(message, pos, cause) {
     var callStack: List<CallStackElement>? = null
 }
 
