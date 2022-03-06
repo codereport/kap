@@ -600,6 +600,27 @@ Monadic single arg:          ∇            (foo) x          {
     }
 
     @Test
+    fun defaultArgumentsMonadic() {
+        parseAPLExpression("∇  foo { ⍵+1 } ◊ foo 2").let { result ->
+            assertSimpleNumber(3, result)
+        }
+    }
+
+    @Test
+    fun defaultArgumentsDyadic() {
+        parseAPLExpression("∇  foo { ⍺+⍵+1 } ◊ 4 foo 2").let { result ->
+            assertSimpleNumber(7, result)
+        }
+    }
+
+    @Test
+    fun defaultArgumentsDyadicNoLeftArg() {
+        assertFailsWith<APLEvalException> {
+            parseAPLExpression("∇  foo { ⍺+⍵+1 } ◊ foo 2")
+        }
+    }
+
+    @Test
     fun emptyFunctionName() {
         assertFailsWith<ParseException> {
             parseAPLExpression("∇ (a;b) () (c;d) { a+b+c+d }")
