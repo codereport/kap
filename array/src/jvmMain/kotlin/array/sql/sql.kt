@@ -22,7 +22,7 @@ private inline fun <T> withSQLExceptions(pos: Position, fn: () -> T): T {
     try {
         return fn()
     } catch (e: SQLException) {
-        throw SQLAPLException("Exception from database engine", pos, e)
+        throw SQLAPLException("Exception from database engine: ${e.message}", pos, e)
     }
 }
 
