@@ -5,6 +5,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.LinkedTransferQueue
 import java.util.concurrent.TransferQueue
 import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 class WrappedException(cause: Throwable) : APLGenericException("JVM exception while evaluating expression: ${cause.message}", null, cause)
 
@@ -154,5 +155,11 @@ class CalculationQueue(val engine: Engine) {
         thread.interrupt()
         thread.join()
         engine.close()
+    }
+
+    fun isActive(): Boolean {
+        lock.withLock {
+            return currentJob != null
+        }
     }
 }

@@ -52,7 +52,7 @@ class ResultList3(val client: Client) {
         GenericEditableStyledDocument(ParStyle(), TextStyle(), styledOps)
         styledArea = ROStyledArea(client, applyParagraphStyle, styledOps, nodeFactory)
 
-        styledArea.addCommandListener(::processCommand)
+        styledArea.setCommandListener(ResultListCommandListener())
 
         val historyListener = ResultHistoryListener()
         styledArea.addHistoryListener(historyListener)
@@ -64,17 +64,6 @@ class ResultList3(val client: Client) {
 
     fun requestFocus() {
         styledArea.requestFocus()
-    }
-
-    private fun processCommand(text: String) {
-        if (text.trim().isNotBlank()) {
-            history.add(text)
-            historyPos = history.size
-            pendingInput = null
-            val tag = addInput(text)
-            val source = REPLSourceLocation(text, this, tag)
-            client.evalSource(source)
-        }
     }
 
     fun getNode() = scrollArea
@@ -196,6 +185,23 @@ class ResultList3(val client: Client) {
 
         override fun create(text: String): EditorContent {
             return EditorContent.makeString(text)
+        }
+    }
+
+    inner class ResultListCommandListener : CommandListener {
+        override fun valid(text: String): Boolean {
+            return !client.calculationQueue.isActive()
+        }
+
+        override fun handle(text: String) {
+            if (text.trim().isNotBlank()) {
+                history.add(text)
+                historyPos = history.size
+                pendingInput = null
+                val tag = addInput(text)
+                val source = REPLSourceLocation(text, this@ResultList3, tag)
+                client.evalSource(source)
+            }
         }
     }
 }

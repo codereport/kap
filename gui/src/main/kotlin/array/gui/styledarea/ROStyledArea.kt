@@ -21,6 +21,11 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
+interface CommandListener {
+    fun valid(text: String): Boolean
+    fun handle(text: String)
+}
+
 @OptIn(ExperimentalContracts::class)
 class ROStyledArea(
     val client: Client,
@@ -35,7 +40,7 @@ class ROStyledArea(
     nodeFactory
 ) {
     private var updatesEnabled = false
-    private val commandListeners = ArrayList<(String) -> Unit>()
+    private var commandListener: CommandListener? = null
     private val historyListeners = ArrayList<HistoryListener>()
 
     init {
@@ -101,8 +106,8 @@ class ROStyledArea(
         }
     }
 
-    fun addCommandListener(fn: (String) -> Unit) {
-        commandListeners.add(fn)
+    fun setCommandListener(listener: CommandListener) {
+        commandListener = listener
     }
 
     private fun atEditboxStart(): Boolean {
@@ -174,10 +179,13 @@ class ROStyledArea(
     private fun sendCurrentContent() {
         val inputPosition = findInputStartEnd()
         val text = document.subSequence(inputPosition.inputStart, inputPosition.inputEnd).text
-        withUpdateEnabled {
-            deleteText(inputPosition.inputStart, inputPosition.inputEnd)
+        val listener = commandListener
+        if (listener != null && listener.valid(text)) {
+            withUpdateEnabled {
+                deleteText(inputPosition.inputStart, inputPosition.inputEnd)
+            }
+            listener.handle(text)
         }
-        commandListeners.forEach { callback -> callback(text) }
     }
 
     fun currentInput(): String {
