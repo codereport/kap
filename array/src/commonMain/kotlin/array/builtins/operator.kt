@@ -2,6 +2,7 @@ package array.builtins
 
 import array.*
 import kotlin.math.max
+import kotlin.math.min
 
 class PowerAPLOperator : APLOperatorCombinedRightArg {
     override fun combineFunctionAndExpr(fn: APLFunction, instr: Instruction, opPos: Position): APLFunctionDescriptor {
@@ -154,10 +155,10 @@ class RankOperator : APLOperatorValueRightArg {
                         }
                     else -> raiseArgumentException()
                 }
-                val k0 = max(0, if (index0 < 0) aDimensions.size + index0 else index0)
+                val k0 = min(max(0, if (index0 < 0) aDimensions.size + index0 else index0), aDimensions.size)
                 val enclosedResult0 = AxisMultiDimensionEnclosedValue(aReduced, k0)
 
-                val k1 = max(0, if (index1 < 0) bDimensions.size + index1 else index1)
+                val k1 = min(max(0, if (index1 < 0) bDimensions.size + index1 else index1), bDimensions.size)
                 val enclosedResult1 = AxisMultiDimensionEnclosedValue(bReduced, k1)
 
                 val applyRes = ForEachFunctionDescriptor.compute2Arg(context, fn, enclosedResult0, enclosedResult1, null, pos)

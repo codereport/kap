@@ -166,4 +166,24 @@ class RankTest : APLTest() {
             assertArrayContent(arrayOf(3, 2, 0), result)
         }
     }
+
+    @Test
+    fun simple2DRank() {
+        parseAPLExpression("({+/⍵}⍤1) 2 2⍴⍳4").let { result ->
+            assert1DArray(arrayOf(1, 5), result)
+        }
+    }
+
+    @Test
+    fun combinedDimensions() {
+        parseAPLExpression("2 (,⍤1) 3 3⍴⍳10").let { result ->
+            assertDimension(dimensionsOfSize(3, 4), result)
+            assertArrayContent(
+                arrayOf(
+                    2, 0, 1, 2,
+                    2, 3, 4, 5,
+                    2, 6, 7, 8
+                ), result)
+        }
+    }
 }
