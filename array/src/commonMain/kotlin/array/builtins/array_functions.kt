@@ -876,15 +876,15 @@ class RandomAPLFunction : APLFunctionDescriptor {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val v = a.unwrapDeferredValue()
             return if (v is APLSingleValue) {
-                makeRandom(v.ensureNumber(pos).asLong()).makeAPLNumber()
+                makeRandom(v.ensureNumber(pos).asLong(pos)).makeAPLNumber()
             } else {
                 APLArrayLong(v.dimensions, LongArray(v.dimensions.contentSize()) { index -> makeRandom(v.valueAtLong(index, pos)) })
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            val aInt = a.ensureNumber(pos).asInt()
-            val bLong = b.ensureNumber(pos).asLong()
+            val aInt = a.ensureNumber(pos).asInt(pos)
+            val bLong = b.ensureNumber(pos).asLong(pos)
             if (aInt < 0) {
                 throwAPLException(APLIncompatibleDomainsException("A should not be negative, was: ${aInt}", pos))
             }
@@ -1048,7 +1048,7 @@ abstract class RotateFunction(pos: Position) : APLFunction(pos) {
     override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
         val axisInt = if (axis == null) defaultAxis(b) else axis.ensureNumber(pos).asInt()
         if (a.isScalar()) {
-            val numShifts = a.ensureNumber(pos).asLong()
+            val numShifts = a.ensureNumber(pos).asLong(pos)
             return RotatedAPLValue.make(b, axisInt, numShifts)
         } else {
             val aCollapsed = a.collapse()
@@ -1267,7 +1267,7 @@ object MemberResultValueImpls {
         context: RuntimeContext, a: APLValue, b: APLValue, pos: Position
     ) : MemberResultValue(context, a, b, pos) {
         override fun findInArray(target: APLValue): Long {
-            val targetLong = target.ensureNumber(pos).asLong()
+            val targetLong = target.ensureNumber(pos).asLong(pos)
             repeat(b.size) { i ->
                 if (b.valueAtLong(i, pos) == targetLong) {
                     return 1

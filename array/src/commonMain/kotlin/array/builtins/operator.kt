@@ -21,7 +21,7 @@ class PowerAPLOperator : APLOperatorCombinedRightArg {
             return object : APLFunction(pos) {
                 override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
                     val iterations = instr.evalWithContext(context)
-                    var n = iterations.ensureNumber(pos).asLong()
+                    var n = iterations.ensureNumber(pos).asLong(pos)
                     if (n < 0) {
                         throwAPLException(APLIllegalArgumentException("Argument to power is negative: ${n}", pos))
                     }

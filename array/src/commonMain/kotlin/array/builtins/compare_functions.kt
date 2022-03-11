@@ -154,7 +154,7 @@ inline fun numericRelationOperation(
             when {
                 a is APLComplex || b is APLComplex -> fnComplex(a.asComplex(), b.asComplex())
                 a is APLDouble || b is APLDouble -> fnDouble(a.asDouble(), b.asDouble())
-                else -> fnLong(a.asLong(), b.asLong())
+                else -> fnLong(a.asLong(pos), b.asLong(pos))
             }
         }
         a is APLChar && b is APLChar -> {
@@ -173,8 +173,8 @@ inline fun singleArgNumericRelationOperation(
     fnChar: ((Int) -> APLValue) = { _ -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos)) }
 ): APLValue {
     return when (a) {
-        is APLLong -> fnLong(a.asLong())
-        is APLDouble -> fnDouble(a.asDouble())
+        is APLLong -> fnLong(a.asLong(pos))
+        is APLDouble -> fnDouble(a.asDouble(pos))
         is APLComplex -> fnComplex(a.asComplex())
         is APLChar -> fnChar(a.value)
         else -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos))

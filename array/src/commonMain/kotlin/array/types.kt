@@ -101,8 +101,8 @@ abstract class APLValue {
     open val specialisedType: ArrayMemberType get() = ArrayMemberType.GENERIC
 
     abstract fun valueAt(p: Int): APLValue
-    open fun valueAtLong(p: Int, pos: Position?) = valueAt(p).ensureNumber(pos).asLong()
-    open fun valueAtDouble(p: Int, pos: Position?) = valueAt(p).ensureNumber(pos).asDouble()
+    open fun valueAtLong(p: Int, pos: Position?) = valueAt(p).ensureNumber(pos).asLong(pos)
+    open fun valueAtDouble(p: Int, pos: Position?) = valueAt(p).ensureNumber(pos).asDouble(pos)
     open fun valueAtInt(p: Int, pos: Position?): Int {
         val l = valueAtLong(p, pos)
         if (l < Int.MIN_VALUE || l > Int.MAX_VALUE) {
@@ -219,12 +219,12 @@ abstract class APLValue {
         return DoubleArray(size) { i -> valueAtDouble(i, pos) }
     }
 
-    open fun asBoolean(): Boolean {
+    open fun asBoolean(pos: Position? = null): Boolean {
         val v = unwrapDeferredValue()
         return if (v == this) {
             true
         } else {
-            v.asBoolean()
+            v.asBoolean(pos)
         }
     }
 
@@ -969,5 +969,5 @@ open class DelegatedValue(val value: APLValue) : APLValue() {
     override fun ensureSymbol(pos: Position?) = value.ensureSymbol(pos)
     override fun ensureList(pos: Position?) = value.ensureList(pos)
     override fun ensureMap(pos: Position) = value.ensureMap(pos)
-    override fun asBoolean() = value.asBoolean()
+    override fun asBoolean(pos: Position?) = value.asBoolean(pos)
 }
