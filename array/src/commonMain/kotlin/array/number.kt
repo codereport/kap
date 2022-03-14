@@ -18,7 +18,7 @@ abstract class APLNumber : APLSingleValue() {
         return if (l >= Int.MIN_VALUE && l <= Int.MAX_VALUE) {
             l.toInt()
         } else {
-            throwAPLException(IncompatibleTypeException("Value does not fit in an int: $l"))
+            throwAPLException(IntMagnitudeException(l, pos))
         }
     }
 

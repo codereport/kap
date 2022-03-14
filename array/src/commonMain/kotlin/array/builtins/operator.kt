@@ -89,7 +89,7 @@ class RankOperator : APLOperatorValueRightArg {
                 val k = max(0, if (index < 0) aDimensions.size + index else index)
                 val enclosedResult = AxisMultiDimensionEnclosedValue(aReduced, k)
                 val applyRes = ForEachResult1Arg(context, fn, enclosedResult, null, pos)
-                return DiscloseAPLFunction.discloseValue(applyRes, pos)
+                return DiscloseAPLFunction.discloseValue(applyRes)
             }
 
             private fun raiseArgumentException(): Nothing {
@@ -116,7 +116,7 @@ class RankOperator : APLOperatorValueRightArg {
                         raiseArgumentException()
                     }
                 }
-                return res.ensureNumber(pos).asInt()
+                return res.ensureNumber(pos).asInt(pos)
             }
 
             override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
@@ -132,7 +132,7 @@ class RankOperator : APLOperatorValueRightArg {
                 val index1: Int
                 when (d.size) {
                     0 -> {
-                        opArg.ensureNumber(pos).asInt().let { v ->
+                        opArg.ensureNumber(pos).asInt(pos).let { v ->
                             index0 = v
                             index1 = v
                         }
@@ -162,7 +162,7 @@ class RankOperator : APLOperatorValueRightArg {
                 val enclosedResult1 = AxisMultiDimensionEnclosedValue(bReduced, k1)
 
                 val applyRes = ForEachFunctionDescriptor.compute2Arg(context, fn, enclosedResult0, enclosedResult1, null, pos)
-                return DiscloseAPLFunction.discloseValue(applyRes, pos)
+                return DiscloseAPLFunction.discloseValue(applyRes)
             }
 
         }

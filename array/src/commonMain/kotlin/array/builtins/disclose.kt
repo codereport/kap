@@ -167,7 +167,7 @@ class EncloseAPLFunction : APLFunctionDescriptor {
             val axisInt = computeAxis(b, axis, pos)
             val aDimensions = a.dimensions
             val partitionArgs = when (aDimensions.size) {
-                0 -> intArrayOf(a.ensureNumber(pos).asInt())
+                0 -> intArrayOf(a.ensureNumber(pos).asInt(pos))
                 1 -> a.toIntArray(pos)
                 else -> throw APLIllegalArgumentException("Left argument to partition must be a scalar or a one-dimensional array")
             }
@@ -218,7 +218,7 @@ class EncloseAPLFunction : APLFunctionDescriptor {
     override fun make(pos: Position) = EncloseAPLFunctionImpl(pos.withName("enclose"))
 }
 
-class DisclosedArrayValue(value: APLValue, pos: Position) : APLArray() {
+class DisclosedArrayValue(value: APLValue) : APLArray() {
     private val valueInt = value.collapseFirstLevel()
     override val dimensions: Dimensions
 
@@ -315,7 +315,7 @@ class DiscloseAPLFunction : APLFunctionDescriptor {
             val v = a.unwrapDeferredValue()
             return when {
                 v.isScalar() -> processScalarValue(a, axis)
-                axis == null -> DisclosedArrayValue(v, pos)
+                axis == null -> DisclosedArrayValue(v)
                 else -> processAxis(v, a, axis)
             }
         }
@@ -331,7 +331,7 @@ class DiscloseAPLFunction : APLFunctionDescriptor {
         }
 
         private fun processAxis(v: APLValue, a: APLValue, axis: APLValue): TransposedAPLValue {
-            val z1 = DisclosedArrayValue(v, pos)
+            val z1 = DisclosedArrayValue(v)
             val z1Dimensions = z1.dimensions
             val maxAxis = z1Dimensions.size - a.dimensions.size
             val axisInt = makeAxisIntArray(axis, maxAxis)
@@ -387,7 +387,7 @@ class DiscloseAPLFunction : APLFunctionDescriptor {
                     if (curr.dimensions.size != 1) {
                         throwAPLException(InvalidDimensionsException("Mismatched dimensions for selection", pos))
                     }
-                    v.ensureNumber(pos).asInt()
+                    v.ensureNumber(pos).asInt(pos)
                 } else {
                     curr.dimensions.indexFromPosition(v.toIntArray(pos), pos = pos)
                 }
@@ -403,12 +403,12 @@ class DiscloseAPLFunction : APLFunctionDescriptor {
     override fun make(pos: Position) = DiscloseAPLFunctionImpl(pos.withName("disclose"))
 
     companion object {
-        fun discloseValue(value: APLValue, pos: Position): APLValue {
+        fun discloseValue(value: APLValue): APLValue {
             val v = value.unwrapDeferredValue()
             return when {
                 v is APLSingleValue -> v
                 v.isScalar() -> v.valueAt(0)
-                else -> DisclosedArrayValue(v, pos)
+                else -> DisclosedArrayValue(v)
             }
 
         }
@@ -421,7 +421,7 @@ class PartitionedEncloseFunction : APLFunctionDescriptor {
             val axisInt = computeAxis(b, axis, pos)
             val aDimensions = a.dimensions
             val partitionArgs = when (aDimensions.size) {
-                0 -> intArrayOf(a.ensureNumber(pos).asInt())
+                0 -> intArrayOf(a.ensureNumber(pos).asInt(pos))
                 1 -> a.toIntArray(pos)
                 else -> throw APLIllegalArgumentException("Left argument to partition must be a scalar or a one-dimensional array")
             }
@@ -468,7 +468,7 @@ private fun computeAxis(b: APLValue, axis: APLValue?, pos: Position? = null): In
     val axisInt = if (axis == null) {
         bDimensions.lastAxis()
     } else {
-        axis.ensureNumber(pos).asInt()
+        axis.ensureNumber(pos).asInt(pos)
     }
     if (axisInt < 0 || axisInt >= bDimensions.size) {
         throw IllegalAxisException(axisInt, bDimensions, pos)

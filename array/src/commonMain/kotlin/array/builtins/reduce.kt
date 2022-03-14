@@ -153,7 +153,7 @@ abstract class ReduceFunctionImpl(val fn: APLFunction, val operatorAxis: Instruc
     override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
         val bDimensions = b.dimensions
         val axisParam = findAxis(operatorAxis, context)
-        val size = a.ensureNumber(pos).asInt()
+        val size = a.ensureNumber(pos).asInt(pos)
         if (bDimensions.size == 0) {
             if (axisParam != null && axisParam != 0) {
                 throwAPLException(IllegalAxisException(axisParam, bDimensions, pos))
@@ -188,7 +188,7 @@ abstract class ReduceFunctionImpl(val fn: APLFunction, val operatorAxis: Instruc
     @Suppress("IfThenToSafeAccess")
     private fun findAxis(operatorAxis: Instruction?, context: RuntimeContext): Int? {
         return if (operatorAxis != null) {
-            operatorAxis.evalWithContext(context).ensureNumber(pos).asInt()
+            operatorAxis.evalWithContext(context).ensureNumber(pos).asInt(pos)
         } else {
             null
         }
@@ -268,7 +268,7 @@ class ScanResult1Arg(val context: RuntimeContext, val fn: APLFunction, val fnAxi
 
 abstract class ScanFunctionImpl(val fn: APLFunction, val operatorAxis: Instruction?, pos: Position) : APLFunction(pos) {
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-        val axisParam = if (operatorAxis != null) operatorAxis.evalWithContext(context).ensureNumber(pos).asInt() else null
+        val axisParam = if (operatorAxis != null) operatorAxis.evalWithContext(context).ensureNumber(pos).asInt(pos) else null
         return if (a.rank == 0) {
             if (axisParam != null && axisParam != 0) {
                 throwAPLException(IllegalAxisException(axisParam, a.dimensions, pos))

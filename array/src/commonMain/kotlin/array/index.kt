@@ -98,7 +98,7 @@ class ArrayIndex(val content: Instruction, val indexInstr: Instruction, pos: Pos
             }
             val d = v.dimensions
             if (d.size == 0) {
-                Either.Left(v.ensureNumber(pos).asInt()
+                Either.Left(v.ensureNumber(pos).asInt(pos)
                                 .also { posAlongAxis -> checkAxisPositionIsInRange(posAlongAxis, aDimensions, i, pos) })
             } else {
                 Either.Right(IntArrayValue.fromAPLValue(v, pos).also { selectionArray ->

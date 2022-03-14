@@ -274,7 +274,7 @@ fun APLValue.asByteArray(pos: Position? = null): ByteArray {
         return when (val firstValue = v.valueAt(0)) {
             is APLNumber -> {
                 ByteArray(size) { i ->
-                    val valueInt = (if (i == 0) firstValue else v.valueAt(i)).ensureNumber(pos).asInt()
+                    val valueInt = (if (i == 0) firstValue else v.valueAt(i)).ensureNumber(pos).asInt(pos)
                     if (valueInt < 0 || valueInt > 255) {
                         throwAPLException(APLEvalException("Element at index ${i} in array is not a byte: ${valueInt}", pos))
                     }

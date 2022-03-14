@@ -225,7 +225,7 @@ class LabelsFunction : APLFunctionDescriptor {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             if (!b.isScalar()) {
                 val bDimensions = b.dimensions
-                val axisInt = if (axis == null) bDimensions.lastAxis(pos) else axis.ensureNumber(pos).asInt()
+                val axisInt = if (axis == null) bDimensions.lastAxis(pos) else axis.ensureNumber(pos).asInt(pos)
                 ensureValidAxis(axisInt, bDimensions, pos)
 
                 val aDimensions = a.dimensions
@@ -265,7 +265,7 @@ class LabelsFunction : APLFunctionDescriptor {
 class TimeMillisFunction : APLFunctionDescriptor {
     class TimeMillisFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            unless(a.ensureNumber(pos).asInt() == 0) {
+            unless(a.ensureNumber(pos).asInt(pos) == 0) {
                 throwAPLException(APLIllegalArgumentException("Argument to timeMillis must be 0", pos))
             }
             return currentTime().makeAPLNumber()

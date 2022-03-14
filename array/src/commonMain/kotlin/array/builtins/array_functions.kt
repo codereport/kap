@@ -131,7 +131,7 @@ class IotaAPLFunction : APLFunctionDescriptor {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val aDimensions = a.dimensions
             return when (aDimensions.size) {
-                0 -> IotaArrayImpls.IotaArrayLong(a.ensureNumber(pos1Arg).asInt())
+                0 -> IotaArrayImpls.IotaArrayLong(a.ensureNumber(pos1Arg).asInt(pos))
                 1 -> if (aDimensions[0] == 0) {
                     EnclosedAPLValue.make(APLNullValue.APL_NULL_INSTANCE)
                 } else {
@@ -672,7 +672,7 @@ class AccessFromIndexAPLFunction : APLFunctionDescriptor {
                         val indexValue = aFixed.valueAt(i)
                         if (indexValue.dimensions.size == 0) {
                             Either.Left(
-                                indexValue.ensureNumber(pos).asInt()
+                                indexValue.ensureNumber(pos).asInt(pos)
                                     .also { posAlongAxis -> checkAxisPositionIsInRange(posAlongAxis, bd, i, pos) })
                         } else {
                             Either.Right(IntArrayValue.fromAPLValue(indexValue, pos))
@@ -699,8 +699,8 @@ class AccessFromIndexAPLFunction : APLFunctionDescriptor {
                 aFixed.iterateMembersWithPosition { m, p ->
                     val axisInt = axesArray[p]
                     val v = if (m.dimensions.size == 0) {
-                        Either.Left(m.ensureNumber(pos).asInt()
-                            .also { posAlongAxis -> checkAxisPositionIsInRange(posAlongAxis, bd, axisInt, pos) })
+                        Either.Left(m.ensureNumber(pos).asInt(pos)
+                                        .also { posAlongAxis -> checkAxisPositionIsInRange(posAlongAxis, bd, axisInt, pos) })
                     } else {
                         Either.Right(IntArrayValue.fromAPLValue(m, pos))
                     }
@@ -1041,12 +1041,12 @@ class InverseAPLValue private constructor(val source: APLValue, val axis: Int) :
 
 abstract class RotateFunction(pos: Position) : APLFunction(pos) {
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-        val axisInt = if (axis == null) defaultAxis(a) else axis.ensureNumber(pos).asInt()
+        val axisInt = if (axis == null) defaultAxis(a) else axis.ensureNumber(pos).asInt(pos)
         return InverseAPLValue.make(a, axisInt)
     }
 
     override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-        val axisInt = if (axis == null) defaultAxis(b) else axis.ensureNumber(pos).asInt()
+        val axisInt = if (axis == null) defaultAxis(b) else axis.ensureNumber(pos).asInt(pos)
         if (a.isScalar()) {
             val numShifts = a.ensureNumber(pos).asLong(pos)
             return RotatedAPLValue.make(b, axisInt, numShifts)
@@ -1405,7 +1405,7 @@ abstract class SelectElementsFunctionImpl(pos: Position) : APLFunction(pos) {
         val bFixed = b.arrayify()
         val aDimensions = a.dimensions
         val bDimensions = bFixed.dimensions
-        val axisInt = if (axis == null) defaultAxis(bFixed) else axis.ensureNumber(pos).asInt()
+        val axisInt = if (axis == null) defaultAxis(bFixed) else axis.ensureNumber(pos).asInt(pos)
         ensureValidAxis(axisInt, bDimensions, pos)
         if (!(aDimensions.size == 0 || (aDimensions.size == 1 && aDimensions[0] == bDimensions[axisInt]))) {
             throwAPLException(
@@ -1414,7 +1414,7 @@ abstract class SelectElementsFunctionImpl(pos: Position) : APLFunction(pos) {
                     pos))
         }
         val selectIndexes = if (a.isScalar()) {
-            a.ensureNumber(pos).asInt().let { v ->
+            a.ensureNumber(pos).asInt(pos).let { v ->
                 if (v < 0) {
                     throwAPLException(APLIncompatibleDomainsException("Selection index is negative", pos))
                 }
@@ -1508,7 +1508,7 @@ class WhereAPLFunction : APLFunctionDescriptor {
                 val multipliers = aDimensions.multipliers()
                 val result = ArrayList<APLValue>()
                 a.iterateMembersWithPosition { value, i ->
-                    val n = value.ensureNumber(pos).asInt()
+                    val n = value.ensureNumber(pos).asInt(pos)
                     if (n > 0) {
                         val index = if (aDimensions.size == 1) {
                             i.makeAPLNumber()

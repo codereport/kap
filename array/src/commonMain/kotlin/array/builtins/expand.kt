@@ -30,14 +30,14 @@ abstract class ExpandFunctionImpl(pos: Position) : APLFunction(pos) {
 
         val b0 = b.arrayify()
         val bDimensions = b0.dimensions
-        val axisInt = if (axis == null) defaultAxis(bDimensions) else axis.ensureNumber(pos).asInt()
+        val axisInt = if (axis == null) defaultAxis(bDimensions) else axis.ensureNumber(pos).asInt(pos)
         ensureValidAxis(axisInt, bDimensions, pos)
 
         val dimensionAlongAxis = bDimensions[axisInt]
         var index = 0
         val indexes = ArrayList<Int>()
         a0.iterateMembers { v ->
-            val vInt = v.ensureNumber(pos).asInt()
+            val vInt = v.ensureNumber(pos).asInt(pos)
             if (vInt > 0) {
                 repeat(vInt) {
                     indexes.add(index)
