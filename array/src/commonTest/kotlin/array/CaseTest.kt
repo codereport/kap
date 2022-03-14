@@ -131,4 +131,40 @@ class CaseTest : APLTest() {
             assert1DArray(arrayOf(1, 2), result)
         }
     }
+
+    @Test
+    fun caseWithEnclosedArguments() {
+        parseAPLExpression("0 1 % (2 3) (⊂1 2 3)").let { result ->
+            assertDimension(dimensionsOfSize(2), result)
+            assertSimpleNumber(2, result.valueAt(0))
+            result.valueAt(1).let { v ->
+                assert1DArray(arrayOf(1, 2, 3), v)
+            }
+        }
+    }
+
+    @Test
+    fun caseWithEnclosedArgumentsMultipleEnclosed() {
+        parseAPLExpression("0 1 0 % (⊂1 2 3 4 5) (⊂10 11 12 13 14)").let { result ->
+            assertDimension(dimensionsOfSize(3), result)
+            result.valueAt(0).let { v ->
+                assert1DArray(arrayOf(1, 2, 3, 4, 5), v)
+            }
+            result.valueAt(1).let { v ->
+                assert1DArray(arrayOf(10, 11, 12, 13, 14), v)
+            }
+            result.valueAt(2).let { v ->
+                assert1DArray(arrayOf(1, 2, 3, 4, 5), v)
+            }
+        }
+    }
+
+    @Test
+    fun caseWithEnclosedString() {
+        parseAPLExpression("0 1 % (\"foo\" \"bar\") (⊂\"testing\")").let { result ->
+            assertDimension(dimensionsOfSize(2), result)
+            assertString("foo", result.valueAt(0))
+            assertString("testing", result.valueAt(1))
+        }
+    }
 }

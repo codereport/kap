@@ -1621,7 +1621,7 @@ class CaseValue(val selectionArray: APLValue, val values: List<APLValue>, val po
         }
         val v = values[index]
         return if (v.isScalar()) {
-            v
+            v.disclose()
         } else {
             v.valueAt(p)
         }
