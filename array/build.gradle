@@ -76,11 +76,11 @@ kotlin {
     jvm() {
         compilations.main.kotlinOptions {
             jvmTarget = "11"
-            freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+            freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
         }
         compilations.test.kotlinOptions {
             jvmTarget = "11"
-            freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+            freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
         }
     }
     js {
@@ -103,11 +103,11 @@ kotlin {
             jansson
         }
         compilations.main.kotlinOptions {
-            freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+            freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
         }
         compilations.test.kotlinOptions {
 //            freeCompilerArgs = ["-linker-options", findIcuLibs()]
-            freeCompilerArgs += "-Xopt-in=kotlin.RequiresOptIn"
+            freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
         }
     }
 
