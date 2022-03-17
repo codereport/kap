@@ -18,6 +18,14 @@
     text-indent: 4em;
 }
 
+.command-result-link {
+    display: none;
+}
+
+.command-result:hover > .command-result-link {
+    display: inline;
+}
+
 .return-result {
     display: block;
     font-family: "Iosevka Fixed", monospace;

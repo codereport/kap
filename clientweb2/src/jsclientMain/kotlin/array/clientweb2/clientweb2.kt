@@ -9,6 +9,7 @@ import kotlinx.serialization.json.Json
 import org.w3c.dom.*
 
 external fun decodeURIComponent(text: String): String
+external fun encodeURIComponent(text: String): String
 
 object Keymap {
     private val map = HashMap<String, String>()
@@ -98,9 +99,18 @@ private fun addEvalExceptionResultToResultHistory(response: EvalExceptionDescrip
     appendNodeToResultHistory(node)
 }
 
-private fun addCommandResultToResultHIstory(command: String) {
+private fun addCommandResultToResultHistory(command: String) {
     val node = createDiv("command-result")
-    node.innerText = command
+
+    val textSpan = createSpan("command-result-text")
+    textSpan.innerText = command
+    node.appendChild(textSpan)
+
+    val link = createHref("command-result-link")
+    link.innerText = "Link"
+    link.href = "#${encodeURIComponent(command.trim())}"
+    node.appendChild(link)
+
     appendNodeToResultHistory(node)
 }
 
@@ -114,19 +124,11 @@ private fun sendCommand(worker: Worker, command: String) {
     worker.postMessage(Json.encodeToString(EvalRequest(command)))
 }
 
-private fun initClient(worker: Worker) {
-    val inputField = findElement<HTMLInputElement>("input")
-    configureAPLInputForField(inputField) { sendCommandFromField(worker) }
-
-    val button = findElement<HTMLButtonElement>("send-button")
-    button.onclick = { sendCommandFromField(worker) }
-}
-
 private fun sendCommandFromField(worker: Worker) {
     val inputField = findElement<HTMLInputElement>("input")
     val command = inputField.value
-    addCommandResultToResultHIstory(command)
     if (command.trim() != "") {
+        addCommandResultToResultHistory(command)
         sendCommand(worker, command)
     }
 }
@@ -176,6 +178,9 @@ inline fun <reified T : HTMLElement> findElement(id: String): T {
 }
 
 fun createDiv(className: String? = null) = createElementWithClassName("div", className) as HTMLDivElement
+fun createSpan(className: String? = null) = createElementWithClassName("span", className) as HTMLSpanElement
+fun createHref(className: String? = null) = createElementWithClassName("a", className) as HTMLAnchorElement
+fun createInput(className: String? = null) = createElementWithClassName("input", className) as HTMLAnchorElement
 
 fun createElementWithClassName(type: String, className: String?): HTMLElement {
     val element = document.createElement(type)
@@ -191,16 +196,19 @@ fun getElementByIdOrFail(id: String): Element {
 
 fun main() {
     val worker = initWorker()
-    initClient(worker)
+    val inputField = findElement<HTMLInputElement>("input")
+    configureAPLInputForField(inputField) { sendCommandFromField(worker) }
+    val button = findElement<HTMLButtonElement>("send-button")
+    button.onclick = { sendCommandFromField(worker) }
 
     val location = document.location
     if (location != null) {
         if (location.hash.startsWith("#")) {
             val initialCommand = decodeURIComponent(location.hash.substring(1))
             if (initialCommand.trim().isNotBlank()) {
-                val inputField = findElement<HTMLInputElement>("input")
                 inputField.value = initialCommand
-                sendCommand(worker, initialCommand)
+//                addCommandResultToResultHistory(initialCommand)
+//                sendCommand(worker, initialCommand)
             }
         }
     }

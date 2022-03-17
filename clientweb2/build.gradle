@@ -8,7 +8,7 @@ repositories {
     maven { url 'https://kotlin.bintray.com/kotlinx' }
 }
 
-var fritz2Version = "0.14"
+//var fritz2Version = "0.14"
 
 kotlin {
     js("webworker") {
@@ -25,11 +25,10 @@ kotlin {
 //            }
         }
     }
-    js {
+    js("jsclient") {
+        binaries.executable()
         browser {
-            binaries.executable()
             webpackTask {
-//                dependsOn("compileDevelopmentExecutableKotlinWebworker")
                 cssSupport.enabled = true
             }
             runTask {
@@ -40,25 +39,6 @@ kotlin {
                 list.addAll(devServer.static)
                 list.add(new File(compilation.output.resourcesDir.path + "/../../../distributions").canonicalPath)
                 devServer.static = list
-//                devServer.open = false
-
-//                devServer = devServer.copy(
-//                        devServer.open,
-//                        devServer.port,
-//                        devServer.proxy,
-//                        s, //devServer.static,
-//                        devServer.contentBase)
-
-                /*
-        @Suppress("unused")
-        data class DevServer(
-            var open: Any = true,
-            var port: Int? = null,
-            var proxy: MutableMap<String, Any>? = null,
-            var static: MutableList<String>? = null,
-            var contentBase: MutableList<String>? = null
-        ) : Serializable
-                 */
             }
             testTask {
                 useKarma {
@@ -68,13 +48,55 @@ kotlin {
             }
         }
     }
+//    js {
+//        binaries.executable()
+//        browser {
+//            webpackTask {
+////                dependsOn("compileDevelopmentExecutableKotlinWebworker")
+//                cssSupport.enabled = true
+//            }
+//            runTask {
+//                dependsOn("webworkerBrowserDistribution")
+//                cssSupport.enabled = true
+//                // https://gist.github.com/karlrwjohnson/a631cbda6b2fb316bc0a9f37156eae5d
+//                var list = new ArrayList()
+//                list.addAll(devServer.static)
+//                list.add(new File(compilation.output.resourcesDir.path + "/../../../distributions").canonicalPath)
+//                devServer.static = list
+////                devServer.open = false
+//
+////                devServer = devServer.copy(
+////                        devServer.open,
+////                        devServer.port,
+////                        devServer.proxy,
+////                        s, //devServer.static,
+////                        devServer.contentBase)
+//
+//                /*
+//        @Suppress("unused")
+//        data class DevServer(
+//            var open: Any = true,
+//            var port: Int? = null,
+//            var proxy: MutableMap<String, Any>? = null,
+//            var static: MutableList<String>? = null,
+//            var contentBase: MutableList<String>? = null
+//        ) : Serializable
+//                 */
+//            }
+//            testTask {
+//                useKarma {
+//                    useChromeHeadless()
+//                    webpackConfig.cssSupport.enabled = true
+//                }
+//            }
+//        }
+//    }
 
     sourceSets {
         commonMain {
             dependencies {
                 implementation kotlin('stdlib-common')
                 implementation project(':array')
-                implementation "dev.fritz2:core:$fritz2Version"
                 implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-json', version: '1.3.2'
             }
         }
@@ -84,9 +106,17 @@ kotlin {
                 implementation kotlin('test-annotations-common')
             }
         }
-        jsMain {
-        }
-        jsTest {
+//        jsMain {
+//            dependencies {
+//                implementation "dev.fritz2:core:$fritz2Version"
+//            }
+//        }
+//        jsTest {
+//        }
+        jsclientMain {
+            dependencies {
+                implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-html', version: '0.7.3'
+            }
         }
         webworkerMain {
         }
