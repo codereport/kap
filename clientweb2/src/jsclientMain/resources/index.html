@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>KAP client</title>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1" name="viewport">
+    <link rel="stylesheet" href="clientweb2.css">
+</head>
+<body id="target">
+<p>
+    This is a simple Javascript-based frontend to the KAP interpreter.
+    KAP is written in multiplatform Kotlin, and this interpreter uses a version compiled to JS which is run
+    inside the local browser.
+</p>
+<p>
+    To type special characters, type a backquote (`) followed by the respective key. To type
+    a backquote, type backquote followed by space.
+</p>
+<div id="result-history">
+
+</div>
+<div>
+    <input class="kap-input" type="text" id="input" size="60">
+    <button id="send-button">Send</button>
+</div>
+<script lang="javascript" src="clientweb2.js"></script>
+</body>
+</html>

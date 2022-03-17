@@ -1,0 +1,40 @@
+.output-result-outer {
+    display: block;
+    font-family: "Iosevka Fixed", monospace;
+    font-size: 18px;
+    white-space: pre;
+    background-color: #e8e8e8;
+}
+
+.output-result-element {
+
+}
+
+.command-result {
+    display: block;
+    font-family: "Iosevka Fixed", monospace;
+    font-size: 18px;
+    white-space: pre;
+    text-indent: 4em;
+}
+
+.return-result {
+    display: block;
+    font-family: "Iosevka Fixed", monospace;
+    font-size: 18px;
+    white-space: pre;
+}
+
+.exception-result {
+    color: #ff0000;
+}
+
+.kap-input {
+    font-family: "Iosevka Fixed", monospace;
+    font-size: 18px;
+}
+
+@font-face {
+    font-family: "Iosevka Fixed";
+    src: url(fonts/iosevka-fixed-regular.ttf);
+}
