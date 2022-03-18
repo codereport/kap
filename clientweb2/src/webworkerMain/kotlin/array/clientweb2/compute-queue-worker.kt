@@ -51,7 +51,7 @@ fun initQueue() {
     println("Starting listener: self = ${self}")
     engine.standardOutput = object : CharacterOutput {
         override fun writeString(s: String) {
-            val message: ResponseMessage = Output(s)
+            val message: ResponseMessage = OutputDescriptor(s)
             self.postMessage(Json.encodeToString(message))
         }
     }
@@ -70,6 +70,8 @@ fun initQueue() {
         }
         self.postMessage(Json.encodeToString(result))
     }
+    val message: ResponseMessage = EngineStartedDescriptor("started")
+    self.postMessage(Json.encodeToString(message))
 }
 
 fun makePosDescriptor(pos: Position?): PosDescriptor? {

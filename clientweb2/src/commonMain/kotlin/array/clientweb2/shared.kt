@@ -13,7 +13,7 @@ data class PosDescriptor(val line: Int, val col: Int, val name: String?, val cal
 sealed class ResponseMessage
 
 @Serializable
-@SerialName("error")
+@SerialName("exception")
 data class ExceptionDescriptor(val message: String) : ResponseMessage()
 
 @Serializable
@@ -26,4 +26,8 @@ data class EvalResponse(val result: String) : ResponseMessage()
 
 @Serializable
 @SerialName("output")
-data class Output(val text: String) : ResponseMessage()
+data class OutputDescriptor(val text: String) : ResponseMessage()
+
+@Serializable
+@SerialName("avail")
+data class EngineStartedDescriptor(val text: String) : ResponseMessage()

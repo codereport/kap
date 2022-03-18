@@ -3,6 +3,8 @@ package array.clientweb2
 import array.keyboard.ExtendedCharsKeyboardInput
 import kotlinx.browser.document
 import kotlinx.browser.window
+import kotlinx.html.*
+import kotlinx.html.dom.create
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -27,13 +29,14 @@ object Keymap {
 private fun initWorker(): Worker {
     val worker = Worker("compute-queue-worker.js")
     worker.onmessage = { event ->
+        println("eventdata: ${event.data}")
         when (val response = Json.decodeFromString<ResponseMessage>(event.data as String)) {
             is EvalResponse -> addResponseToResultHistory(response)
             is ExceptionDescriptor -> addExceptionResultToResultHistory(response)
             is EvalExceptionDescriptor -> addEvalExceptionResultToResultHistory(response)
-            is Output -> processOutput(response.text)
+            is OutputDescriptor -> processOutput(response.text)
+            is EngineStartedDescriptor -> engineAvailableCallback(worker)
         }
-        window.scrollTo(0.0, document.body!!.scrollHeight.toDouble())
     }
     return worker
 }
@@ -85,6 +88,7 @@ private fun addResponseToResultHistory(response: EvalResponse) {
     outer.classList.add("source-node")
     outer.innerText = response.result
     appendNodeToResultHistory(outer)
+    window.scrollTo(0.0, document.body!!.scrollHeight.toDouble())
 }
 
 private fun addExceptionResultToResultHistory(response: ExceptionDescriptor) {
@@ -100,21 +104,22 @@ private fun addEvalExceptionResultToResultHistory(response: EvalExceptionDescrip
 }
 
 private fun addCommandResultToResultHistory(command: String) {
-    val node = createDiv("command-result")
-
-    val textSpan = createSpan("command-result-text")
-    textSpan.innerText = command
-    node.appendChild(textSpan)
-
-    val link = createHref("command-result-link")
-    link.innerText = "Link"
-    link.href = "#${encodeURIComponent(command.trim())}"
-    node.appendChild(link)
+    val node = document.create.div(classes = "command-result") {
+        span(classes = "command-result-text") {
+            +command
+        }
+        span(classes = "command-result-link") {
+            +" "
+            a("#${encodeURIComponent(command.trim())}") {
+                +"Link"
+            }
+        }
+    }
 
     appendNodeToResultHistory(node)
 }
 
-private fun appendNodeToResultHistory(outer: HTMLDivElement) {
+private fun appendNodeToResultHistory(outer: HTMLElement) {
     findResultHistoryNode().appendChild(outer)
     clearCurrentOutput()
 }
@@ -195,7 +200,44 @@ fun getElementByIdOrFail(id: String): Element {
 }
 
 fun main() {
-    val worker = initWorker()
+    initWorker()
+}
+
+/*
+    <input class="kap-input" type="text" id="input" size="60">
+    <button id="send-button">Send</button>
+ */
+
+private var engineInit = false
+
+fun engineAvailableCallback(worker: Worker) {
+    if (engineInit) {
+        throw IllegalStateException("Client already initialised")
+    }
+
+    val loadingElement = findElement<HTMLDivElement>("loading-message")
+    loadingElement.remove()
+
+    val topElement = findElement<HTMLDivElement>("top")
+    val outer = document.create.div {
+        div {
+            id = "result-history"
+        }
+        div {
+            input(classes = "kap-input") {
+                id = "input"
+                size = "60"
+                type = InputType.text
+            }
+            button {
+                id = "send-button"
+                +"Send"
+            }
+        }
+    }
+
+    topElement.appendChild(outer)
+
     val inputField = findElement<HTMLInputElement>("input")
     configureAPLInputForField(inputField) { sendCommandFromField(worker) }
     val button = findElement<HTMLButtonElement>("send-button")
@@ -212,4 +254,6 @@ fun main() {
             }
         }
     }
+
+    engineInit = true
 }
