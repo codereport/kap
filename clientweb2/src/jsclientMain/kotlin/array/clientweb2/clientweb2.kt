@@ -84,22 +84,24 @@ private fun findResultHistoryNode(): HTMLDivElement {
 }
 
 private fun addResponseToResultHistory(response: EvalResponse) {
-    val outer = createDiv("return-result")
-    outer.classList.add("source-node")
-    outer.innerText = response.result
+    val outer = document.create.div(classes = "return-result source-node") {
+        +response.result
+    }
     appendNodeToResultHistory(outer)
     window.scrollTo(0.0, document.body!!.scrollHeight.toDouble())
 }
 
 private fun addExceptionResultToResultHistory(response: ExceptionDescriptor) {
-    val node = createDiv("exception-result")
-    node.innerText = response.message
+    val node = document.create.div(classes = "exception-result") {
+        +response.message
+    }
     appendNodeToResultHistory(node)
 }
 
 private fun addEvalExceptionResultToResultHistory(response: EvalExceptionDescriptor) {
-    val node = createDiv("exception-result")
-    node.innerText = response.message
+    val node = document.create.div("exception-result") {
+        +response.message
+    }
     appendNodeToResultHistory(node)
 }
 
@@ -197,9 +199,6 @@ inline fun <reified T : HTMLElement> findElement(id: String): T {
 }
 
 fun createDiv(className: String? = null) = createElementWithClassName("div", className) as HTMLDivElement
-fun createSpan(className: String? = null) = createElementWithClassName("span", className) as HTMLSpanElement
-fun createHref(className: String? = null) = createElementWithClassName("a", className) as HTMLAnchorElement
-fun createInput(className: String? = null) = createElementWithClassName("input", className) as HTMLAnchorElement
 
 fun createElementWithClassName(type: String, className: String?): HTMLElement {
     val element = document.createElement(type)
