@@ -104,14 +104,16 @@ private fun addEvalExceptionResultToResultHistory(response: EvalExceptionDescrip
 }
 
 private fun addCommandResultToResultHistory(command: String) {
-    val node = document.create.div(classes = "command-result") {
-        span(classes = "command-result-text") {
-            +command
-        }
-        span(classes = "command-result-link") {
-            +" "
-            a("#${encodeURIComponent(command.trim())}") {
-                +"Link"
+    val node = document.create.div(classes = "command-result-outer") {
+        div(classes = "command-result-inner") {
+            span(classes = "command-result-text") {
+                +command
+            }
+            span(classes = "command-result-link") {
+                +" "
+                a("#${encodeURIComponent(command.trim())}") {
+                    +"Link"
+                }
             }
         }
     }
@@ -130,7 +132,7 @@ private fun sendCommand(worker: Worker, command: String) {
 }
 
 private fun sendCommandFromField(worker: Worker) {
-    val inputField = findElement<HTMLInputElement>("input")
+    val inputField = findElement<HTMLTextAreaElement>("input")
     val command = inputField.value
     if (command.trim() != "") {
         addCommandResultToResultHistory(command)
@@ -141,7 +143,7 @@ private fun sendCommandFromField(worker: Worker) {
 private const val INPUT_PREFIX_STATE_KEY = "inputState"
 private const val INPUT_PREFIX_SYM = "`"
 
-fun configureAPLInputForField(inputField: HTMLInputElement, returnCallback: () -> Unit) {
+fun configureAPLInputForField(inputField: HTMLTextAreaElement, returnCallback: () -> Unit) {
     fun updateKeyState(value: Boolean) {
         inputField.setAttribute(INPUT_PREFIX_STATE_KEY, if (value) "1" else "0")
     }
@@ -151,27 +153,39 @@ fun configureAPLInputForField(inputField: HTMLInputElement, returnCallback: () -
         return value != null && value == "1"
     }
 
+    fun insertString(s: String) {
+        val prevText = inputField.value
+        val sel = inputField.selectionStart!!
+        val left = prevText.substring(0, sel)
+        val right = prevText.substring(inputField.selectionEnd!!)
+        inputField.value = "${left}${s}${right}"
+        inputField.selectionStart = sel + s.length
+        inputField.selectionEnd = sel + s.length
+    }
+
     inputField.onkeypress = { event ->
         val currState = getKeyState()
-        if (event.key == "Enter") {
-            event.preventDefault()
-            updateKeyState(false)
-            returnCallback()
-        } else if (!currState && event.key == INPUT_PREFIX_SYM) {
-            event.preventDefault()
-            updateKeyState(true)
-        } else if (currState) {
-            updateKeyState(false)
-            val sym = if (event.key == " ") INPUT_PREFIX_SYM else Keymap.lookup(event.key)
-            if (sym != null) {
+        when {
+            event.key == "Enter" -> {
                 event.preventDefault()
-                val s = inputField.value
-                val sel = inputField.selectionStart!!
-                val left = s.substring(0, sel)
-                val right = s.substring(inputField.selectionEnd!!)
-                inputField.value = "${left}${sym}${right}"
-                inputField.selectionStart = sel + 1
-                inputField.selectionEnd = sel + 1
+                updateKeyState(false)
+                if (event.shiftKey) {
+                    insertString("\n")
+                } else {
+                    returnCallback()
+                }
+            }
+            !currState && event.key == INPUT_PREFIX_SYM -> {
+                event.preventDefault()
+                updateKeyState(true)
+            }
+            currState -> {
+                updateKeyState(false)
+                val sym = if (event.key == " ") INPUT_PREFIX_SYM else Keymap.lookup(event.key)
+                if (sym != null) {
+                    event.preventDefault()
+                    insertString(sym)
+                }
             }
         }
         Unit
@@ -215,6 +229,8 @@ fun engineAvailableCallback(worker: Worker) {
         throw IllegalStateException("Client already initialised")
     }
 
+    engineInit = true
+
     val loadingElement = findElement<HTMLDivElement>("loading-message")
     loadingElement.remove()
 
@@ -224,11 +240,12 @@ fun engineAvailableCallback(worker: Worker) {
             id = "result-history"
         }
         div {
-            input(classes = "kap-input") {
+            textArea(classes = "kap-input") {
                 id = "input"
-                size = "60"
-                type = InputType.text
+                rows = "4"
+                cols = "60"
             }
+            +" "
             button {
                 id = "send-button"
                 +"Send"
@@ -238,7 +255,7 @@ fun engineAvailableCallback(worker: Worker) {
 
     topElement.appendChild(outer)
 
-    val inputField = findElement<HTMLInputElement>("input")
+    val inputField = findElement<HTMLTextAreaElement>("input")
     configureAPLInputForField(inputField) { sendCommandFromField(worker) }
     val button = findElement<HTMLButtonElement>("send-button")
     button.onclick = { sendCommandFromField(worker) }

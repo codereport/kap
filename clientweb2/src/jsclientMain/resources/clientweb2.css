@@ -10,19 +10,23 @@
 
 }
 
-.command-result {
+.command-result-outer {
     display: block;
+}
+
+.command-result-inner {
+    margin-left: 4em;
     font-family: "Iosevka Fixed", monospace;
     font-size: 18px;
     white-space: pre;
-    text-indent: 4em;
+    color: #006800;
 }
 
 .command-result-link {
     display: none;
 }
 
-.command-result:hover > .command-result-link {
+.command-result-outer:hover .command-result-link {
     display: inline;
 }
 
