@@ -69,7 +69,8 @@ private class Array2ContentEntry(val renderer: ValueRenderer) : EditorContent {
         val node = renderer.renderValue()
         val contextMenu = ContextMenu(
             MenuItem("Copy as string").apply { onAction = EventHandler { copyAsString() } },
-            MenuItem("Copy as code").apply { onAction = EventHandler { copyAsCode() } })
+            MenuItem("Copy as code").apply { onAction = EventHandler { copyAsCode() } },
+            MenuItem("Copy as HTML").apply { onAction = EventHandler { copyAsHtml() } })
         renderer.addToMenu(contextMenu)
         node.setOnMouseClicked { event ->
             if (event.button == MouseButton.SECONDARY) {
@@ -87,6 +88,17 @@ private class Array2ContentEntry(val renderer: ValueRenderer) : EditorContent {
     private fun copyAsCode() {
         val clipboard = Clipboard.getSystemClipboard()
         clipboard.setContent(mapOf(DataFormat.PLAIN_TEXT to renderer.value.formatted(FormatStyle.READABLE)))
+    }
+
+    private fun copyAsHtml() {
+        val buf = StringBuilder()
+        renderer.value.asHtml(buf)
+        val result = buf.toString()
+        val clipboard = Clipboard.getSystemClipboard()
+        clipboard.setContent(
+            mapOf(
+                DataFormat.HTML to result,
+                DataFormat.PLAIN_TEXT to result))
     }
 
     override fun joinSegment(nextSeg: EditorContent): Optional<EditorContent> = Optional.empty()

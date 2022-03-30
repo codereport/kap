@@ -57,6 +57,7 @@ class DimensionLabels(val labels: List<List<AxisLabel?>?>) {
             }
         }
 
+        @Suppress("unused")
         fun makeEmpty(dimensions: Dimensions): DimensionLabels {
             val result = ArrayList<List<AxisLabel?>?>(dimensions.size)
             repeat(dimensions.size) {
@@ -226,6 +227,12 @@ abstract class APLValue {
         } else {
             v.asBoolean(pos)
         }
+    }
+
+    open fun asHtml(buf: Appendable) {
+        buf.append("<pre>")
+        escapeHtml(formatted(FormatStyle.PRETTY), buf)
+        buf.append("</pre>")
     }
 
     companion object {
@@ -419,6 +426,15 @@ abstract class APLArray : APLValue() {
                 curr = (curr * 63) xor v.makeKey().hashCode()
             }
             return curr
+        }
+    }
+
+    override fun asHtml(buf: Appendable) {
+        val d = dimensions
+        if (d.size == 2) {
+            array2DAsHtml(this, buf)
+        } else {
+            super.asHtml(buf)
         }
     }
 }

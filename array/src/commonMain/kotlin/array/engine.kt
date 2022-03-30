@@ -360,6 +360,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeOperator("∘", ComposeOp())
         registerNativeOperator("⍥", OverOp())
         registerNativeOperator("parallel", ParallelOp())
+        registerNativeOperator("∥", ParallelOp())
 
         // function aliases                             
         functionAliases[coreNamespace.internAndExport("*")] = coreNamespace.internAndExport("⋆")
@@ -758,6 +759,7 @@ class RuntimeContext(val engine: Engine, val environment: Environment, val paren
     }
 }
 
+@Suppress("unused")
 interface FunctionDefinitionListener {
     fun functionDefined(name: Symbol, fn: APLFunctionDescriptor) = Unit
     fun functionRemoved(name: Symbol) = Unit
