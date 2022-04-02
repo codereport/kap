@@ -129,7 +129,7 @@ kotlin {
         jvmMain {
             dependencies {
                 implementation kotlin('stdlib-jdk8')
-                implementation "org.apache.poi:poi-ooxml:5.2.0"
+                implementation "org.apache.poi:poi-ooxml:5.2.2"
                 implementation 'com.google.code.gson:gson:2.9.0'
                 implementation 'org.apache.derby:derbywar:10.15.2.0'
                 implementation 'org.xerial:sqlite-jdbc:3.36.0.3'

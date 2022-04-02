@@ -138,6 +138,18 @@ abstract class KNodeLink(val upValue: KNode, val downValue: KNode) {
     abstract fun makeLine(x1: Double, y1: Double, x2: Double, y2: Double): Node
 }
 
+open class KNodeLinkLine(upValue: KNode, downValue: KNode, val label: String, val style: String) : KNodeLink(upValue, downValue) {
+    override fun makeLine(x1: Double, y1: Double, x2: Double, y2: Double): Node {
+        return makeLabelLine(x1, y1, x2, y2, label).apply {
+            styleClass.add(style)
+        }
+    }
+}
+
+class LiteralValueArgLink(upValue: KNode, downValue: KNode) : KNodeLinkLine(upValue, downValue, "Literal", "literal-value-link")
+class LeftArgLink(upValue: KNode, downValue: KNode) : KNodeLinkLine(upValue, downValue, "Left", "left-arg-line")
+class RightArgLink(upValue: KNode, downValue: KNode) : KNodeLinkLine(upValue, downValue, "Right", "right-arg-line")
+
 private fun makeLabelLine(x1: Double, y1: Double, x2: Double, y2: Double, label: String): Node {
     // Make sure line is top-to-bottom
     assertx(y1 <= y2)
@@ -169,26 +181,16 @@ private fun makeLabelLine(x1: Double, y1: Double, x2: Double, y2: Double, label:
     return Group(line)
 }
 
-class LeftArgLink(upValue: KNode, downValue: KNode) : KNodeLink(upValue, downValue) {
-    override fun makeLine(x1: Double, y1: Double, x2: Double, y2: Double): Node {
-        return makeLabelLine(x1, y1, x2, y2, "Left").apply {
-            styleClass.add("left-arg-line")
-        }
-    }
-}
-
-class RightArgLink(upValue: KNode, downValue: KNode) : KNodeLink(upValue, downValue) {
-    override fun makeLine(x1: Double, y1: Double, x2: Double, y2: Double): Node {
-        return makeLabelLine(x1, y1, x2, y2, "Right").apply {
-            styleClass.add("right-arg-line")
-        }
-    }
-}
-
 fun makeNodeFromInstr(graph: Graph, instr: Instruction): KNode {
     val node = when (instr) {
-        is LiteralInteger -> LiteralIntegerGraphNode(graph, instr)
+        is LiteralInteger -> LiteralIntegerGraphNode(graph, instr.value)
+        is LiteralDouble -> LiteralDoubleGraphNode(graph, instr.value)
         is VariableRef -> VarRefGraphNode(graph, instr)
+        is Literal1DArray -> LiteralArrayGraphNode.create(graph, instr.values)
+        is LiteralLongArray -> LiteralArrayGraphNode.createFromLongArray(graph, instr)
+        is LiteralDoubleArray -> LiteralArrayGraphNode.createFromDoubleArray(graph, instr)
+        is LiteralCharacter -> LiteralCharacterArrayNode(graph, instr.valueInt.value)
+        is LiteralStringValue -> LiteralStringGraphNode(graph, instr.s)
         is FunctionCall1Arg -> makeFunctionCall1ArgGraphNodeFromInstruction(graph, instr.fn, instr.rightArgs)
         is FunctionCall2Arg -> makeFunctionCall2ArgGraphNodeFromInstruction(graph, instr.fn, instr.leftArgs, instr.rightArgs)
         else -> throw CreateGraphException("Unsupported instruction type: ${instr}")
@@ -197,7 +199,7 @@ fun makeNodeFromInstr(graph: Graph, instr: Instruction): KNode {
     return node
 }
 
-abstract class SimpleGraphNode(graph: Graph, val label: Region) : KNode(graph) {
+open class SimpleGraphNode(graph: Graph, val label: Region) : KNode(graph) {
     init {
         graph.pane.children.add(label)
     }
@@ -218,11 +220,60 @@ abstract class SimpleGraphNode(graph: Graph, val label: Region) : KNode(graph) {
     }
 }
 
-class LiteralIntegerGraphNode(graph: Graph, instr: LiteralInteger) :
-    SimpleGraphNode(graph, LabelledContainer("Integer", Label(instr.value.toString())))
+class LiteralIntegerGraphNode(graph: Graph, value: Long) :
+    SimpleGraphNode(graph, LabelledContainer("Integer", Label(value.toString())))
+
+class LiteralDoubleGraphNode(graph: Graph, value: Double) :
+    SimpleGraphNode(graph, LabelledContainer("Double", Label(value.toString())))
 
 class VarRefGraphNode(graph: Graph, instr: VariableRef) :
     SimpleGraphNode(graph, LabelledContainer("Variable", Label(instr.name.nameWithNamespace())))
+
+fun makeCharacterLabel(value: Int): Node {
+    val vbox = VBox()
+    vbox.children.add(Label(String.format("Codepoint: U+%04X", value)))
+    vbox.children.add(Label("Name: ${Character.getName(value) ?: "invalid"}"))
+    return vbox
+}
+
+class LiteralCharacterArrayNode(graph: Graph, value: Int) :
+    SimpleGraphNode(graph, LabelledContainer("Character", makeCharacterLabel(value)))
+
+class LiteralStringGraphNode(graph: Graph, value: String) :
+    SimpleGraphNode(graph, LabelledContainer("String", Label("'${value}'").apply { style = "monospaced-label" }))
+
+class LiteralArrayGraphNode private constructor(graph: Graph, valueList: List<KNode>) : KNode(graph) {
+    val topNode = SimpleGraphNode(graph, LabelledContainer("Literal array", Label("Size: ${valueList.size}")))
+    val subnodes = valueList.toTypedArray()
+    val container = ContainerGraphNode(graph, topNode, *subnodes)
+
+    init {
+        subnodes.forEach { node ->
+            graph.links.add(LiteralValueArgLink(topNode, node))
+        }
+    }
+
+    override fun bounds() = container.bounds()
+    override fun computePosition(x: Double, y: Double) = container.computePosition(x, y)
+    override fun upPos() = container.upPos()
+
+    companion object {
+        fun create(graph: Graph, instrList: List<Instruction>): LiteralArrayGraphNode {
+            val valueList = instrList.map { instr -> makeNodeFromInstr(graph, instr) }
+            return LiteralArrayGraphNode(graph, valueList)
+        }
+
+        fun createFromLongArray(graph: Graph, instr: LiteralLongArray): KNode {
+            val valueList = instr.value.map { v -> LiteralIntegerGraphNode(graph, v) }
+            return LiteralArrayGraphNode(graph, valueList)
+        }
+
+        fun createFromDoubleArray(graph: Graph, instr: LiteralDoubleArray): KNode {
+            val valueList = instr.value.map { v -> LiteralDoubleGraphNode(graph, v) }
+            return LiteralArrayGraphNode(graph, valueList)
+        }
+    }
+}
 
 private fun fnName(fn: APLFunction): String {
     val pos = fn.pos

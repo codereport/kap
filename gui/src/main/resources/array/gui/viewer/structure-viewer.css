@@ -32,3 +32,7 @@
 .node-line-label {
     -fx-font-size: 8;
 }
+
+.monospaced-label {
+    -fx-font-family: monospace;
+}
