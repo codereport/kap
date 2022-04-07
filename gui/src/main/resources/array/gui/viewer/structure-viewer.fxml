@@ -34,10 +34,11 @@
         </HBox>
     </top>
     <center>
-        <ScrollPane fitToHeight="true" fitToWidth="true" BorderPane.alignment="CENTER">
+        <ScrollPane fitToHeight="true" fitToWidth="true" hbarPolicy="ALWAYS" vbarPolicy="ALWAYS"
+                    BorderPane.alignment="CENTER">
             <content>
-                <Pane fx:id="graphContentPane" minHeight="0.0" minWidth="0.0" prefHeight="200.0" prefWidth="200.0"
-                      styleClass="viewer-scroll"/>
+                <Pane fx:id="graphContentPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308"
+                      minHeight="-Infinity" minWidth="-Infinity" styleClass="viewer-scroll"/>
             </content>
         </ScrollPane>
     </center>
