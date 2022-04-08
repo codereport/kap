@@ -140,4 +140,13 @@ class ReshapeTest : APLTest() {
             assertSimpleNumber(1, result)
         }
     }
+
+    @Test
+    fun reshapeToNull() {
+        parseAPLExpression("⍬ ⍴ ⊂1 2 3").let { result ->
+            assertEquals(0, result.dimensions.size)
+            val v = result.valueAt(0)
+            assert1DArray(arrayOf(1, 2, 3), v)
+        }
+    }
 }

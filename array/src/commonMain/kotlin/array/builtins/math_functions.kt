@@ -56,13 +56,11 @@ class GenericArraySum2Args(
 
     override fun valueAt(p: Int): APLValue {
         val a1 = when {
-            a0 is APLSingleValue -> a0
-            a0.isScalar() -> a0.valueAt(0).unwrapDeferredValue()
+            a0.isScalar() -> a0.disclose().unwrapDeferredValue()
             else -> a0.valueAt(p).unwrapDeferredValue()
         }
         val b1 = when {
-            b0 is APLSingleValue -> b0
-            b0.isScalar() -> b0.valueAt(0).unwrapDeferredValue()
+            b0.isScalar() -> b0.disclose().unwrapDeferredValue()
             else -> b0.valueAt(p).unwrapDeferredValue()
         }
         return if (a1 is APLSingleValue && b1 is APLSingleValue) {

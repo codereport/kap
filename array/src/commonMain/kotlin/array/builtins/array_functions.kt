@@ -231,7 +231,7 @@ class RhoAPLFunction : APLFunctionDescriptor {
 
             val v = a.unwrapDeferredValue()
             if (d.size == 1 && d[0] == 0) {
-                return b.arrayify().valueAt(0)
+                return EnclosedAPLValue.make(b.arrayify().valueAt(0))
             } else {
                 val d1 = if (d.size == 0) {
                     dimensionsOfSize(v.ensureNumber(arg2Pos).asInt())
@@ -239,13 +239,14 @@ class RhoAPLFunction : APLFunctionDescriptor {
                     val dimensionsArray = IntArray(v.size) { v.valueAtInt(it, arg2Pos) }
                     var calculatedIndex: Int? = null
                     dimensionsArray.forEachIndexed { i, sizeSpecValue ->
-                        if (sizeSpecValue < 0) {
-                            if (sizeSpecValue == -1) {
+                        when {
+                            sizeSpecValue == -1 -> {
                                 if (calculatedIndex != null) {
                                     throwAPLException(InvalidDimensionsException("Only one dimension may be set to -1", arg2Pos))
                                 }
                                 calculatedIndex = i
-                            } else {
+                            }
+                            sizeSpecValue < 0 -> {
                                 throwAPLException(
                                     InvalidDimensionsException(
                                         "Illegal value at index ${i} in dimensions: ${sizeSpecValue}", arg2Pos))
@@ -1617,7 +1618,7 @@ class CaseValue(val selectionArray: APLValue, val values: List<APLValue>, val po
     override fun valueAt(p: Int): APLValue {
         val index = selectionArray.valueAtInt(p, pos)
         if (index < 0 || index >= values.size) {
-            throwAPLException(InvalidDimensionsException("Attempt to read index ${index} from array (n=${values.size}", pos))
+            throwAPLException(InvalidDimensionsException("Attempt to read index ${index} from array (size=${values.size})", pos))
         }
         val v = values[index]
         return if (v.isScalar()) {

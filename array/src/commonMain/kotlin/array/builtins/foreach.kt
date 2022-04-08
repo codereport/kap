@@ -48,12 +48,7 @@ class ForEachFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
                 }
             }
 
-            override fun eval2Arg(
-                context: RuntimeContext,
-                a: APLValue,
-                b: APLValue,
-                axis: APLValue?
-            ): APLValue {
+            override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
                 return compute2Arg(context, fn, a, b, axis, pos)
             }
 
@@ -80,12 +75,12 @@ class ForEachFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
                 return EnclosedAPLValue.make(fn.eval2Arg(context, a.disclose(), b.disclose(), axis).unwrapDeferredValue())
             }
             val a1 = if (a.isScalar()) {
-                ConstantArray(b.dimensions, a.valueAt(0))
+                ConstantArray(b.dimensions, a.disclose())
             } else {
                 a
             }
             val b1 = if (b.isScalar()) {
-                ConstantArray(a.dimensions, b.valueAt(0))
+                ConstantArray(a.dimensions, b.disclose())
             } else {
                 b
             }
