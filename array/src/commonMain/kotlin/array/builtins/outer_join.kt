@@ -131,12 +131,7 @@ class OuterJoinOp : APLOperatorOneArg {
 }
 
 class OuterInnerJoinOp : APLOperatorTwoArg {
-    override fun combineFunction(
-        fn1: APLFunction,
-        fn2: APLFunction,
-        operatorAxis: Instruction?,
-        opPos: Position,
-    ): APLFunctionDescriptor {
+    override fun combineFunction(fn1: APLFunction, fn2: APLFunction, operatorAxis: Instruction?, opPos: Position): APLFunctionDescriptor {
         if (operatorAxis != null) {
             throwAPLException(AxisNotSupported(opPos))
         }
@@ -149,71 +144,64 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
 
 
     class OuterJoinFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
-        override fun make(pos: Position): APLFunction {
-            return object : APLFunction(pos) {
-                override fun eval2Arg(
-                    context: RuntimeContext,
-                    a: APLValue,
-                    b: APLValue,
-                    axis: APLValue?
-                ): APLValue {
-                    if (axis != null) {
-                        throwAPLException(AxisNotSupported(pos))
+        inner class OuterJoinFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+            override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+                val sta = a.specialisedType
+                val stb = b.specialisedType
+                return when {
+                    sta === ArrayMemberType.LONG && stb === ArrayMemberType.LONG && fn.optimisationFlags.is2ALongLong -> {
+                        OuterJoinResultLong(context, a, b, fn, pos)
                     }
-                    val sta = a.specialisedType
-                    val stb = b.specialisedType
-                    return when {
-                        sta === ArrayMemberType.LONG && stb === ArrayMemberType.LONG && fn.optimisationFlags.is2ALongLong -> {
-                            OuterJoinResultLong(context, a, b, fn, pos)
-                        }
-                        sta === ArrayMemberType.DOUBLE && stb === ArrayMemberType.DOUBLE && fn.optimisationFlags.is2ADoubleDouble -> {
-                            OuterJoinResultDouble(context, a, b, fn, pos)
-                        }
-                        else -> OuterJoinResult(context, a, b, fn, pos)
+                    sta === ArrayMemberType.DOUBLE && stb === ArrayMemberType.DOUBLE && fn.optimisationFlags.is2ADoubleDouble -> {
+                        OuterJoinResultDouble(context, a, b, fn, pos)
                     }
+                    else -> OuterJoinResult(context, a, b, fn, pos)
                 }
             }
         }
+
+        override fun make(pos: Position): APLFunction {
+            return OuterJoinFunctionImpl(pos.withName("outer product"))
+
+        }
     }
 
-    class InnerJoinFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) :
-        APLFunctionDescriptor {
-        override fun make(pos: Position): APLFunction {
-            return object : APLFunction(fn1.pos) {
-                override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-                    if (axis != null) {
-                        throwAPLException(APLIllegalArgumentException("inner join does not support axis arguments", pos))
-                    }
-                    val aDimensions = a.dimensions
-                    val bDimensions = b.dimensions
+    class InnerJoinFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) : APLFunctionDescriptor {
+        inner class InnerJoinFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+            override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+                val aDimensions = a.dimensions
+                val bDimensions = b.dimensions
 
-                    fun scalarOrVector(d: Dimensions) = d.size == 0 || (d.size == 1 && d[0] == 1)
+                fun scalarOrVector(d: Dimensions) = d.size == 0 || (d.size == 1 && d[0] == 1)
 
-                    val a1 = when {
-                        scalarOrVector(aDimensions) && scalarOrVector(bDimensions) -> a.arrayify()
-                        scalarOrVector(aDimensions) -> ConstantArray(dimensionsOfSize(bDimensions[0]), a.singleValueOrError())
-                        else -> a
-                    }
-                    val b1 = when {
-                        scalarOrVector(aDimensions) && scalarOrVector(bDimensions) -> b.arrayify()
-                        scalarOrVector(bDimensions) -> ConstantArray(
-                            dimensionsOfSize(aDimensions[aDimensions.size - 1]),
-                            b.singleValueOrError())
-                        else -> b
-                    }
-                    val a1Dimensions = a1.dimensions
-                    val b1Dimensions = b1.dimensions
-                    if (a1Dimensions[a1Dimensions.size - 1] != b1Dimensions[0]) {
-                        throwAPLException(InvalidDimensionsException("a and b dimensions are incompatible", pos))
-                    }
-                    return if (a1Dimensions.size == 1 && b1Dimensions.size == 1) {
-                        val v = fn2.eval2Arg(context, a1, b1, null)
-                        ReduceResult1Arg(context, fn1, null, v, 0, pos)
-                    } else {
-                        InnerJoinResult(context, a1, b1, fn1, null, fn2, null, pos)
-                    }
+                val a1 = when {
+                    scalarOrVector(aDimensions) && scalarOrVector(bDimensions) -> a.arrayify()
+                    scalarOrVector(aDimensions) -> ConstantArray(dimensionsOfSize(bDimensions[0]), a.singleValueOrError())
+                    else -> a
+                }
+                val b1 = when {
+                    scalarOrVector(aDimensions) && scalarOrVector(bDimensions) -> b.arrayify()
+                    scalarOrVector(bDimensions) -> ConstantArray(
+                        dimensionsOfSize(aDimensions[aDimensions.size - 1]),
+                        b.singleValueOrError())
+                    else -> b
+                }
+                val a1Dimensions = a1.dimensions
+                val b1Dimensions = b1.dimensions
+                if (a1Dimensions[a1Dimensions.size - 1] != b1Dimensions[0]) {
+                    throwAPLException(InvalidDimensionsException("a and b dimensions are incompatible", pos))
+                }
+                return if (a1Dimensions.size == 1 && b1Dimensions.size == 1) {
+                    val v = fn2.eval2Arg(context, a1, b1, null)
+                    ReduceResult1Arg(context, fn1, null, v, 0, pos)
+                } else {
+                    InnerJoinResult(context, a1, b1, fn1, null, fn2, null, pos)
                 }
             }
+        }
+
+        override fun make(pos: Position): APLFunction {
+            return InnerJoinFunctionImpl(pos.withName("inner product"))
         }
     }
 }

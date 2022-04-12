@@ -21,7 +21,7 @@ class BitwiseOp : APLOperatorOneArg {
         if (operatorAxis != null) {
             throw AxisNotSupported(pos)
         }
-        return fn.deriveBitwise() ?: throw BitwiseNotSupported(pos)
+        return fn.deriveBitwise() ?: throw BitwiseNotSupported(fn.pos)
     }
 }
 

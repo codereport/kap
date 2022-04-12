@@ -7,7 +7,10 @@ interface APLOperator {
 interface APLOperatorOneArg : APLOperator {
     override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction {
         val axis = aplParser.parseAxis()
-        return combineFunction(currentFn, axis, opPos).make(opPos)
+        return combineFunction(currentFn, axis, opPos).make(
+            opPos.copy(
+                line = currentFn.pos.line,
+                col = currentFn.pos.col))
     }
 
     fun combineFunction(fn: APLFunction, operatorAxis: Instruction?, pos: Position): APLFunctionDescriptor
