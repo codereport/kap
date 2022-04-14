@@ -4,6 +4,7 @@ import array.APLValue
 import array.assertx
 import array.gui.Client
 import array.gui.display.ValueRenderer
+import array.gui.settings.ReturnBehaviour
 import javafx.application.Platform
 import javafx.scene.Node
 import javafx.scene.input.KeyCode
@@ -181,8 +182,10 @@ class ROStyledArea(
         val text = document.subSequence(inputPosition.inputStart, inputPosition.inputEnd).text
         val listener = commandListener
         if (listener != null && listener.valid(text)) {
-            withUpdateEnabled {
-                deleteText(inputPosition.inputStart, inputPosition.inputEnd)
+            if (client.settings.newlineBehaviourWithDefault() === ReturnBehaviour.CLEAR_INPUT) {
+                withUpdateEnabled {
+                    deleteText(inputPosition.inputStart, inputPosition.inputEnd)
+                }
             }
             listener.handle(text)
         }
@@ -211,17 +214,11 @@ class ROStyledArea(
         style: TextStyle,
         parStyle: ParStyle? = null
     ): StyledDocument<ParStyle, EditorContent, TextStyle> {
-        val p = parStyle ?: ParStyle()
-//        val doc = GenericEditableStyledDocument(p, style, segOps)
         val builder = ReadOnlyStyledDocumentBuilder(segOps, parStyle ?: ParStyle())
         text.split("\n").forEach { part ->
-//            doc.paragraphs.add(Paragraph(p, segOps, StringEditorContentEntry(part), style))
             builder.addParagraph(EditorContent.makeString(part), style)
         }
         val inputPos = findInputStartEnd()
-//            builder.build().also { doc ->
-//                insert(inputPos.promptStartPos, doc)
-//            }
         val doc = builder.build()
         withUpdateEnabled {
             insert(inputPos.promptStartPos, doc)

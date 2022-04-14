@@ -45,7 +45,8 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
     private var rightDtPane: DetachablePaneWrapper
     private var bottomDtPane: DetachablePaneWrapper
     private val aboutWindow: AboutWindow
-    private var settings: Settings
+    var settings: Settings
+        private set
     private val directoryTextField = TextField()
     private val breakButton = Button("Stop")
     private val stackTraceWindow: StackTrace

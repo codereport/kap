@@ -22,6 +22,7 @@ data class Settings(
 ) {
     fun fontFamilyWithDefault() = fontFamily ?: "Iosevka Fixed"
     fun fontSizeWithDefault() = fontSize ?: 10
+    fun newlineBehaviourWithDefault() = newlineBehaviour ?: ReturnBehaviour.CLEAR_INPUT
 }
 
 
