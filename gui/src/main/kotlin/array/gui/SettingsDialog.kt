@@ -1,5 +1,7 @@
 package array.gui
 
+import array.gui.settings.ReturnBehaviour
+import array.gui.settings.Settings
 import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.fxml.FXMLLoader
@@ -9,9 +11,10 @@ import javafx.stage.Modality
 import javafx.stage.Window
 import javafx.util.Callback
 
-class SettingsDialog(owner: Window, val prevData: SettingsData) : Dialog<SettingsData>() {
+class SettingsDialog(owner: Window, val prevData: Settings) : Dialog<Settings>() {
     lateinit var fontFamilyInput: ComboBox<String>
     lateinit var fontSizeInput: TextField
+    lateinit var returnBehaviour: ChoiceBox<String>
 
     init {
         val loader = FXMLLoader(SettingsDialog::class.java.getResource("settings.fxml"))
@@ -36,7 +39,10 @@ class SettingsDialog(owner: Window, val prevData: SettingsData) : Dialog<Setting
     }
 
     private fun makeSettingsData() =
-        prevData.copy(fontFamily = fontFamilyInput.value, fontSize = Integer.parseInt(fontSizeInput.textProperty().valueSafe))
+        prevData.copy(
+            fontFamily = fontFamilyInput.value,
+            fontSize = Integer.parseInt(fontSizeInput.textProperty().valueSafe),
+            newlineBehaviour = ReturnBehaviour.values()[returnBehaviour.selectionModel.selectedIndex])
 
     private fun initFields() {
         val familyList = Font.getFamilies().sorted()
@@ -49,7 +55,25 @@ class SettingsDialog(owner: Window, val prevData: SettingsData) : Dialog<Setting
         }
 
         fontSizeInput.text = prevData.fontSize.toString()
+
+        val returnBehaviourOptions = ReturnBehaviour.values().map(this::nameFromReturnBehaviour)
+        returnBehaviour.items.setAll(returnBehaviourOptions)
+        if (prevData.newlineBehaviour == null) {
+            returnBehaviour.selectionModel.select(0)
+        } else {
+            returnBehaviour.selectionModel.select(returnBehaviourIndex(prevData.newlineBehaviour))
+        }
+    }
+
+    private fun returnBehaviourIndex(defaultReturnBehaviour: ReturnBehaviour): Int {
+        ReturnBehaviour.values().forEachIndexed { i, v -> if (v === defaultReturnBehaviour) return i }
+        error("Unexpected return behaviour value: ${defaultReturnBehaviour}")
+    }
+
+    private fun nameFromReturnBehaviour(returnBehaviour: ReturnBehaviour): String {
+        return when (returnBehaviour) {
+            ReturnBehaviour.CLEAR_INPUT -> "Clear input"
+            ReturnBehaviour.PRESERVE -> "Preserve content"
+        }
     }
 }
-
-data class SettingsData(val fontFamily: String, val fontSize: Int)

@@ -69,9 +69,7 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
             }
         }
 
-        makeSettingsData().let { settingsData ->
-            inputFont = Font(settingsData.fontFamily, settingsData.fontSize.toDouble())
-        }
+        inputFont = Font(settings.fontFamilyWithDefault(), settings.fontSizeWithDefault().toDouble())
 
         resultList = ResultList3(this)
 
@@ -278,15 +276,11 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
     }
 
     private fun openSettingsWindow() {
-        val dialog = SettingsDialog(stage, makeSettingsData())
+        val dialog = SettingsDialog(stage, settings)
         dialog.showAndWait().ifPresent { result ->
-            settings = settings.copy(fontFamily = result.fontFamily, fontSize = result.fontSize)
+            settings = result
             saveSettings(settings)
         }
-    }
-
-    private fun makeSettingsData(): SettingsData {
-        return SettingsData(fontFamily = settings.fontFamily ?: "Iosevka Fixed", fontSize = settings.fontSize ?: 10)
     }
 
     fun evalSource(source: SourceLocation, linkNewContext: Boolean = false) {

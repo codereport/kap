@@ -10,12 +10,20 @@ import java.nio.file.Path
 import kotlin.io.path.*
 
 @Serializable
+enum class ReturnBehaviour { CLEAR_INPUT, PRESERVE }
+
+@Serializable
 data class Settings(
     val recentPath: String? = null,
     val directory: String? = null,
     val fontFamily: String? = null,
-    val fontSize: Int? = null
-)
+    val fontSize: Int? = null,
+    val newlineBehaviour: ReturnBehaviour? = null
+) {
+    fun fontFamilyWithDefault() = fontFamily ?: "Iosevka Fixed"
+    fun fontSizeWithDefault() = fontSize ?: 10
+}
+
 
 private fun findSettingsDirectory(): Path? {
     val homeString = System.getProperty("user.home") ?: return null
