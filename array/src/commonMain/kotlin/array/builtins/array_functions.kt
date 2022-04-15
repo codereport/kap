@@ -153,7 +153,7 @@ class IotaAPLFunction : APLFunctionDescriptor {
 }
 
 object ResizedArrayImpls {
-    class ResizedArray(override val dimensions: Dimensions, private val value: APLValue) : APLArray() {
+    class GenericResizedArray(override val dimensions: Dimensions, val value: APLValue) : APLArray() {
         override val specialisedType = value.specialisedType
 
         override fun valueAt(p: Int): APLValue {
@@ -198,17 +198,29 @@ object ResizedArrayImpls {
         override fun valueAtDouble(p: Int, pos: Position?) = boxed.value
     }
 
+    private fun findUnderlyingArray(a: APLValue): APLValue {
+        var curr = a
+        while (true) {
+            val v0 = curr.unwrapDeferredValue()
+            if (v0 is GenericResizedArray) {
+                curr = v0.value.unwrapDeferredValue()
+            } else {
+                return v0
+            }
+        }
+    }
+
     fun makeResizedArray(dimensions: Dimensions, value: APLValue): APLValue {
         assertx(dimensions.size >= 1)
-        val v = value.unwrapDeferredValue()
+        val v0 = findUnderlyingArray(value)
         return when {
-            dimensions.compareEquals(v.dimensions) -> v
+            dimensions.compareEquals(v0.dimensions) -> v0
             value is IotaArrayImpls.GenericIotaArrayLong -> value.resizeIotaArray(dimensions, 0)
-            v is APLLong -> ResizedArrayLong(dimensions, v)
-            v is APLDouble -> ResizedArrayDouble(dimensions, v)
-            v is APLSingleValue -> ResizedSingleValueGeneric(dimensions, v)
-            dimensions.size == 0 -> ResizedSingleValueGeneric(dimensions, v.disclose())
-            else -> ResizedArray(dimensions, v)
+            v0 is APLLong -> ResizedArrayLong(dimensions, v0)
+            v0 is APLDouble -> ResizedArrayDouble(dimensions, v0)
+            v0 is APLSingleValue -> ResizedSingleValueGeneric(dimensions, v0)
+            dimensions.size == 0 -> ResizedSingleValueGeneric(dimensions, v0.disclose())
+            else -> GenericResizedArray(dimensions, v0)
         }
     }
 }

@@ -68,6 +68,21 @@ class LessThanAPLFunction : APLFunctionDescriptor {
                 { x, y -> makeBoolean(x < y) })
         }
 
+        override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+            if (axis != null) {
+                throw AxisNotSupported(pos)
+            }
+            val aDimensions = a.dimensions
+            val dimensionsArray = IntArray(aDimensions.size + 1) { i ->
+                if (i == 0) {
+                    1
+                } else {
+                    aDimensions[i - 1]
+                }
+            }
+            return ResizedArrayImpls.makeResizedArray(Dimensions(dimensionsArray), a)
+        }
+
         override fun identityValue() = APLLONG_0
     }
 
@@ -85,6 +100,25 @@ class GreaterThanAPLFunction : APLFunctionDescriptor {
                 { x, y -> makeBoolean(x > y) },
                 { x, y -> makeBoolean(if (x.real == y.real) x.imaginary > y.imaginary else x.real > y.real) },
                 { x, y -> makeBoolean(x > y) })
+        }
+
+        override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+            if (axis != null) {
+                throw AxisNotSupported(pos)
+            }
+            val aDimensions = a.dimensions
+            return if (aDimensions.size <= 1) {
+                a
+            } else {
+                val dimensionsArray = IntArray(aDimensions.size - 1) { i ->
+                    if (i == 0) {
+                        aDimensions[0] * aDimensions[1]
+                    } else {
+                        aDimensions[i + 1]
+                    }
+                }
+                ResizedArrayImpls.makeResizedArray(Dimensions(dimensionsArray), a)
+            }
         }
 
         override fun identityValue() = APLLONG_0
