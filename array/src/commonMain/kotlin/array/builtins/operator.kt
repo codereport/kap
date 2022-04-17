@@ -231,6 +231,26 @@ class ComposeOp : APLOperatorTwoArg {
     }
 }
 
+class ReverseComposeFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) : APLFunctionDescriptor {
+    inner class ReverseComposeFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            val res = fn1.eval1Arg(context, a, null)
+            return fn2.eval2Arg(context, res, b, null)
+        }
+    }
+
+    override fun make(pos: Position) = ReverseComposeFunctionImpl(pos)
+}
+
+class ReverseComposeOp : APLOperatorTwoArg {
+    override fun combineFunction(fn1: APLFunction, fn2: APLFunction, operatorAxis: Instruction?, opPos: Position): APLFunctionDescriptor {
+        if (operatorAxis != null) {
+            throw AxisNotSupported(opPos)
+        }
+        return ReverseComposeFunctionDescriptor(fn1, fn2)
+    }
+}
+
 class OverDerivedFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) : APLFunctionDescriptor {
     inner class OpenDerivedFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {

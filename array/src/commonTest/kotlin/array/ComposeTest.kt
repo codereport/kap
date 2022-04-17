@@ -312,4 +312,18 @@ class ComposeTest : APLTest() {
             assertEquals("2", out)
         }
     }
+
+    @Test
+    fun reverseCompose0() {
+        parseAPLExpression("10 (-⍛+) 100").let { result ->
+            assertSimpleNumber(90, result)
+        }
+    }
+
+    @Test
+    fun reverseComposeFailsWithMonadic() {
+        assertFailsWith<Unimplemented1ArgException> {
+            parseAPLExpression("(-⍛+) 100")
+        }
+    }
 }

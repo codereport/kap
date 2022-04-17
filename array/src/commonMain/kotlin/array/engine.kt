@@ -361,6 +361,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeOperator("⍥", OverOp())
         registerNativeOperator("parallel", ParallelOp())
         registerNativeOperator("∥", ParallelOp())
+        registerNativeOperator("⍛", ReverseComposeOp())
 
         // function aliases                             
         functionAliases[coreNamespace.internAndExport("*")] = coreNamespace.internAndExport("⋆")
