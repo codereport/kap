@@ -3,6 +3,7 @@ package array.gui.viewer
 import array.*
 import array.builtins.ComposedFunctionDescriptor
 import array.builtins.OverDerivedFunctionDescriptor
+import array.builtins.ReverseComposeFunctionDescriptor
 import array.gui.Client
 import array.keyboard.ExtendedCharsKeyboardInput
 import javafx.event.ActionEvent
@@ -327,6 +328,7 @@ private fun makeFunctionCall2ArgGraphNodeFromFunction(
         is FunctionCallChain.Chain2 -> Chain2A2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
         is FunctionCallChain.Chain3 -> Chain3A2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
         is ComposedFunctionDescriptor.ComposedFunctionImpl -> ComposeA2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
+        is ReverseComposeFunctionDescriptor.ReverseComposeFunctionImpl -> ReverseComposeA2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
         is OverDerivedFunctionDescriptor.OpenDerivedFunctionImpl -> OverA2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
         else -> FunctionCall2ArgGraphNode(graph, fn, leftArgsNode, rightArgsNode)
     }
@@ -518,6 +520,21 @@ class ComposeA2GraphNode(graph: Graph, fn: ComposedFunctionDescriptor.ComposedFu
     KNode(graph) {
     val rightNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn2(), graph, rightArgLink)
     val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn1(), graph, leftNode, rightNode)
+    val container = ContainerGraphNode(graph, middleNode, leftNode, rightNode)
+
+    override fun bounds() = container.bounds()
+    override fun computePosition(x: Double, y: Double) = container.computePosition(x, y)
+    override fun upPos() = container.upPos()
+}
+
+class ReverseComposeA2GraphNode(
+    graph: Graph,
+    fn: ReverseComposeFunctionDescriptor.ReverseComposeFunctionImpl,
+    leftArgLink: KNode,
+    rightNode: KNode) :
+    KNode(graph) {
+    val leftNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn1(), graph, leftArgLink)
+    val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn2(), graph, leftNode, rightNode)
     val container = ContainerGraphNode(graph, middleNode, leftNode, rightNode)
 
     override fun bounds() = container.bounds()

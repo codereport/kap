@@ -237,6 +237,9 @@ class ReverseComposeFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunctio
             val res = fn1.eval1Arg(context, a, null)
             return fn2.eval2Arg(context, res, b, null)
         }
+
+        fun fn1() = fn1
+        fun fn2() = fn2
     }
 
     override fun make(pos: Position) = ReverseComposeFunctionImpl(pos)
