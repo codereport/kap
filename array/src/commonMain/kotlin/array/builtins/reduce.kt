@@ -85,6 +85,7 @@ fun unwrapEnclosedSingleValue(value: APLValue): APLValue {
     }
 }
 
+// 2+/io:println¨ 3 3 ⍴ ⍳9
 class ReduceNWiseResultValue(
     val context: RuntimeContext,
     val fn: APLFunction,
@@ -100,6 +101,7 @@ class ReduceNWiseResultValue(
     private val axisMultiplier: Int
     private val dir: Int
     private val reductionSizeAbsolute: Int
+    private val cachedSources = makeAtomicRefArray<APLValue>(b.dimensions.contentSize())
 
     init {
         val bDimensions = b.dimensions
@@ -121,13 +123,19 @@ class ReduceNWiseResultValue(
         axisActionFactors = AxisActionFactors(dimensions, operatorAxis)
     }
 
+    private fun lookupSource(p: Int): APLValue {
+        return cachedSources.checkOrUpdate(p) {
+            b.valueAt(p)
+        }
+    }
+
     override fun valueAt(p: Int): APLValue {
         axisActionFactors.withFactors(p) { high, low, axisCoord ->
             var pos = if (reductionSize < 0) reductionSizeAbsolute - 1 else 0
-            var curr = b.valueAt((high * highMultiplier) + ((axisCoord + pos) * axisMultiplier) + low)
+            var curr = lookupSource((high * highMultiplier) + ((axisCoord + pos) * axisMultiplier) + low)
             repeat(reductionSizeAbsolute - 1) {
                 pos += dir
-                val value = b.valueAt((high * highMultiplier) + ((axisCoord + pos) * axisMultiplier) + low)
+                val value = lookupSource((high * highMultiplier) + ((axisCoord + pos) * axisMultiplier) + low)
                 curr = fn.eval2Arg(context, curr, value, axis)
             }
             return curr
@@ -178,7 +186,7 @@ abstract class ReduceFunctionImpl(val fn: APLFunction, val operatorAxis: Instruc
                 APLArrayImpl(d, emptyArray())
             }
             else -> {
-                ReduceNWiseResultValue(context, fn, axis, size, b.collapse(), axisInt)
+                ReduceNWiseResultValue(context, fn, axis, size, b, axisInt)
             }
         }
     }
