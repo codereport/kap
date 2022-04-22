@@ -85,7 +85,6 @@ fun unwrapEnclosedSingleValue(value: APLValue): APLValue {
     }
 }
 
-// 2+/io:println¨ 3 3 ⍴ ⍳9
 class ReduceNWiseResultValue(
     val context: RuntimeContext,
     val fn: APLFunction,
