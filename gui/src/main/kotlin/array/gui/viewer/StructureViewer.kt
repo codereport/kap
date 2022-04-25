@@ -301,7 +301,7 @@ private fun makeFunctionCall1ArgGraphNodeFromFunction(
         is FunctionCallChain.Chain2 -> Chain2A1GraphNode(graph, fn, rightArgsNode)
         is FunctionCallChain.Chain3 -> Chain3A1GraphNode(graph, fn, rightArgsNode)
         is ComposedFunctionDescriptor.ComposedFunctionImpl -> ComposeA1GraphNode(graph, fn, rightArgsNode)
-        is OverDerivedFunctionDescriptor.OpenDerivedFunctionImpl -> OverA1GraphNode(graph, fn, rightArgsNode)
+        is OverDerivedFunctionDescriptor.OverDerivedFunctionImpl -> OverA1GraphNode(graph, fn, rightArgsNode)
         else -> FunctionCall1ArgGraphNode(graph, fn, rightArgsNode)
     }
 }
@@ -329,7 +329,7 @@ private fun makeFunctionCall2ArgGraphNodeFromFunction(
         is FunctionCallChain.Chain3 -> Chain3A2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
         is ComposedFunctionDescriptor.ComposedFunctionImpl -> ComposeA2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
         is ReverseComposeFunctionDescriptor.ReverseComposeFunctionImpl -> ReverseComposeA2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
-        is OverDerivedFunctionDescriptor.OpenDerivedFunctionImpl -> OverA2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
+        is OverDerivedFunctionDescriptor.OverDerivedFunctionImpl -> OverA2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
         else -> FunctionCall2ArgGraphNode(graph, fn, leftArgsNode, rightArgsNode)
     }
 }
@@ -542,10 +542,10 @@ class ReverseComposeA2GraphNode(
     override fun upPos() = container.upPos()
 }
 
-class OverA1GraphNode(graph: Graph, fn: OverDerivedFunctionDescriptor.OpenDerivedFunctionImpl, rightArgsNode: KNode) :
+class OverA1GraphNode(graph: Graph, fn: OverDerivedFunctionDescriptor.OverDerivedFunctionImpl, rightArgsNode: KNode) :
     AbstractCallSeq2A1GraphNode(graph, fn.fn1(), fn.fn2(), rightArgsNode)
 
-class OverA2GraphNode(graph: Graph, fn: OverDerivedFunctionDescriptor.OpenDerivedFunctionImpl, leftArgsNode: KNode, rightArgsNode: KNode) :
+class OverA2GraphNode(graph: Graph, fn: OverDerivedFunctionDescriptor.OverDerivedFunctionImpl, leftArgsNode: KNode, rightArgsNode: KNode) :
     KNode(graph) {
     val leftNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn2(), graph, leftArgsNode)
     val rightNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn2(), graph, rightArgsNode)

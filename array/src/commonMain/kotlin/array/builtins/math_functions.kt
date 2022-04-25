@@ -150,15 +150,6 @@ class LongArraySum2ArgsRightScalar(
 }
 
 abstract class MathCombineAPLFunction(pos: Position) : APLFunction(pos) {
-    @Suppress("LeakingThis")
-    val pos1Arg = name1Arg()?.let { pos.withName(it) } ?: pos
-
-    @Suppress("LeakingThis")
-    val pos2Arg = name2Arg()?.let { pos.withName(it) } ?: pos
-
-    open fun name1Arg(): String? = null
-    open fun name2Arg(): String? = null
-
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
         if (a is APLSingleValue) {
             return combine1Arg(a)
@@ -215,15 +206,15 @@ abstract class MathCombineAPLFunction(pos: Position) : APLFunction(pos) {
             val aDimensions = a0.dimensions
             val bDimensions = b0.dimensions
 
-            val axisInt = axis.ensureNumber(pos2Arg).asInt()
+            val axisInt = axis.ensureNumber(pos).asInt()
 
             fun computeTransformation(baseVal: APLValue, d1: Dimensions, d2: Dimensions): APLValue {
-                ensureValidAxis(axisInt, d2, pos2Arg)
+                ensureValidAxis(axisInt, d2, pos)
                 if (d1[0] != d2[axisInt]) {
                     throwAPLException(
                         InvalidDimensionsException(
                             "Dimensions of A does not match dimensions of B across axis ${axisInt}",
-                            pos2Arg))
+                            pos))
                 }
                 val d = d2.remove(axisInt).insert(d2.size - 1, d2[axisInt])
                 val transposeAxis = IntArray(d2.size) { i ->
@@ -233,32 +224,32 @@ abstract class MathCombineAPLFunction(pos: Position) : APLFunction(pos) {
                         else -> i + 1
                     }
                 }
-                return TransposedAPLValue(transposeAxis, ResizedArrayImpls.makeResizedArray(d, baseVal), pos2Arg)
+                return TransposedAPLValue(transposeAxis, ResizedArrayImpls.makeResizedArray(d, baseVal), pos)
             }
 
             // When an axis is given, one of the arguments must be rank 1, and its dimension must be equal to the
             // dimension of the other argument across the axis
             val (a1, b1) = when {
                 aDimensions.size == 1 && bDimensions.size == 1 -> {
-                    if (axisInt == 0) Pair(a0, b0) else throwAPLException(IllegalAxisException(axisInt, aDimensions, pos2Arg))
+                    if (axisInt == 0) Pair(a0, b0) else throwAPLException(IllegalAxisException(axisInt, aDimensions, pos))
                 }
                 aDimensions.size == 1 -> Pair(computeTransformation(a0, aDimensions, bDimensions), b0)
                 bDimensions.size == 1 -> Pair(a0, computeTransformation(b0, bDimensions, aDimensions))
-                else -> throwAPLException(APLIllegalArgumentException("When specifying an axis, A or B has to be rank 1", pos2Arg))
+                else -> throwAPLException(APLIllegalArgumentException("When specifying an axis, A or B has to be rank 1", pos))
             }
 
-            return makeCellSumFunction2Args(a1, b1, pos2Arg)
+            return makeCellSumFunction2Args(a1, b1, pos)
         } else {
-            return makeCellSumFunction2Args(a0, b0, pos2Arg)
+            return makeCellSumFunction2Args(a0, b0, pos)
         }
     }
 
-    open fun combine1Arg(a: APLSingleValue): APLValue = throwAPLException(Unimplemented1ArgException(pos1Arg))
+    open fun combine1Arg(a: APLSingleValue): APLValue = throwAPLException(Unimplemented1ArgException(pos))
     open fun combine1ArgLong(a: Long): Long = throw IllegalStateException("Optimisation not implemented for: ${this::class.simpleName}")
     open fun combine1ArgDouble(a: Double): Double =
         throw IllegalStateException("Optimisation not implemented for: ${this::class.simpleName}")
 
-    open fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue = throwAPLException(Unimplemented2ArgException(pos2Arg))
+    open fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue = throwAPLException(Unimplemented2ArgException(pos))
     open fun combine2ArgLong(a: Long, b: Long): Long =
         throw IllegalStateException("Optimisation not implemented for: ${this::class.simpleName}")
 
@@ -270,12 +261,12 @@ abstract class MathCombineAPLFunction(pos: Position) : APLFunction(pos) {
 }
 
 abstract class MathNumericCombineAPLFunction(pos: Position) : MathCombineAPLFunction(pos) {
-    override fun combine1Arg(a: APLSingleValue): APLValue = numberCombine1Arg(a.ensureNumber(pos1Arg))
+    override fun combine1Arg(a: APLSingleValue): APLValue = numberCombine1Arg(a.ensureNumber(pos))
     override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue =
-        numberCombine2Arg(a.ensureNumber(pos2Arg), b.ensureNumber(pos2Arg))
+        numberCombine2Arg(a.ensureNumber(pos), b.ensureNumber(pos))
 
-    open fun numberCombine1Arg(a: APLNumber): APLValue = throwAPLException(Unimplemented1ArgException(pos1Arg))
-    open fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue = throwAPLException(Unimplemented2ArgException(pos2Arg))
+    open fun numberCombine1Arg(a: APLNumber): APLValue = throwAPLException(Unimplemented1ArgException(pos))
+    open fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue = throwAPLException(Unimplemented2ArgException(pos))
 }
 
 class AddAPLFunction : APLFunctionDescriptor {
@@ -314,9 +305,12 @@ class AddAPLFunction : APLFunctionDescriptor {
                         OPTIMISATION_FLAG_1ARG_DOUBLE or
                         OPTIMISATION_FLAG_2ARG_LONG_LONG or
                         OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
+
+        override val name1Arg get() = "conjugate"
+        override val name2Arg get() = "add"
     }
 
-    override fun make(pos: Position) = AddAPLFunctionImpl(pos.withName("add"))
+    override fun make(pos: Position) = AddAPLFunctionImpl(pos)
 }
 
 class SubAPLFunction : APLFunctionDescriptor {
@@ -354,9 +348,12 @@ class SubAPLFunction : APLFunctionDescriptor {
                         OPTIMISATION_FLAG_1ARG_DOUBLE or
                         OPTIMISATION_FLAG_2ARG_LONG_LONG or
                         OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
+
+        override val name1Arg get() = "negate"
+        override val name2Arg get() = "subtract"
     }
 
-    override fun make(pos: Position) = SubAPLFunctionImpl(pos.withName("subtract"))
+    override fun make(pos: Position) = SubAPLFunctionImpl(pos)
 }
 
 class MulAPLFunction : APLFunctionDescriptor {
@@ -391,11 +388,11 @@ class MulAPLFunction : APLFunctionDescriptor {
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_LONG or OPTIMISATION_FLAG_1ARG_DOUBLE or OPTIMISATION_FLAG_2ARG_LONG_LONG or OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
 
-        override fun name1Arg() = "magnitude"
-        override fun name2Arg() = "multiply"
+        override val name1Arg get() = "magnitude"
+        override val name2Arg get() = "multiply"
     }
 
-    override fun make(pos: Position) = MulAPLFunctionImpl(pos.withName("multiply"))
+    override fun make(pos: Position) = MulAPLFunctionImpl(pos)
 }
 
 class DivAPLFunction : APLFunctionDescriptor {
@@ -431,9 +428,14 @@ class DivAPLFunction : APLFunctionDescriptor {
         override fun identityValue() = APLLONG_1
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_DOUBLE or OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
+
+        override val name1Arg: String
+            get() = "reciprocal"
+        override val name2Arg: String
+            get() = "divide"
     }
 
-    override fun make(pos: Position) = DivAPLFunctionImpl(pos.withName("divide"))
+    override fun make(pos: Position) = DivAPLFunctionImpl(pos)
 }
 
 class NotAPLFunction : APLFunctionDescriptor {
@@ -442,13 +444,13 @@ class NotAPLFunction : APLFunctionDescriptor {
             return singleArgNumericRelationOperation(
                 pos,
                 a,
-                { x -> notOp(x, pos1Arg).makeAPLNumber() },
-                { x -> notOp(x.toLong(), pos1Arg).makeAPLNumber() },
+                { x -> notOp(x, pos).makeAPLNumber() },
+                { x -> notOp(x.toLong(), pos).makeAPLNumber() },
                 { x ->
                     if (x.imaginary == 0.0) {
-                        notOp(x.real.toLong(), pos1Arg).makeAPLNumber()
+                        notOp(x.real.toLong(), pos).makeAPLNumber()
                     } else {
-                        throwAPLException(APLIncompatibleDomainsException("Operation not supported for complex", pos1Arg))
+                        throwAPLException(APLIncompatibleDomainsException("Operation not supported for complex", pos))
                     }
                 })
         }
@@ -468,7 +470,7 @@ class NotAPLFunction : APLFunctionDescriptor {
             }
             val a1 = a.arrayify()
             if (a1.dimensions.size != 1) {
-                throwAPLException(InvalidDimensionsException("Left argument must be a scalar or a 1-dimensional array", pos2Arg))
+                throwAPLException(InvalidDimensionsException("Left argument must be a scalar or a 1-dimensional array", pos))
             }
             val b1 = b.arrayify()
             val map = HashSet<Any>()
@@ -484,14 +486,14 @@ class NotAPLFunction : APLFunctionDescriptor {
             return APLArrayList(dimensionsOfSize(result.size), result)
         }
 
-        override fun combine1ArgLong(a: Long) = notOp(a, pos1Arg)
+        override fun combine1ArgLong(a: Long) = notOp(a, pos)
 
         override fun deriveBitwise() = BitwiseNotFunction()
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_LONG)
 
-        override fun name1Arg() = "not"
-        override fun name2Arg() = "without"
+        override val name1Arg get() = "not"
+        override val name2Arg get() = "without"
     }
 
     override fun make(pos: Position): APLFunction {
@@ -501,9 +503,6 @@ class NotAPLFunction : APLFunctionDescriptor {
 
 class ModAPLFunction : APLFunctionDescriptor {
     class ModAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
-        override fun name1Arg() = "abs"
-        override fun name2Arg() = "mod"
-
         override fun numberCombine1Arg(a: APLNumber): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -533,6 +532,9 @@ class ModAPLFunction : APLFunctionDescriptor {
         override fun combine2ArgDouble(a: Double, b: Double) = opDouble(a, b)
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_2ARG_LONG_LONG or OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
+
+        override val name1Arg get() = "abs"
+        override val name2Arg get() = "mod"
     }
 
     override fun make(pos: Position) = ModAPLFunctionImpl(pos)
@@ -540,9 +542,6 @@ class ModAPLFunction : APLFunctionDescriptor {
 
 class PowerAPLFunction : APLFunctionDescriptor {
     class PowerAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
-        override fun name1Arg() = "Exp"
-        override fun name2Arg() = "Pow"
-
         override fun numberCombine1Arg(a: APLNumber): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -569,9 +568,12 @@ class PowerAPLFunction : APLFunctionDescriptor {
         }
 
         override fun identityValue() = APLLONG_1
+
+        override val name1Arg get() = "exp"
+        override val name2Arg get() = "pow"
     }
 
-    override fun make(pos: Position) = PowerAPLFunctionImpl(pos.withName("power"))
+    override fun make(pos: Position) = PowerAPLFunctionImpl(pos)
 }
 
 fun complexFloor(z: Complex): Complex {
@@ -600,9 +602,6 @@ fun complexMod(a: Complex, b: Complex): Complex {
 
 class MinAPLFunction : APLFunctionDescriptor {
     class MinAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
-        override fun name1Arg() = "round down"
-        override fun name2Arg() = "min"
-
         override fun combine1Arg(a: APLSingleValue): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -627,6 +626,9 @@ class MinAPLFunction : APLFunctionDescriptor {
         override fun combine2ArgDouble(a: Double, b: Double) = if (a < b) a else b
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_2ARG_LONG_LONG or OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
+
+        override val name1Arg get() = "round down"
+        override val name2Arg get() = "min"
     }
 
     override fun make(pos: Position) = MinAPLFunctionImpl(pos)
@@ -638,9 +640,6 @@ fun complexCeiling(value: Complex): Complex {
 
 class MaxAPLFunction : APLFunctionDescriptor {
     class MaxAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
-        override fun name1Arg() = "round up"
-        override fun name2Arg() = "max"
-
         override fun combine1Arg(a: APLSingleValue): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -665,6 +664,9 @@ class MaxAPLFunction : APLFunctionDescriptor {
         override fun combine2ArgDouble(a: Double, b: Double) = if (a > b) a else b
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_2ARG_LONG_LONG or OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
+
+        override val name1Arg get() = "round up"
+        override val name2Arg get() = "max"
     }
 
     override fun make(pos: Position) = MaxAPLFunctionImpl(pos)
@@ -696,9 +698,12 @@ class LogAPLFunction : APLFunctionDescriptor {
                 { x, y -> if (x < 0 || y < 0) y.toComplex().log(x.toComplex()).makeAPLNumber() else log(y, x).makeAPLNumber() },
                 { x, y -> y.log(x).makeAPLNumber() })
         }
+
+        override val name1Arg get() = "natural log"
+        override val name2Arg get() = "log"
     }
 
-    override fun make(pos: Position) = LogAPLFunctionImpl(pos.withName("log"))
+    override fun make(pos: Position) = LogAPLFunctionImpl(pos)
 }
 
 class SinAPLFunction : APLFunctionDescriptor {
@@ -711,9 +716,11 @@ class SinAPLFunction : APLFunctionDescriptor {
                 { x -> sin(x).makeAPLNumber() },
                 { x -> complexSin(x).makeAPLNumber() })
         }
+
+        override val name1Arg get() = "sin"
     }
 
-    override fun make(pos: Position) = SinAPLFunctionImpl(pos.withName("sin"))
+    override fun make(pos: Position) = SinAPLFunctionImpl(pos)
 }
 
 class CosAPLFunction : APLFunctionDescriptor {
@@ -734,50 +741,54 @@ class CosAPLFunction : APLFunctionDescriptor {
 class TanAPLFunction : APLFunctionDescriptor {
     class TanAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber) = APLDouble(tan(a.asDouble()))
+        override val name1Arg get() = "tan"
     }
 
-    override fun make(pos: Position) = TanAPLFunctionImpl(pos.withName("tan"))
+    override fun make(pos: Position) = TanAPLFunctionImpl(pos)
 }
 
 class AsinAPLFunction : APLFunctionDescriptor {
     class AsinAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber) = APLDouble(asin(a.asDouble()))
+        override val name1Arg get() = "asin"
     }
 
-    override fun make(pos: Position) = AsinAPLFunctionImpl(pos.withName("asin"))
+    override fun make(pos: Position) = AsinAPLFunctionImpl(pos)
 }
 
 class AcosAPLFunction : APLFunctionDescriptor {
     class AcosAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber) = APLDouble(acos(a.asDouble()))
+        override val name1Arg get() = "acos"
     }
 
-    override fun make(pos: Position) = AcosAPLFunctionImpl(pos.withName("acos"))
+    override fun make(pos: Position) = AcosAPLFunctionImpl(pos)
 }
 
 class AtanAPLFunction : APLFunctionDescriptor {
     class AtanAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber) = APLDouble(atan(a.asDouble()))
+        override val name1Arg get() = "atan"
     }
 
-    override fun make(pos: Position) = AtanAPLFunctionImpl(pos.withName("atan"))
+    override fun make(pos: Position) = AtanAPLFunctionImpl(pos)
 }
 
 class AndAPLFunction : APLFunctionDescriptor {
     class AndAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
             return numericRelationOperation(pos,
-                                            a,
-                                            b,
-                                            { x, y -> opLong(x, y).makeAPLNumber() },
-                                            { x, y ->
-                                                when {
-                                                    x == 0.0 || y == 0.0 -> APLLONG_0
-                                                    x == 1.0 || y == 1.0 -> APLLONG_1
-                                                    else -> (x * (y / floatGcd(x, y))).makeAPLNumber()
-                                                }
-                                            },
-                                            { x, y -> (y * (x / complexGcd(x, y))).nearestGaussian().makeAPLNumber() })
+                a,
+                b,
+                { x, y -> opLong(x, y).makeAPLNumber() },
+                { x, y ->
+                    when {
+                        x == 0.0 || y == 0.0 -> APLLONG_0
+                        x == 1.0 || y == 1.0 -> APLLONG_1
+                        else -> (x * (y / floatGcd(x, y))).makeAPLNumber()
+                    }
+                },
+                { x, y -> (y * (x / complexGcd(x, y))).nearestGaussian().makeAPLNumber() })
         }
 
         private fun opLong(x: Long, y: Long): Long {
@@ -789,12 +800,12 @@ class AndAPLFunction : APLFunctionDescriptor {
         }
 
         override fun combine2ArgLong(a: Long, b: Long) = opLong(a, b)
-
         override fun deriveBitwise() = BitwiseAndFunction()
-
         override fun identityValue() = APLLONG_1
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_2ARG_LONG_LONG)
+
+        override val name2Arg get() = "and"
     }
 
     override fun make(pos: Position) = AndAPLFunctionImpl(pos)
@@ -841,9 +852,11 @@ class NandAPLFunction : APLFunctionDescriptor {
         }
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_2ARG_LONG_LONG)
+
+        override val name1Arg get() = "nand"
     }
 
-    override fun make(pos: Position) = NandAPLFunctionImpl(pos.withName("nand"))
+    override fun make(pos: Position) = NandAPLFunctionImpl(pos)
 }
 
 class NorAPLFunction : APLFunctionDescriptor {
@@ -887,9 +900,11 @@ class NorAPLFunction : APLFunctionDescriptor {
         private fun throwIllegalArgument(): Nothing {
             throwAPLException(APLIllegalArgumentException("Arguments to nor must be 0 or 1", pos))
         }
+
+        override val name1Arg get() = "nor"
     }
 
-    override fun make(pos: Position) = NorAPLFunctionImpl(pos.withName("nor"))
+    override fun make(pos: Position) = NorAPLFunctionImpl(pos)
 }
 
 fun integerGcd(m: Long, n: Long): Long {
@@ -956,11 +971,11 @@ class OrAPLFunction : APLFunctionDescriptor {
     class OrAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
             return numericRelationOperation(pos,
-                                            a,
-                                            b,
-                                            { x, y -> opLong(x, y).makeAPLNumber() },
-                                            { x, y -> opDouble(x, y).makeAPLNumber() },
-                                            { x, y -> complexGcd(x, y).makeAPLNumber() })
+                a,
+                b,
+                { x, y -> opLong(x, y).makeAPLNumber() },
+                { x, y -> opDouble(x, y).makeAPLNumber() },
+                { x, y -> complexGcd(x, y).makeAPLNumber() })
         }
 
         private fun opLong(x: Long, y: Long) = when {
@@ -983,21 +998,20 @@ class OrAPLFunction : APLFunctionDescriptor {
         override fun deriveBitwise() = BitwiseOrFunction()
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_2ARG_LONG_LONG)
+
+        override val name1Arg get() = "or"
     }
 
-    override fun make(pos: Position) = OrAPLFunctionImpl(pos.withName("or"))
+    override fun make(pos: Position) = OrAPLFunctionImpl(pos)
 }
 
 class BinomialAPLFunction : APLFunctionDescriptor {
     class BinomialAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
-        override fun name1Arg() = "gamma"
-        override fun name2Arg() = "binomial"
-
         override fun numberCombine1Arg(a: APLNumber): APLValue {
             return singleArgNumericRelationOperation(pos, a,
-                                                     { x -> doubleGamma((x + 1).toDouble()).makeAPLNumber() },
-                                                     { x -> doubleGamma(x + 1.0).makeAPLNumber() },
-                                                     { x -> complexGamma(x + 1.0).makeAPLNumber() })
+                { x -> doubleGamma((x + 1).toDouble()).makeAPLNumber() },
+                { x -> doubleGamma(x + 1.0).makeAPLNumber() },
+                { x -> complexGamma(x + 1.0).makeAPLNumber() })
         }
 
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
@@ -1009,6 +1023,9 @@ class BinomialAPLFunction : APLFunctionDescriptor {
                 { x, y -> doubleBinomial(x, y).makeAPLNumber() },
                 { x, y -> complexBinomial(x, y).makeAPLNumber() })
         }
+
+        override val name1Arg get() = "gamma"
+        override val name2Arg get() = "binomial"
     }
 
     override fun make(pos: Position) = BinomialAPLFunctionImpl(pos)

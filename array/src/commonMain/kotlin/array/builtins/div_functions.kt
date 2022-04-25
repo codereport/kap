@@ -8,9 +8,11 @@ class TypeofFunction : APLFunctionDescriptor {
             val v = a.unwrapDeferredValue()
             return APLSymbol(context.engine.internSymbol(v.aplValueType.typeName, context.engine.coreNamespace))
         }
+
+        override val name1Arg get() = "typeof"
     }
 
-    override fun make(pos: Position) = TypeofFunctionImpl(pos.withName("typeof"))
+    override fun make(pos: Position) = TypeofFunctionImpl(pos)
 }
 
 class IsLocallyBoundFunction : APLFunctionDescriptor {
@@ -19,9 +21,11 @@ class IsLocallyBoundFunction : APLFunctionDescriptor {
             val v = a.unwrapDeferredValue()
             return makeBoolean(context.isLocallyBound(v.ensureSymbol(pos).value))
         }
+
+        override val name1Arg get() = "isLocallyBound"
     }
 
-    override fun make(pos: Position) = IsLocallyBoundFunctionImpl(pos.withName("isLocallyBound"))
+    override fun make(pos: Position) = IsLocallyBoundFunctionImpl(pos)
 }
 
 class CompFunction : APLFunctionDescriptor {
@@ -29,10 +33,12 @@ class CompFunction : APLFunctionDescriptor {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             return a.collapse()
         }
+
+        override val name1Arg get() = "comp"
     }
 
     override fun make(pos: Position): APLFunction {
-        return CompFunctionImpl(pos.withName("comp"))
+        return CompFunctionImpl(pos)
     }
 }
 
@@ -257,9 +263,11 @@ class LabelsFunction : APLFunctionDescriptor {
                 throwAPLException(APLIncompatibleDomainsException("Unable to set labels on non-array instances", pos))
             }
         }
+
+        override val name2Arg get() = "labels"
     }
 
-    override fun make(pos: Position) = LabelsFunctionImpl(pos.withName("labels"))
+    override fun make(pos: Position) = LabelsFunctionImpl(pos)
 }
 
 class TimeMillisFunction : APLFunctionDescriptor {
@@ -270,9 +278,11 @@ class TimeMillisFunction : APLFunctionDescriptor {
             }
             return currentTime().makeAPLNumber()
         }
+
+        override val name1Arg get() = "timeMillis"
     }
 
-    override fun make(pos: Position) = TimeMillisFunctionImpl(pos.withName("timeMillis"))
+    override fun make(pos: Position) = TimeMillisFunctionImpl(pos)
 }
 
 class ForcedElementTypeArray(val inner: APLValue, val overrideType: ArrayMemberType) : DelegatedValue(inner) {

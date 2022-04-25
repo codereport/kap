@@ -27,7 +27,7 @@ class ReadFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = ReadFunctionImpl(pos.withName("read"))
+    override fun make(pos: Position) = ReadFunctionImpl(pos)
 }
 
 class PrintAPLFunction : APLFunctionDescriptor {
@@ -58,7 +58,7 @@ class PrintAPLFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = PrintAPLFunctionImpl(pos.withName("print"))
+    override fun make(pos: Position) = PrintAPLFunctionImpl(pos)
 }
 
 class WriteCsvFunction : APLFunctionDescriptor {
@@ -84,7 +84,7 @@ class ReadCsvFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = ReadCsvFunctionImpl(pos.withName("readCsvFile"))
+    override fun make(pos: Position) = ReadCsvFunctionImpl(pos)
 }
 
 class ReadFileFunction : APLFunctionDescriptor {
@@ -117,7 +117,7 @@ class LoadFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = LoadFunctionImpl(pos.withName("load"))
+    override fun make(pos: Position) = LoadFunctionImpl(pos)
 }
 
 class HttpRequestFunction : APLFunctionDescriptor {
@@ -129,7 +129,7 @@ class HttpRequestFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = HttpRequestFunctionImpl(pos.withName("httpRequest"))
+    override fun make(pos: Position) = HttpRequestFunctionImpl(pos)
 }
 
 class HttpPostFunction : APLFunctionDescriptor {
@@ -164,7 +164,7 @@ class HttpPostFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = HttpPostFunctionImpl(pos.withName("httpPost"))
+    override fun make(pos: Position) = HttpPostFunctionImpl(pos)
 }
 
 class ReaddirFunction : APLFunctionDescriptor {
@@ -230,7 +230,7 @@ class ReaddirFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = ReaddirFunctionImpl(pos.withName("readdir"))
+    override fun make(pos: Position) = ReaddirFunctionImpl(pos)
 
     private enum class OutputType(val selector: String) {
         SIZE("size"),

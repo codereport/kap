@@ -104,15 +104,17 @@ abstract class GradeFunction(pos: Position) : NoAxisAPLFunction(pos) {
 class GradeUpFunction : APLFunctionDescriptor {
     class GradeUpFunctionImpl(pos: Position) : GradeFunction(pos) {
         override fun applyReverse(result: Int) = result
+        override val name1Arg get() = "grade up"
     }
 
-    override fun make(pos: Position) = GradeUpFunctionImpl(pos.withName("grade up"))
+    override fun make(pos: Position) = GradeUpFunctionImpl(pos)
 }
 
 class GradeDownFunction : APLFunctionDescriptor {
     class GradeDownFunctionImpl(pos: Position) : GradeFunction(pos) {
         override fun applyReverse(result: Int) = -result
+        override val name1Arg get() = "grade down"
     }
 
-    override fun make(pos: Position) = GradeDownFunctionImpl(pos.withName("grade down"))
+    override fun make(pos: Position) = GradeDownFunctionImpl(pos)
 }

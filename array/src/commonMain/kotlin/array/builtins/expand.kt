@@ -69,15 +69,19 @@ abstract class ExpandFunctionImpl(pos: Position) : APLFunction(pos) {
 class ExpandFirstAxisFunction : APLFunctionDescriptor {
     class ExpandFirstAxisFunctionImpl(pos: Position) : ExpandFunctionImpl(pos) {
         override fun defaultAxis(dimensions: Dimensions) = 0
+
+        override val name2Arg get() = "expand first axis"
     }
 
-    override fun make(pos: Position) = ExpandFirstAxisFunctionImpl(pos.withName("expand first axis"))
+    override fun make(pos: Position) = ExpandFirstAxisFunctionImpl(pos)
 }
 
 class ExpandLastAxisFunction : APLFunctionDescriptor {
     class ExpandLastAxisFunctionImpl(pos: Position) : ExpandFunctionImpl(pos) {
         override fun defaultAxis(dimensions: Dimensions) = dimensions.lastAxis(pos)
+
+        override val name2Arg get() = "expand last axis"
     }
 
-    override fun make(pos: Position) = ExpandLastAxisFunctionImpl(pos.withName("expand last axis"))
+    override fun make(pos: Position) = ExpandLastAxisFunctionImpl(pos)
 }

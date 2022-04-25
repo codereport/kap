@@ -157,11 +157,15 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
                     }
                     else -> OuterJoinResult(context, a, b, fn, pos)
                 }
+
+
             }
+
+            override val name2Arg get() = "outer product"
         }
 
         override fun make(pos: Position): APLFunction {
-            return OuterJoinFunctionImpl(pos.withName("outer product"))
+            return OuterJoinFunctionImpl(pos)
 
         }
     }
@@ -198,10 +202,12 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
                     InnerJoinResult(context, a1, b1, fn1, null, fn2, null, pos)
                 }
             }
+
+            override val name2Arg get() = "inner product"
         }
 
         override fun make(pos: Position): APLFunction {
-            return InnerJoinFunctionImpl(pos.withName("inner product"))
+            return InnerJoinFunctionImpl(pos)
         }
     }
 }

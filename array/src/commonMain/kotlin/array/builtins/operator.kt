@@ -216,10 +216,12 @@ class ComposedFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) : A
 
         fun fn1() = fn1
         fun fn2() = fn2
+
+        override val name1Arg = "compose [${fn1.name1Arg}, ${fn2.name1Arg}]"
+        override val name2Arg = "compose [${fn1.name2Arg}, ${fn2.name1Arg}]"
     }
 
-    override fun make(pos: Position) =
-        ComposedFunctionImpl(pos.withName("compose [${fn1.pos.name ?: "<unnamed>"}], [${fn2.pos.name ?: "<unnamed>"}]"))
+    override fun make(pos: Position) = ComposedFunctionImpl(pos)
 }
 
 class ComposeOp : APLOperatorTwoArg {
@@ -255,7 +257,7 @@ class ReverseComposeOp : APLOperatorTwoArg {
 }
 
 class OverDerivedFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) : APLFunctionDescriptor {
-    inner class OpenDerivedFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    inner class OverDerivedFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val result0 = fn2.eval1Arg(context, a, null)
             return fn1.eval1Arg(context, result0, null)
@@ -269,10 +271,12 @@ class OverDerivedFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) 
 
         fun fn1() = fn1
         fun fn2() = fn2
+
+        override val name1Arg = "over [${fn1.name1Arg}, ${fn2.name1Arg}]"
+        override val name2Arg = "over [${fn1.name2Arg}, ${fn2.name1Arg}]"
     }
 
-    override fun make(pos: Position) =
-        OpenDerivedFunctionImpl(pos.withName("over: derived from: [${fn1.pos.description()}], [${fn2.pos.description()}]"))
+    override fun make(pos: Position) = OverDerivedFunctionImpl(pos)
 }
 
 

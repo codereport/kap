@@ -25,7 +25,7 @@ class MakeCodepoints : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = MakeCodepointsImpl(pos.withName("toCodepoints"))
+    override fun make(pos: Position) = MakeCodepointsImpl(pos)
 }
 
 private fun fromUnicodeCodepoint(value: APLValue): APLValue {
@@ -51,7 +51,7 @@ class MakeCharsFromCodepoints : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = MakeCharsFromCodepointsImpl(pos.withName("fromCodepoints"))
+    override fun make(pos: Position) = MakeCharsFromCodepointsImpl(pos)
 }
 
 class GraphemesFunction : APLFunctionDescriptor {
@@ -64,7 +64,7 @@ class GraphemesFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = GraphemesFunctionImpl(pos.withName("toGraphemes"))
+    override fun make(pos: Position) = GraphemesFunctionImpl(pos)
 }
 
 class ToLowerFunction : APLFunctionDescriptor {
@@ -75,11 +75,11 @@ class ToLowerFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = ToLowerFunctionImpl(pos.withName("toLower"))
+    override fun make(pos: Position) = ToLowerFunctionImpl(pos)
 }
 
 class ToUpperFunction : APLFunctionDescriptor {
-    class ToUpperFunctionImpl(pos: Position) : NoAxisAPLFunction(pos.withName("toUpper")) {
+    class ToUpperFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val s = a.toStringValue(pos)
             return APLString(s.uppercase())

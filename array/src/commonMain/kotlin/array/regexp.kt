@@ -22,9 +22,11 @@ class RegexpMatchesFunction : APLFunctionDescriptor {
             val regexp = regexpFromValue(a, pos)
             return if (regexp.find(matchString) != null) APLLONG_1 else APLLONG_0
         }
+
+        override val name2Arg get() = "match regexp"
     }
 
-    override fun make(pos: Position) = RegexpMatchesFunctionImpl(pos.withName("match regexp"))
+    override fun make(pos: Position) = RegexpMatchesFunctionImpl(pos)
 }
 
 class RegexpFindFunction : APLFunctionDescriptor {
@@ -35,9 +37,11 @@ class RegexpFindFunction : APLFunctionDescriptor {
             val result = regexp.find(matchString) ?: return APLNullValue.APL_NULL_INSTANCE
             return makeAPLValueFromGroups(result, context)
         }
+
+        override val name2Arg get() = "find regexp"
     }
 
-    override fun make(pos: Position) = RegexpFindFunctionImpl(pos.withName("find regexp"))
+    override fun make(pos: Position) = RegexpFindFunctionImpl(pos)
 }
 
 private fun makeAPLValueFromGroups(result: MatchResult, context: RuntimeContext): APLArrayImpl {
@@ -65,9 +69,11 @@ class RegexpSplitFunction : APLFunctionDescriptor {
             val result = regexp.split(matchString)
             return APLArrayList(dimensionsOfSize(result.size), result.map(::APLString))
         }
+
+        override val name2Arg get() = "split regexp"
     }
 
-    override fun make(pos: Position) = RegexpSplitFunctionImpl(pos.withName("split regexp"))
+    override fun make(pos: Position) = RegexpSplitFunctionImpl(pos)
 }
 
 class RegexpMatcherValue(val matcher: Regex) : APLSingleValue() {
@@ -105,9 +111,11 @@ class CreateRegexpFunction : APLFunctionDescriptor {
                 else -> throwAPLException(APLEvalException("Unknown regexp flag: ${sym.symbolName}"))
             }
         }
+
+        override val name1Arg get() = "create regexp"
     }
 
-    override fun make(pos: Position) = CreateRegexpFunctionImpl(pos.withName("create regexp"))
+    override fun make(pos: Position) = CreateRegexpFunctionImpl(pos)
 }
 
 class RegexpReplaceFunction : APLFunctionDescriptor {

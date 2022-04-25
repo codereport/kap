@@ -25,9 +25,11 @@ class EqualsAPLFunction : APLFunctionDescriptor {
         override fun identityValue() = APLLONG_1
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_2ARG_LONG_LONG)
         override fun combine2ArgLong(a: Long, b: Long) = if (a == b) 1L else 0L
+
+        override val name2Arg get() = "equals"
     }
 
-    override fun make(pos: Position) = EqualsAPLFunctionImpl(pos.withName("equals"))
+    override fun make(pos: Position) = EqualsAPLFunctionImpl(pos)
 }
 
 class NotEqualsAPLFunction : APLFunctionDescriptor {
@@ -50,9 +52,11 @@ class NotEqualsAPLFunction : APLFunctionDescriptor {
 
         override fun identityValue() = APLLONG_0
         override fun deriveBitwise() = BitwiseXorFunction()
+
+        override val name2Arg get() = "not equals"
     }
 
-    override fun make(pos: Position) = NotEqualsAPLFunctionImpl(pos.withName("not equals"))
+    override fun make(pos: Position) = NotEqualsAPLFunctionImpl(pos)
 }
 
 class LessThanAPLFunction : APLFunctionDescriptor {
@@ -84,9 +88,12 @@ class LessThanAPLFunction : APLFunctionDescriptor {
         }
 
         override fun identityValue() = APLLONG_0
+
+        override val name1Arg get() = "promote"
+        override val name2Arg get() = "less than"
     }
 
-    override fun make(pos: Position) = LessThanAPLFunctionImpl(pos.withName("less than"))
+    override fun make(pos: Position) = LessThanAPLFunctionImpl(pos)
 }
 
 class GreaterThanAPLFunction : APLFunctionDescriptor {
@@ -122,9 +129,12 @@ class GreaterThanAPLFunction : APLFunctionDescriptor {
         }
 
         override fun identityValue() = APLLONG_0
+
+        override val name1Arg get() = "demote"
+        override val name2Arg get() = "greater than"
     }
 
-    override fun make(pos: Position) = GreaterThanAPLFunctionImpl(pos.withName("greater than"))
+    override fun make(pos: Position) = GreaterThanAPLFunctionImpl(pos)
 }
 
 class LessThanEqualAPLFunction : APLFunctionDescriptor {
@@ -141,9 +151,11 @@ class LessThanEqualAPLFunction : APLFunctionDescriptor {
         }
 
         override fun identityValue() = APLLONG_1
+
+        override val name2Arg get() = "less than or equals"
     }
 
-    override fun make(pos: Position) = LessThanEqualAPLFunctionImpl(pos.withName("less than or equals"))
+    override fun make(pos: Position) = LessThanEqualAPLFunctionImpl(pos)
 }
 
 class GreaterThanEqualAPLFunction : APLFunctionDescriptor {
@@ -160,9 +172,11 @@ class GreaterThanEqualAPLFunction : APLFunctionDescriptor {
         }
 
         override fun identityValue() = APLLONG_1
+
+        override val name2Arg get() = "greater than or equals"
     }
 
-    override fun make(pos: Position) = GreaterThanEqualAPLFunctionImpl(pos.withName("greater than or equals"))
+    override fun make(pos: Position) = GreaterThanEqualAPLFunctionImpl(pos)
 }
 
 fun makeBoolean(value: Boolean): APLValue {

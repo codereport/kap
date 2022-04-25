@@ -204,10 +204,12 @@ abstract class ReduceFunctionImpl(val fn: APLFunction, val operatorAxis: Instruc
 
 class ReduceFunctionImplLastAxis(fn: APLFunction, operatorAxis: Instruction?, pos: Position) : ReduceFunctionImpl(fn, operatorAxis, pos) {
     override fun defaultAxis(a: APLValue) = a.dimensions.size - 1
+    override val name1Arg = "reduce last axis [${fn.name2Arg}]"
 }
 
 class ReduceFunctionImplFirstAxis(fn: APLFunction, operatorAxis: Instruction?, pos: Position) : ReduceFunctionImpl(fn, operatorAxis, pos) {
     override fun defaultAxis(a: APLValue) = 0
+    override val name1Arg = "reduce first axis [${fn.name2Arg}]"
 }
 
 class ReduceOpLastAxis : APLOperatorOneArg {
@@ -217,7 +219,7 @@ class ReduceOpLastAxis : APLOperatorOneArg {
 
     class ReduceOpFunctionDescriptor(val fn: APLFunction, val operatorAxis: Instruction?) : APLFunctionDescriptor {
         override fun make(pos: Position): APLFunction {
-            return ReduceFunctionImplLastAxis(fn, operatorAxis, pos.withName("reduce last axis"))
+            return ReduceFunctionImplLastAxis(fn, operatorAxis, pos)
         }
     }
 }
@@ -229,7 +231,7 @@ class ReduceOpFirstAxis : APLOperatorOneArg {
 
     class ReduceOpFunctionDescriptor(val fn: APLFunction, val operatorAxis: Instruction?) : APLFunctionDescriptor {
         override fun make(pos: Position): APLFunction {
-            return ReduceFunctionImplFirstAxis(fn, operatorAxis, pos.withName("reduce first axis"))
+            return ReduceFunctionImplFirstAxis(fn, operatorAxis, pos)
         }
     }
 }

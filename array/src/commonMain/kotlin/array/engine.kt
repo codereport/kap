@@ -81,6 +81,9 @@ abstract class APLFunction(val pos: Position) {
 
     open fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?): Double =
         throw IllegalStateException("Illegal call to specialised function: ${this::class.simpleName}")
+
+    open val name1Arg: String = this::class.simpleName ?: "unnamed"
+    open val name2Arg: String = this::class.simpleName ?: "unnamed"
 }
 
 abstract class NoAxisAPLFunction(pos: Position) : APLFunction(pos) {
@@ -156,6 +159,9 @@ class DeclaredFunction(
                 instruction.evalWithContext(localContext)
             }
         }
+
+        override val name1Arg: String get() = name
+        override val name2Arg: String get() = name
     }
 
     override fun make(pos: Position) = DeclaredFunctionImpl(pos)
@@ -630,6 +636,8 @@ class CloseAPLFunction : APLFunctionDescriptor {
             context.engine.callClosableHandler(value, pos)
             return value
         }
+
+        override val name1Arg: String get() = "close"
     }
 
     override fun make(pos: Position) = CloseAPLFunctionImpl(pos)

@@ -213,9 +213,11 @@ class EncloseAPLFunction : APLFunctionDescriptor {
             }
             return true
         }
+
+        override val name1Arg get() = "enclose"
     }
 
-    override fun make(pos: Position) = EncloseAPLFunctionImpl(pos.withName("enclose"))
+    override fun make(pos: Position) = EncloseAPLFunctionImpl(pos)
 }
 
 class DisclosedArrayValue(value: APLValue) : APLArray() {
@@ -398,9 +400,11 @@ class DiscloseAPLFunction : APLFunctionDescriptor {
             }
             return curr
         }
+
+        override val name1Arg get() = "disclose"
     }
 
-    override fun make(pos: Position) = DiscloseAPLFunctionImpl(pos.withName("disclose"))
+    override fun make(pos: Position) = DiscloseAPLFunctionImpl(pos)
 
     companion object {
         fun discloseValue(value: APLValue): APLValue {
@@ -458,9 +462,11 @@ class PartitionedEncloseFunction : APLFunctionDescriptor {
             collectPartition(partitionArgs.size)
             return result
         }
+
+        override val name2Arg get() = "partitioned enclose"
     }
 
-    override fun make(pos: Position) = PartitionedEncloseFunctionImpl(pos.withName("partitioned enclose"))
+    override fun make(pos: Position) = PartitionedEncloseFunctionImpl(pos)
 }
 
 private fun computeAxis(b: APLValue, axis: APLValue?, pos: Position? = null): Int {
