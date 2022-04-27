@@ -151,32 +151,14 @@ data class Position(
     val source: SourceLocation,
     val line: Int,
     val col: Int,
-    val name: String? = null,
     val callerName: String? = null,
     val endLine: Int? = null,
     val endCol: Int? = null,
 ) {
-    fun withName(s: String) = copy(name = s)
     fun withCallerName(s: String) = copy(callerName = s)
 
     val computedEndCol get() = endCol ?: (col + 1)
     val computedEndLine get() = endLine ?: line
-
-    fun description(): String {
-        val buf = StringBuilder()
-        if (name != null) {
-            buf.append(name)
-            if (callerName != null) {
-                buf.append(": ")
-                buf.append(callerName)
-            }
-        } else if (callerName != null) {
-            buf.append(callerName)
-        } else {
-            buf.append("<unnamed>")
-        }
-        return buf.toString()
-    }
 }
 
 data class TokenWithPosition(val token: Token, val pos: Position)

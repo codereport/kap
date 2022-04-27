@@ -208,12 +208,12 @@ class APLParser(val tokeniser: TokenGenerator) {
             is ParseResultHolder.InstrParseResult -> {
                 if (leftArgs.isEmpty()) {
                     ParseResultHolder.InstrParseResult(
-                        FunctionCall1Arg(parsedFn, holder.instr, axis, fn.pos.withName(fn.name1Arg)),
+                        FunctionCall1Arg(parsedFn, holder.instr, axis, fn.pos),
                         holder.lastToken)
                 } else {
                     val leftArgsChecked = makeResultList(leftArgs) ?: throw ParseException("Left args is empty", holder.pos)
                     ParseResultHolder.InstrParseResult(
-                        FunctionCall2Arg(parsedFn, leftArgsChecked, holder.instr, axis, fn.pos.withName(fn.name2Arg)),
+                        FunctionCall2Arg(parsedFn, leftArgsChecked, holder.instr, axis, fn.pos),
                         holder.lastToken)
                 }
             }

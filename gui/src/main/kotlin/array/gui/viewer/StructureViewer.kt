@@ -276,15 +276,17 @@ class LiteralArrayGraphNode private constructor(graph: Graph, valueList: List<KN
     }
 }
 
-private fun fnName(fn: APLFunction): String {
-    val pos = fn.pos
+private fun formatFnName(callerName: String?, name: String?): String {
     return when {
-        pos.callerName != null && pos.name != null -> "${pos.callerName} [${pos.name}]"
-        pos.callerName != null -> pos.callerName!!
-        pos.name != null -> pos.name!!
-        else -> fn::class.simpleName ?: "unnamed"
+        callerName != null && name != null -> "${callerName} [${name}]"
+        callerName != null -> callerName
+        name != null -> name
+        else -> "unnamed"
     }
 }
+
+private fun fnName1(fn: APLFunction) = formatFnName(fn.pos.callerName, fn.name1Arg)
+private fun fnName2(fn: APLFunction) = formatFnName(fn.pos.callerName, fn.name2Arg)
 
 private fun makeFunctionCall1ArgGraphNodeFromInstruction(graph: Graph, fn: APLFunction, rightArgs: Instruction): KNode {
     val rightArgsNode = makeNodeFromInstr(graph, rightArgs)
@@ -374,7 +376,7 @@ class ContainerGraphNode(
 class FunctionCall1ArgGraphNode(
     graph: Graph, fn: APLFunction, rightArgLink: KNode
 ) : KNode1Arg(graph) {
-    private val label = LabelledContainer("Call1", Label(fnName(fn)))
+    private val label = LabelledContainer("Call1", Label(fnName1(fn)))
 
     init {
         graph.pane.children.add(label)
@@ -401,7 +403,7 @@ class FunctionCall2ArgGraphNode(
     graph: Graph, fn: APLFunction, leftArgLink: KNode, rightArgLink: KNode
 ) : KNode2Arg(graph) {
 
-    private val label = LabelledContainer("Call2", Label(fnName(fn)))
+    private val label = LabelledContainer("Call2", Label(fnName2(fn)))
 
     init {
         graph.pane.children.add(label)

@@ -11,9 +11,6 @@ open class APLGenericException(message: String, val pos: Position? = null, cause
         val buf = StringBuilder()
         if (pos != null) {
             buf.append("Error at: ${pos.line + 1}:${pos.col}: ")
-            if (pos.name != null) {
-                buf.append("in function: ${pos.name}: ")
-            }
             if (pos.callerName != null) {
                 buf.append("${pos.callerName}: ")
             }

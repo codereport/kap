@@ -78,6 +78,6 @@ fun makePosDescriptor(pos: Position?): PosDescriptor? {
     return if (pos == null) {
         null
     } else {
-        PosDescriptor(pos.line, pos.col, pos.name, pos.callerName)
+        PosDescriptor(pos.line, pos.col, pos.callerName)
     }
 }

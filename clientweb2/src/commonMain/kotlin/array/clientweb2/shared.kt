@@ -7,7 +7,7 @@ import kotlinx.serialization.Serializable
 data class EvalRequest(val src: String)
 
 @Serializable
-data class PosDescriptor(val line: Int, val col: Int, val name: String?, val callerName: String?)
+data class PosDescriptor(val line: Int, val col: Int, val callerName: String?)
 
 @Serializable
 sealed class ResponseMessage
