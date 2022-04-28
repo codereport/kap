@@ -1230,7 +1230,8 @@ class CompareFunction : APLFunctionDescriptor {
             fun recurse(v: APLValue): Int {
                 val d = v.dimensions
                 return when {
-                    d.size == 0 -> 0
+                    v is APLSingleValue -> 0
+                    d.size == 0 -> recurse(v.disclose()) + 1
                     d.contentSize() == 0 -> 1
                     else -> {
                         var first = true

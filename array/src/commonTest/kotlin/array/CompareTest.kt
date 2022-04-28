@@ -109,6 +109,16 @@ class CompareTest : APLTest() {
     }
 
     @Test
+    fun oneArgumentIdenticalWithEnclosedArg0() {
+        assertSimpleNumber(2, parseAPLExpression("≡⊂1 2 3"))
+    }
+
+    @Test
+    fun oneArgumentIdenticalWithEnclosedArg1() {
+        assertSimpleNumber(3, parseAPLExpression("≡⊂(1 2 3) (4 5 6)"))
+    }
+
+    @Test
     fun compareIntegers() {
         assertSimpleNumber(1, parseAPLExpression("3 cmp 1"))
         assertSimpleNumber(-1, parseAPLExpression("10 cmp 110"))
