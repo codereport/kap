@@ -382,16 +382,15 @@ class DiscloseAPLFunction : APLFunctionDescriptor {
             var curr = b
             a.arrayify().iterateMembers { v ->
                 val d = v.dimensions
-                if (d.size !in 0..1) {
-                    throwAPLException(InvalidDimensionsException("Selection should be rank 0 or 1", pos))
-                }
-                val index = if (d.size == 0) {
-                    if (curr.dimensions.size != 1) {
-                        throwAPLException(InvalidDimensionsException("Mismatched dimensions for selection", pos))
+                val index = when (d.size) {
+                    0 -> {
+                        if (curr.dimensions.size != 1) {
+                            throwAPLException(InvalidDimensionsException("Mismatched dimensions for selection", pos))
+                        }
+                        v.ensureNumber(pos).asInt(pos)
                     }
-                    v.ensureNumber(pos).asInt(pos)
-                } else {
-                    curr.dimensions.indexFromPosition(v.toIntArray(pos), pos = pos)
+                    1 -> curr.dimensions.indexFromPosition(v.toIntArray(pos), pos = pos)
+                    else -> throwAPLException(InvalidDimensionsException("Selection should be rank 0 or 1", pos))
                 }
                 if (index !in (0 until curr.size)) {
                     throwAPLException(APLIndexOutOfBoundsException("Selection index out of bounds", pos))
@@ -402,6 +401,7 @@ class DiscloseAPLFunction : APLFunctionDescriptor {
         }
 
         override val name1Arg get() = "disclose"
+        override val name2Arg get() = "pick"
     }
 
     override fun make(pos: Position) = DiscloseAPLFunctionImpl(pos)

@@ -251,6 +251,13 @@ class DiscloseTest : APLTest() {
     }
 
     @Test
+    fun pickFailsWithMultiDimensionalLeftArg() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("(2 2 ⍴ ⍳4) ⊃ 10 11 12 13 14 15")
+        }
+    }
+
+    @Test
     fun pickWithExpressionAsSelector() {
         assertSimpleNumber(4, parseAPLExpression("0 (¯99+↑⍴⍳100) ({¯2+⍵} 3) ⊃ ((1 2) (3 4)) ((5 6) (7 8))"))
     }
