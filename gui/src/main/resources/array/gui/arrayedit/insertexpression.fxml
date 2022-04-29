@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import array.gui.styledarea.InputFieldStyledArea?>
-<?import javafx.geometry.Insets?>
+<?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
 <BorderPane prefHeight="400.0" prefWidth="600.0" stylesheets="@arrayeditor.css" xmlns="http://javafx.com/javafx/16"
@@ -9,19 +9,28 @@
     <center>
         <VBox prefHeight="200.0" prefWidth="100.0" BorderPane.alignment="CENTER">
             <children>
-                <HBox alignment="BASELINE_LEFT" prefHeight="100.0" prefWidth="200.0" VBox.vgrow="ALWAYS">
-                    <children>
-                        <Label text="Expression:"/>
-                        <InputFieldStyledArea fx:id="styledArea" HBox.hgrow="ALWAYS"/>
-                    </children>
+                <Label text="Expression:">
                     <VBox.margin>
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
                     </VBox.margin>
-                </HBox>
+                </Label>
+                <InputFieldStyledArea fx:id="styledArea" VBox.vgrow="ALWAYS">
+                    <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                    </VBox.margin>
+                </InputFieldStyledArea>
                 <HBox alignment="BASELINE_LEFT">
                     <children>
-                        <Label text="Insertion style:"/>
-                        <ChoiceBox fx:id="insertStyleSelector" prefWidth="150.0"/>
+                        <Label text="Insertion style:">
+                            <HBox.margin>
+                                <Insets right="5.0"/>
+                            </HBox.margin>
+                        </Label>
+                        <ChoiceBox fx:id="insertStyleSelector" prefWidth="150.0">
+                            <HBox.margin>
+                                <Insets/>
+                            </HBox.margin>
+                        </ChoiceBox>
                     </children>
                     <VBox.margin>
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
@@ -29,9 +38,13 @@
                 </HBox>
                 <ButtonBar>
                     <buttons>
-                        <Button fx:id="ok" mnemonicParsing="false" text="OK"/>
-                        <Button fx:id="cancel" mnemonicParsing="false" text="Cancel"/>
+                        <Button fx:id="ok" mnemonicParsing="false" text="OK" ButtonBar.buttonData="OK_DONE"/>
+                        <Button fx:id="cancel" mnemonicParsing="false" text="Cancel"
+                                ButtonBar.buttonData="CANCEL_CLOSE"/>
                     </buttons>
+                    <VBox.margin>
+                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                    </VBox.margin>
                 </ButtonBar>
             </children>
             <opaqueInsets>

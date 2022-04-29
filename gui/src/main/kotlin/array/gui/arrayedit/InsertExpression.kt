@@ -2,8 +2,12 @@ package array.gui.arrayedit
 
 import array.gui.styledarea.InputFieldStyledArea
 import javafx.scene.control.Button
-import javafx.scene.control.ButtonBar
 import javafx.scene.control.ChoiceBox
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCombination
+import org.fxmisc.wellbehaved.event.EventPattern
+import org.fxmisc.wellbehaved.event.InputMap
+import org.fxmisc.wellbehaved.event.Nodes
 
 class InsertExpression {
     lateinit var styledArea: InputFieldStyledArea
@@ -12,6 +16,10 @@ class InsertExpression {
     lateinit var cancel: Button
 
     fun initialize() {
+        Nodes.addInputMap(
+            styledArea,
+            InputMap.sequence(InputMap.consume(EventPattern.keyPressed(KeyCode.ENTER, KeyCombination.ALT_DOWN)) { ok.fire() }))
+
         insertStyleSelector.items.let { v ->
             v.add(InsertStyleOptionHolder(InsertStyleOption.RESHAPE, "Reshape"))
             v.add(InsertStyleOptionHolder(InsertStyleOption.REPLICATE, "Replicate"))
@@ -19,9 +27,6 @@ class InsertExpression {
             v.add(InsertStyleOptionHolder(InsertStyleOption.ERROR, "Match"))
         }
         insertStyleSelector.selectionModel.select(0)
-
-        ButtonBar.setButtonData(ok, ButtonBar.ButtonData.OK_DONE)
-        ButtonBar.setButtonData(cancel, ButtonBar.ButtonData.CANCEL_CLOSE)
     }
 
     fun updateInsertionType(insertionType: InsertStyleOption) {

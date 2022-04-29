@@ -18,11 +18,13 @@ data class Settings(
     val directory: String? = null,
     val fontFamily: String? = null,
     val fontSize: Int? = null,
-    val newlineBehaviour: ReturnBehaviour? = null
+    val newlineBehaviour: ReturnBehaviour? = null,
+    val keyPrefix: String? = null
 ) {
     fun fontFamilyWithDefault() = fontFamily ?: "Iosevka Fixed"
     fun fontSizeWithDefault() = fontSize ?: 10
     fun newlineBehaviourWithDefault() = newlineBehaviour ?: ReturnBehaviour.CLEAR_INPUT
+    fun keyPrefixWithDefault() = keyPrefix ?: "`"
 }
 
 

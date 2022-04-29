@@ -34,6 +34,7 @@ open class KAPEditorStyledArea<PS, SEG, S>(
     private var defaultKeymap: InputMap<*> = Nodes.getInputMap(this)
     private var prefixActive = false
     private val extendedInput = ExtendedCharsKeyboardInput()
+    private var currentInputMap: InputMap<out Event>? = null
 
     init {
         stylesheets.add("/array/gui/interactor.css")
@@ -41,7 +42,7 @@ open class KAPEditorStyledArea<PS, SEG, S>(
         updateKeymap()
     }
 
-    private fun updateKeymap() {
+    fun updateKeymap() {
         val entries = ArrayList<InputMap<out Event>>()
 
         // Keymap
@@ -59,7 +60,11 @@ open class KAPEditorStyledArea<PS, SEG, S>(
         entries.add(makePrefixInputKeymap(prefixChar))
 
         entries.add(defaultKeymap)
-        Nodes.pushInputMap(this, InputMap.sequence(*entries.toTypedArray()))
+        if (currentInputMap != null) {
+            Nodes.removeInputMap(this, currentInputMap)
+        }
+        currentInputMap = InputMap.sequence(*entries.toTypedArray())
+        Nodes.pushInputMap(this, currentInputMap)
     }
 
     open fun addInputMappings(entries: MutableList<InputMap<out Event>>) {}

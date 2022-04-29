@@ -15,6 +15,7 @@ class SettingsDialog(owner: Window, val prevData: Settings) : Dialog<Settings>()
     lateinit var fontFamilyInput: ComboBox<String>
     lateinit var fontSizeInput: TextField
     lateinit var returnBehaviour: ChoiceBox<String>
+    lateinit var keyPrefix: TextField
 
     init {
         val loader = FXMLLoader(SettingsDialog::class.java.getResource("settings.fxml"))
@@ -42,7 +43,8 @@ class SettingsDialog(owner: Window, val prevData: Settings) : Dialog<Settings>()
         prevData.copy(
             fontFamily = fontFamilyInput.value,
             fontSize = Integer.parseInt(fontSizeInput.textProperty().valueSafe),
-            newlineBehaviour = ReturnBehaviour.values()[returnBehaviour.selectionModel.selectedIndex])
+            newlineBehaviour = ReturnBehaviour.values()[returnBehaviour.selectionModel.selectedIndex],
+            keyPrefix = keyPrefix.text.trim().let { s -> if (s.isEmpty()) prevData.keyPrefix else s })
 
     private fun initFields() {
         val familyList = Font.getFamilies().sorted()
@@ -54,15 +56,13 @@ class SettingsDialog(owner: Window, val prevData: Settings) : Dialog<Settings>()
             }
         }
 
-        fontSizeInput.text = prevData.fontSize.toString()
+        fontSizeInput.text = prevData.fontSizeWithDefault().toString()
 
         val returnBehaviourOptions = ReturnBehaviour.values().map(this::nameFromReturnBehaviour)
         returnBehaviour.items.setAll(returnBehaviourOptions)
-        if (prevData.newlineBehaviour == null) {
-            returnBehaviour.selectionModel.select(0)
-        } else {
-            returnBehaviour.selectionModel.select(returnBehaviourIndex(prevData.newlineBehaviour))
-        }
+        returnBehaviour.selectionModel.select(returnBehaviourIndex(prevData.newlineBehaviourWithDefault()))
+
+        keyPrefix.text = prevData.keyPrefixWithDefault()
     }
 
     private fun returnBehaviourIndex(defaultReturnBehaviour: ReturnBehaviour): Int {
