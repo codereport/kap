@@ -1,19 +1,46 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import java.lang.*?>
 <?import array.gui.arrayedit.ArrayEditSpreadsheetView?>
 <?import javafx.geometry.*?>
 <?import javafx.scene.control.*?>
 <?import javafx.scene.layout.*?>
+<?import java.lang.*?>
 <BorderPane prefHeight="400.0" prefWidth="600.0" stylesheets="@arrayeditor.css" xmlns="http://javafx.com/javafx/16"
             xmlns:fx="http://javafx.com/fxml/1" fx:controller="array.gui.arrayedit.ArrayEditor">
     <center>
-        <BorderPane BorderPane.alignment="CENTER">
-            <center>
-                <ArrayEditSpreadsheetView fx:id="table" prefHeight="200.0" prefWidth="200.0"/>
-            </center>
-            <top>
-                <HBox fx:id="axisEditPanel" alignment="BASELINE_LEFT" BorderPane.alignment="CENTER">
+        <VBox BorderPane.alignment="CENTER">
+            <BorderPane.margin>
+                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+            </BorderPane.margin>
+            <children>
+                <HBox alignment="BASELINE_LEFT" prefWidth="200.0">
+                    <children>
+                        <Label text="Variable name:">
+                            <HBox.margin>
+                                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                            </HBox.margin>
+                        </Label>
+                        <TextField fx:id="variableField" onAction="#loadFromVariable" HBox.hgrow="ALWAYS">
+                            <HBox.margin>
+                                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                            </HBox.margin>
+                        </TextField>
+                        <Button mnemonicParsing="false" onAction="#getClicked" text="Get">
+                            <HBox.margin>
+                                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                            </HBox.margin>
+                        </Button>
+                        <Button mnemonicParsing="false" onAction="#putClicked" text="Put">
+                            <HBox.margin>
+                                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                            </HBox.margin>
+                        </Button>
+                    </children>
+                    <opaqueInsets>
+                        <Insets/>
+                    </opaqueInsets>
+                </HBox>
+                <HBox fx:id="axisEditPanel" alignment="BASELINE_LEFT" VBox.vgrow="NEVER">
                     <children>
                         <Label text="Dimensions:">
                             <HBox.margin>
@@ -83,43 +110,20 @@
                             </rowConstraints>
                         </GridPane>
                     </children>
-                    <BorderPane.margin>
-                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
-                    </BorderPane.margin>
                 </HBox>
-            </top>
-        </BorderPane>
+                <ArrayEditSpreadsheetView fx:id="table" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS"/>
+            </children>
+        </VBox>
     </center>
     <top>
-        <HBox alignment="BASELINE_LEFT" prefWidth="200.0" BorderPane.alignment="CENTER">
-            <children>
-                <Label text="Variable name:">
-                    <HBox.margin>
-                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
-                    </HBox.margin>
-                </Label>
-                <TextField fx:id="variableField" onAction="#loadFromVariable" HBox.hgrow="ALWAYS">
-                    <HBox.margin>
-                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
-                    </HBox.margin>
-                </TextField>
-                <Button mnemonicParsing="false" onAction="#getClicked" text="Get">
-                    <HBox.margin>
-                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
-                    </HBox.margin>
-                </Button>
-                <Button mnemonicParsing="false" onAction="#putClicked" text="Put">
-                    <HBox.margin>
-                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
-                    </HBox.margin>
-                </Button>
-            </children>
-            <BorderPane.margin>
-                <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
-            </BorderPane.margin>
-            <opaqueInsets>
-                <Insets/>
-            </opaqueInsets>
-        </HBox>
+        <MenuBar BorderPane.alignment="CENTER">
+            <menus>
+                <Menu mnemonicParsing="false" text="File">
+                    <items>
+                        <MenuItem mnemonicParsing="false" onAction="#openClicked" text="Open"/>
+                    </items>
+                </Menu>
+            </menus>
+        </MenuBar>
     </top>
 </BorderPane>

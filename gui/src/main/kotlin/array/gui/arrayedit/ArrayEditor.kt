@@ -1,8 +1,11 @@
 package array.gui.arrayedit
 
 import array.*
+import array.csv.CsvParseException
+import array.csv.readCsv
 import array.gui.Client
 import array.gui.displayErrorWithStage
+import array.msofficereader.readExcelFile
 import javafx.application.Platform
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -16,11 +19,14 @@ import javafx.scene.control.*
 import javafx.scene.input.Clipboard
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
+import javafx.stage.FileChooser
 import javafx.stage.Modality
 import javafx.stage.Stage
 import javafx.stage.StageStyle
 import org.controlsfx.control.spreadsheet.SpreadsheetCell
 import org.jsoup.Jsoup
+import java.io.File
+import java.io.IOException
 import kotlin.math.max
 
 class ArrayEditor {
@@ -282,6 +288,46 @@ class ArrayEditor {
     private fun formatExceptionDescription(e: Exception) = when (e) {
         is APLGenericException -> e.formattedError()
         else -> e.message ?: "no information available"
+    }
+
+    fun openClicked(@Suppress("UNUSED_PARAMETER") actionEvent: ActionEvent) {
+        val fileSelector = FileChooser().apply {
+            title = "Open file"
+            extensionFilters.setAll(
+                FileChooser.ExtensionFilter("All", "*.*"),
+                FileChooser.ExtensionFilter("CSV", "*.csv"),
+                FileChooser.ExtensionFilter("Excel", "*.xls", "*.xlsx"))
+        }
+        val file = fileSelector.showOpenDialog(stage)
+        if (file != null) {
+            loadFile(file)
+        }
+    }
+
+    private fun loadFile(file: File) {
+        when (file.extension) {
+            "csv" -> loadCsv(file)
+            "xls", "xlsx" -> loadXls(file)
+            else -> displayError("Can't open file", "Unknown file type: ${file.extension}")
+        }
+    }
+
+    private fun loadCsv(file: File) {
+        try {
+            val content = readCsv(openInputCharFile(file.absolutePath))
+            loadArray(content)
+        } catch (e: CsvParseException) {
+            displayError("Error reading CSV", "Parse error while reading ${file.name}: ${e.message}")
+        }
+    }
+
+    private fun loadXls(file: File) {
+        try {
+            val content = readExcelFile(file.absolutePath)
+            loadArray(content)
+        } catch (e: IOException) {
+            displayError("Error reading Excel file", "Error reading ${file.name}: ${e.message}")
+        }
     }
 
     data class SelectedArea(val column: Int, val row: Int, val width: Int, val height: Int) {
