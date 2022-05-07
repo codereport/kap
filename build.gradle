@@ -1,5 +1,5 @@
 plugins {
-    id 'org.jetbrains.kotlin.jvm' version '1.6.20-RC'
+    id 'org.jetbrains.kotlin.jvm' version '1.7.0-Beta'
     id 'maven-publish'
 }
 
