@@ -197,8 +197,8 @@ class ResultList3(val client: Client) {
             if (text.trim().isNotBlank()) {
                 if (history.isEmpty() || history.last() != text) {
                     history.add(text)
-                    historyPos = history.size
                 }
+                historyPos = history.size
                 pendingInput = null
                 val tag = addInput(text)
                 val source = REPLSourceLocation(text, this@ResultList3, tag)
