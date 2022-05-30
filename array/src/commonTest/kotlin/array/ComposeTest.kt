@@ -144,14 +144,14 @@ class ComposeTest : APLTest() {
 
     @Test
     fun composeWithLeftArgShouldFail() {
-        assertFailsWith<ParseException> {
+        assertFailsWith<APLEvalException> {
             parseAPLExpression("2 (3+⊢) 5")
         }
     }
 
     @Test
     fun forkWithLeftArgShouldFail() {
-        assertFailsWith<ParseException> {
+        assertFailsWith<APLEvalException> {
             parseAPLExpression("2 (3+⊢⊣) 5")
         }
     }
@@ -324,6 +324,82 @@ class ComposeTest : APLTest() {
     fun reverseComposeFailsWithMonadic() {
         assertFailsWith<Unimplemented1ArgException> {
             parseAPLExpression("(-⍛+) 100")
+        }
+    }
+
+    @Test
+    fun leftBindSimpleFunction() {
+        parseAPLExpression("(10+) 1").let { result ->
+            assertSimpleNumber(11, result)
+        }
+    }
+
+    @Test
+    fun leftBindToDfn() {
+        parseAPLExpression("(5 {⍺+⍵+50}) 4").let { result ->
+            assertSimpleNumber(59, result)
+        }
+    }
+
+    @Test
+    fun leftBindToNamedFunction() {
+        val src = """
+            |a ⇐ 10+
+            |a 1
+        """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertSimpleNumber(11, result)
+        }
+    }
+
+    @Test
+    fun leftBindDfnToNamed() {
+        val src = """
+            |a ⇐ 5 {⍺+⍵+50}
+            |a 4
+        """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertSimpleNumber(59, result)
+        }
+    }
+
+    @Test
+    fun leftBindWithClosure() {
+        val src = """
+            |i ← 0
+            |a ⇐ 5 { ⍺+⍵+i←io:print i+1 }
+            |(a 1) + (a 2)
+        """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assertSimpleNumber(16, result)
+            assertEquals("12", out)
+        }
+    }
+
+    @Test
+    fun leftBindWithLeftVariable() {
+        val src = """
+            |x ← 10
+            |a ⇐ x+
+            |y ← a 1
+            |x ← 20
+            |z ← a 6
+            |y z
+        """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assert1DArray(arrayOf(11, 26), result)
+        }
+    }
+
+    @Test
+    @Ignore
+    fun leftBindWithTrain() {
+        val src = """
+            |foo ⇐ 2+⊢
+            |foo 4
+        """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertSimpleNumber(6, result) // Should it really be 6? Perhaps it should be a parse error.
         }
     }
 }

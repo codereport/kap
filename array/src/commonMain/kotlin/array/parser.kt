@@ -8,11 +8,15 @@ sealed class ParseResultHolder(val lastToken: TokenWithPosition) {
     val pos: Position get() = lastToken.pos
 
     class InstrParseResult(val instr: Instruction, lastToken: TokenWithPosition) : ParseResultHolder(lastToken)
-    class FnParseResult(val fn: APLFunction, leftArgs: List<Instruction>, lastToken: TokenWithPosition) :
-        ParseResultHolder(lastToken) {
+
+    class FnParseResult(baseFn: APLFunction, leftArgs: List<Instruction>, lastToken: TokenWithPosition) : ParseResultHolder(lastToken) {
+        val fn: APLFunction
+
         init {
-            if (leftArgs.isNotEmpty()) {
-                throw ParseException("Left arguments are not allowed with functions with no right argument", lastToken.pos)
+            fn = if (leftArgs.isEmpty()) {
+                baseFn
+            } else {
+                LeftAssignedFunction(baseFn, leftArgs)
             }
         }
     }
@@ -52,6 +56,27 @@ class Environment {
 
     companion object {
         fun nullEnvironment() = Environment()
+    }
+}
+
+class LeftAssignedFunction(val baseFn: APLFunction, leftArgs: List<Instruction>) : APLFunction(baseFn.pos) {
+    private val leftResultList = makeResultList(leftArgs) ?: throw IllegalStateException("leftArgs is empty")
+
+    override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+        val leftResult = leftResultList.evalWithContext(context)
+        return baseFn.eval2Arg(context, leftResult, a, axis)
+    }
+
+    override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        throwAPLException(APLEvalException("Left assigned functions cannot be called with two arguments", pos))
+    }
+}
+
+private fun makeResultList(leftArgs: List<Instruction>): Instruction? {
+    return when {
+        leftArgs.isEmpty() -> null
+        leftArgs.size == 1 -> leftArgs[0]
+        else -> Literal1DArray.make(leftArgs)
     }
 }
 
@@ -187,14 +212,6 @@ class APLParser(val tokeniser: TokenGenerator) {
             }
         } else {
             return firstValue
-        }
-    }
-
-    private fun makeResultList(leftArgs: List<Instruction>): Instruction? {
-        return when {
-            leftArgs.isEmpty() -> null
-            leftArgs.size == 1 -> leftArgs[0]
-            else -> Literal1DArray.make(leftArgs)
         }
     }
 

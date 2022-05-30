@@ -195,8 +195,8 @@ class ComplexExpressionsTest : APLTest() {
 
     @Test
     fun functionInParensLeftArg() {
-        assertFailsWith<ParseException> {
-            parseAPLExpression("(2+) 3 4 5")
+        parseAPLExpression("(2+) 3 4 5").let { result ->
+            assert1DArray(arrayOf(5, 6, 7), result)
         }
     }
 
