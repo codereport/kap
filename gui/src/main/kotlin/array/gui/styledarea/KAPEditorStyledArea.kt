@@ -14,6 +14,8 @@ import org.fxmisc.wellbehaved.event.EventPattern
 import org.fxmisc.wellbehaved.event.InputHandler
 import org.fxmisc.wellbehaved.event.InputMap
 import org.fxmisc.wellbehaved.event.Nodes
+import org.reactfx.util.FxTimer
+import java.time.Duration
 import java.util.function.BiConsumer
 import java.util.function.Function
 
@@ -125,8 +127,15 @@ open class KAPEditorStyledArea<PS, SEG, S>(
         return InputMap.sequence(*entries.toTypedArray())
     }
 
+    private var outstandingScroll = 0
+
     fun showBottomParagraphAtTop() {
-        showParagraphAtTop(document.paragraphs.size - 1)
+        outstandingScroll++
+        FxTimer.runLater(Duration.ofMillis(100)) {
+            if (--outstandingScroll == 0) {
+                showParagraphAtTop(document.paragraphs.size - 1)
+            }
+        }
     }
 
     fun replaceSelectionAndDisplay(s: String) {
