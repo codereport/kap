@@ -339,7 +339,13 @@ class APLParser(val tokeniser: TokenGenerator) {
             throw ParseException("Right side of the arrow must be a function", pos)
         }
         currentEnvironment().registerLocalFunction(sym, RelocalisedFunctionDescriptor(holder.fn))
-        return ParseResultHolder.EmptyParseResult(holder.lastToken)
+        val relatedInstructions = holder.relatedInstructions
+        return if (relatedInstructions.isEmpty()) {
+            ParseResultHolder.EmptyParseResult(holder.lastToken)
+        } else {
+            val resultList = makeResultList(relatedInstructions.reversed()) ?: throw IllegalStateException("Instruction list is empty")
+            ParseResultHolder.InstrParseResult(resultList, holder.lastToken)
+        }
     }
 
     private fun registerDefinedUserFunction(definedUserFunction: DefinedUserFunction) {

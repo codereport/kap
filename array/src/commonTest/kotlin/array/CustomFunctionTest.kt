@@ -849,23 +849,35 @@ Monadic single arg:          ∇            (foo) x          {
     }
 
     @Test
-    fun shortFormWithLeftArgAndCommuteShouldFail() {
-        assertFailsWith<ParseException> {
-            parseAPLExpression("foo ⇐ 10+⊢")
+    fun shortFormWithLeftArgAndCommute() {
+        val src = """
+            |foo ⇐ 10+⊢
+            |foo 20
+        """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertSimpleNumber(20, result)
         }
     }
 
     @Test
-    fun shortFormWithLeftArgAndForkShouldFail() {
-        assertFailsWith<ParseException> {
-            parseAPLExpression("foo ⇐ 10+⊢⊣")
+    fun shortFormWithLeftArgAndFork() {
+        val src = """
+            |foo ⇐ 10+⊢⊣
+            |foo 20
+        """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertSimpleNumber(10, result)
         }
     }
 
     @Test
-    fun shortFormWithLeftArgShouldFail() {
-        assertFailsWith<ParseException> {
-            parseAPLExpression("foo ⇐ 10+")
+    fun shortFormWithLeftArgArray() {
+        val src = """
+            |foo ⇐ 10 11 12 13+
+            |foo 10
+        """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assert1DArray(arrayOf(20, 21, 22, 23), result)
         }
     }
 

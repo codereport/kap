@@ -387,19 +387,56 @@ class ComposeTest : APLTest() {
             |y z
         """.trimMargin()
         parseAPLExpression(src).let { result ->
-            assert1DArray(arrayOf(11, 26), result)
+            assert1DArray(arrayOf(11, 16), result)
         }
     }
 
     @Test
-    @Ignore
     fun leftBindWithTrain() {
         val src = """
             |foo ⇐ 2+⊢
             |foo 4
         """.trimMargin()
         parseAPLExpression(src).let { result ->
-            assertSimpleNumber(6, result) // Should it really be 6? Perhaps it should be a parse error.
+            assertSimpleNumber(4, result)
+        }
+    }
+
+    @Test
+    fun leftBindWithOutput0() {
+        val src = """
+            |foo ⇐ (io:print 2)+
+            |(foo 100) (foo 101)
+        """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assert1DArray(arrayOf(102, 103), result)
+            assertEquals("2", out)
+        }
+    }
+
+    @Test
+    fun leftBindWithOutput1() {
+        val src = """
+            |foo ⇐ (io:print 2)+
+            |1
+        """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assertSimpleNumber(1, result)
+            assertEquals("2", out)
+        }
+    }
+
+    @Test
+    fun leftBindWithScope() {
+        val src = """
+            |foo ⇐ {
+            |  λ((10+⍵)+)
+            |}
+            |a ⇐ ⍞(foo 1)
+            |a 5
+        """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertSimpleNumber(16, result)
         }
     }
 }
