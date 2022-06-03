@@ -614,9 +614,7 @@ class APLParser(val tokeniser: TokenGenerator) {
         try {
             val innerParser = APLParser(TokenGenerator(engine, FileSourceLocation(resolved)))
             engine.withSavedNamespace {
-                withEnvironment {
-                    return innerParser.parseValueToplevel(EndOfFile)
-                }
+                return innerParser.parseValueToplevel(EndOfFile)
             }
         } catch (e: MPFileException) {
             throw ParseException("Error loading file: ${resolved}: ${e.message}", pos)
