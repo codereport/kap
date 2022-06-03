@@ -1,0 +1,2 @@
+use("test-data/include-test/include-test2.kap")
+a1 ← a0 + 1

@@ -34,20 +34,26 @@ class NearComplex(val expected: Complex, val realPrecision: Int, val imPrecision
 }
 
 abstract class APLTest {
-    fun parseAPLExpression(expr: String, withStandardLib: Boolean = false, collapse: Boolean = true, numTasks: Int? = null): APLValue {
-        return parseAPLExpression2(expr, withStandardLib, collapse, numTasks).first
+    fun parseAPLExpression(
+        expr: String,
+        withStandardLib: Boolean = false,
+        collapse: Boolean = true,
+        numTasks: Int? = null,
+        newContext: Boolean = true): APLValue {
+        return parseAPLExpression2(expr, withStandardLib, collapse, numTasks, newContext).first
     }
 
     fun parseAPLExpression2(
         expr: String,
         withStandardLib: Boolean = false,
         collapse: Boolean = true,
-        numTasks: Int? = null
+        numTasks: Int? = null,
+        newContext: Boolean = true
     ): Pair<APLValue, Engine> {
         val engine = Engine(numTasks)
         engine.addLibrarySearchPath("standard-lib")
         if (withStandardLib) {
-            engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"), true)
+            engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"), newContext = newContext)
         }
         val result = engine.parseAndEval(StringSourceLocation(expr), false)
         engine.withThreadLocalAssigned {
