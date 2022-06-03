@@ -211,9 +211,7 @@ class CatchOperator : APLOperatorOneArg {
                                     a.valueAt(dimensions.indexFromPosition(intArrayOf(rowIndex, 1), multipliers)).unwrapDeferredValue()
                                 if (handlerFunction !is LambdaValue) {
                                     throwAPLException(
-                                        APLIllegalArgumentException(
-                                            "The handler is not callable, this is currently an error.",
-                                            pos))
+                                        APLIllegalArgumentException("The handler is not callable, this is currently an error.", pos))
                                 }
                                 return handlerFunction.makeClosure().eval2Arg(context, e.data, sentTag, null)
                             }

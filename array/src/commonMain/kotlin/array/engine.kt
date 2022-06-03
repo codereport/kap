@@ -131,6 +131,8 @@ abstract class DelegatedAPLFunctionImpl(pos: Position) : APLFunction(pos) {
     override fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?) =
         innerImpl().eval2ArgDoubleDouble(context, a, b, axis)
 
+    override fun deriveInverse() = innerImpl().deriveInverse()
+
     abstract fun innerImpl(): APLFunction
 }
 
@@ -188,6 +190,7 @@ class DeclaredNonBoundFunction(val instruction: Instruction) : APLFunctionDescri
 private const val CORE_NAMESPACE_NAME = "kap"
 private const val KEYWORD_NAMESPACE_NAME = "keyword"
 private const val DEFAULT_NAMESPACE_NAME = "default"
+private const val ANONYMOUS_SYMBOL_NAMESPACE_NAME = "anonymous"
 
 class ThreadLocalCallStack(val engine: Engine) {
     val callStack = ArrayList<CallStackElement>()
@@ -223,9 +226,12 @@ class Engine(numComputeEngines: Int? = null) {
     val rootContext = RuntimeContext(this, Environment())
     var standardOutput: CharacterOutput = NullCharacterOutput()
     var standardInput: CharacterProvider = NullCharacterProvider()
+
     val coreNamespace = makeNamespace(CORE_NAMESPACE_NAME, overrideDefaultImport = true)
     val keywordNamespace = makeNamespace(KEYWORD_NAMESPACE_NAME, overrideDefaultImport = true)
     val initialNamespace = makeNamespace(DEFAULT_NAMESPACE_NAME)
+    val anonymousSymbolNamespace = makeNamespace(ANONYMOUS_SYMBOL_NAMESPACE_NAME, overrideDefaultImport = true)
+
     var currentNamespace = initialNamespace
     val closableHandlers = HashMap<KClass<out APLValue>, ClosableHandler<*>>()
     val backgroundDispatcher = makeBackgroundDispatcher(numComputeEngines ?: numCores())

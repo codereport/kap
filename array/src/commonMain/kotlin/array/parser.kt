@@ -7,16 +7,40 @@ import array.syntax.processDefsyntaxSub
 sealed class ParseResultHolder(val lastToken: TokenWithPosition) {
     val pos: Position get() = lastToken.pos
 
-    class InstrParseResult(val instr: Instruction, lastToken: TokenWithPosition) : ParseResultHolder(lastToken)
+    class InstrParseResult(val instr: Instruction, lastToken: TokenWithPosition) : ParseResultHolder(lastToken) {
+        companion object {
+            fun make(instr: Instruction, lastToken: TokenWithPosition, relatedInstructions: List<Instruction>): ParseResultHolder {
+                return if (relatedInstructions.isEmpty()) {
+                    InstrParseResult(instr, lastToken)
+                } else {
+                    val l = ArrayList<Instruction>()
+                    l.addAll(relatedInstructions.reversed())
+                    l.add(instr)
+                    val instrList = InstructionList(l)
+                    InstrParseResult(instrList, lastToken)
+                }
+            }
+        }
+    }
 
-    class FnParseResult(baseFn: APLFunction, leftArgs: List<Instruction>, lastToken: TokenWithPosition) : ParseResultHolder(lastToken) {
-        val fn: APLFunction
-
-        init {
-            fn = if (leftArgs.isEmpty()) {
-                baseFn
-            } else {
-                LeftAssignedFunction(baseFn, leftArgs)
+    class FnParseResult(val fn: APLFunction,
+                        lastToken: TokenWithPosition,
+                        val relatedInstructions: List<Instruction>
+    ) : ParseResultHolder(lastToken) {
+        companion object {
+            fun make(parser: APLParser, baseFn: APLFunction, leftArgs: List<Instruction>, lastToken: TokenWithPosition, relatedInstructions: List<Instruction>): ParseResultHolder {
+                return if (leftArgs.isEmpty()) {
+                    FnParseResult(baseFn, lastToken, relatedInstructions)
+                } else {
+                    val binding = parser.currentEnvironment().bindLocal(Symbol("<empty>", parser.tokeniser.engine.anonymousSymbolNamespace))
+                    val fn = LeftAssignedFunction(baseFn, binding)
+                    val resultList = makeResultList(leftArgs) ?: throw IllegalStateException("Result list is null")
+                    val relatedInstrList = ArrayList<Instruction>().apply {
+                        add(AssignmentInstruction(arrayOf(binding), resultList, baseFn.pos))
+                        addAll(relatedInstructions)
+                    }
+                    return FnParseResult(fn, lastToken, relatedInstrList)
+                }
             }
         }
     }
@@ -59,12 +83,10 @@ class Environment {
     }
 }
 
-class LeftAssignedFunction(val baseFn: APLFunction, leftArgs: List<Instruction>) : APLFunction(baseFn.pos) {
-    private val leftResultList = makeResultList(leftArgs) ?: throw IllegalStateException("leftArgs is empty")
-
+class LeftAssignedFunction(val baseFn: APLFunction, val leftArgs: EnvironmentBinding) : APLFunction(baseFn.pos) {
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-        val leftResult = leftResultList.evalWithContext(context)
-        return baseFn.eval2Arg(context, leftResult, a, axis)
+        val leftArg = context.getVar(leftArgs) ?: throw IllegalStateException("Unable to find value of left variable binding")
+        return baseFn.eval2Arg(context, leftArg, a, axis)
     }
 
     override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
@@ -215,30 +237,39 @@ class APLParser(val tokeniser: TokenGenerator) {
         }
     }
 
-    private fun processFn(fn: APLFunction, leftArgs: List<Instruction>, functionChainContext: Boolean = false): ParseResultHolder {
+    private fun processFn(
+        fn: APLFunction,
+        leftArgs: List<Instruction>,
+        functionChainContext: Boolean = false,
+        relatedInstructions: List<Instruction> = emptyList()
+    ): ParseResultHolder {
         val axis = parseAxis()
         val parsedFn = parseOperator(fn)
         return when (val holder = parseValue(functionChainContext = true)) {
             is ParseResultHolder.EmptyParseResult -> {
-                ParseResultHolder.FnParseResult(parsedFn, leftArgs, holder.lastToken)
+                ParseResultHolder.FnParseResult.make(this, parsedFn, leftArgs, holder.lastToken, relatedInstructions)
             }
             is ParseResultHolder.InstrParseResult -> {
                 if (leftArgs.isEmpty()) {
-                    ParseResultHolder.InstrParseResult(
+                    ParseResultHolder.InstrParseResult.make(
                         FunctionCall1Arg(parsedFn, holder.instr, axis, fn.pos),
-                        holder.lastToken)
+                        holder.lastToken,
+                        relatedInstructions)
                 } else {
                     val leftArgsChecked = makeResultList(leftArgs) ?: throw ParseException("Left args is empty", holder.pos)
-                    ParseResultHolder.InstrParseResult(
+                    ParseResultHolder.InstrParseResult.make(
                         FunctionCall2Arg(parsedFn, leftArgsChecked, holder.instr, axis, fn.pos),
-                        holder.lastToken)
+                        holder.lastToken,
+                        relatedInstructions)
                 }
             }
             is ParseResultHolder.FnParseResult -> {
-                ParseResultHolder.FnParseResult(
+                ParseResultHolder.FnParseResult.make(
+                    this,
                     FunctionCallChain.make(parsedFn.pos, parsedFn, holder.fn, functionChainContext = functionChainContext),
                     leftArgs,
-                    holder.lastToken)
+                    holder.lastToken,
+                    holder.relatedInstructions)
             }
         }
     }
@@ -534,7 +565,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                 }
                 is OpenParen -> when (val expr = parseExprToplevel(CloseParen)) {
                     is ParseResultHolder.InstrParseResult -> leftArgs.add(expr.instr)
-                    is ParseResultHolder.FnParseResult -> return processFn(expr.fn, leftArgs, functionChainContext = functionChainContext)
+                    is ParseResultHolder.FnParseResult -> return processFn(expr.fn, leftArgs, functionChainContext = functionChainContext, relatedInstructions = expr.relatedInstructions)
                     is ParseResultHolder.EmptyParseResult -> throw ParseException("Empty expression", pos)
                 }
                 is OpenFnDef -> return processFn(parseFnDefinition(pos).make(pos), leftArgs, functionChainContext = functionChainContext)
