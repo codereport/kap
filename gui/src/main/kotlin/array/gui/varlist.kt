@@ -72,7 +72,7 @@ class VariableListController(val client: Client) {
     private fun loadVariableContent(updated: List<Pair<Symbol, APLValue?>>): ArrayList<ValueWrapper> {
         val result = ArrayList<ValueWrapper>()
         updated.forEach { (k, v) ->
-            if (v != null) {
+            if (k.namespace !== client.engine.anonymousSymbolNamespace && v != null) {
                 result.add(ValueWrapper(k, v))
             }
         }
