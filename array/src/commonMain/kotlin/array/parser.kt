@@ -1,5 +1,6 @@
 package array
 
+import array.builtins.numericRelationOperation
 import array.syntax.processCustomSyntax
 import array.syntax.processDefsyntax
 import array.syntax.processDefsyntaxSub
@@ -10,16 +11,20 @@ sealed class ParseResultHolder(val lastToken: TokenWithPosition) {
     class InstrParseResult(val instr: Instruction, lastToken: TokenWithPosition) : ParseResultHolder(lastToken) {
         companion object {
             fun make(instr: Instruction, lastToken: TokenWithPosition, relatedInstructions: List<Instruction>): ParseResultHolder {
-                return if (relatedInstructions.isEmpty()) {
-                    InstrParseResult(instr, lastToken)
+                return InstrParseResult(prependRelatedInstructions(instr, relatedInstructions), lastToken)
+            }
+
+            private fun prependRelatedInstructions(instr: Instruction, relatedInstructions: List<Instruction>): Instruction {
+                return if(relatedInstructions.isEmpty()) {
+                    instr
                 } else {
                     val l = ArrayList<Instruction>()
-                    l.addAll(relatedInstructions.reversed())
+                    l.addAll(relatedInstructions)
                     l.add(instr)
-                    val instrList = InstructionList(l)
-                    InstrParseResult(instrList, lastToken)
+                    InstructionList(l)
                 }
             }
+
         }
     }
 
@@ -36,8 +41,8 @@ sealed class ParseResultHolder(val lastToken: TokenWithPosition) {
                     val fn = LeftAssignedFunction(baseFn, binding)
                     val resultList = makeResultList(leftArgs) ?: throw IllegalStateException("Result list is null")
                     val relatedInstrList = ArrayList<Instruction>().apply {
-                        add(AssignmentInstruction(arrayOf(binding), resultList, baseFn.pos))
                         addAll(relatedInstructions)
+                        add(AssignmentInstruction(arrayOf(binding), resultList, baseFn.pos))
                     }
                     return FnParseResult(fn, lastToken, relatedInstrList)
                 }
@@ -343,7 +348,7 @@ class APLParser(val tokeniser: TokenGenerator) {
         return if (relatedInstructions.isEmpty()) {
             ParseResultHolder.EmptyParseResult(holder.lastToken)
         } else {
-            val resultList = makeResultList(relatedInstructions.reversed()) ?: throw IllegalStateException("Instruction list is empty")
+            val resultList = makeResultList(relatedInstructions) ?: throw IllegalStateException("Instruction list is empty")
             ParseResultHolder.InstrParseResult(resultList, holder.lastToken)
         }
     }
@@ -711,8 +716,11 @@ class APLParser(val tokeniser: TokenGenerator) {
         return DynamicFunctionDescriptor(ref)
     }
 
-    class EvalLambdaFnx(val fn: APLFunction, pos: Position) : Instruction(pos) {
+    class EvalLambdaFnx(val fn: APLFunction, pos: Position, val relatedInstructions: List<Instruction> = emptyList()) : Instruction(pos) {
         override fun evalWithContext(context: RuntimeContext): APLValue {
+            relatedInstructions.forEach { instr ->
+                instr.evalWithContext(context)
+            }
             return LambdaValue(fn, context)
         }
     }
@@ -733,7 +741,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                 if (holder !is ParseResultHolder.FnParseResult) {
                     throw ParseException("Argument is not a function", pos)
                 }
-                EvalLambdaFnx(holder.fn, pos)
+                EvalLambdaFnx(holder.fn, pos, holder.relatedInstructions)
             }
             else -> throw UnexpectedToken(token, pos2)
         }
