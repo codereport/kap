@@ -170,5 +170,6 @@ rootProject.plugins.withType(YarnPlugin.class) {
     kotlinYarn {
         resolution("node-forge", "1.3.0")
         resolution("minimist", "1.2.6")
+        resolution("async", "2.6.4")
     }
 }
