@@ -439,4 +439,18 @@ class ComposeTest : APLTest() {
             assertSimpleNumber(16, result)
         }
     }
+
+    @Test
+    fun leftBindWithTrainArgument() {
+        parseAPLExpression("(1(-÷)) 4").let { result ->
+            assertSimpleDouble(-0.25, result)
+        }
+    }
+
+    @Test
+    fun leftBindArgumentIsFirstArgInTrain() {
+        parseAPLExpression("((3-)÷) 8").let { result ->
+            assertSimpleDouble(2.875, result)
+        }
+    }
 }

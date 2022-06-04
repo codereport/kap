@@ -1,6 +1,5 @@
 package array
 
-import array.builtins.numericRelationOperation
 import array.syntax.processCustomSyntax
 import array.syntax.processDefsyntax
 import array.syntax.processDefsyntaxSub
@@ -274,7 +273,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                     FunctionCallChain.make(parsedFn.pos, parsedFn, holder.fn, functionChainContext = functionChainContext),
                     leftArgs,
                     holder.lastToken,
-                    holder.relatedInstructions)
+                    relatedInstructions + holder.relatedInstructions)
             }
         }
     }
