@@ -273,7 +273,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                     FunctionCallChain.make(parsedFn.pos, parsedFn, holder.fn, functionChainContext = functionChainContext),
                     leftArgs,
                     holder.lastToken,
-                    relatedInstructions + holder.relatedInstructions)
+                    holder.relatedInstructions + relatedInstructions)
             }
         }
     }

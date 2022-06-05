@@ -453,4 +453,19 @@ class ComposeTest : APLTest() {
             assertSimpleDouble(2.875, result)
         }
     }
+
+    @Test
+    fun leftBindMultipleFunctions0() {
+        parseAPLExpression("((11+)(22+)) 44").let { result ->
+            assertSimpleNumber(77, result)
+        }
+    }
+
+    @Test
+    fun leftBindMultipleFunctions1() {
+        parseAPLExpressionWithOutput("(((io:print 11)+)((io:print 22)+)) 44").let { (result, out) ->
+            assertSimpleNumber(77, result)
+            assertEquals("2211", out)
+        }
+    }
 }

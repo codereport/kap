@@ -102,8 +102,6 @@ class Symbol(val symbolName: String, val namespace: Namespace) : Token(), Compar
         }
     }
 
-    override fun hashCode() = symbolName.hashCode() xor namespace.hashCode()
-    override fun equals(other: Any?) = other != null && other is Symbol && symbolName == other.symbolName && namespace === other.namespace
     override fun formatted() = nameWithNamespace()
 
     fun nameWithNamespace() = "${namespace.name}:${symbolName}"
