@@ -37,7 +37,8 @@ sealed class ParseResultHolder(val lastToken: TokenWithPosition) {
                     FnParseResult(baseFn, lastToken, relatedInstructions)
                 } else {
                     val binding = parser.currentEnvironment().bindLocal(Symbol("<empty>", parser.tokeniser.engine.anonymousSymbolNamespace))
-                    val fn = LeftAssignedFunction(baseFn, binding)
+                    val firstArgPos = leftArgs[0].pos
+                    val fn = LeftAssignedFunction(baseFn, binding, baseFn.pos.copy(line = firstArgPos.line, col = firstArgPos.col))
                     val resultList = makeResultList(leftArgs) ?: throw IllegalStateException("Result list is null")
                     val relatedInstrList = ArrayList<Instruction>().apply {
                         addAll(relatedInstructions)
@@ -87,7 +88,7 @@ class Environment {
     }
 }
 
-class LeftAssignedFunction(val baseFn: APLFunction, val leftArgs: EnvironmentBinding) : APLFunction(baseFn.pos) {
+class LeftAssignedFunction(val baseFn: APLFunction, val leftArgs: EnvironmentBinding, pos: Position) : APLFunction(pos) {
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
         val leftArg = context.getVar(leftArgs) ?: throw IllegalStateException("Unable to find value of left variable binding")
         return baseFn.eval2Arg(context, leftArg, a, axis)
