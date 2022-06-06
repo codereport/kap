@@ -468,4 +468,12 @@ class ComposeTest : APLTest() {
             assertEquals("2211", out)
         }
     }
+
+    @Test
+    fun leftBindMultipleFunctions2() {
+        parseAPLExpressionWithOutput("(((io:print 11)+)×((io:print 22)+)) 100").let { (result, out) ->
+            assertSimpleNumber(13542, result)
+            assertEquals("2211", out)
+        }
+    }
 }
