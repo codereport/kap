@@ -476,4 +476,33 @@ class ComposeTest : APLTest() {
             assertEquals("2211", out)
         }
     }
+
+    @Test
+    fun leftBindChain0() {
+        parseAPLExpression("(1+10+) 4").let { result ->
+            assertSimpleNumber(15, result)
+        }
+    }
+
+    @Test
+    fun leftBindChain1() {
+        parseAPLExpression("(1+2+4+) 10").let { result ->
+            assertSimpleNumber(17, result)
+        }
+    }
+
+    @Test
+    fun leftBindChain2() {
+        parseAPLExpressionWithOutput("((io:print 1)+(io:print 2)+(io:print 4)+) 10").let { (result, out) ->
+            assertSimpleNumber(17, result)
+            assertEquals("421", out)
+        }
+    }
+
+    @Test
+    fun leftBindChain3() {
+        parseAPLExpression("((1+2+)×(5+20+)) 1").let { result ->
+            assertSimpleNumber(104, result)
+        }
+    }
 }
