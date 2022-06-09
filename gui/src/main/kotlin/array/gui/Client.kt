@@ -334,7 +334,6 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
     }
 
     private fun highlightErrorInRepl(sourceLocation: REPLSourceLocation, pos: Position) {
-        println("Original text: ${sourceLocation.sourceText()}")
         resultList.updateStyle(
             sourceLocation.tag,
             pos.line,
