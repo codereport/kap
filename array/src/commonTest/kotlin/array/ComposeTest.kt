@@ -505,4 +505,11 @@ class ComposeTest : APLTest() {
             assertSimpleNumber(104, result)
         }
     }
+
+    @Test
+    fun leftBindInCompose() {
+        parseAPLExpression("1 (+∘(3×)) 6").let { result ->
+            assertSimpleNumber(19, result)
+        }
+    }
 }

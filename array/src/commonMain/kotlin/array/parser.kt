@@ -231,13 +231,14 @@ class APLParser(val tokeniser: TokenGenerator) {
         relatedInstructions: List<Instruction> = emptyList()
     ): ParseResultHolder {
         val axis = parseAxis()
-        val parsedFn = parseOperator(fn)
+        val (parsedFn, opRelatedInstructions) = parseOperator(fn)
+        val prependedInstructions = opRelatedInstructions + relatedInstructions
         return when (val holder = parseValue(functionChainContext = true)) {
             is ParseResultHolder.EmptyParseResult -> {
                 if (leftArgs.isEmpty()) {
-                    ParseResultHolder.FnParseResult(parsedFn, holder.lastToken, relatedInstructions)
+                    ParseResultHolder.FnParseResult(parsedFn, holder.lastToken, prependedInstructions)
                 } else {
-                    makeLeftBindFunctionParseResult(this, leftArgs, parsedFn, relatedInstructions, holder.lastToken)
+                    makeLeftBindFunctionParseResult(this, leftArgs, parsedFn, prependedInstructions, holder.lastToken)
                 }
             }
             is ParseResultHolder.InstrParseResult -> {
@@ -245,32 +246,32 @@ class APLParser(val tokeniser: TokenGenerator) {
                     ParseResultHolder.InstrParseResult.make(
                         FunctionCall1Arg(parsedFn, holder.instr, axis, fn.pos),
                         holder.lastToken,
-                        relatedInstructions)
+                        prependedInstructions)
                 } else {
                     val leftArgsChecked = makeResultList(leftArgs) ?: throw ParseException("Left args is empty", holder.pos)
                     ParseResultHolder.InstrParseResult.make(
                         FunctionCall2Arg(parsedFn, leftArgsChecked, holder.instr, axis, fn.pos),
                         holder.lastToken,
-                        relatedInstructions)
+                        prependedInstructions)
                 }
             }
             is ParseResultHolder.FnParseResult -> {
                 fun baseFn() = FunctionCallChain.make(parsedFn.pos, parsedFn, holder.fn, functionChainContext = functionChainContext)
                 when {
                     leftArgs.isEmpty() -> {
-                        ParseResultHolder.FnParseResult(baseFn(), holder.lastToken, holder.relatedInstructions + relatedInstructions)
+                        ParseResultHolder.FnParseResult(baseFn(), holder.lastToken, holder.relatedInstructions + prependedInstructions)
                     }
                     holder.fn is LeftAssignedFunction -> {
                         makeLeftBindFunctionParseResult(
                             this,
                             leftArgs,
                             MergedLeftArgsFunction(parsedFn, holder.fn),
-                            holder.relatedInstructions + relatedInstructions,
+                            holder.relatedInstructions + prependedInstructions,
                             holder.lastToken)
                     }
                     else -> {
                         makeLeftBindFunctionParseResult(
-                            this, leftArgs, baseFn(), holder.relatedInstructions + relatedInstructions, holder.lastToken)
+                            this, leftArgs, baseFn(), holder.relatedInstructions + prependedInstructions, holder.lastToken)
                     }
                 }
             }
@@ -802,25 +803,28 @@ class APLParser(val tokeniser: TokenGenerator) {
         }
     }
 
-    private fun parseOperator(fn: APLFunction): APLFunction {
+    private fun parseOperator(fn: APLFunction): Pair<APLFunction, List<Instruction>> {
         var currentFn = fn
         var currToken: TokenWithPosition
+        var relatedInstructions: List<Instruction> = emptyList()
         loop@ while (true) {
             val readToken = tokeniser.nextTokenWithPosition()
             currToken = readToken
             when (val token = currToken.token) {
                 is Symbol -> {
                     val op = tokeniser.engine.getOperator(token) ?: break
-                    currentFn = op.parseAndCombineFunctions(
+                    val res = op.parseAndCombineFunctions(
                         this,
                         currentFn,
                         fn.pos.copy(callerName = token.symbolName, endLine = currToken.pos.endLine, endCol = currToken.pos.endCol))
+                    relatedInstructions = res.relatedInstructions + relatedInstructions
+                    currentFn = res.fn
                 }
                 else -> break
             }
         }
         tokeniser.pushBackToken(currToken)
-        return currentFn
+        return Pair(currentFn, relatedInstructions)
     }
 
     fun parseAxis(): Instruction? {
