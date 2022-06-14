@@ -31,13 +31,23 @@ class RootEnvironmentInstruction(val environment: Environment, val instr: Instru
     }
 }
 
-class InstructionList(val instructions: List<Instruction>) : Instruction(instructions[0].pos) {
+class InstructionList(val instructions: List<Instruction>) : Instruction(computePos(instructions)) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
         for (i in 0 until instructions.size - 1) {
             val instr = instructions[i]
             instr.evalWithContext(context).collapse()
         }
         return instructions.last().evalWithContext(context)
+    }
+
+    companion object {
+        private fun computePos(l: List<Instruction>): Position {
+            return when (l.size) {
+                0 -> throw IllegalStateException("Empty instruction list")
+                1 -> l[0].pos
+                else -> l.last().pos.let { last -> l[0].pos.copy(endLine = last.computedEndLine, endCol = last.computedEndCol) }
+            }
+        }
     }
 }
 

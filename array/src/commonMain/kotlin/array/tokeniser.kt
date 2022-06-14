@@ -154,7 +154,7 @@ data class Position(
     val endCol: Int? = null,
 ) {
     fun withCallerName(s: String) = copy(callerName = s)
-
+    fun expandToEnd(pos: Position) = copy(endLine = pos.computedEndLine, endCol = pos.computedEndCol)
     val computedEndCol get() = endCol ?: (col + 1)
     val computedEndLine get() = endLine ?: line
 }
