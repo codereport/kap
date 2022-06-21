@@ -1,6 +1,8 @@
 package array
 
+import kotlin.test.Ignore
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
 class OperatorsTest : APLTest() {
@@ -135,5 +137,25 @@ class OperatorsTest : APLTest() {
             |20 200 (-.(⍞f0)) 1 2
             """.trimMargin())
         assertSimpleNumber(-181, result)
+    }
+
+    /**
+     * This test ensures that axis arguments are evaluated at the point of definition instead of
+     * when the function is called.
+     */
+    @Ignore
+    @Test
+    fun operatorAxisEvaluationTime0() {
+        val engine = Engine()
+        val out = StringBuilderOutput()
+        engine.standardOutput = out
+        engine.parseAndEval(StringSourceLocation("a ⇐ +/[io:print 0]")).let { result ->
+            assertAPLNull(result)
+            assertEquals("0", out.buf.toString())
+        }
+        engine.parseAndEval(StringSourceLocation("(a 8 7 6) (a 10 11 12)")).let { result ->
+            assert1DArray(arrayOf(21, 33), result)
+            assertEquals("0", out.buf.toString())
+        }
     }
 }
