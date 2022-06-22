@@ -151,6 +151,13 @@ class ReshapeTest : APLTest() {
     }
 
     @Test
+    fun reshapeReshapedArrayDefaultSimple() {
+        parseAPLExpression("6 ⍴ 3 ⍴ 10 11 12 13 14 15 16 17 18").let { result ->
+            assert1DArray(arrayOf(10, 11, 12, 10, 11, 12), result)
+        }
+    }
+
+    @Test
     fun reshapeReshapedArrayGenericSimple() {
         parseAPLExpression("6 ⍴ 3 ⍴ int:ensureGeneric 10 11 12 13 14 15 16 17 18").let { result ->
             assert1DArray(arrayOf(10, 11, 12, 10, 11, 12), result)
@@ -210,6 +217,13 @@ class ReshapeTest : APLTest() {
     }
 
     @Test
+    fun reshapeReshapedArrayDefaultSameSize() {
+        parseAPLExpression("3 ⍴ 3 ⍴ 10 11 12 13 14 15 16 17 18").let { result ->
+            assert1DArray(arrayOf(10, 11, 12), result)
+        }
+    }
+
+    @Test
     fun reshapeReshapedArrayGenericSameSize() {
         parseAPLExpression("3 ⍴ 3 ⍴ int:ensureGeneric 10 11 12 13 14 15 16 17 18").let { result ->
             assert1DArray(arrayOf(10, 11, 12), result)
@@ -227,6 +241,13 @@ class ReshapeTest : APLTest() {
     fun reshapeReshapedArrayDoubleSameSize() {
         parseAPLExpression("3 ⍴ 3 ⍴ int:ensureDouble 10.0 11.0 12.0 13.0 14.0 15.0 16.0 17.0 18.0").let { result ->
             assert1DArray(arrayOf(InnerDouble(10.0), InnerDouble(11.0), InnerDouble(12.0)), result)
+        }
+    }
+
+    @Test
+    fun reshapeReshapedArrayDefaultSmallerSize() {
+        parseAPLExpression("2 ⍴ 6 ⍴ 10 11 12 13 14 15 16 17 18").let { result ->
+            assert1DArray(arrayOf(10, 11), result)
         }
     }
 
@@ -252,6 +273,13 @@ class ReshapeTest : APLTest() {
     }
 
     @Test
+    fun reshapeReshapedArrayDefaultSmallerSizeTwoLevels() {
+        parseAPLExpression("2 ⍴ 3 ⍴ 6 ⍴ 10 11 12 13 14 15 16 17 18").let { result ->
+            assert1DArray(arrayOf(10, 11), result)
+        }
+    }
+
+    @Test
     fun reshapeReshapedArrayGenericSmallerSizeTwoLevels() {
         parseAPLExpression("2 ⍴ 3 ⍴ 6 ⍴ int:ensureGeneric 10 11 12 13 14 15 16 17 18").let { result ->
             assert1DArray(arrayOf(10, 11), result)
@@ -269,6 +297,55 @@ class ReshapeTest : APLTest() {
     fun reshapeReshapedArrayDoubleSmallerSizeTwoLevels() {
         parseAPLExpression("2 ⍴ 3 ⍴ 6 ⍴ int:ensureDouble 10.0 11.0 12.0 13.0 14.0 15.0 16.0 17.0 18.0").let { result ->
             assert1DArray(arrayOf(InnerDouble(10.0), InnerDouble(11.0)), result)
+        }
+    }
+
+    @Test
+    fun reshapeReshapedMultiDimensionalArrayDefault() {
+        parseAPLExpression("5 ⍴ 2 2 ⍴ ⍳100").let { result ->
+            assert1DArray(arrayOf(0, 1, 2, 3, 0), result)
+        }
+    }
+
+    @Test
+    fun reshapeReshapedMultiDimensionalArrayGeneric() {
+        parseAPLExpression("5 ⍴ 2 2 ⍴ int:ensureGeneric ⍳100").let { result ->
+            assert1DArray(arrayOf(0, 1, 2, 3, 0), result)
+        }
+    }
+
+    @Test
+    fun reshapeReshapedMultiDimensionalArrayLong() {
+        parseAPLExpression("5 ⍴ 2 2 ⍴ int:ensureLong ⍳100").let { result ->
+            assert1DArray(arrayOf(0, 1, 2, 3, 0), result)
+        }
+    }
+
+    @Test
+    fun reshapeReshapedMultiDimensionalArrayDouble() {
+        parseAPLExpression("5 ⍴ 2 2 ⍴ int:ensureDouble ⍳100").let { result ->
+            assert1DArray(arrayOf(InnerDouble(0.0), InnerDouble(1.0), InnerDouble(2.0), InnerDouble(3.0), InnerDouble(0.0)), result)
+        }
+    }
+
+    @Test
+    fun reshapeReshapedArrayDefaultSameSizeWithIota() {
+        parseAPLExpression("3 ⍴ 3 ⍴ ⍳100").let { result ->
+            assert1DArray(arrayOf(0, 1, 2), result)
+        }
+    }
+
+    @Test
+    fun reshapeReshapedArrayDefaultSimpleWithIotaDescending() {
+        parseAPLExpression("6 ⍴ 2 ⍴ ⍳100").let { result ->
+            assert1DArray(arrayOf(0, 1, 0, 1, 0, 1), result)
+        }
+    }
+
+    @Test
+    fun reshapeReshapedArrayDefaultSimpleWithIotaAscending() {
+        parseAPLExpression("2 ⍴ 6 ⍴ ⍳100").let { result ->
+            assert1DArray(arrayOf(0, 1), result)
         }
     }
 }

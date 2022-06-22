@@ -24,7 +24,7 @@ class AxisActionFactors(val dimensions: Dimensions, axis: Int) {
 
 object IotaArrayImpls {
     interface GenericIotaArrayLong {
-        fun resizeIotaArray(d: Dimensions, updatedOffset: Long): ResizedIotaArrayLong
+        fun resizeIotaArray(d: Dimensions, updatedOffset: Long): APLValue
     }
 
     class IotaArray(val indexes: IntArray) : APLArray() {
@@ -62,7 +62,7 @@ object IotaArrayImpls {
             return valueAtLong(p, null).makeAPLNumber()
         }
 
-        override fun resizeIotaArray(d: Dimensions, updatedOffset: Long): ResizedIotaArrayLong {
+        override fun resizeIotaArray(d: Dimensions, updatedOffset: Long): APLValue {
             return ResizedIotaArrayLong(d, length, updatedOffset)
         }
     }
@@ -88,8 +88,12 @@ object IotaArrayImpls {
             return valueAtLong(p, null).makeAPLNumber()
         }
 
-        override fun resizeIotaArray(d: Dimensions, updatedOffset: Long): ResizedIotaArrayLong {
-            return ResizedIotaArrayLong(d, width, offset + updatedOffset)
+        override fun resizeIotaArray(d: Dimensions, updatedOffset: Long): APLValue {
+            return if (d.contentSize() == width) {
+                ResizedIotaArrayLong(d, width, offset + updatedOffset)
+            } else {
+                ResizedArrayImpls.GenericResizedArray(d, this)
+            }
         }
     }
 }
@@ -134,7 +138,6 @@ class IotaAPLFunction : APLFunctionDescriptor {
                 } else {
                     IotaArrayImpls.IotaArray(IntArray(aDimensions[0]) { i -> a.valueAtInt(i, pos) })
                 }
-
                 else -> throwAPLException(InvalidDimensionsException("Right argument must be rank 0 or 1", pos))
             }
         }
@@ -256,7 +259,6 @@ class RhoAPLFunction : APLFunctionDescriptor {
                                 }
                                 calculatedIndex = i
                             }
-
                             sizeSpecValue < 0 -> {
                                 throwAPLException(
                                     InvalidDimensionsException(
@@ -726,7 +728,7 @@ class AccessFromIndexAPLFunction : APLFunctionDescriptor {
                     val axisInt = axesArray[p]
                     val v = if (m.dimensions.size == 0) {
                         Either.Left(m.ensureNumber(pos).asInt(pos)
-                                        .also { posAlongAxis -> checkAxisPositionIsInRange(posAlongAxis, bd, axisInt, pos) })
+                            .also { posAlongAxis -> checkAxisPositionIsInRange(posAlongAxis, bd, axisInt, pos) })
                     } else {
                         Either.Right(IntArrayValue.fromAPLValue(m, pos))
                     }
