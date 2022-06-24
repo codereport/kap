@@ -22,7 +22,7 @@ private inline fun <T> withSQLExceptions(pos: Position, fn: () -> T): T {
     try {
         return fn()
     } catch (e: SQLException) {
-        throw SQLAPLException("Exception from database engine: ${e.message}", pos, e)
+        throwAPLException(SQLAPLException("Exception from database engine: ${e.message}", pos, e))
     }
 }
 
@@ -44,7 +44,7 @@ class SQLPreparedStatementValue(val statement: PreparedStatement) : APLSingleVal
 
 private fun ensureSQLConnectionValue(a: APLValue, pos: Position? = null): SQLConnectionValue {
     if (a !is SQLConnectionValue) {
-        throw APLIllegalArgumentException("Value is not a valid SQL connection", pos)
+        throwAPLException(APLIllegalArgumentException("Value is not a valid SQL connection", pos))
     }
     return a
 }
@@ -63,7 +63,7 @@ private inline fun <T> withPreparedStatement(a: APLValue, pos: Position, fn: (Pr
 
 private fun ensurePreparedStatementValue(a: APLValue, pos: Position? = null): SQLPreparedStatementValue {
     if (a !is SQLPreparedStatementValue) {
-        throw APLIllegalArgumentException("Value is not a valid prepared statement", pos)
+        throwAPLException(APLIllegalArgumentException("Value is not a valid prepared statement", pos))
     }
     return a
 }
@@ -91,7 +91,7 @@ private fun parseEntry(value: Any, colIndex: Int, pos: Position): APLValue {
         is Long -> value.makeAPLNumber()
         is Char -> APLChar(value.code)
         is String -> APLString(value)
-        else -> throw SQLAPLException("Cannot convert value ${value} to an APL Value (column ${colIndex + 1} in result", pos)
+        else -> throwAPLException(SQLAPLException("Cannot convert value ${value} to an APL Value (column ${colIndex + 1} in result", pos))
     }
 }
 
@@ -167,7 +167,7 @@ private fun updatePreparedStatementCol(statement: PreparedStatement, index: Int,
             if (stringValue != null) {
                 statement.setString(index, stringValue)
             } else {
-                throw SQLAPLException("Value cannot be used in an SQL prepared statement: ${value.formatted(FormatStyle.PLAIN)}", pos)
+                throwAPLException(SQLAPLException("Value cannot be used in an SQL prepared statement: ${value.formatted(FormatStyle.PLAIN)}", pos))
             }
         }
     }
@@ -199,7 +199,7 @@ class SQLPreparedUpdateFunction : APLFunctionDescriptor {
                                 statement.executeUpdate()
                             }
                         }
-                        else -> throw SQLAPLException("Right value must rank 1 or 2", pos)
+                        else -> throwAPLException(SQLAPLException("Right value must be rank 1 or 2", pos))
                     }
                 }
                 APLNullValue.APL_NULL_INSTANCE
@@ -218,7 +218,7 @@ class SQLPreparedQueryFunction : APLFunctionDescriptor {
                     val bCollapsed = b.collapse()
                     val bDimensions = bCollapsed.dimensions
                     if (bDimensions.size != 1) {
-                        throw SQLAPLException("Right argument to function must be a rank-1 array")
+                        throwAPLException(SQLAPLException("Right argument to function must be a rank-1 array"))
                     }
                     repeat(bDimensions[0]) { colIndex ->
                         updatePreparedStatementCol(statement, colIndex + 1, bCollapsed.valueAt(colIndex), pos)
