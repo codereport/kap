@@ -79,6 +79,11 @@ class LeftAssignedFunction(val baseFn: APLFunction, val leftArgs: EnvironmentBin
     override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
         throwAPLException(APLEvalException("Left assigned functions cannot be called with two arguments", pos))
     }
+
+    override fun deriveInverseOneArg(): APLFunctionDescriptor {
+        val inverse = baseFn.deriveInverseTwoArg(leftArgs) ?: throw InverseNotAvailable(pos)
+        return InverseFnFunctionDescriptor(inverse)
+    }
 }
 
 private fun makeResultList(leftArgs: List<Instruction>): Instruction? {

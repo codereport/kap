@@ -66,7 +66,9 @@ abstract class APLFunction(val pos: Position) {
 
     open fun deriveBitwise(): APLFunctionDescriptor? = null
 
-    open fun deriveInverse(): APLFunctionDescriptor? = null
+    open fun deriveInverseOneArg(): APLFunctionDescriptor? = null
+
+    open fun deriveInverseTwoArg(leftArgs: EnvironmentBinding): APLFunctionDescriptor? = null
 
     open val optimisationFlags get() = OptimisationFlags(0)
 
@@ -131,7 +133,7 @@ abstract class DelegatedAPLFunctionImpl(pos: Position) : APLFunction(pos) {
     override fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?) =
         innerImpl().eval2ArgDoubleDouble(context, a, b, axis)
 
-    override fun deriveInverse() = innerImpl().deriveInverse()
+    override fun deriveInverseOneArg() = innerImpl().deriveInverseOneArg()
 
     abstract fun innerImpl(): APLFunction
 }
@@ -374,6 +376,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeOperator("parallel", ParallelOp())
         registerNativeOperator("∥", ParallelOp())
         registerNativeOperator("⍛", ReverseComposeOp())
+        registerNativeOperator("inverse", InverseFnOp())
 
         // function aliases                             
         functionAliases[coreNamespace.internAndExport("*")] = coreNamespace.internAndExport("⋆")

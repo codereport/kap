@@ -226,3 +226,24 @@ class UserDefinedOperatorTwoArg(
         override fun mkArg(context: RuntimeContext) = argInstr.evalWithContext(context)
     }
 }
+
+class InverseFnFunctionDescriptor(val fnDescriptor: APLFunctionDescriptor) : APLFunctionDescriptor {
+    inner class InverseFn(val fn: APLFunction, pos: Position) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            return fn.eval1Arg(context, a, null)
+        }
+
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            
+        }
+    }
+
+    override fun make(pos: Position) = InverseFn(fnDescriptor.make(pos), pos)
+}
+
+class InverseFnOp() : APLOperatorOneArg {
+    override fun combineFunction(fn: APLFunction, operatorAxis: Instruction?, pos: Position): APLFunctionDescriptor {
+        val inversedFn = fn.deriveInverseOneArg() ?: throw InverseNotAvailable(fn.pos)
+        return InverseFnFunctionDescriptor(inversedFn)
+    }
+}

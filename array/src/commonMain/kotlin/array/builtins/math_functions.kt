@@ -299,6 +299,12 @@ class AddAPLFunction : APLFunctionDescriptor {
         override fun identityValue() = APLLONG_0
         override fun deriveBitwise() = BitwiseXorFunction()
 
+        override fun deriveInverseOneArg() = AddAPLFunction()
+
+        override fun deriveInverseTwoArg(leftArgs: EnvironmentBinding): APLFunctionDescriptor {
+            return AddInverseFunction(leftArgs)
+        }
+
         override val optimisationFlags
             get() = OptimisationFlags(
                 OPTIMISATION_FLAG_1ARG_LONG or
@@ -311,6 +317,22 @@ class AddAPLFunction : APLFunctionDescriptor {
     }
 
     override fun make(pos: Position) = AddAPLFunctionImpl(pos)
+}
+
+class AddInverseFunction(val leftArgs: EnvironmentBinding) : APLFunctionDescriptor {
+    inner class AddInverseFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        private val addFn = AddAPLFunction.AddAPLFunctionImpl(pos)
+        private val subFn = SubAPLFunction.SubAPLFunctionImpl(pos)
+
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val arg = context.getVar(leftArgs) ?: throw IllegalStateException("Unable to find value of left variable binding")
+            val negated = subFn.eval1Arg(context, arg, null)
+            return addFn.eval2Arg(context, negated, a, null)
+        }
+    }
+
+    override fun make(pos: Position) = AddInverseFunctionImpl(pos)
+
 }
 
 class SubAPLFunction : APLFunctionDescriptor {
@@ -341,6 +363,7 @@ class SubAPLFunction : APLFunctionDescriptor {
 
         override fun identityValue() = APLLONG_0
         override fun deriveBitwise() = BitwiseXorFunction()
+        override fun deriveInverseOneArg() = SubAPLFunction()
 
         override val optimisationFlags
             get() = OptimisationFlags(
@@ -426,6 +449,7 @@ class DivAPLFunction : APLFunctionDescriptor {
         override fun combine2ArgDouble(a: Double, b: Double) = a / b
 
         override fun identityValue() = APLLONG_1
+        override fun deriveInverseOneArg() = DivAPLFunction()
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_DOUBLE or OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
 
