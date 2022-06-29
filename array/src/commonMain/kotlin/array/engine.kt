@@ -66,10 +66,6 @@ abstract class APLFunction(val pos: Position) {
 
     open fun deriveBitwise(): APLFunctionDescriptor? = null
 
-    open fun deriveInverseOneArg(): APLFunctionDescriptor? = null
-
-    open fun deriveInverseTwoArg(leftArgs: EnvironmentBinding): APLFunctionDescriptor? = null
-
     open val optimisationFlags get() = OptimisationFlags(0)
 
     open fun eval1ArgLong(context: RuntimeContext, a: Long, axis: APLValue?): Long =
@@ -83,6 +79,15 @@ abstract class APLFunction(val pos: Position) {
 
     open fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?): Double =
         throw IllegalStateException("Illegal call to specialised function: ${this::class.simpleName}")
+
+    open fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue =
+        throwAPLException(InverseNotAvailable(pos))
+
+    open fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue =
+        throwAPLException(InverseNotAvailable(pos))
+
+    open fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue =
+        throwAPLException(InverseNotAvailable(pos))
 
     open val name1Arg: String = this::class.simpleName ?: "unnamed"
     open val name2Arg: String = this::class.simpleName ?: "unnamed"
@@ -133,7 +138,19 @@ abstract class DelegatedAPLFunctionImpl(pos: Position) : APLFunction(pos) {
     override fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?) =
         innerImpl().eval2ArgDoubleDouble(context, a, b, axis)
 
-    override fun deriveInverseOneArg() = innerImpl().deriveInverseOneArg()
+    override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue =
+        innerImpl().evalInverse1Arg(context, a, axis)
+
+    override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue =
+        innerImpl().evalInverse2ArgA(context, a, b, axis)
+
+    override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue =
+        innerImpl().evalInverse2ArgB(context, a, b, axis)
+
+    @Suppress("LeakingThis")
+    override val name1Arg = innerImpl().name1Arg
+    @Suppress("LeakingThis")
+    override val name2Arg = innerImpl().name2Arg
 
     abstract fun innerImpl(): APLFunction
 }

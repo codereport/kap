@@ -65,6 +65,10 @@ class IllegalArgumentNumException(expectedCount: Int, receivedCount: Int, pos: P
     APLEvalException("Expected a list of ${expectedCount} values. Actual elements: ${receivedCount}", pos)
 
 class IntMagnitudeException(value: Long, pos: Position? = null) : APLEvalException("Value does not fit in an int: ${value}", pos)
+class InverseNotAvailable(pos: Position? = null) : APLEvalException("Function does not have an inverse", pos)
+
+class LeftAssigned2ArgException(pos: Position? = null) :
+    APLEvalException("Left assigned functions cannot be called with two arguments", pos)
 
 open class ParseException(message: String, pos: Position? = null) : APLGenericException(message, pos)
 class UnexpectedSymbol(ch: Int, pos: Position? = null) :
@@ -82,7 +86,6 @@ class BitwiseNotSupported(pos: Position? = null) : ParseException("Function does
 class ParallelNotSupported(pos: Position? = null) : ParseException("Function does not support parallel", pos)
 class SyntaxSubRuleNotFound(name: Symbol, pos: Position? = null) : ParseException("Syntax sub rule does not exist. Name: ${name}", pos)
 class IllegalDeclaration(message: String, pos: Position? = null) : ParseException("Illegal declaration: ${message}", pos)
-class InverseNotAvailable(pos: Position? = null) : ParseException("Function does not have an inverse", pos)
 
 class InvalidFunctionRedefinition(name: Symbol, pos: Position? = null) :
     ParseException("Function cannot be redefined: ${name.nameWithNamespace()}", pos)

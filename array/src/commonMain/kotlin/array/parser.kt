@@ -72,17 +72,29 @@ class Environment {
 
 class LeftAssignedFunction(val baseFn: APLFunction, val leftArgs: EnvironmentBinding, pos: Position) : APLFunction(pos) {
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-        val leftArg = context.getVar(leftArgs) ?: throw IllegalStateException("Unable to find value of left variable binding")
+        val leftArg = computeArg(context)
         return baseFn.eval2Arg(context, leftArg, a, axis)
     }
 
     override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-        throwAPLException(APLEvalException("Left assigned functions cannot be called with two arguments", pos))
+        throwAPLException(LeftAssigned2ArgException(pos))
     }
 
-    override fun deriveInverseOneArg(): APLFunctionDescriptor {
-        val inverse = baseFn.deriveInverseTwoArg(leftArgs) ?: throw InverseNotAvailable(pos)
-        return InverseFnFunctionDescriptor(inverse)
+    override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+        val leftArg = computeArg(context)
+        return baseFn.evalInverse2ArgA(context, leftArg, a, axis)
+    }
+
+    override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        throwAPLException(LeftAssigned2ArgException(pos))
+    }
+
+    override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        throwAPLException(LeftAssigned2ArgException(pos))
+    }
+
+    private fun computeArg(context: RuntimeContext): APLValue {
+        return context.getVar(leftArgs) ?: throw IllegalStateException("Unable to find value of left variable binding")
     }
 }
 

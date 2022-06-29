@@ -144,14 +144,14 @@ class ComposeTest : APLTest() {
 
     @Test
     fun composeWithLeftArgShouldFail() {
-        assertFailsWith<APLEvalException> {
+        assertFailsWith<LeftAssigned2ArgException> {
             parseAPLExpression("2 (3+⊢) 5")
         }
     }
 
     @Test
     fun forkWithLeftArgShouldFail() {
-        assertFailsWith<APLEvalException> {
+        assertFailsWith<LeftAssigned2ArgException> {
             parseAPLExpression("2 (3+⊢⊣) 5")
         }
     }

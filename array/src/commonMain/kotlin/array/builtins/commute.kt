@@ -20,6 +20,14 @@ class CommuteOp : APLOperatorOneArg {
                 override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
                     return fn.eval2Arg(context, b, a, axis)
                 }
+
+                override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+                    return fn.evalInverse2ArgB(context, a, b, axis)
+                }
+
+                override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+                    return fn.evalInverse2ArgA(context, a, b, axis)
+                }
             }
         }
     }
