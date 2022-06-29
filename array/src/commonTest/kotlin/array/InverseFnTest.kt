@@ -41,6 +41,23 @@ class InverseFnTest : APLTest() {
     }
 
     @Test
+    fun mulInverse0() {
+        assertSimpleNumber(5, parseAPLExpression("2 ×inverse 10"))
+    }
+
+    @Test
+    fun mulInverse1() {
+        assertSimpleNumber(5, parseAPLExpression("10 ×⍨inverse 2"))
+    }
+
+    @Test
+    fun mulInverseMonadicFails() {
+        assertFailsWith<InverseNotAvailable> {
+            parseAPLExpression("×inverse 5")
+        }
+    }
+
+    @Test
     fun addInverse1Arg0() {
         assertSimpleNumber(10, parseAPLExpression("+inverse 10"))
     }
@@ -93,5 +110,25 @@ class InverseFnTest : APLTest() {
         assertFailsWith<LeftAssigned2ArgException> {
             parseAPLExpression("7 ((1+)inverse) 8")
         }
+    }
+
+    @Test
+    fun inverseWithMonadicChain0() {
+        assertSimpleNumber(50, parseAPLExpression("(2+200÷)inverse 6"))
+    }
+
+    @Test
+    fun inverseWithMonadicChain1() {
+        assertSimpleNumber(50, parseAPLExpression("((2+)∘(200÷))inverse 6"))
+    }
+
+    @Test
+    fun inverseWithMonadicChain2() {
+        assertSimpleDouble(0.125, parseAPLExpression("((2+)÷)inverse 10"))
+    }
+
+    @Test
+    fun inverseExponential() {
+        assertAPLValue(NearDouble(9.0, 4), parseAPLExpression("2 *inverse 512"))
     }
 }

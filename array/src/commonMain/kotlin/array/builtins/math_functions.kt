@@ -412,6 +412,15 @@ class MulAPLFunction : APLFunctionDescriptor {
         override fun combine2ArgLong(a: Long, b: Long) = a * b
         override fun combine2ArgDouble(a: Double, b: Double) = a * b
 
+        private val divFn by lazy { DivAPLFunction().make(pos) }
+        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            return divFn.eval2Arg(context, b, a, axis)
+        }
+
+        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            return divFn.eval2Arg(context, a, b, axis)
+        }
+
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_LONG or OPTIMISATION_FLAG_1ARG_DOUBLE or OPTIMISATION_FLAG_2ARG_LONG_LONG or OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
 
         override val name1Arg get() = "magnitude"
@@ -604,6 +613,11 @@ class PowerAPLFunction : APLFunctionDescriptor {
                     }
                 },
                 { x, y -> x.pow(y).makeAPLNumber() })
+        }
+
+        private val logFn by lazy { LogAPLFunction().make(pos) }
+        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            return logFn.eval2Arg(context, a, b, axis)
         }
 
         override fun identityValue() = APLLONG_1

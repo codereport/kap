@@ -304,6 +304,11 @@ class APLParser(val tokeniser: TokenGenerator) {
             val res = fn1.eval1Arg(context, b, null)
             return fn0.eval2Arg(context, a, res, null)
         }
+
+        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            val res = fn0.evalInverse2ArgA(context, a, b, null)
+            return fn1.evalInverse1Arg(context, res, null)
+        }
     }
 
     private fun makeLeftBindFunctionParseResult(
