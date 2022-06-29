@@ -757,6 +757,10 @@ class LogAPLFunction : APLFunctionDescriptor {
             return powerFn.eval1Arg(context, a, axis)
         }
 
+        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            return powerFn.eval2Arg(context, a, b, axis)
+        }
+
         override val name1Arg get() = "natural log"
         override val name2Arg get() = "log"
     }
