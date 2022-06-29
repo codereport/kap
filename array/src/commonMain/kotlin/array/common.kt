@@ -65,6 +65,10 @@ class IllegalArgumentNumException(expectedCount: Int, receivedCount: Int, pos: P
     APLEvalException("Expected a list of ${expectedCount} values. Actual elements: ${receivedCount}", pos)
 
 class IntMagnitudeException(value: Long, pos: Position? = null) : APLEvalException("Value does not fit in an int: ${value}", pos)
+class InverseNotAvailable(pos: Position? = null) : APLEvalException("Function does not have an inverse", pos)
+
+class LeftAssigned2ArgException(pos: Position? = null) :
+    APLEvalException("Left assigned functions cannot be called with two arguments", pos)
 
 open class ParseException(message: String, pos: Position? = null) : APLGenericException(message, pos)
 class UnexpectedSymbol(ch: Int, pos: Position? = null) :

@@ -299,6 +299,19 @@ class AddAPLFunction : APLFunctionDescriptor {
         override fun identityValue() = APLLONG_0
         override fun deriveBitwise() = BitwiseXorFunction()
 
+        override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?) = eval1Arg(context, a, axis)
+
+        private val subFn by lazy { SubAPLFunction().make(pos) }
+        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            val negated = subFn.eval1Arg(context, a, null)
+            return eval2Arg(context, negated, b, axis)
+        }
+
+        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            val negated = subFn.eval1Arg(context, b, null)
+            return eval2Arg(context, a, negated, axis)
+        }
+
         override val optimisationFlags
             get() = OptimisationFlags(
                 OPTIMISATION_FLAG_1ARG_LONG or
@@ -338,6 +351,19 @@ class SubAPLFunction : APLFunctionDescriptor {
         override fun combine1ArgDouble(a: Double) = -a
         override fun combine2ArgLong(a: Long, b: Long) = a - b
         override fun combine2ArgDouble(a: Double, b: Double) = a - b
+
+        override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+            return eval1Arg(context, a, axis)
+        }
+
+        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            return eval2Arg(context, a, b, axis)
+        }
+
+        private val addFn by lazy { AddAPLFunction().make(pos) }
+        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            return addFn.eval2Arg(context, a, b, axis)
+        }
 
         override fun identityValue() = APLLONG_0
         override fun deriveBitwise() = BitwiseXorFunction()
@@ -424,6 +450,19 @@ class DivAPLFunction : APLFunctionDescriptor {
 
         override fun combine1ArgDouble(a: Double) = 1.0 / a
         override fun combine2ArgDouble(a: Double, b: Double) = a / b
+
+        override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+            return eval1Arg(context, a, axis)
+        }
+
+        private val mulFn by lazy { MulAPLFunction().make(pos) }
+        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            return eval2Arg(context, a, b, axis)
+        }
+
+        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            return mulFn.eval2Arg(context, b, a, axis)
+        }
 
         override fun identityValue() = APLLONG_1
 
@@ -697,6 +736,11 @@ class LogAPLFunction : APLFunctionDescriptor {
                 },
                 { x, y -> if (x < 0 || y < 0) y.toComplex().log(x.toComplex()).makeAPLNumber() else log(y, x).makeAPLNumber() },
                 { x, y -> y.log(x).makeAPLNumber() })
+        }
+
+        private val powerFn by lazy { PowerAPLFunction().make(pos) }
+        override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+            return powerFn.eval1Arg(context, a, axis)
         }
 
         override val name1Arg get() = "natural log"
