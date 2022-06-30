@@ -327,6 +327,12 @@ sealed class FunctionCallChain(pos: Position) : APLFunction(pos) {
             val res = fn0.evalInverse1Arg(context, a, null)
             return fn1.evalInverse1Arg(context, res, null)
         }
+
+        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            if (axis != null) throw AxisNotSupported(pos)
+            val res = fn0.evalInverse1Arg(context, b, null)
+            return fn1.evalInverse2ArgA(context, a, res, null)
+        }
     }
 
     class Chain3(pos: Position, val fn0: APLFunction, val fn1: APLFunction, val fn2: APLFunction) : FunctionCallChain(pos) {

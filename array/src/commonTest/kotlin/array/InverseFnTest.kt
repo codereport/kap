@@ -128,6 +128,11 @@ class InverseFnTest : APLTest() {
     }
 
     @Test
+    fun inverseWithDyadicChain0() {
+        assertSimpleDouble(25.0, parseAPLExpression("15 (÷+)inverse 0.025"))
+    }
+
+    @Test
     fun inverseExponential() {
         assertAPLValue(NearDouble(9.0, 4), parseAPLExpression("2 *inverse 512"))
     }
