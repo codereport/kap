@@ -133,8 +133,13 @@ class InverseFnTest : APLTest() {
     }
 
     @Test
-    fun inverseExponential() {
+    fun inverseExponential0() {
         assertAPLValue(NearDouble(9.0, 4), parseAPLExpression("2 *inverse 512"))
+    }
+
+    @Test
+    fun inverseExponential1() {
+        assertAPLValue(NearDouble(1.609437912, 8), parseAPLExpression("*inverse 5"))
     }
 
     @Test
@@ -145,5 +150,15 @@ class InverseFnTest : APLTest() {
     @Test
     fun inverseLog1() {
         assertSimpleDouble(0.125, parseAPLExpression("2 ⍟inverse ¯3"))
+    }
+
+    @Test
+    fun inverseCompose() {
+        assertAPLValue(NearDouble(-0.001, 8), parseAPLExpression("8 ÷∘-˝ 8000"))
+    }
+
+    @Test
+    fun inverseCompose1() {
+        assertAPLValue(NearDouble(102.0, 8), parseAPLExpression("2 ((-∘÷)⍨)˝ 101.5"))
     }
 }

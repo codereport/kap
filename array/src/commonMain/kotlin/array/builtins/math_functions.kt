@@ -616,6 +616,10 @@ class PowerAPLFunction : APLFunctionDescriptor {
         }
 
         private val logFn by lazy { LogAPLFunction().make(pos) }
+        override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+            return logFn.eval1Arg(context, a, axis)
+        }
+
         override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             return logFn.eval2Arg(context, a, b, axis)
         }
