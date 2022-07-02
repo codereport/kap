@@ -47,7 +47,7 @@ class InverseFnTest : APLTest() {
 
     @Test
     fun mulInverse1() {
-        assertSimpleNumber(5, parseAPLExpression("10 ×⍨inverse 2"))
+        assertSimpleDouble(0.2, parseAPLExpression("10 ×⍨inverse 2"))
     }
 
     @Test
@@ -69,7 +69,7 @@ class InverseFnTest : APLTest() {
 
     @Test
     fun addInverseWithSwap() {
-        assertSimpleNumber(-7, parseAPLExpression("1 +⍨inverse 8"))
+        assertSimpleNumber(7, parseAPLExpression("1 +⍨inverse 8"))
     }
 
     @Test
@@ -159,6 +159,7 @@ class InverseFnTest : APLTest() {
 
     @Test
     fun inverseCompose1() {
-        assertAPLValue(NearDouble(102.0, 8), parseAPLExpression("2 ((-∘÷)⍨)˝ 101.5"))
+        // TODO: This result gives incorrect result in Dyalog due to a Dyalog bug. This should be the correct value.
+        assertAPLValue(NearDouble(10.125, 8), parseAPLExpression("8 -∘÷⍨˝ 10"))
     }
 }
