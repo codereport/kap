@@ -255,6 +255,16 @@ class ReverseComposeFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunctio
             return fn2.eval2Arg(context, res, b, null)
         }
 
+        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            val res = fn1.evalInverse1Arg(context, a, null)
+            return fn2.evalInverse2ArgA(context, res, b, null)
+        }
+
+        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            val res = fn2.evalInverse2ArgB(context, a, b, null)
+            return fn1.evalInverse1Arg(context, res, null)
+        }
+
         fun fn1() = fn1
         fun fn2() = fn2
     }

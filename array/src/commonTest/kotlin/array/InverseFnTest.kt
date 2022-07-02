@@ -162,4 +162,21 @@ class InverseFnTest : APLTest() {
         // TODO: This result gives incorrect result in Dyalog due to a Dyalog bug. This should be the correct value.
         assertAPLValue(NearDouble(10.125, 8), parseAPLExpression("8 -∘÷⍨˝ 10"))
     }
+
+    @Test
+    fun inverseLeftReverseCompose0() {
+        assertSimpleDouble(40.0, parseAPLExpression("5 -⍛÷˝ ¯0.125"))
+    }
+
+    @Test
+    fun inverseLeftReverseCompose1() {
+        assertSimpleDouble(2.0, parseAPLExpression("8 -⍛÷⍨˝ ¯0.25"))
+    }
+
+    @Test
+    fun inverseLeftReverseComposeFailsWithMonadic() {
+        assertFailsWith<InverseNotAvailable> {
+            parseAPLExpression("-⍛÷˝ ¯20")
+        }
+    }
 }

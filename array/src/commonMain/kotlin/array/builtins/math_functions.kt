@@ -303,13 +303,11 @@ class AddAPLFunction : APLFunctionDescriptor {
 
         private val subFn by lazy { SubAPLFunction().make(pos) }
         override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            val negated = subFn.eval1Arg(context, a, null)
-            return eval2Arg(context, negated, b, axis)
+            return subFn.eval2Arg(context, b, a, axis)
         }
 
         override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            val negated = subFn.eval1Arg(context, b, null)
-            return eval2Arg(context, a, negated, axis)
+            return subFn.eval2Arg(context, a, b, null)
         }
 
         override val optimisationFlags
