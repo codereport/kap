@@ -1320,7 +1320,8 @@ object MemberResultValueImpls {
         context: RuntimeContext, a: APLValue, b: APLValue, pos: Position
     ) : MemberResultValue(context, a, b, pos) {
         override fun findInArray(target: APLValue): Long {
-            val targetLong = target.ensureNumber(pos).asLong(pos)
+            val targetNum = target.ensureNumberOrNull() ?: return 0
+            val targetLong = targetNum.asLong(pos)
             repeat(b.size) { i ->
                 if (b.valueAtLong(i, pos) == targetLong) {
                     return 1

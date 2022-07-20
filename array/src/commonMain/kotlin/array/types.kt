@@ -176,12 +176,17 @@ abstract class APLValue {
         }
     }
 
-    open fun ensureNumber(pos: Position? = null): APLNumber {
+    fun ensureNumber(pos: Position? = null): APLNumber {
+        return ensureNumberOrNull()
+            ?: throwAPLException(IncompatibleTypeException("Value $this is not a numeric value (type=${aplValueType.typeName})", pos))
+    }
+
+    open fun ensureNumberOrNull(): APLNumber? {
         val v = unwrapDeferredValue()
-        if (v === this) {
-            throwAPLException(IncompatibleTypeException("Value $this is not a numeric value (type=${aplValueType.typeName})", pos))
+        return if (v === this) {
+            null
         } else {
-            return v.ensureNumber(pos)
+            v.ensureNumberOrNull()
         }
     }
 

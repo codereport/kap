@@ -113,4 +113,18 @@ class MemberTest : APLTest() {
         assertSimpleNumber(0, parseAPLExpression("3 ∊ 2 3.1"))
         assertSimpleNumber(0, parseAPLExpression("3 ∊ int:ensureGeneric 2 3.1"))
     }
+
+    @Test
+    fun memberOfWithSpecialisedArrayLong() {
+        parseAPLExpression("(⊂1 2) ∊ 10 11 12").let { result ->
+            assertSimpleNumber(0, result)
+        }
+    }
+
+    @Test
+    fun memberOfWithSpecialisedArrayDouble() {
+        parseAPLExpression("(⊂1 2) ∊ 10.1 11.1 12.1").let { result ->
+            assertSimpleNumber(0, result)
+        }
+    }
 }
