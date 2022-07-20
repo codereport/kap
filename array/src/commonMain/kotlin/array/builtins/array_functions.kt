@@ -1334,8 +1334,8 @@ object MemberResultValueImpls {
                         }
                     }
                 }
-                target is APLDouble -> {
-                    val targetDouble = target.asDouble(pos)
+                targetNum is APLDouble -> {
+                    val targetDouble = targetNum.asDouble(pos)
                     repeat(b.size) { i ->
                         if (b.valueAtLong(i, pos).toDouble() == targetDouble) {
                             return 1
