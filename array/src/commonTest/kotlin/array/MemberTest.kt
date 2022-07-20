@@ -127,4 +127,11 @@ class MemberTest : APLTest() {
             assertSimpleNumber(0, result)
         }
     }
+
+    @Test
+    fun memberWithSpecialisedArrayLongAndDoubleLeftArg() {
+        parseAPLExpression("2.1 1.0 ∊ 1 2 3").let { result ->
+            assert1DArray(arrayOf(0, 1), result)
+        }
+    }
 }

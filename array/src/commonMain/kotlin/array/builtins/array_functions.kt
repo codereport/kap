@@ -1307,6 +1307,10 @@ object MemberResultValueImpls {
         }
 
         protected open fun findInArray(target: APLValue): Long {
+            return findGeneric(target)
+        }
+
+        fun findGeneric(target: APLValue): Long {
             b.iterateMembers { value ->
                 if (target.compareEquals(value)) {
                     return 1
@@ -1321,10 +1325,25 @@ object MemberResultValueImpls {
     ) : MemberResultValue(context, a, b, pos) {
         override fun findInArray(target: APLValue): Long {
             val targetNum = target.ensureNumberOrNull() ?: return 0
-            val targetLong = targetNum.asLong(pos)
-            repeat(b.size) { i ->
-                if (b.valueAtLong(i, pos) == targetLong) {
-                    return 1
+            when {
+                targetNum is APLLong -> {
+                    val targetLong = targetNum.asLong(pos)
+                    repeat(b.size) { i ->
+                        if (b.valueAtLong(i, pos) == targetLong) {
+                            return 1
+                        }
+                    }
+                }
+                target is APLDouble -> {
+                    val targetDouble = target.asDouble(pos)
+                    repeat(b.size) { i ->
+                        if (b.valueAtLong(i, pos).toDouble() == targetDouble) {
+                            return 1
+                        }
+                    }
+                }
+                else -> {
+                    findGeneric(target)
                 }
             }
             return 0
