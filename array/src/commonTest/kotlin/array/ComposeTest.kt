@@ -69,6 +69,13 @@ class ComposeTest : APLTest() {
     }
 
     @Test
+    fun composeDyadicRightFunctionShouldFail() {
+        assertFailsWith<VariableNotAssigned> {
+            parseAPLExpression("{10+⍺+⍵}∘{1+⍺+⍵} 1")
+        }
+    }
+
+    @Test
     fun composeWithCustomFunction0() {
         val result = parseAPLExpression(
             """
@@ -321,9 +328,24 @@ class ComposeTest : APLTest() {
     }
 
     @Test
-    fun reverseComposeFailsWithMonadic() {
-        assertFailsWith<Unimplemented1ArgException> {
-            parseAPLExpression("(-⍛+) 100")
+    fun reverseComposeDyadicRightFunctionShouldFail() {
+        assertFailsWith<VariableNotAssigned> {
+            parseAPLExpression("{10+⍺+⍵}⍛{1+⍺+⍵} 1")
+        }
+    }
+
+    @Test
+    fun simpleReverseComposeMonadic() {
+        parseAPLExpression("((1+)⍛-) 1").let { result ->
+            assertSimpleNumber(1, result)
+        }
+    }
+
+    @Test
+    fun reverseComposeMonadicEvaluationOrder() {
+        parseAPLExpressionWithOutput("{io:print 100+⍵}⍛{io:print 200+⍺+⍵} 3").let { (result, out) ->
+            assertSimpleNumber(306, result)
+            assertEquals("103306", out)
         }
     }
 
