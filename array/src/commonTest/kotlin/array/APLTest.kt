@@ -7,7 +7,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
-class NearDouble(val expected: Double, val precision: Int) {
+class NearDouble(val expected: Double, val precision: Int = 4) {
     fun assertNear(v: Double, message: String? = null) {
         val dist = 10.0.pow(-precision)
         val messageWithPrefix = if (message == null) "" else ": ${message}"

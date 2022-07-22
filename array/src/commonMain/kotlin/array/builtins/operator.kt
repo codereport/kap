@@ -186,7 +186,7 @@ class ComposedFunctionDescriptor(val fn0: APLFunction, val fn1: APLFunction) : A
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val res = fn1.eval1Arg(context, a, null)
-            return fn0.eval1Arg(context, res, null)
+            return fn0.eval2Arg(context, a, res, null)
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {

@@ -26,7 +26,7 @@ class ComposeTest : APLTest() {
     fun compose1Arg0() {
         parseAPLExpression("(×∘÷) ¯1 2 3").let { result ->
             assertDimension(dimensionsOfSize(3), result)
-            assertArrayContent(arrayOf(-1, 1, 1), result)
+            assertArrayContent(arrayOf(NearDouble(1.0), NearDouble(1.0), NearDouble(1.0)), result)
         }
     }
 
@@ -34,7 +34,7 @@ class ComposeTest : APLTest() {
     fun compose1Arg1() {
         parseAPLExpression("×∘÷ ¯1 2 3").let { result ->
             assertDimension(dimensionsOfSize(3), result)
-            assertArrayContent(arrayOf(-1, 1, 1), result)
+            assertArrayContent(arrayOf(NearDouble(1.0), NearDouble(1.0), NearDouble(1.0)), result)
         }
     }
 
@@ -65,6 +65,21 @@ class ComposeTest : APLTest() {
                     InnerDouble(-303.0),
                     InnerDouble(306.0)),
                 result)
+        }
+    }
+
+    @Test
+    fun composeMonadicArg() {
+        parseAPLExpression("{200+⍺-⍵}∘{1+⍵} 1000").let { result ->
+            assertSimpleNumber(200 + (1000 - (1000+1)), result)
+        }
+    }
+
+    @Test
+    fun composeMonadicArgEvaluationOrder() {
+        parseAPLExpressionWithOutput("{io:print 5000+⍺-⍵}∘{io:print 4+⍵} 1000").let { (result, out) ->
+            assertSimpleNumber(4996, result)
+            assertEquals("10044996", out)
         }
     }
 
