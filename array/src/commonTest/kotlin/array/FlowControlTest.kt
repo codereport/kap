@@ -201,9 +201,18 @@ class FlowControlTest : APLTest() {
 
     @Test
     fun whileLoopTest() {
-        parseAPLExpressionWithOutput("i←0 ◊ while (i<10) {io:print i ◊ prev←i ◊ i←i+1 ◊ prev+5}", true).let { (result, out) ->
-            assertSimpleNumber(1, result) // The return value should really be 14 here, the last value from the body
+        val src = "i←0 ◊ while (i<10) {io:print i ◊ prev←i ◊ i←i+1 ◊ prev+5}"
+        parseAPLExpressionWithOutput(src, withStandardLib = true).let { (result, out) ->
+            assertSimpleNumber(14, result)
             assertEquals("0123456789", out)
+        }
+    }
+
+    @Test
+    fun whileWithZeroIterations() {
+        parseAPLExpressionWithOutput("io:print \"a\" ◊ while (0) { io:print \"b\" }", withStandardLib = true).let { (result, out) ->
+            assertAPLNull(result)
+            assertEquals("a", out)
         }
     }
 

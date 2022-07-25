@@ -4,7 +4,7 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-class SyntaxText : APLTest() {
+class SyntaxTest : APLTest() {
     @Test
     fun simpleCustomSyntax() {
         val result = parseAPLExpression(
