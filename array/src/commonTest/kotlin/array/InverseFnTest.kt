@@ -119,7 +119,7 @@ class InverseFnTest : APLTest() {
 
     @Test
     fun inverseWithMonadicChain1() {
-        assertSimpleNumber(50, parseAPLExpression("((2+)∘(200÷))inverse 6"))
+        assertSimpleNumber(50, parseAPLExpression("((2+)(200÷))inverse 6"))
     }
 
     @Test
@@ -171,6 +171,13 @@ class InverseFnTest : APLTest() {
     @Test
     fun inverseLeftReverseCompose1() {
         assertSimpleDouble(2.0, parseAPLExpression("8 -⍛÷⍨˝ ¯0.25"))
+    }
+
+    @Test
+    fun inverseWithMonadicComposeShouldFail() {
+        assertFailsWith<InverseNotAvailable> {
+            parseAPLExpression("(+∘-)inverse 1")
+        }
     }
 
     @Test

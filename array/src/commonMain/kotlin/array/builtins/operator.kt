@@ -214,11 +214,6 @@ class ComposedFunctionDescriptor(val fn0: APLFunction, val fn1: APLFunction) : A
             return fn0.eval2ArgDoubleDouble(context, a, res, null)
         }
 
-        override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            val res = fn0.evalInverse1Arg(context, a, null)
-            return fn1.evalInverse1Arg(context, res, null)
-        }
-
         override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             val res = fn0.evalInverse2ArgA(context, a, b, null)
             return fn1.evalInverse1Arg(context, res, null)
