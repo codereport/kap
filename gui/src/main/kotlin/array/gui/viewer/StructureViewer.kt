@@ -1,7 +1,7 @@
 package array.gui.viewer
 
 import array.*
-import array.builtins.ComposedFunctionDescriptor
+import array.builtins.ComposeFunctionDescriptor
 import array.builtins.OverDerivedFunctionDescriptor
 import array.builtins.ReverseComposeFunctionDescriptor
 import array.gui.Client
@@ -302,7 +302,8 @@ private fun makeFunctionCall1ArgGraphNodeFromFunction(
     return when (fn) {
         is FunctionCallChain.Chain2 -> Chain2A1GraphNode(graph, fn, rightArgsNode)
         is FunctionCallChain.Chain3 -> Chain3A1GraphNode(graph, fn, rightArgsNode)
-        is ComposedFunctionDescriptor.ComposedFunctionImpl -> ComposeA1GraphNode(graph, fn, rightArgsNode)
+        is ComposeFunctionDescriptor.ComposeFunctionImpl -> ComposeA1GraphNode(graph, fn, rightArgsNode)
+        is ReverseComposeFunctionDescriptor.ReverseComposeFunctionImpl -> ReverseComposeA1GraphNode(graph, fn, rightArgsNode)
         is OverDerivedFunctionDescriptor.OverDerivedFunctionImpl -> OverA1GraphNode(graph, fn, rightArgsNode)
         else -> FunctionCall1ArgGraphNode(graph, fn, rightArgsNode)
     }
@@ -329,7 +330,7 @@ private fun makeFunctionCall2ArgGraphNodeFromFunction(
     return when (fn) {
         is FunctionCallChain.Chain2 -> Chain2A2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
         is FunctionCallChain.Chain3 -> Chain3A2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
-        is ComposedFunctionDescriptor.ComposedFunctionImpl -> ComposeA2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
+        is ComposeFunctionDescriptor.ComposeFunctionImpl -> ComposeA2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
         is ReverseComposeFunctionDescriptor.ReverseComposeFunctionImpl -> ReverseComposeA2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
         is OverDerivedFunctionDescriptor.OverDerivedFunctionImpl -> OverA2GraphNode(graph, fn, leftArgsNode, rightArgsNode)
         else -> FunctionCall2ArgGraphNode(graph, fn, leftArgsNode, rightArgsNode)
@@ -514,7 +515,7 @@ class Chain3A2GraphNode(graph: Graph, fn: FunctionCallChain.Chain3, leftArgLink:
     override fun upPos() = container.upPos()
 }
 
-class ComposeA1GraphNode(graph: Graph, fn: ComposedFunctionDescriptor.ComposedFunctionImpl, rightArgsNode: KNode) : KNode(graph) {
+class ComposeA1GraphNode(graph: Graph, fn: ComposeFunctionDescriptor.ComposeFunctionImpl, rightArgsNode: KNode) : KNode(graph) {
     val rightNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn2(), graph, rightArgsNode)
     val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn1(), graph, rightArgsNode, rightNode)
 
@@ -525,7 +526,6 @@ class ComposeA1GraphNode(graph: Graph, fn: ComposedFunctionDescriptor.ComposedFu
     }
 
     override fun computePosition(x: Double, y: Double) {
-        val b = bounds()
         val mb = middleNode.bounds()
         val rb = rightNode.bounds()
         rightNode.computePosition(x + rb.width + NODE_SPACING_HORIZ, y + mb.height + NODE_SPACING_VERT)
@@ -537,8 +537,29 @@ class ComposeA1GraphNode(graph: Graph, fn: ComposedFunctionDescriptor.ComposedFu
     }
 }
 
+class ReverseComposeA1GraphNode(graph: Graph, fn: ReverseComposeFunctionDescriptor.ReverseComposeFunctionImpl, rightArgsNode: KNode) : KNode(graph) {
+    val leftNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn1(), graph, rightArgsNode)
+    val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn2(), graph, leftNode, rightArgsNode)
 
-class ComposeA2GraphNode(graph: Graph, fn: ComposedFunctionDescriptor.ComposedFunctionImpl, leftNode: KNode, rightArgLink: KNode) :
+    override fun bounds(): BoundsDimensions {
+        val lb = leftNode.bounds()
+        val mb = middleNode.bounds()
+        return BoundsDimensions(lb.width + NODE_SPACING_HORIZ + mb.width, mb.height + NODE_SPACING_VERT + lb.height)
+    }
+
+    override fun computePosition(x: Double, y: Double) {
+        val mb = middleNode.bounds()
+        val lb = leftNode.bounds()
+        leftNode.computePosition(x, y + mb.height + NODE_SPACING_VERT)
+        middleNode.computePosition(x + lb.width + NODE_SPACING_HORIZ, y)
+    }
+
+    override fun upPos(): Coord {
+        return middleNode.upPos()
+    }
+}
+
+class ComposeA2GraphNode(graph: Graph, fn: ComposeFunctionDescriptor.ComposeFunctionImpl, leftNode: KNode, rightArgLink: KNode) :
     KNode(graph) {
     val rightNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn2(), graph, rightArgLink)
     val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn1(), graph, leftNode, rightNode)

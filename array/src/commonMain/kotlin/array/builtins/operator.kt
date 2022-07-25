@@ -169,8 +169,8 @@ class RankOperator : APLOperatorValueRightArg {
     }
 }
 
-class ComposedFunctionDescriptor(val fn0: APLFunction, val fn1: APLFunction) : APLFunctionDescriptor {
-    inner class ComposedFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+class ComposeFunctionDescriptor(val fn0: APLFunction, val fn1: APLFunction) : APLFunctionDescriptor {
+    inner class ComposeFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
         override val optimisationFlags = computeOptimisationFlags()
 
         private fun computeOptimisationFlags(): OptimisationFlags {
@@ -231,7 +231,7 @@ class ComposedFunctionDescriptor(val fn0: APLFunction, val fn1: APLFunction) : A
         override val name2Arg = "compose [${fn0.name2Arg}, ${fn1.name1Arg}]"
     }
 
-    override fun make(pos: Position) = ComposedFunctionImpl(pos)
+    override fun make(pos: Position) = ComposeFunctionImpl(pos)
 }
 
 class ComposeOp : APLOperatorTwoArg {
@@ -239,7 +239,7 @@ class ComposeOp : APLOperatorTwoArg {
         if (operatorAxis != null) {
             throw AxisNotSupported(opPos)
         }
-        return ComposedFunctionDescriptor(fn1, fn2)
+        return ComposeFunctionDescriptor(fn1, fn2)
     }
 }
 
