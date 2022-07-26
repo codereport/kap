@@ -549,4 +549,18 @@ class ComposeTest : APLTest() {
             assertSimpleNumber(19, result)
         }
     }
+
+    @Test
+    fun composeCommuteInverseDyadic() {
+        parseAPLExpression("10 (×∘(20+))⍨˝ 60").let { result ->
+            assertSimpleNumber(2, result)
+        }
+    }
+
+    @Test
+    fun reverseComposeInverseDyadic() {
+        parseAPLExpression("10 ((20+)⍛×)˝ 60").let { result ->
+            assertSimpleNumber(2, result)
+        }
+    }
 }
