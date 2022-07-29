@@ -1106,6 +1106,10 @@ abstract class RotateFunction(pos: Position) : APLFunction(pos) {
         }
     }
 
+    override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+        return eval1Arg(context, a, axis)
+    }
+
     abstract fun defaultAxis(value: APLValue): Int
 }
 
@@ -1218,6 +1222,10 @@ class TransposeFunction : APLFunctionDescriptor {
 
             val transposeAxis = IntArray(aDimensions[0]) { index -> a1.valueAtInt(index, pos) }
             return TransposedAPLValue(transposeAxis, b, pos)
+        }
+
+        override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+            return eval1Arg(context, a, axis)
         }
 
         override val name1Arg get() = "transpose"

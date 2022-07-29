@@ -21,6 +21,13 @@ class TransposeTest : APLTest() {
     }                //0, 4, 8, 12, 16, 20, 1, 5, 9, 13, 17, 21, 2, 6, 10, 14, 18, 22, 3, 7, 11, 15, 19, 23
 
     @Test
+    fun test2DTransposeInverse() {
+        val result = parseAPLExpression("⍉˝ 2 3 ⍴ ⍳6")
+        assertDimension(dimensionsOfSize(3, 2), result)
+        assertArrayContent(arrayOf(0, 3, 1, 4, 2, 5), result)
+    }
+
+    @Test
     fun test3DTransposeEmptyLeftArg() {
         val result = parseAPLExpression("⍉ 3 4 5 ⍴ ⍳60")
         assertDimension(dimensionsOfSize(5, 4, 3), result)
@@ -147,7 +154,7 @@ class TransposeTest : APLTest() {
     }
 
     @Test
-    fun inverseHorizontalTest() {
+    fun reverseHorizontalTest() {
         parseAPLExpression("⌽4 5 4 ⍴ ⍳1000").let { result ->
             assertDimension(dimensionsOfSize(4, 5, 4), result)
             assertArrayContent(
@@ -167,7 +174,15 @@ class TransposeTest : APLTest() {
     }
 
     @Test
-    fun inverseVerticalTest() {
+    fun reverseHorizontalInverse() {
+        parseAPLExpression("⌽˝ 1 2 3 4").let { result ->
+            assertDimension(dimensionsOfSize(4), result)
+            assertArrayContent(arrayOf(4, 3, 2, 1), result)
+        }
+    }
+
+    @Test
+    fun reverseVerticalTest() {
         parseAPLExpression("⊖4 5 ⍴ ⍳100").let { result ->
             assertDimension(dimensionsOfSize(4, 5), result)
             assertArrayContent(arrayOf(15, 16, 17, 18, 19, 10, 11, 12, 13, 14, 5, 6, 7, 8, 9, 0, 1, 2, 3, 4), result)
@@ -178,6 +193,46 @@ class TransposeTest : APLTest() {
         }
         parseAPLExpression("⊖1").let { result ->
             assertSimpleNumber(1, result)
+        }
+    }
+
+    @Test
+    fun reverseVerticalInverse() {
+        parseAPLExpression("⊖˝ 1 2 3 4").let { result ->
+            assertDimension(dimensionsOfSize(4), result)
+            assertArrayContent(arrayOf(4, 3, 2, 1), result)
+        }
+    }
+
+    @Test
+    fun reverseWithAxis() {
+        parseAPLExpression("⌽[1] 2 3 4 ⍴ ⍳24").let { result ->
+            assertDimension(dimensionsOfSize(2, 3, 4), result)
+            assertArrayContent(
+                arrayOf(
+                    8, 9, 10, 11,
+                    4, 5, 6, 7,
+                    0, 1, 2, 3,
+                    20, 21, 22, 23,
+                    16, 17, 18, 19,
+                    12, 13, 14, 15),
+                result)
+        }
+    }
+
+    @Test
+    fun reverseWithAxisInverse() {
+        parseAPLExpression("⌽[1]˝ 2 3 4 ⍴ ⍳24").let { result ->
+            assertDimension(dimensionsOfSize(2, 3, 4), result)
+            assertArrayContent(
+                arrayOf(
+                    8, 9, 10, 11,
+                    4, 5, 6, 7,
+                    0, 1, 2, 3,
+                    20, 21, 22, 23,
+                    16, 17, 18, 19,
+                    12, 13, 14, 15),
+                result)
         }
     }
 

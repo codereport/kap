@@ -26,6 +26,14 @@ class InverseFnTest : APLTest() {
     }
 
     @Test
+    fun subInverse3() {
+        parseAPLExpression("10 200 -[0]˝ 2 3 ⍴ ⍳6").let { result ->
+            assertDimension(dimensionsOfSize(2, 3), result)
+            assertArrayContent(arrayOf(10, 9, 8, 197, 196, 195), result)
+        }
+    }
+
+    @Test
     fun reciprocalInverse() {
         assertSimpleDouble(0.125, parseAPLExpression("÷inverse 8"))
     }
