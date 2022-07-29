@@ -39,7 +39,7 @@ value class Dimensions(val dimensions: IntArray) {
 
     fun replace(axis: Int, newValue: Int): Dimensions {
         if (axis < 0 || axis >= dimensions.size) {
-            throw IndexOutOfBoundsException("Selected axis is not valis. axis=${axis}, size=${dimensions.size}")
+            throw IndexOutOfBoundsException("Selected axis is not valid. axis=${axis}, size=${dimensions.size}")
         }
         return Dimensions(IntArray(dimensions.size) { i -> if (i == axis) newValue else dimensions[i] })
     }
