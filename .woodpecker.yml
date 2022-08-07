@@ -1,0 +1,11 @@
+branches: [ master, codeberg-test ]
+
+pipeline:
+  build:
+    image: ubuntu-latest
+    when:
+      branch: [ master, codeberg-test ]
+    commands: |
+      apt-get update && apt-get install -y openjdk-17-jdk libicu-dev libcurl4-openssl-dev libjansson-dev
+      ./gradlew allTests
+      ./gradlew gui:test
