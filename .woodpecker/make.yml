@@ -2,7 +2,7 @@ branches: [ master, codeberg-test ]
 
 pipeline:
   build:
-    image: ubuntu-latest
+    image: ubuntu
     when:
       branch: [ master, codeberg-test ]
     commands: |
