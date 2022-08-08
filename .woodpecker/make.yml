@@ -9,6 +9,7 @@ pipeline:
       ./gradlew text-client:build
       ./gradlew client-java:build
   build-web:
+    image: ubuntu
     commands: |
       ./buildsite.sh
   run-tests:
