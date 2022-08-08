@@ -3,16 +3,11 @@ branches: [ master, codeberg-test ]
 pipeline:
   build:
     image: ubuntu
+    pull: true
     commands: |
       apt-get update && apt-get install -y openjdk-17-jdk libicu-dev libcurl4-openssl-dev libjansson-dev
       ./gradlew gui:build
       ./gradlew text-client:build
       ./gradlew client-java:build
-  build-web:
-    image: ubuntu
-    commands: |
       ./buildsite.sh
-  run-tests:
-    image: ubuntu
-    commands: |
       ./gradlew allTests
