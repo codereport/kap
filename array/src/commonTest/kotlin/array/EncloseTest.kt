@@ -25,7 +25,6 @@ class EncloseTest : APLTest() {
         assertEquals(1, result.size)
         val number = result.ensureNumber().asLong()
         assertEquals(6L, number)
-        throw RuntimeException("exception to test automatic tests")
     }
 
     @Test
