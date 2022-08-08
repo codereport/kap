@@ -8,6 +8,6 @@ pipeline:
       ./gradlew build
   run-tests:
     image: ubuntu
-    commands:
+    commands: |
       ./gradlew allTests
       ./gradlew gui:test
