@@ -648,6 +648,7 @@ class ConcatenateAPLFunctionFirstAxis : APLFunctionDescriptor {
 
         override fun defaultAxis(a: APLValue, b: APLValue) = 0
 
+        override val name1Arg get() = "table"
         override val name2Arg get() = "concatenate first axis"
     }
 
@@ -672,6 +673,7 @@ class ConcatenateAPLFunctionLastAxis : APLFunctionDescriptor {
 
         override fun defaultAxis(a: APLValue, b: APLValue) = max(a.rank, b.rank) - 1
 
+        override val name1Arg get() = "ravel"
         override val name2Arg get() = "concatenate last axis"
     }
 
