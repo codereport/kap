@@ -191,6 +191,42 @@ class CustomFunctionTest : APLTest() {
     }
 
     @Test
+    fun rightArgMultiParameterWithoutSemicolon() {
+        assertFailsWith<ParseException> {
+            parseAPLExpression(
+                """
+                |∇ foo (x y) {
+                |  x + y
+                |}              
+            """.trimMargin(), true)
+        }
+    }
+
+    @Test
+    fun leftArgMultiParameterWithoutSemicolon() {
+        assertFailsWith<ParseException> {
+            parseAPLExpression(
+                """
+                |∇ (x y) foo (z) {
+                |  x + y + z
+                |}              
+            """.trimMargin(), true)
+        }
+    }
+
+    @Test
+    fun functionNameWithSemicolon() {
+        assertFailsWith<ParseException> {
+            parseAPLExpression(
+                """
+                |∇ (foo;x) (y) {
+                |  y + 10
+                |}              
+                """.trimMargin(), true)
+        }
+    }
+
+    @Test
     fun simpleFunction0() {
         parseAPLExpression("f ⇐ - ⋄ (f 5) (3 f 1)").let { result ->
             assertDimension(dimensionsOfSize(2), result)
