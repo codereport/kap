@@ -5,6 +5,7 @@ import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.html.*
 import kotlinx.html.dom.create
+import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -109,6 +110,7 @@ private fun addCommandResultToResultHistory(command: String) {
     val node = document.create.div(classes = "command-result-outer") {
         div(classes = "command-result-inner") {
             span(classes = "command-result-text") {
+                onClickFunction = { updateInputText(command) }
                 +command
             }
             span(classes = "command-result-link") {
@@ -121,6 +123,11 @@ private fun addCommandResultToResultHistory(command: String) {
     }
 
     appendNodeToResultHistory(node)
+}
+
+fun updateInputText(command: String) {
+    val inputField = findElement<HTMLTextAreaElement>("input")
+    inputField.value = command
 }
 
 private fun appendNodeToResultHistory(outer: HTMLElement) {
