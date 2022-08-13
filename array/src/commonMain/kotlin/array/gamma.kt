@@ -681,28 +681,40 @@ private fun logB(x: Double): Double {
 }
 
 fun doubleBinomial(a: Double, b: Double): Double {
-    val row = (if (a < 0) 4 else 0) or (if (b < 0) 2 else 0) or (if (b < a) 1 else 0)
-    val isNeg = when (row) {
-        0 -> true
-        1 -> false
-        3 -> true
-        4 -> false
-        6 -> true
-        7 -> false
-        else -> throw APLEvalException("Invalid binomial arguments")
-    }
+    fun nearInt(n: Double) = n.rem(1) == 0.0
+    fun throwInvalidArgument(): Nothing = throw IllegalArgumentException()
 
-    if (!isNeg) {
-        return 0.0
-    }
-
-    val r1a = a + 1.0
-    val r1b = b + 1.0
+    val r1a = 1 + a
+    val r1b = 1 + b
     val r1ba = r1b - a
-    // TODO: Check for illegal values (v < 0 && integer) foreach r1a, r1b, r1ba
-    TODO("doubleBinomial not implemented")
+    if (r1a < 0 && nearInt(r1a) ||
+        r1b < 0 && nearInt(r1b) ||
+        r1ba < 0 && nearInt(r1ba)
+    ) {
+        throwInvalidArgument()
+    }
+
+    val gammaR1B = doubleGamma(r1b)
+    if (!gammaR1B.isFinite()) throwInvalidArgument()
+
+    val gammaR1A = doubleGamma(r1a)
+    if (!gammaR1A.isFinite()) throwInvalidArgument()
+
+    val gammaR1BA = doubleGamma(r1ba)
+    if (!gammaR1BA.isFinite()) throwInvalidArgument()
+
+    return (gammaR1B / gammaR1A) / gammaR1BA
 }
 
 fun complexBinomial(a: Complex, b: Complex): Complex {
-    TODO("Complex binomial not implemented")
+    val ra = a.real
+    val rb = b.real
+    val rba = rb - ra
+    val ia = a.imaginary
+    val ib = b.imaginary
+    val iba = ib - ia
+    val gamma1a = complexGamma(Complex(ra + 1.0, ia))
+    val gamma1b = complexGamma(Complex(rb + 1.0, ib))
+    val gamma1ba = complexGamma(Complex(rba + 1.0, iba))
+    return gamma1b / (gamma1a * gamma1ba)
 }

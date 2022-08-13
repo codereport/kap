@@ -58,7 +58,9 @@ class IllegalAxisException(message: String, pos: Position?) : APLEvalException(m
 class AxisNotSupported(pos: Position) : APLEvalException("Function does not support axis specifier", pos)
 
 class APLIllegalArgumentException(message: String, pos: Position? = null) : APLEvalException(message, pos)
-class APLIncompatibleDomainsException(message: String, pos: Position? = null) : APLEvalException(message, pos)
+class APLIncompatibleDomainsException(message: String, pos: Position? = null, cause: Throwable? = null) :
+    APLEvalException(message, pos, cause)
+
 class Unimplemented1ArgException(pos: Position? = null) : APLEvalException("Function cannot be called with one argument", pos)
 class Unimplemented2ArgException(pos: Position? = null) : APLEvalException("Function cannot be called with two arguments", pos)
 class IllegalArgumentNumException(expectedCount: Int, receivedCount: Int, pos: Position? = null) :

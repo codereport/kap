@@ -1083,9 +1083,27 @@ class BinomialAPLFunction : APLFunctionDescriptor {
                 pos,
                 a,
                 b,
-                { x, y -> doubleBinomial(x.toDouble(), y.toDouble()).makeAPLNumber() },
-                { x, y -> doubleBinomial(x, y).makeAPLNumber() },
+                { x, y -> doubleBinomialWithException(x.toDouble(), y.toDouble(), pos).makeAPLNumber() },
+                { x, y -> doubleBinomialWithException(x, y, pos).makeAPLNumber() },
                 { x, y -> complexBinomial(x, y).makeAPLNumber() })
+        }
+
+        private fun doubleBinomialWithException(a: Double, b: Double, pos: Position): Double {
+            fun nearInt(n: Double) = n.rem(1) == 0.0
+
+            try {
+                val row = (if (a < 0) 4 else 0) or (if (b < 0) 2 else 0) or (if (b < a) 1 else 0)
+                val caseTable = arrayOf(1, 0, -1, 1, 0, -1, 1, 0)
+                val e = caseTable[row]
+                return when {
+                    e == 0 -> 0.0
+                    e != 1 -> throw IllegalStateException("caseTable value is -1. ${a}, ${b}, ${row}, ${e}")
+                    !nearInt(a) || !nearInt(b) -> doubleBinomial(a, b)
+                    else -> doubleBinomial(a, b)
+                }
+            } catch (e: IllegalArgumentException) {
+                throw APLIncompatibleDomainsException("Binomial: invalid arguments: ${a},${b}", pos, e)
+            }
         }
 
         override val name1Arg get() = "gamma"

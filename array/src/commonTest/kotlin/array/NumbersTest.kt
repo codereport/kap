@@ -1,7 +1,6 @@
 package array
 
 import array.complex.Complex
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
@@ -214,15 +213,14 @@ class NumbersTest : APLTest() {
         }
     }
 
-    @Ignore
     @Test
     fun positiveIntegerBinomial() {
+        // TODO: The return value of purely integer binomials should be an integer
         parseAPLExpression("10!32").let { result ->
-            assertSimpleNumber(64512240, result)
+            assertSimpleDouble(64512240.0, result)
         }
     }
 
-    @Ignore
     @Test
     fun positiveDoubleBinominal() {
         parseAPLExpression("10.2!32.2").let { result ->
@@ -230,4 +228,49 @@ class NumbersTest : APLTest() {
         }
     }
 
+    @Test
+    fun complexBinomial() {
+        parseAPLExpression("0 2 2J2 3J¯3 ¯3J10.1 ¯3J¯4 ∘.! 0 3 8.1J1 ¯3.4J4 10J¯3 ¯2J¯8").let { result ->
+            assertDimension(dimensionsOfSize(6, 6), result)
+            assertArrayContent(
+                arrayOf(
+                    NearComplex(Complex(1.0, 0.0)),
+                    NearComplex(Complex(1.0, 0.0)),
+                    NearComplex(Complex(1.0, 0.0)),
+                    NearComplex(Complex(1.0, 0.0)),
+                    NearComplex(Complex(1.0, 0.0)),
+                    NearComplex(Complex(1.0, 0.0)),
+                    NearComplex(Complex(0.0, 0.0)),
+                    NearComplex(Complex(3.0, 0.0)),
+                    NearComplex(Complex(28.255, 7.6)),
+                    NearComplex(Complex(-0.52, -15.6)),
+                    NearComplex(Complex(40.5, -28.5)),
+                    NearComplex(Complex(-29.0, 20.0)),
+                    NearComplex(Complex(21.30646169, 21.30646169)),
+                    NearComplex(Complex(12.78387701, -12.78387701)),
+                    NearComplex(Complex(-26.45504396, 54.29773874)),
+                    NearComplex(Complex(0.1771815219, -0.02202208026)),
+                    NearComplex(Complex(-67.13452858, 236.1405125)),
+                    NearComplex(Complex(1166.024365, -3346.794191)),
+                    NearComplex(Complex(-328.6986648, 328.6986648)),
+                    NearComplex(Complex(-80.91044057, 10.11380507)),
+                    NearComplex(Complex(374.3589127, -543.1323969)),
+                    NearComplex(Complex(40407.45676, -142258.8772)),
+                    NearComplex(Complex(-248.375, -29.23214286)),
+                    NearComplex(Complex(-0.02446697456, -0.4780505611)),
+                    NearComplex(Complex(-8.729323264E11, 2.592868296E11)),
+                    NearComplex(Complex(3783271107.0, -344239831.5)),
+                    NearComplex(Complex(-21687822.9, -12528639.47)),
+                    NearComplex(Complex(-19219016.06, -335408971.5)),
+                    NearComplex(Complex(77075910.62, 74882120.92)),
+                    NearComplex(Complex(-3.870615137E12, 2.375705362E12)),
+                    NearComplex(Complex(-7302.062228, -5476.546671)),
+                    NearComplex(Complex(-34.67794562, 206.7833053)),
+                    NearComplex(Complex(14.54486452, -14.78546549)),
+                    NearComplex(Complex(-48737.12032, 8780.542527)),
+                    NearComplex(Complex(3.029684439, -0.7536373119)),
+                    NearComplex(Complex(0.06167254732, 0.04814395987))
+                ), result)
+        }
+    }
 }
