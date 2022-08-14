@@ -72,6 +72,9 @@ class InverseNotAvailable(pos: Position? = null) : APLEvalException("Function do
 class LeftAssigned2ArgException(pos: Position? = null) :
     APLEvalException("Left assigned functions cannot be called with two arguments", pos)
 
+class ArraySizeException(d: IntArray, pos: Position? = null) :
+    APLEvalException("Array too large. Requested size: [${d.joinToString(", ")}]", pos)
+
 open class ParseException(message: String, pos: Position? = null) : APLGenericException(message, pos)
 class UnexpectedSymbol(ch: Int, pos: Position? = null) :
     ParseException("Unexpected symbol: '${charToString(ch)}' (${ch.toString(16)})", pos)

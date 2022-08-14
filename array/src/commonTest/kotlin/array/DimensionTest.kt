@@ -1,9 +1,6 @@
 package array
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFalse
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class DimensionTest {
     @Test
@@ -55,5 +52,61 @@ class DimensionTest {
 
         val d2 = dimensionsOfSize(1, 3, 4)
         assertFalse(d0.compareEquals(d2))
+    }
+
+    @Test
+    fun insertTest() {
+        val d0 = dimensionsOfSize(2, 3, 4)
+        val d1 = d0.insert(0, 2)
+        val d2 = dimensionsOfSize(2, 2, 3, 4)
+        assertTrue(d1.compareEquals(d2))
+    }
+
+    @Test
+    fun replaceTest() {
+        val d0 = dimensionsOfSize(2, 3, 4)
+        val d1 = d0.replace(2, 6)
+        val d2 = dimensionsOfSize(2, 3, 6)
+        assertTrue(d1.compareEquals(d2))
+    }
+
+    @Test
+    fun oversizedArrayTest0() {
+        assertFailsWith<ArraySizeException> {
+            dimensionsOfSize(2, 0x7FFFFFFF)
+        }
+    }
+
+    @Test
+    fun oversizedArrayTest1() {
+        assertFailsWith<ArraySizeException> {
+            dimensionsOfSize(
+                8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+                8, 8, 8, 8, 8, 8, 8, 8, 8, 8,
+                8, 8, 8, 8, 8, 8, 8, 8, 8, 8)
+        }
+    }
+
+    @Test
+    fun oversizedArrayTest2() {
+        val d = dimensionsOfSize(0x7FFFFFFF)
+        assertFailsWith<ArraySizeException> {
+            d.insert(0, 2)
+        }
+    }
+
+    @Test
+    fun oversizedArrayTest3() {
+        val d = dimensionsOfSize(4, 0x10000000)
+        assertFailsWith<ArraySizeException> {
+            d.replace(0, 8)
+        }
+    }
+
+    @Test
+    fun negativeDimensionsTest() {
+        assertFailsWith<InvalidDimensionsException> {
+            dimensionsOfSize(2, 3, -1, 2)
+        }
     }
 }

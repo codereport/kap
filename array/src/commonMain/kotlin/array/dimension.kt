@@ -11,6 +11,19 @@ value class Dimensions(val dimensions: IntArray) {
     val indices: IntRange
         get() = dimensions.indices
 
+    init {
+        var curr = 1L
+        dimensions.forEach { v ->
+            if(v < 0) {
+                throw InvalidDimensionsException("Dimensions contains negative values")
+            }
+            curr *= v
+            if(curr > Int.MAX_VALUE) {
+                throw ArraySizeException(dimensions)
+            }
+        }
+    }
+
     operator fun get(i: Int) = dimensions[i]
     fun contentSize() = if (dimensions.isEmpty()) 1 else dimensions.reduce { a, b -> a * b }
     fun isEmpty() = dimensions.isEmpty()
