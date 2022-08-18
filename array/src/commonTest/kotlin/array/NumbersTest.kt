@@ -215,9 +215,8 @@ class NumbersTest : APLTest() {
 
     @Test
     fun positiveIntegerBinomial() {
-        // TODO: The return value of purely integer binomials should be an integer
         parseAPLExpression("10!32").let { result ->
-            assertSimpleDouble(64512240.0, result)
+            assertSimpleNumber(64512240, result)
         }
     }
 

@@ -1083,7 +1083,13 @@ class BinomialAPLFunction : APLFunctionDescriptor {
                 pos,
                 a,
                 b,
-                { x, y -> doubleBinomialWithException(x.toDouble(), y.toDouble(), pos).makeAPLNumber() },
+                { x, y ->
+                    if (x >= 0 && x <= Int.MAX_VALUE && y >= 0 && y <= Int.MAX_VALUE && y >= x) {
+                        longBinomial(y.toInt(), x.toInt()).makeAPLNumber()
+                    } else {
+                        doubleBinomialWithException(x.toDouble(), y.toDouble(), pos).makeAPLNumber()
+                    }
+                },
                 { x, y -> doubleBinomialWithException(x, y, pos).makeAPLNumber() },
                 { x, y -> complexBinomial(x, y).makeAPLNumber() })
         }
