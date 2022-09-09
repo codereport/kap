@@ -1,9 +1,6 @@
 package array
 
-import kotlin.test.Ignore
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class OperatorsTest : APLTest() {
     @Test
@@ -214,6 +211,70 @@ class OperatorsTest : APLTest() {
         val (result, out) = evalWithDebugFunctionsOutput(src)
         assertSimpleNumber(301210, result)
         assertEquals("326", out)
+    }
+
+    @Test
+    fun testAxis5() {
+        val src =
+            """
+            |a ⇐ def[io:print 2]
+            |b ⇐ a abc[io:print 3]
+            |io:print 6
+            |b 1
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(301210, result)
+        assertEquals("236", out)
+    }
+
+    @Test
+    fun testAxis6() {
+        val src =
+            """
+            |a ⇐ def
+            |b ⇐ a[io:print 2] abc[io:print 3]
+            |io:print 6
+            |b 1
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(301210, result)
+        assertEquals("326", out)
+    }
+
+    @Test
+    fun testAxis7() {
+        val src =
+            """
+            |a ⇐ def[2] abc[3]
+            |a[4] 1
+            """.trimMargin()
+        assertFailsWith<AxisNotSupported> {
+            evalWithDebugFunctions(src)
+        }
+    }
+
+    @Test
+    fun testAxis8() {
+        val src =
+            """
+            |a ⇐ def[2]
+            |a[4] 1
+            """.trimMargin()
+        assertFailsWith<AxisNotSupported> {
+            evalWithDebugFunctions(src)
+        }
+    }
+
+    @Test
+    fun testAxis9() {
+        val src =
+            """
+            |a ⇐ def abc
+            |a[4] 1
+            """.trimMargin()
+        assertFailsWith<AxisNotSupported> {
+            evalWithDebugFunctions(src)
+        }
     }
 
     private fun evalWithDebugFunctions(src: String): APLValue {

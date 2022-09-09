@@ -3,7 +3,7 @@ package array
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class EvaluationOrder : APLTest() {
+class EvaluationOrderTest : APLTest() {
     /**
      * Check that evaluation order is right-to left:
      *
