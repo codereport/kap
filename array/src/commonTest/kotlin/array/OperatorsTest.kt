@@ -158,4 +158,119 @@ class OperatorsTest : APLTest() {
             assertEquals("0", out.buf.toString())
         }
     }
+
+    @Test
+    fun testAxis0() {
+        val src =
+            """
+            |a ⇐ def
+            |a[2] 1
+            """.trimMargin()
+        val result = evalWithDebugFunctions(src)
+        assertSimpleNumber(210, result)
+    }
+
+    @Test
+    fun testAxis1() {
+        val src =
+            """
+            |a ⇐ def[2]
+            |a 1
+            """.trimMargin()
+        val result = evalWithDebugFunctions(src)
+        assertSimpleNumber(210, result)
+    }
+
+    @Test
+    fun testAxis2() {
+        val src =
+            """
+            |a ⇐ def[2] abc
+            |a 1
+            """.trimMargin()
+        val result = evalWithDebugFunctions(src)
+        assertSimpleNumber(1210, result)
+    }
+
+    @Test
+    fun testAxis3() {
+        val src =
+            """
+            |a ⇐ def[2] abc[3]
+            |a 1
+            """.trimMargin()
+        val result = evalWithDebugFunctions(src)
+        assertSimpleNumber(301210, result)
+    }
+
+    @Test
+    fun testAxis4() {
+        val src =
+            """
+            |a ⇐ def[io:print 2] abc[io:print 3]
+            |io:print 6
+            |a 1
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(301210, result)
+        assertEquals("326", out)
+    }
+
+    private fun evalWithDebugFunctions(src: String): APLValue {
+        return evalWithDebugFunctionsOutput(src).first
+    }
+
+    private fun evalWithDebugFunctionsOutput(src: String): Pair<APLValue, String> {
+        val engine = Engine()
+        val namespace = engine.coreNamespace
+        engine.registerOperator(namespace.internAndExport("abc"), AbcOperator())
+        engine.registerFunction(namespace.internAndExport("def"), TestFunction())
+        val output = StringBuilderOutput()
+        engine.standardOutput = output
+        val result = engine.parseAndEval(StringSourceLocation(src))
+        return Pair(result, output.buf.toString())
+    }
+
+    class AbcOperator : APLOperatorOneArg {
+        override fun combineFunction(fn: APLFunction, operatorAxis: Instruction?, pos: Position): APLFunctionDescriptor {
+            return AbcFunctionDescriptor(fn, operatorAxis)
+        }
+    }
+
+    class AbcFunctionDescriptor(val fn: APLFunction, val opAxis: Instruction?) : APLFunctionDescriptor {
+        inner class AbcFunctionDescriptorImpl(pos: Position) : NoAxisAPLFunction(pos) {
+            override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+                val result = fn.eval1Arg(context, a, null)
+                val axisLong = if(opAxis == null) 0 else opAxis.evalWithContext(context).ensureNumber(pos).asLong(pos)
+                return (result.ensureNumber(pos).asLong(pos) * 1000 + axisLong * 1000000).makeAPLNumber()
+            }
+
+            override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+                val result = fn.eval2Arg(context, a, b, null)
+                val axisLong = if(opAxis == null) 0 else opAxis.evalWithContext(context).ensureNumber(pos).asLong(pos)
+                return (result.ensureNumber(pos).asLong(pos) * 1000 + axisLong * 1000000).makeAPLNumber()
+            }
+        }
+
+        override fun make(pos: Position) = AbcFunctionDescriptorImpl(pos)
+    }
+
+    class TestFunction : APLFunctionDescriptor {
+        class TestFunctionImpl(pos: Position) : APLFunction(pos) {
+            override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+                val aLong = a.ensureNumber(pos).asLong(pos)
+                val axisLong = if(axis == null) 0 else axis.ensureNumber(pos).asLong(pos)
+                return (aLong * 10 + axisLong * 100).makeAPLNumber()
+            }
+
+            override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+                val aLong = a.ensureNumber(pos).asLong(pos)
+                val bLong = b.ensureNumber(pos).asLong(pos)
+                val axisLong = if(axis == null) 0 else axis.ensureNumber(pos).asLong(pos)
+                return (aLong + bLong * 10 + axisLong * 100).makeAPLNumber()
+            }
+        }
+
+        override fun make(pos: Position) = TestFunctionImpl(pos)
+    }
 }

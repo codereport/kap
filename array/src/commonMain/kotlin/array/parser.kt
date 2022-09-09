@@ -606,7 +606,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                         // If the next  symbol is a function assignment, it needs to be treated specially
                         if (fnDefTokenWithPosition.token is FnDefArrow) {
                             if (leftArgs.size != 0) {
-                                throw ParseException("Left side of the arrow must be a single symbol", tokenWithPosition.pos)
+                                throw ParseException("Left side of the arrow must be a single symbol", fnDefTokenWithPosition.pos)
                             }
                             return processShortFormFn(fnDefTokenWithPosition.pos, token)
                         }

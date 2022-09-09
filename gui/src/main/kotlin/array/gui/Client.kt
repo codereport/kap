@@ -11,6 +11,7 @@ import array.gui.styledarea.TextStyle
 import array.gui.viewer.StructureViewer
 import array.keyboard.ExtendedCharsKeyboardInput
 import com.panemu.tiwulfx.control.dock.DetachableTab
+import javafx.application.Application.launch
 import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.geometry.Insets
@@ -389,7 +390,7 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            ClientApplication.main(args)
+            launch(ClientApplication::class.java, *args)
         }
     }
 }

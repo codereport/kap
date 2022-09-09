@@ -1,6 +1,5 @@
 package array
 
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -71,7 +70,7 @@ class ComposeTest : APLTest() {
     @Test
     fun composeMonadicArg() {
         parseAPLExpression("{200+⍺-⍵}∘{1+⍵} 1000").let { result ->
-            assertSimpleNumber(200 + (1000 - (1000+1)), result)
+            assertSimpleNumber(200 + (1000 - (1000 + 1)), result)
         }
     }
 
@@ -274,9 +273,8 @@ class ComposeTest : APLTest() {
         assertSimpleNumber(3, result)
     }
 
-    @Ignore
     @Test
-    fun chainWithAxisTest() {
+    fun chainWithAxisTest0() {
         parseAPLExpression("a ⇐ ({9,⊂⍵}+[1]) ◊ 1 2 a 2 2 ⍴ ⍳4").let { result ->
             assertDimension(dimensionsOfSize(2), result)
             assertArrayContent(
@@ -284,6 +282,34 @@ class ComposeTest : APLTest() {
                     9,
                     InnerArray(dimensionsOfSize(2, 2), arrayOf(1, 3, 3, 5))),
                 result)
+        }
+    }
+
+    @Test
+    fun chainWithAxisTest1() {
+        val src =
+            """
+            |curr ← 0
+            |a ⇐ {curr ← curr+1 ◊ ⍵}+[io:print 0] 
+            |res ← (100 200 a 2 2 ⍴ ⍳4) (300 400 a 2 2 ⍴ ⍳4)
+            |curr res
+            """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assertDimension(dimensionsOfSize(2), result)
+            assertSimpleNumber(2, result.valueAt(0))
+
+            val inner = result.valueAt(1)
+            assertDimension(dimensionsOfSize(2), inner)
+            inner.valueAt(0).let { v ->
+                assertDimension(dimensionsOfSize(2, 2), v)
+                assertArrayContent(arrayOf(100, 101, 202, 203), v)
+            }
+            inner.valueAt(1).let { v ->
+                assertDimension(dimensionsOfSize(2, 2), v)
+                assertArrayContent(arrayOf(300,301,402,403), v)
+            }
+
+            assertEquals("0", out)
         }
     }
 
