@@ -25,7 +25,7 @@ compileTestKotlin {
 }
 
 javafx {
-    version = "18"
+    version = "19"
     modules = ['javafx.base', 'javafx.controls', 'javafx.graphics', 'javafx.fxml', 'javafx.web', 'javafx.swing']
 }
 
