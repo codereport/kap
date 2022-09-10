@@ -277,6 +277,32 @@ class OperatorsTest : APLTest() {
         }
     }
 
+    @Test
+    fun testAxis10() {
+        val src =
+            """
+            |a ⇐ def[io:print 1] def[io:print 2]
+            |io:print 6
+            |a 4
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(380, result)
+        assertEquals("216", out)
+    }
+
+    @Test
+    fun testAxis11() {
+        val src =
+            """
+            |a ⇐ def[io:print 1] - def[io:print 2]
+            |io:print 6
+            |a 4
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(-100, result)
+        assertEquals("216", out)
+    }
+
     private fun evalWithDebugFunctions(src: String): APLValue {
         return evalWithDebugFunctionsOutput(src).first
     }
