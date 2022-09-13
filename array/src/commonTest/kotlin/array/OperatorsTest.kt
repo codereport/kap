@@ -314,7 +314,7 @@ class OperatorsTest : APLTest() {
         engine.registerFunction(namespace.internAndExport("def"), TestFunction())
         val output = StringBuilderOutput()
         engine.standardOutput = output
-        val result = engine.parseAndEval(StringSourceLocation(src))
+        val result = engine.parseAndEval(StringSourceLocation(src)).collapse()
         return Pair(result, output.buf.toString())
     }
 
