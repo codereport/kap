@@ -89,6 +89,8 @@ abstract class APLFunction(val pos: Position) {
     open fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue =
         throwAPLException(InverseNotAvailable(pos))
 
+    open fun computeClosure(parser: APLParser): Pair<APLFunction, List<Instruction>> = Pair(this, emptyList())
+
     open val name1Arg: String = this::class.simpleName ?: "unnamed"
     open val name2Arg: String = this::class.simpleName ?: "unnamed"
 }
@@ -494,6 +496,8 @@ class Engine(numComputeEngines: Int? = null) {
 
     fun getFunction(name: Symbol) = functions[resolveAlias(name)]
     fun getOperator(name: Symbol) = operators[resolveAlias(name)]
+
+    fun createAnonymousSymbol() = Symbol("<anonymous>", anonymousSymbolNamespace)
 
     fun parse(source: SourceLocation): Instruction {
         TokenGenerator(this, source).use { tokeniser ->

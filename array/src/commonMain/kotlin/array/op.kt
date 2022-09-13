@@ -1,19 +1,16 @@
 package array
 
 interface APLOperator {
-    fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): FunctionRelatedHolder
-
-    class FunctionRelatedHolder(val fn: APLFunction, val relatedInstructions: List<Instruction> = emptyList())
+    fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction
 }
 
 interface APLOperatorOneArg : APLOperator {
-    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLOperator.FunctionRelatedHolder {
+    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction {
         val axis = aplParser.parseAxis()
-        return APLOperator.FunctionRelatedHolder(
-            combineFunction(currentFn, axis, opPos).make(
-                opPos.copy(
-                    line = currentFn.pos.line,
-                    col = currentFn.pos.col)))
+        return combineFunction(currentFn, axis, opPos).make(
+            opPos.copy(
+                line = currentFn.pos.line,
+                col = currentFn.pos.col))
     }
 
     fun combineFunction(fn: APLFunction, operatorAxis: Instruction?, pos: Position): APLFunctionDescriptor
@@ -23,7 +20,7 @@ interface APLOperatorOneArg : APLOperator {
  * Parse a single function with strong left-binding. This is used when parsing the right
  * side of a two-argument operator.
  */
-private fun parseFunctionForOperatorRightArg(parser: APLParser): Either<Pair<APLOperator.FunctionRelatedHolder, Position>, Pair<Token, Position>> {
+private fun parseFunctionForOperatorRightArg(parser: APLParser): Either<Pair<APLFunction, Position>, Pair<Token, Position>> {
     val tokenWithPos = parser.tokeniser.nextTokenWithPosition()
     val (token, pos) = tokenWithPos
     return when (token) {
@@ -33,21 +30,21 @@ private fun parseFunctionForOperatorRightArg(parser: APLParser): Either<Pair<APL
                 parser.tokeniser.pushBackToken(tokenWithPos)
                 Either.Right(Pair(token, pos))
             } else {
-                Either.Left(Pair(APLOperator.FunctionRelatedHolder(fn.make(pos.withCallerName(token.symbolName))), pos))
+                Either.Left(Pair(fn.make(pos.withCallerName(token.symbolName)), pos))
             }
         }
         is OpenFnDef -> {
-            Either.Left(Pair(APLOperator.FunctionRelatedHolder(parser.parseFnDefinition(pos).make(pos)), pos))
+            Either.Left(Pair(parser.parseFnDefinition(pos).make(pos), pos))
         }
         is OpenParen -> {
             val holder = parser.parseExprToplevel(CloseParen)
             if (holder !is ParseResultHolder.FnParseResult) {
                 throw ParseException("Expected function", pos)
             }
-            Either.Left(Pair(APLOperator.FunctionRelatedHolder(holder.fn, holder.relatedInstructions), pos))
+            Either.Left(Pair(holder.fn, pos))
         }
         is ApplyToken -> {
-            Either.Left(Pair(APLOperator.FunctionRelatedHolder(parser.parseApplyDefinition().make(pos)), pos))
+            Either.Left(Pair(parser.parseApplyDefinition().make(pos), pos))
         }
         else -> {
             parser.tokeniser.pushBackToken(tokenWithPos)
@@ -57,21 +54,19 @@ private fun parseFunctionForOperatorRightArg(parser: APLParser): Either<Pair<APL
 }
 
 interface APLOperatorTwoArg : APLOperator {
-    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLOperator.FunctionRelatedHolder {
+    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction {
         val axis = aplParser.parseAxis()
-        return when (val fn = parseFunctionForOperatorRightArg(aplParser)) {
+        return when (val res = parseFunctionForOperatorRightArg(aplParser)) {
             is Either.Left -> {
-                val (functionHolder, pos) = fn.value
-                val combinedFn = combineFunction(currentFn, functionHolder.fn, axis, opPos)
-                APLOperator.FunctionRelatedHolder(
-                    combinedFn.make(
-                        opPos.copy(
-                            endLine = pos.endLine,
-                            endCol = pos.endCol)),
-                    functionHolder.relatedInstructions)
+                val (fn, pos) = res.value
+                val combinedFn = combineFunction(currentFn, fn, axis, opPos)
+                combinedFn.make(
+                    opPos.copy(
+                        endLine = pos.endLine,
+                        endCol = pos.endCol))
             }
             is Either.Right -> {
-                val (symbol, pos) = fn.value
+                val (symbol, pos) = res.value
                 throw ParseException("Expected function, got: ${symbol}", pos)
             }
         }
@@ -81,7 +76,7 @@ interface APLOperatorTwoArg : APLOperator {
 }
 
 interface APLOperatorValueRightArg : APLOperator {
-    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLOperator.FunctionRelatedHolder {
+    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction {
         val axis = aplParser.parseAxis()
         if (axis != null) {
             throw ParseException("Axis argument not supported", opPos)
@@ -91,14 +86,14 @@ interface APLOperatorValueRightArg : APLOperator {
             throw ParseException("Right argument is not a value", rightArg.pos)
         }
         aplParser.tokeniser.pushBackToken(rightArg.lastToken)
-        return APLOperator.FunctionRelatedHolder(combineFunction(currentFn, rightArg.instr, opPos))
+        return combineFunction(currentFn, rightArg.instr, opPos)
     }
 
     fun combineFunction(fn: APLFunction, instr: Instruction, opPos: Position): APLFunction
 }
 
 interface APLOperatorCombinedRightArg : APLOperator {
-    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLOperator.FunctionRelatedHolder {
+    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction {
         val axis = aplParser.parseAxis()
         if (axis != null) {
             throw ParseException("Axis argument not supported", opPos)
@@ -106,11 +101,11 @@ interface APLOperatorCombinedRightArg : APLOperator {
         return when (val rightArg = aplParser.parseValue()) {
             is ParseResultHolder.InstrParseResult -> {
                 aplParser.tokeniser.pushBackToken(rightArg.lastToken)
-                APLOperator.FunctionRelatedHolder(combineFunctionAndExpr(currentFn, rightArg.instr, opPos).make(opPos))
+                combineFunctionAndExpr(currentFn, rightArg.instr, opPos).make(opPos)
             }
             is ParseResultHolder.FnParseResult -> {
                 aplParser.tokeniser.pushBackToken(rightArg.lastToken)
-                APLOperator.FunctionRelatedHolder(combineFunctions(currentFn, rightArg.fn, opPos).make(opPos), rightArg.relatedInstructions)
+                combineFunctions(currentFn, rightArg.fn, opPos).make(opPos)
             }
             is ParseResultHolder.EmptyParseResult -> {
                 throw ParseException("Expected function or value", rightArg.pos)
@@ -167,30 +162,27 @@ class UserDefinedOperatorTwoArg(
     val instr: Instruction,
     val env: Environment
 ) : APLOperator {
-    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLOperator.FunctionRelatedHolder {
+    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction {
         val axis = aplParser.parseAxis()
         if (axis != null) {
             throw ParseException("Axis argument not supported", opPos)
         }
-        return when (val fn = parseFunctionForOperatorRightArg(aplParser)) {
+        return when (val res = parseFunctionForOperatorRightArg(aplParser)) {
             is Either.Left -> {
-                val (functionHolder, pos) = fn.value
-                APLOperator.FunctionRelatedHolder(
-                    FnCall(
-                        currentFn,
-                        functionHolder.fn,
-                        opPos.copy(endLine = pos.endLine, endCol = pos.endCol)),
-                    functionHolder.relatedInstructions)
+                val (fn, pos) = res.value
+                FnCall(
+                    currentFn,
+                    fn,
+                    opPos.copy(endLine = pos.endLine, endCol = pos.endCol))
             }
             is Either.Right -> {
                 val valueArg = aplParser.parseValue()
                 aplParser.tokeniser.pushBackToken(valueArg.lastToken)
-                val v = when (valueArg) {
+                when (valueArg) {
                     is ParseResultHolder.FnParseResult -> throw ParseException("Function not allowed", valueArg.pos)
                     is ParseResultHolder.InstrParseResult -> ValueCall(currentFn, valueArg.instr, opPos)
                     is ParseResultHolder.EmptyParseResult -> throw ParseException("No right argument given", opPos)
                 }
-                APLOperator.FunctionRelatedHolder(v)
             }
         }
     }
