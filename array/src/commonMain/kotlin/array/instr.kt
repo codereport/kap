@@ -64,11 +64,9 @@ class ParsedAPLList(val instructions: List<Instruction>) : Instruction(instructi
 class FunctionCall1Arg(
     val fn: APLFunction,
     val rightArgs: Instruction,
-    val axis: Instruction?,
     pos: Position
 ) : Instruction(pos) {
-    override fun evalWithContext(context: RuntimeContext) =
-        fn.eval1Arg(context, rightArgs.evalWithContext(context), axis?.evalWithContext(context))
+    override fun evalWithContext(context: RuntimeContext) = fn.eval1Arg(context, rightArgs.evalWithContext(context), null)
 
     override fun toString() = "FunctionCall1Arg(fn=${fn}, rightArgs=${rightArgs})"
 }
@@ -77,14 +75,12 @@ class FunctionCall2Arg(
     val fn: APLFunction,
     val leftArgs: Instruction,
     val rightArgs: Instruction,
-    val axis: Instruction?,
     pos: Position
 ) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
         val rightValue = rightArgs.evalWithContext(context)
-        val axisValue = axis?.evalWithContext(context)
         val leftValue = leftArgs.evalWithContext(context)
-        return fn.eval2Arg(context, leftValue, rightValue, axisValue)
+        return fn.eval2Arg(context, leftValue, rightValue, null)
     }
 
     override fun toString() = "FunctionCall2Arg(fn=${fn}, leftArgs=${leftArgs}, rightArgs=${rightArgs})"

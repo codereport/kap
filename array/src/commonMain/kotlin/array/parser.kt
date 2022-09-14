@@ -73,9 +73,10 @@ class LeftAssignedFunction(val baseFn: APLFunction, val leftArgs: Instruction, p
     override fun computeClosure(parser: APLParser): Pair<APLFunction, List<Instruction>> {
         val sym = parser.tokeniser.engine.createAnonymousSymbol()
         val binding = parser.currentEnvironment().bindLocal(sym)
+        val (innerFn, relatedInstrs) = baseFn.computeClosure(parser)
         return Pair(
-            LeftAssignedFunction(baseFn, VariableRef(sym, binding, pos), pos),
-            listOf(AssignmentInstruction(arrayOf(binding), leftArgs, pos)))
+            LeftAssignedFunction(innerFn, VariableRef(sym, binding, pos), pos),
+            relatedInstrs + AssignmentInstruction(arrayOf(binding), leftArgs, pos))
     }
 }
 
@@ -85,7 +86,16 @@ class AxisValAssignedFunction(val baseFn: APLFunction, val axis: Instruction): N
     }
 
     override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-        return super.eval2Arg(context, a, b, axis.evalWithContext(context))
+        return baseFn.eval2Arg(context, a, b, axis.evalWithContext(context))
+    }
+
+    override fun computeClosure(parser: APLParser): Pair<APLFunction, List<Instruction>> {
+        val sym = parser.tokeniser.engine.createAnonymousSymbol()
+        val binding = parser.currentEnvironment().bindLocal(sym)
+        val (innerFn, relatedInstrs) = baseFn.computeClosure(parser)
+        return Pair(
+            AxisValAssignedFunction(innerFn, VariableRef(sym, binding, pos)),
+            relatedInstrs + AssignmentInstruction(arrayOf(binding), axis, pos))
     }
 }
 
@@ -238,8 +248,8 @@ class APLParser(val tokeniser: TokenGenerator) {
         functionChainContext: Boolean = false
     ): ParseResultHolder {
         val axis = parseAxis()
-        val fn = if (axis == null) fn else AxisValAssignedFunction(fn, axis)
-        val parsedFn = parseOperator(fn)
+        val axisArgFixed = if (axis == null) fn else AxisValAssignedFunction(fn, axis)
+        val parsedFn = parseOperator(axisArgFixed)
         return when (val holder = parseValue(functionChainContext = true)) {
             is ParseResultHolder.EmptyParseResult -> {
                 if (leftArgs.isEmpty()) {
@@ -251,12 +261,12 @@ class APLParser(val tokeniser: TokenGenerator) {
             is ParseResultHolder.InstrParseResult -> {
                 if (leftArgs.isEmpty()) {
                     ParseResultHolder.InstrParseResult(
-                        FunctionCall1Arg(parsedFn, holder.instr, axis, fn.pos.expandToEnd(holder.instr.pos)),
+                        FunctionCall1Arg(parsedFn, holder.instr, axisArgFixed.pos.expandToEnd(holder.instr.pos)),
                         holder.lastToken)
                 } else {
                     val leftArgsChecked = makeResultList(leftArgs) ?: throw ParseException("Left args is empty", holder.pos)
                     ParseResultHolder.InstrParseResult(
-                        FunctionCall2Arg(parsedFn, leftArgsChecked, holder.instr, axis, leftArgsChecked.pos.expandToEnd(holder.instr.pos)),
+                        FunctionCall2Arg(parsedFn, leftArgsChecked, holder.instr, leftArgsChecked.pos.expandToEnd(holder.instr.pos)),
                         holder.lastToken)
                 }
             }
