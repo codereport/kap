@@ -80,7 +80,9 @@ class LeftAssignedFunction(val baseFn: APLFunction, val leftArgs: Instruction, p
     }
 }
 
-class AxisValAssignedFunctionDirect(val baseFn: APLFunction, val axis: Instruction) : NoAxisAPLFunction(baseFn.pos) {
+class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction) : NoAxisAPLFunction(baseFn.pos, listOf(baseFn)) {
+    private val baseFn get() = fns[0]
+
     override fun evalArgsAndCall1Arg(context: RuntimeContext, rightArgs: Instruction): APLValue {
         val rightValue = rightArgs.evalWithContext(context)
         val axisValue = axis.evalWithContext(context)
@@ -124,7 +126,9 @@ class AxisValAssignedFunctionDirect(val baseFn: APLFunction, val axis: Instructi
     }
 }
 
-class AxisValAssignedFunctionAxisReader(val baseFn: APLFunction, val axisReader: Instruction): NoAxisAPLFunction(baseFn.pos) {
+class AxisValAssignedFunctionAxisReader(baseFn: APLFunction, val axisReader: Instruction): NoAxisAPLFunction(baseFn.pos, listOf(baseFn)) {
+    private val baseFn get() = fns[0]
+
     override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
         return baseFn.eval1Arg(context, a, axisReader.evalWithContext(context))
     }
@@ -155,7 +159,6 @@ private fun makeResultList(leftArgs: List<Instruction>): Instruction? {
 }
 
 class APLParser(val tokeniser: TokenGenerator) {
-
     private var environments = mutableListOf(tokeniser.engine.rootContext.environment)
 
     fun currentEnvironment() = environments.last()
@@ -379,12 +382,13 @@ class APLParser(val tokeniser: TokenGenerator) {
     }
 
     class RelocalisedFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
-        inner class RelocalisedFunctionImpl(pos: Position) : DelegatedAPLFunctionImpl(pos) {
-            override fun innerImpl() = fn
+        class RelocalisedFunctionImpl(fn: APLFunction, pos: Position) : DelegatedAPLFunctionImpl(pos, listOf(fn)) {
+            override fun innerImpl() = fns[0]
+            override fun copy(fns: List<APLFunction>) = RelocalisedFunctionImpl(fns[0], pos)
         }
 
         override fun make(pos: Position): APLFunction {
-            return RelocalisedFunctionImpl(pos)
+            return RelocalisedFunctionImpl(fn, pos)
         }
     }
 

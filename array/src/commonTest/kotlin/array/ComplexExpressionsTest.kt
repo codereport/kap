@@ -432,7 +432,9 @@ class ComplexExpressionsTest : APLTest() {
     }
 
     class AbcFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
-        class AbcFunctionDescriptorImpl(val fn: APLFunction, pos: Position) : APLFunction(pos) {
+        class AbcFunctionDescriptorImpl(fn: APLFunction, pos: Position) : APLFunction(pos, listOf(fn)) {
+            private val fn get() = fns[0]
+
             override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
                 val result = fn.eval1Arg(context, a, null)
                 val axisLong = if (axis == null) 0 else axis.ensureNumber(pos).asLong(pos)

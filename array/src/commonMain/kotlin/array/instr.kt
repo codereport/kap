@@ -298,8 +298,11 @@ class UserFunction(
     override fun make(pos: Position) = UserFunctionImpl(pos)
 }
 
-sealed class FunctionCallChain(pos: Position) : APLFunction(pos) {
-    class Chain2(pos: Position, val fn0: APLFunction, val fn1: APLFunction, val inFunctionChainContext: Boolean) : FunctionCallChain(pos) {
+sealed class FunctionCallChain(pos: Position, fns: List<APLFunction>) : APLFunction(pos, fns) {
+    class Chain2(pos: Position, fn0: APLFunction, fn1: APLFunction, val inFunctionChainContext: Boolean) : FunctionCallChain(pos, listOf(fn0, fn1)) {
+        val fn0 get() = fns[0]
+        val fn1 get() = fns[1]
+
         override val optimisationFlags = computeOptimisationFlags()
 
         private fun computeOptimisationFlags(): OptimisationFlags {
@@ -329,9 +332,17 @@ sealed class FunctionCallChain(pos: Position) : APLFunction(pos) {
             val res = fn0.evalInverse1Arg(context, b, null)
             return fn1.evalInverse2ArgA(context, a, res, null)
         }
+
+        override fun copy(fns: List<APLFunction>): APLFunction {
+            return Chain2(pos, fn0, fn1, inFunctionChainContext)
+        }
     }
 
-    class Chain3(pos: Position, val fn0: APLFunction, val fn1: APLFunction, val fn2: APLFunction) : FunctionCallChain(pos) {
+    class Chain3(pos: Position, fn0: APLFunction, fn1: APLFunction, fn2: APLFunction) : FunctionCallChain(pos, listOf(fn0, fn1, fn2)) {
+        val fn0 get() = fns[0]
+        val fn1 get() = fns[1]
+        val fn2 get() = fns[2]
+
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             if (axis != null) throw AxisNotSupported(pos)
             val right = fn2.eval1Arg(context, a, null)
