@@ -18,8 +18,9 @@ class EvaluationOrderTest : APLTest() {
         class FooFunction : APLFunctionDescriptor {
             inner class FooFunctionImpl(pos: Position) : APLFunction(pos) {
                 override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-                    return (a.ensureNumber(pos).asInt(pos) + b.ensureNumber(pos).asInt(pos) + axis!!.ensureNumber(pos)
-                        .asInt() * 2).makeAPLNumber()
+                    return (a.ensureNumber(pos).asInt(pos) +
+                            b.ensureNumber(pos).asInt(pos) +
+                            axis!!.ensureNumber(pos).asInt() * 2).makeAPLNumber()
                 }
             }
 

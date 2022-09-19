@@ -66,7 +66,9 @@ class FunctionCall1Arg(
     val rightArgs: Instruction,
     pos: Position
 ) : Instruction(pos) {
-    override fun evalWithContext(context: RuntimeContext) = fn.eval1Arg(context, rightArgs.evalWithContext(context), null)
+    override fun evalWithContext(context: RuntimeContext): APLValue {
+        return fn.evalArgsAndCall1Arg(context, rightArgs)
+    }
 
     override fun toString() = "FunctionCall1Arg(fn=${fn}, rightArgs=${rightArgs})"
 }
@@ -78,9 +80,7 @@ class FunctionCall2Arg(
     pos: Position
 ) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
-        val rightValue = rightArgs.evalWithContext(context)
-        val leftValue = leftArgs.evalWithContext(context)
-        return fn.eval2Arg(context, leftValue, rightValue, null)
+        return fn.evalArgsAndCall2Arg(context, leftArgs, rightArgs)
     }
 
     override fun toString() = "FunctionCall2Arg(fn=${fn}, leftArgs=${leftArgs}, rightArgs=${rightArgs})"

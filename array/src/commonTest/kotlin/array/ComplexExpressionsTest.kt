@@ -263,7 +263,7 @@ class ComplexExpressionsTest : APLTest() {
             |a 1
             """.trimMargin()
         val result = evalWithDebugFunctions(src)
-        assertSimpleNumber(1210, result)
+        assertSimpleNumber(defAbcResult(2, 0, 1), result)
     }
 
     @Test
@@ -274,7 +274,7 @@ class ComplexExpressionsTest : APLTest() {
             |a 1
             """.trimMargin()
         val result = evalWithDebugFunctions(src)
-        assertSimpleNumber(301210, result)
+        assertSimpleNumber(defAbcResult(2, 3, 1), result)
     }
 
     @Test
@@ -286,7 +286,7 @@ class ComplexExpressionsTest : APLTest() {
             |a 1
             """.trimMargin()
         val (result, out) = evalWithDebugFunctionsOutput(src)
-        assertSimpleNumber(301210, result)
+        assertSimpleNumber(defAbcResult(2, 3, 1), result)
         assertEquals("326", out)
     }
 
@@ -300,7 +300,7 @@ class ComplexExpressionsTest : APLTest() {
             |b 1
             """.trimMargin()
         val (result, out) = evalWithDebugFunctionsOutput(src)
-        assertSimpleNumber(301210, result)
+        assertSimpleNumber(defAbcResult(2, 3, 1), result)
         assertEquals("236", out)
     }
 
@@ -314,7 +314,7 @@ class ComplexExpressionsTest : APLTest() {
             |b 1
             """.trimMargin()
         val (result, out) = evalWithDebugFunctionsOutput(src)
-        assertSimpleNumber(301210, result)
+        assertSimpleNumber(defAbcResult(2, 3, 1), result)
         assertEquals("326", out)
     }
 
@@ -349,9 +349,8 @@ class ComplexExpressionsTest : APLTest() {
             |a ⇐ def abc
             |a[4] 1
             """.trimMargin()
-        assertFailsWith<AxisNotSupported> {
-            evalWithDebugFunctions(src)
-        }
+        val result = evalWithDebugFunctions(src)
+        assertSimpleNumber(defAbcResult(0, 4, 1), result)
     }
 
     @Test
@@ -363,7 +362,7 @@ class ComplexExpressionsTest : APLTest() {
             |a 4
             """.trimMargin()
         val (result, out) = evalWithDebugFunctionsOutput(src)
-        assertSimpleNumber(380, result)
+        assertSimpleNumber(2500, result)
         assertEquals("216", out)
     }
 
@@ -407,6 +406,10 @@ class ComplexExpressionsTest : APLTest() {
         assertEquals("0100102", out)
     }
 
+    private fun defAbcResult(fnIndex: Long, opIndex: Long, rightArg: Long): Long {
+        return (rightArg * 10 + fnIndex * 100) * 1000 + opIndex * 1000000
+    }
+
     private fun evalWithDebugFunctions(src: String): APLValue {
         return evalWithDebugFunctionsOutput(src).first
     }
@@ -423,27 +426,32 @@ class ComplexExpressionsTest : APLTest() {
     }
 
     class AbcOperator : APLOperatorOneArg {
-        override fun combineFunction(fn: APLFunction, operatorAxis: Instruction?, pos: Position): APLFunctionDescriptor {
-            return AbcFunctionDescriptor(fn, operatorAxis)
+        override fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor {
+            return AbcFunctionDescriptor(fn)
         }
     }
 
-    class AbcFunctionDescriptor(val fn: APLFunction, val opAxis: Instruction?) : APLFunctionDescriptor {
-        inner class AbcFunctionDescriptorImpl(pos: Position) : NoAxisAPLFunction(pos) {
-            override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+    class AbcFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
+        class AbcFunctionDescriptorImpl(val fn: APLFunction, pos: Position) : APLFunction(pos) {
+            override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
                 val result = fn.eval1Arg(context, a, null)
-                val axisLong = if (opAxis == null) 0 else opAxis.evalWithContext(context).ensureNumber(pos).asLong(pos)
+                val axisLong = if (axis == null) 0 else axis.ensureNumber(pos).asLong(pos)
                 return (result.ensureNumber(pos).asLong(pos) * 1000 + axisLong * 1000000).makeAPLNumber()
             }
 
-            override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
                 val result = fn.eval2Arg(context, a, b, null)
-                val axisLong = if (opAxis == null) 0 else opAxis.evalWithContext(context).ensureNumber(pos).asLong(pos)
+                val axisLong = if (axis == null) 0 else axis.ensureNumber(pos).asLong(pos)
                 return (result.ensureNumber(pos).asLong(pos) * 1000 + axisLong * 1000000).makeAPLNumber()
+            }
+
+            override fun computeClosure(parser: APLParser): Pair<APLFunction, List<Instruction>> {
+                val (closureFn, instrs) = fn.computeClosure(parser)
+                return Pair(AbcFunctionDescriptorImpl(closureFn, pos), instrs)
             }
         }
 
-        override fun make(pos: Position) = AbcFunctionDescriptorImpl(pos)
+        override fun make(pos: Position) = AbcFunctionDescriptorImpl(fn, pos)
     }
 
     class TestFunction : APLFunctionDescriptor {

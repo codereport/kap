@@ -90,10 +90,5 @@ class ForEachFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
 }
 
 class ForEachOp : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, operatorAxis: Instruction?, pos: Position): APLFunctionDescriptor {
-        if (operatorAxis != null) {
-            throwAPLException(AxisNotSupported(pos))
-        }
-        return ForEachFunctionDescriptor(fn)
-    }
+    override fun combineFunction(fn: APLFunction, pos: Position) = ForEachFunctionDescriptor(fn)
 }

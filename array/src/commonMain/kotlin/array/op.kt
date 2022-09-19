@@ -6,14 +6,13 @@ interface APLOperator {
 
 interface APLOperatorOneArg : APLOperator {
     override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction {
-        val axis = aplParser.parseAxis()
-        return combineFunction(currentFn, axis, opPos).make(
+        return combineFunction(currentFn, opPos).make(
             opPos.copy(
                 line = currentFn.pos.line,
                 col = currentFn.pos.col))
     }
 
-    fun combineFunction(fn: APLFunction, operatorAxis: Instruction?, pos: Position): APLFunctionDescriptor
+    fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor
 }
 
 /**
@@ -55,11 +54,10 @@ private fun parseFunctionForOperatorRightArg(parser: APLParser): Either<Pair<APL
 
 interface APLOperatorTwoArg : APLOperator {
     override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction {
-        val axis = aplParser.parseAxis()
         return when (val res = parseFunctionForOperatorRightArg(aplParser)) {
             is Either.Left -> {
                 val (fn, pos) = res.value
-                val combinedFn = combineFunction(currentFn, fn, axis, opPos)
+                val combinedFn = combineFunction(currentFn, fn, opPos)
                 combinedFn.make(
                     opPos.copy(
                         endLine = pos.endLine,
@@ -72,15 +70,11 @@ interface APLOperatorTwoArg : APLOperator {
         }
     }
 
-    fun combineFunction(fn1: APLFunction, fn2: APLFunction, operatorAxis: Instruction?, opPos: Position): APLFunctionDescriptor
+    fun combineFunction(fn1: APLFunction, fn2: APLFunction, opPos: Position): APLFunctionDescriptor
 }
 
 interface APLOperatorValueRightArg : APLOperator {
     override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction {
-        val axis = aplParser.parseAxis()
-        if (axis != null) {
-            throw ParseException("Axis argument not supported", opPos)
-        }
         val rightArg = aplParser.parseValue()
         if (rightArg !is ParseResultHolder.InstrParseResult) {
             throw ParseException("Right argument is not a value", rightArg.pos)
@@ -94,10 +88,6 @@ interface APLOperatorValueRightArg : APLOperator {
 
 interface APLOperatorCombinedRightArg : APLOperator {
     override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction {
-        val axis = aplParser.parseAxis()
-        if (axis != null) {
-            throw ParseException("Axis argument not supported", opPos)
-        }
         return when (val rightArg = aplParser.parseValue()) {
             is ParseResultHolder.InstrParseResult -> {
                 aplParser.tokeniser.pushBackToken(rightArg.lastToken)
@@ -125,7 +115,7 @@ class UserDefinedOperatorOneArg(
     val instr: Instruction,
     val env: Environment
 ) : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, operatorAxis: Instruction?, pos: Position): APLFunctionDescriptor {
+    override fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor {
         return object : APLFunctionDescriptor {
             override fun make(pos: Position): APLFunction {
                 return UserDefinedOperatorFn(fn, pos)
@@ -163,10 +153,6 @@ class UserDefinedOperatorTwoArg(
     val env: Environment
 ) : APLOperator {
     override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction {
-        val axis = aplParser.parseAxis()
-        if (axis != null) {
-            throw ParseException("Axis argument not supported", opPos)
-        }
         return when (val res = parseFunctionForOperatorRightArg(aplParser)) {
             is Either.Left -> {
                 val (fn, pos) = res.value
@@ -234,7 +220,7 @@ class InverseFnFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
 }
 
 class InverseFnOp : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, operatorAxis: Instruction?, pos: Position): APLFunctionDescriptor {
+    override fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor {
         return InverseFnFunctionDescriptor(fn)
     }
 }

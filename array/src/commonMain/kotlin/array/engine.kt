@@ -55,6 +55,17 @@ value class OptimisationFlags(val flags: Int) {
 }
 
 abstract class APLFunction(val pos: Position) {
+    open fun evalArgsAndCall1Arg(context: RuntimeContext, rightArgs: Instruction): APLValue {
+        val rightValue = rightArgs.evalWithContext(context)
+        return eval1Arg(context, rightValue, null)
+    }
+
+    open fun evalArgsAndCall2Arg(context: RuntimeContext, leftArgs: Instruction, rightArgs: Instruction): APLValue {
+        val rightValue = rightArgs.evalWithContext(context)
+        val leftValue = leftArgs.evalWithContext(context)
+        return eval2Arg(context, leftValue, rightValue, null)
+    }
+
     open fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue =
         throwAPLException(Unimplemented1ArgException(pos))
 
@@ -115,9 +126,45 @@ abstract class NoAxisAPLFunction(pos: Position) : APLFunction(pos) {
 
     open fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue =
         throwAPLException(Unimplemented2ArgException(pos))
+
+    override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+        if (axis != null) {
+            throwAPLException(AxisNotSupported(pos))
+        }
+        return evalInverse1Arg(context, a)
+    }
+
+    open fun evalInverse1Arg(context: RuntimeContext, a: APLValue): APLValue =
+        throwAPLException(InverseNotAvailable(pos))
+
+    override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        if (axis != null) {
+            throwAPLException(AxisNotSupported(pos))
+        }
+        return evalInverse2ArgA(context, a, b)
+    }
+
+    open fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue): APLValue =
+        throwAPLException(InverseNotAvailable(pos))
+
+    override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        if (axis != null) {
+            throwAPLException(AxisNotSupported(pos))
+        }
+        return evalInverse2ArgB(context, a, b)
+    }
+
+    open fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue): APLValue =
+        throwAPLException(InverseNotAvailable(pos))
 }
 
 abstract class DelegatedAPLFunctionImpl(pos: Position) : APLFunction(pos) {
+    override fun evalArgsAndCall1Arg(context: RuntimeContext, rightArgs: Instruction) =
+        innerImpl().evalArgsAndCall1Arg(context, rightArgs)
+
+    override fun evalArgsAndCall2Arg(context: RuntimeContext, leftArgs: Instruction, rightArgs: Instruction) =
+        innerImpl().evalArgsAndCall2Arg(context, leftArgs, rightArgs)
+
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?) =
         innerImpl().eval1Arg(context, a, axis)
 
@@ -148,6 +195,9 @@ abstract class DelegatedAPLFunctionImpl(pos: Position) : APLFunction(pos) {
 
     override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue =
         innerImpl().evalInverse2ArgB(context, a, b, axis)
+
+    override fun computeClosure(parser: APLParser) =
+        innerImpl().computeClosure(parser)
 
     @Suppress("LeakingThis")
     override val name1Arg = innerImpl().name1Arg

@@ -235,12 +235,7 @@ class ComposeFunctionDescriptor(val fn0: APLFunction, val fn1: APLFunction) : AP
 }
 
 class ComposeOp : APLOperatorTwoArg {
-    override fun combineFunction(fn1: APLFunction, fn2: APLFunction, operatorAxis: Instruction?, opPos: Position): APLFunctionDescriptor {
-        if (operatorAxis != null) {
-            throw AxisNotSupported(opPos)
-        }
-        return ComposeFunctionDescriptor(fn1, fn2)
-    }
+    override fun combineFunction(fn1: APLFunction, fn2: APLFunction, opPos: Position) = ComposeFunctionDescriptor(fn1, fn2)
 }
 
 class ReverseComposeFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) : APLFunctionDescriptor {
@@ -273,12 +268,7 @@ class ReverseComposeFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunctio
 }
 
 class ReverseComposeOp : APLOperatorTwoArg {
-    override fun combineFunction(fn1: APLFunction, fn2: APLFunction, operatorAxis: Instruction?, opPos: Position): APLFunctionDescriptor {
-        if (operatorAxis != null) {
-            throw AxisNotSupported(opPos)
-        }
-        return ReverseComposeFunctionDescriptor(fn1, fn2)
-    }
+    override fun combineFunction(fn1: APLFunction, fn2: APLFunction, opPos: Position) = ReverseComposeFunctionDescriptor(fn1, fn2)
 }
 
 class OverDerivedFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) : APLFunctionDescriptor {
@@ -306,10 +296,5 @@ class OverDerivedFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) 
 
 
 class OverOp : APLOperatorTwoArg {
-    override fun combineFunction(fn1: APLFunction, fn2: APLFunction, operatorAxis: Instruction?, opPos: Position): APLFunctionDescriptor {
-        if (operatorAxis != null) {
-            throw AxisNotSupported(opPos)
-        }
-        return OverDerivedFunctionDescriptor(fn1, fn2)
-    }
+    override fun combineFunction(fn1: APLFunction, fn2: APLFunction, opPos: Position) = OverDerivedFunctionDescriptor(fn1, fn2)
 }
