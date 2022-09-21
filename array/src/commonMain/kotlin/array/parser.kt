@@ -122,11 +122,11 @@ class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction) 
         val (innerFn, relatedInstrs) = baseFn.computeClosure(parser)
         return Pair(
             AxisValAssignedFunctionAxisReader(innerFn, VariableRef(sym, binding, pos)),
-            relatedInstrs + AssignmentInstruction(arrayOf(binding), axis, pos))
+            mutableListOf<Instruction>(AssignmentInstruction(arrayOf(binding), axis, pos)).also { it.addAll(relatedInstrs) })
     }
 }
 
-class AxisValAssignedFunctionAxisReader(baseFn: APLFunction, val axisReader: Instruction): NoAxisAPLFunction(baseFn.pos, listOf(baseFn)) {
+class AxisValAssignedFunctionAxisReader(baseFn: APLFunction, val axisReader: Instruction) : NoAxisAPLFunction(baseFn.pos, listOf(baseFn)) {
     private val baseFn get() = fns[0]
 
     override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
@@ -432,11 +432,10 @@ class APLParser(val tokeniser: TokenGenerator) {
         }
         val (closureFn, instructions) = holder.fn.computeClosure(this)
         currentEnvironment().registerLocalFunction(sym, RelocalisedFunctionDescriptor(closureFn))
-        val instr = makeResultList(instructions)
-        return if (instr == null) {
+        return if(instructions.isEmpty()) {
             ParseResultHolder.EmptyParseResult(holder.lastToken)
         } else {
-            ParseResultHolder.InstrParseResult(instr, holder.lastToken)
+            ParseResultHolder.InstrParseResult(InstructionList(instructions.asReversed()), holder.lastToken)
         }
     }
 

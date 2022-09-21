@@ -51,7 +51,7 @@ abstract class APLFunction(val pos: Position, val fns: List<APLFunction> = empty
             Pair(this, emptyList())
         } else {
             val closureList = fns.map { fn -> fn.computeClosure(parser) }
-            val instrs = closureList.asReversed().flatMap(Pair<APLFunction, List<Instruction>>::second)
+            val instrs = closureList.flatMap(Pair<APLFunction, List<Instruction>>::second)
             if(instrs.isEmpty()) {
                 Pair(this, emptyList())
             } else {

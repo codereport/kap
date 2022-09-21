@@ -334,7 +334,7 @@ sealed class FunctionCallChain(pos: Position, fns: List<APLFunction>) : APLFunct
         }
 
         override fun copy(fns: List<APLFunction>): APLFunction {
-            return Chain2(pos, fn0, fn1, inFunctionChainContext)
+            return Chain2(pos, fns[0], fns[1], inFunctionChainContext)
         }
     }
 
@@ -355,6 +355,10 @@ sealed class FunctionCallChain(pos: Position, fns: List<APLFunction>) : APLFunct
             val right = fn2.eval2Arg(context, a, b, null)
             val left = fn0.eval2Arg(context, a, b, null)
             return fn1.eval2Arg(context, left, right, null)
+        }
+
+        override fun copy(fns: List<APLFunction>): APLFunction {
+            return Chain3(pos, fns[0], fns[1], fns[2])
         }
     }
 
