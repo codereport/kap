@@ -65,8 +65,8 @@ abstract class APLFunction(val pos: Position, val fns: List<APLFunction> = empty
         throw IllegalStateException("copy function must be implemented. class = ${this::class.simpleName}")
     }
 
-    open val name1Arg: String = this::class.simpleName ?: "unnamed"
-    open val name2Arg: String = this::class.simpleName ?: "unnamed"
+    open val name1Arg get() = this::class.simpleName ?: "unnamed"
+    open val name2Arg get() = this::class.simpleName ?: "unnamed"
 }
 
 abstract class NoAxisAPLFunction(pos: Position, fns: List<APLFunction> = emptyList()) : APLFunction(pos, fns) {
@@ -169,57 +169,6 @@ abstract class DelegatedAPLFunctionImpl(pos: Position, fns: List<APLFunction> = 
     abstract fun innerImpl(): APLFunction
 }
 
-//abstract class FunctionalFunction(val fns: List<APLFunction>, pos: Position) : APLFunction(pos) {
-//}
-//
-//abstract class NoAxisFunctionalFunction(fns: List<APLFunction>, pos: Position) : FunctionalFunction(fns, pos) {
-//    private fun checkAxisNotNull(axis: APLValue?) {
-//        if (axis != null) {
-//            throwAPLException(AxisNotSupported(pos))
-//        }
-//    }
-//
-//    override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-//        checkAxisNotNull(axis)
-//        return eval1Arg(context, a)
-//    }
-//
-//    open fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue =
-//        throwAPLException(Unimplemented1ArgException(pos))
-//
-//    override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-//        checkAxisNotNull(axis)
-//        return eval2Arg(context, a, b)
-//    }
-//
-//    open fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue =
-//        throwAPLException(Unimplemented2ArgException(pos))
-//
-//    override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-//        checkAxisNotNull(axis)
-//        return evalInverse1Arg(context, a)
-//    }
-//
-//    open fun evalInverse1Arg(context: RuntimeContext, a: APLValue): APLValue =
-//        throwAPLException(InverseNotAvailable(pos))
-//
-//    override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-//        checkAxisNotNull(axis)
-//        return evalInverse2ArgA(context, a, b)
-//    }
-//
-//    open fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue): APLValue =
-//        throwAPLException(InverseNotAvailable(pos))
-//
-//    override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-//        checkAxisNotNull(axis)
-//        return evalInverse2ArgB(context, a, b)
-//    }
-//
-//    open fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue): APLValue =
-//        throwAPLException(InverseNotAvailable(pos))
-//}
-
 /**
  * A function that is declared directly in a { ... } expression.
  */
@@ -269,4 +218,124 @@ class DeclaredNonBoundFunction(val instruction: Instruction) : APLFunctionDescri
     }
 
     override fun make(pos: Position) = DeclaredNonBoundFunctionImpl(pos)
+}
+
+class LeftAssignedFunction(val baseFn: APLFunction, val leftArgs: Instruction, pos: Position) : APLFunction(pos) {
+    override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+        val leftArg = leftArgs.evalWithContext(context)
+        return baseFn.eval2Arg(context, leftArg, a, axis)
+    }
+
+    override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        throwAPLException(LeftAssigned2ArgException(pos))
+    }
+
+    override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+        val leftArg = leftArgs.evalWithContext(context)
+        return baseFn.evalInverse2ArgA(context, leftArg, a, axis)
+    }
+
+    override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        throwAPLException(LeftAssigned2ArgException(pos))
+    }
+
+    override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        throwAPLException(LeftAssigned2ArgException(pos))
+    }
+
+    override fun computeClosure(parser: APLParser): Pair<APLFunction, List<Instruction>> {
+        val sym = parser.tokeniser.engine.createAnonymousSymbol()
+        val binding = parser.currentEnvironment().bindLocal(sym)
+        val (innerFn, relatedInstrs) = baseFn.computeClosure(parser)
+        val list = mutableListOf<Instruction>(AssignmentInstruction(arrayOf(binding), leftArgs, pos))
+        list.addAll(relatedInstrs)
+        return Pair(LeftAssignedFunction(innerFn, VariableRef(sym, binding, pos), pos), list)
+    }
+
+    override val name1Arg get() = baseFn.name2Arg
+}
+
+class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction) : NoAxisAPLFunction(baseFn.pos, listOf(baseFn)) {
+    private val baseFn get() = fns[0]
+
+    override fun evalArgsAndCall1Arg(context: RuntimeContext, rightArgs: Instruction): APLValue {
+        val rightValue = rightArgs.evalWithContext(context)
+        val axisValue = axis.evalWithContext(context)
+        return baseFn.eval1Arg(context, rightValue, axisValue)
+    }
+
+    override fun evalArgsAndCall2Arg(context: RuntimeContext, leftArgs: Instruction, rightArgs: Instruction): APLValue {
+        val rightValue = rightArgs.evalWithContext(context)
+        val axisValue = axis.evalWithContext(context)
+        val leftValue = leftArgs.evalWithContext(context)
+        return baseFn.eval2Arg(context, leftValue, rightValue, axisValue)
+    }
+
+    override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+        return baseFn.eval1Arg(context, a, axis.evalWithContext(context))
+    }
+
+    override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+        return baseFn.eval2Arg(context, a, b, axis.evalWithContext(context))
+    }
+
+    override fun evalInverse1Arg(context: RuntimeContext, a: APLValue): APLValue {
+        return baseFn.evalInverse1Arg(context, a, axis.evalWithContext(context))
+    }
+
+    override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+        return baseFn.evalInverse2ArgA(context, a, b, axis.evalWithContext(context))
+    }
+
+    override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+        return baseFn.evalInverse2ArgB(context, a, b, axis.evalWithContext(context))
+    }
+
+    override fun computeClosure(parser: APLParser): Pair<APLFunction, List<Instruction>> {
+        val sym = parser.tokeniser.engine.createAnonymousSymbol()
+        val binding = parser.currentEnvironment().bindLocal(sym)
+        val (innerFn, relatedInstrs) = baseFn.computeClosure(parser)
+        return Pair(
+            AxisValAssignedFunctionAxisReader(innerFn, VariableRef(sym, binding, pos)),
+            relatedInstrs + AssignmentInstruction(arrayOf(binding), axis, pos))
+    }
+}
+
+class AxisValAssignedFunctionAxisReader(baseFn: APLFunction, val axisReader: Instruction) : NoAxisAPLFunction(baseFn.pos, listOf(baseFn)) {
+    private val baseFn get() = fns[0]
+
+    override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+        return baseFn.eval1Arg(context, a, axisReader.evalWithContext(context))
+    }
+
+    override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+        return baseFn.eval2Arg(context, a, b, axisReader.evalWithContext(context))
+    }
+
+    override fun evalInverse1Arg(context: RuntimeContext, a: APLValue): APLValue {
+        return baseFn.evalInverse1Arg(context, a, axisReader.evalWithContext(context))
+    }
+
+    override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+        return baseFn.evalInverse2ArgA(context, a, b, axisReader.evalWithContext(context))
+    }
+
+    override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+        return baseFn.evalInverse2ArgB(context, a, b, axisReader.evalWithContext(context))
+    }
+}
+
+class MergedLeftArgFunction(fn0: APLFunction, fn1: APLFunction) : NoAxisAPLFunction(fn0.pos, listOf(fn0, fn1)) {
+    private val fn0 get() = fns[0]
+    private val fn1 get() = fns[1]
+
+    override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+        val res = fn1.eval1Arg(context, a, null)
+        return fn0.eval1Arg(context, res, null)
+    }
+
+    override fun evalInverse1Arg(context: RuntimeContext, a: APLValue): APLValue {
+        val res = fn0.evalInverse1Arg(context, a, null)
+        return fn1.evalInverse1Arg(context, res, null)
+    }
 }

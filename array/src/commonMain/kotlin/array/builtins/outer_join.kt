@@ -78,9 +78,7 @@ class InnerJoinResult(
     val a: APLValue,
     val b: APLValue,
     val fn1: APLFunction,
-    val fn1Axis: APLValue?, // TODO: Remove this
     val fn2: APLFunction,
-    val fn2Axis: APLValue?, // TODO: Also remove this
     val pos: Position
 ) : APLArray() {
 
@@ -105,8 +103,12 @@ class InnerJoinResult(
         axisDimensions = dimensionsOfSize(axisSize)
         bStepSize = bDimensions.multipliers()[0]
 
-        val m = dimensions.multipliers()
-        highFactor = (if (leftSize == 0) dimensions.contentSize() else m[leftSize - 1])
+        highFactor = if (leftSize == 0) {
+            dimensions.contentSize()
+        } else {
+            val m = dimensions.multipliers()
+            m[leftSize - 1]
+        }
     }
 
     override fun valueAt(p: Int): APLValue {
@@ -119,7 +121,7 @@ class InnerJoinResult(
         var pb = posInB
         val rightArg = APLArrayImpl.make(axisDimensions) { b.valueAt(pb).also { pb += bStepSize } }
 
-        val v = fn2.eval2Arg(context, leftArg, rightArg, fn2Axis)
+        val v = fn2.eval2Arg(context, leftArg, rightArg, null)
         return ReduceResult1Arg(context, fn1, v, 0, pos)
     }
 }
@@ -196,7 +198,7 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
                     val v = fn2.eval2Arg(context, a1, b1, null)
                     ReduceResult1Arg(context, fn1, v, 0, pos)
                 } else {
-                    InnerJoinResult(context, a1, b1, fn1, null, fn2, null, pos)
+                    InnerJoinResult(context, a1, b1, fn1, fn2, pos)
                 }
             }
 

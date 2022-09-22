@@ -306,7 +306,7 @@ class ComposeTest : APLTest() {
             }
             inner.valueAt(1).let { v ->
                 assertDimension(dimensionsOfSize(2, 2), v)
-                assertArrayContent(arrayOf(300,301,402,403), v)
+                assertArrayContent(arrayOf(300, 301, 402, 403), v)
             }
 
             assertEquals("0", out)

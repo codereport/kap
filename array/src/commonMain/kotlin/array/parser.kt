@@ -47,108 +47,6 @@ class Environment {
     }
 }
 
-class LeftAssignedFunction(val baseFn: APLFunction, val leftArgs: Instruction, pos: Position) : APLFunction(pos) {
-    override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-        val leftArg = leftArgs.evalWithContext(context)
-        return baseFn.eval2Arg(context, leftArg, a, axis)
-    }
-
-    override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-        throwAPLException(LeftAssigned2ArgException(pos))
-    }
-
-    override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-        val leftArg = leftArgs.evalWithContext(context)
-        return baseFn.evalInverse2ArgA(context, leftArg, a, axis)
-    }
-
-    override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-        throwAPLException(LeftAssigned2ArgException(pos))
-    }
-
-    override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-        throwAPLException(LeftAssigned2ArgException(pos))
-    }
-
-    override fun computeClosure(parser: APLParser): Pair<APLFunction, List<Instruction>> {
-        val sym = parser.tokeniser.engine.createAnonymousSymbol()
-        val binding = parser.currentEnvironment().bindLocal(sym)
-        val (innerFn, relatedInstrs) = baseFn.computeClosure(parser)
-        return Pair(
-            LeftAssignedFunction(innerFn, VariableRef(sym, binding, pos), pos),
-            relatedInstrs + AssignmentInstruction(arrayOf(binding), leftArgs, pos))
-    }
-}
-
-class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction) : NoAxisAPLFunction(baseFn.pos, listOf(baseFn)) {
-    private val baseFn get() = fns[0]
-
-    override fun evalArgsAndCall1Arg(context: RuntimeContext, rightArgs: Instruction): APLValue {
-        val rightValue = rightArgs.evalWithContext(context)
-        val axisValue = axis.evalWithContext(context)
-        return baseFn.eval1Arg(context, rightValue, axisValue)
-    }
-
-    override fun evalArgsAndCall2Arg(context: RuntimeContext, leftArgs: Instruction, rightArgs: Instruction): APLValue {
-        val rightValue = rightArgs.evalWithContext(context)
-        val axisValue = axis.evalWithContext(context)
-        val leftValue = leftArgs.evalWithContext(context)
-        return baseFn.eval2Arg(context, leftValue, rightValue, axisValue)
-    }
-
-    override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-        return baseFn.eval1Arg(context, a, axis.evalWithContext(context))
-    }
-
-    override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-        return baseFn.eval2Arg(context, a, b, axis.evalWithContext(context))
-    }
-
-    override fun evalInverse1Arg(context: RuntimeContext, a: APLValue): APLValue {
-        return baseFn.evalInverse1Arg(context, a, axis.evalWithContext(context))
-    }
-
-    override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-        return baseFn.evalInverse2ArgA(context, a, b, axis.evalWithContext(context))
-    }
-
-    override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-        return baseFn.evalInverse2ArgB(context, a, b, axis.evalWithContext(context))
-    }
-
-    override fun computeClosure(parser: APLParser): Pair<APLFunction, List<Instruction>> {
-        val sym = parser.tokeniser.engine.createAnonymousSymbol()
-        val binding = parser.currentEnvironment().bindLocal(sym)
-        val (innerFn, relatedInstrs) = baseFn.computeClosure(parser)
-        return Pair(
-            AxisValAssignedFunctionAxisReader(innerFn, VariableRef(sym, binding, pos)),
-            mutableListOf<Instruction>(AssignmentInstruction(arrayOf(binding), axis, pos)).also { it.addAll(relatedInstrs) })
-    }
-}
-
-class AxisValAssignedFunctionAxisReader(baseFn: APLFunction, val axisReader: Instruction) : NoAxisAPLFunction(baseFn.pos, listOf(baseFn)) {
-    private val baseFn get() = fns[0]
-
-    override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-        return baseFn.eval1Arg(context, a, axisReader.evalWithContext(context))
-    }
-
-    override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-        return baseFn.eval2Arg(context, a, b, axisReader.evalWithContext(context))
-    }
-
-    override fun evalInverse1Arg(context: RuntimeContext, a: APLValue): APLValue {
-        return baseFn.evalInverse1Arg(context, a, axisReader.evalWithContext(context))
-    }
-
-    override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-        return baseFn.evalInverse2ArgA(context, a, b, axisReader.evalWithContext(context))
-    }
-
-    override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-        return baseFn.evalInverse2ArgB(context, a, b, axisReader.evalWithContext(context))
-    }
-}
 
 private fun makeResultList(leftArgs: List<Instruction>): Instruction? {
     return when {
@@ -297,8 +195,6 @@ class APLParser(val tokeniser: TokenGenerator) {
         leftArgs: List<Instruction>,
         functionChainContext: Boolean = false
     ): ParseResultHolder {
-//        val axis = parseAxis()
-//        val axisArgFixed = if (axis == null) fn else AxisValAssignedFunction(fn, axis)
         val parsedFn = parseOperator(fn)
         return when (val holder = parseValue(functionChainContext = true)) {
             is ParseResultHolder.EmptyParseResult -> {
@@ -326,33 +222,21 @@ class APLParser(val tokeniser: TokenGenerator) {
                     leftArgs.isEmpty() -> {
                         ParseResultHolder.FnParseResult(baseFn(), holder.lastToken)
                     }
-                    holder.fn is LeftAssignedFunction -> {
-                        makeLeftBindFunctionParseResult(
-                            leftArgs,
-                            MergedLeftArgsFunction(parsedFn, holder.fn),
-                            holder.lastToken)
+                    holder.fn is LeftAssignedFunction || holder.fn is MergedLeftArgFunction -> {
+                        val left = LeftAssignedFunction(parsedFn, InstructionList(leftArgs), parsedFn.pos)
+                        val right = holder.fn
+                        val mergedFn = MergedLeftArgFunction(left, right)
+                        ParseResultHolder.FnParseResult(mergedFn, holder.lastToken)
+//                        makeLeftBindFunctionParseResult(
+//                            leftArgs,
+//                            MergedLeftArgsFunction(parsedFn, holder.fn),
+//                            holder.lastToken)
                     }
                     else -> {
                         makeLeftBindFunctionParseResult(leftArgs, baseFn(), holder.lastToken)
                     }
                 }
             }
-        }
-    }
-
-    class MergedLeftArgsFunction(val fn0: APLFunction, val fn1: LeftAssignedFunction) : NoAxisAPLFunction(fn0.pos) {
-        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            throwAPLException(Unimplemented1ArgException(pos))
-        }
-
-        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            val res = fn1.eval1Arg(context, b, null)
-            return fn0.eval2Arg(context, a, res, null)
-        }
-
-        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            val res = fn0.evalInverse2ArgA(context, a, b, null)
-            return fn1.evalInverse1Arg(context, res, null)
         }
     }
 
@@ -432,7 +316,7 @@ class APLParser(val tokeniser: TokenGenerator) {
         }
         val (closureFn, instructions) = holder.fn.computeClosure(this)
         currentEnvironment().registerLocalFunction(sym, RelocalisedFunctionDescriptor(closureFn))
-        return if(instructions.isEmpty()) {
+        return if (instructions.isEmpty()) {
             ParseResultHolder.EmptyParseResult(holder.lastToken)
         } else {
             ParseResultHolder.InstrParseResult(InstructionList(instructions.asReversed()), holder.lastToken)

@@ -447,9 +447,8 @@ class ComplexExpressionsTest : APLTest() {
                 return (result.ensureNumber(pos).asLong(pos) * 1000 + axisLong * 1000000).makeAPLNumber()
             }
 
-            override fun computeClosure(parser: APLParser): Pair<APLFunction, List<Instruction>> {
-                val (closureFn, instrs) = fn.computeClosure(parser)
-                return Pair(AbcFunctionDescriptorImpl(closureFn, pos), instrs)
+            override fun copy(fns: List<APLFunction>): APLFunction {
+                return AbcFunctionDescriptorImpl(fns[0], pos)
             }
         }
 
