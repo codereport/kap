@@ -589,4 +589,24 @@ class ComposeTest : APLTest() {
             assertSimpleNumber(2, result)
         }
     }
+
+    @Test
+    fun leftBindComposeWithAssignedFunction0() {
+        val src =
+            """
+            |a ⇐ (1+10+)
+            |a 5
+            """.trimIndent()
+        assertSimpleNumber(16, parseAPLExpression(src))
+    }
+
+    @Test
+    fun leftBindComposeWithAssignedFunction1() {
+        val src =
+            """
+            |a ⇐ (10+20+30+)
+            |a 5
+            """.trimIndent()
+        assertSimpleNumber(65, parseAPLExpression(src))
+    }
 }

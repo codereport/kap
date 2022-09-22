@@ -338,4 +338,8 @@ class MergedLeftArgFunction(fn0: APLFunction, fn1: APLFunction) : NoAxisAPLFunct
         val res = fn0.evalInverse1Arg(context, a, null)
         return fn1.evalInverse1Arg(context, res, null)
     }
+
+    override fun copy(fns: List<APLFunction>): APLFunction {
+        return MergedLeftArgFunction(fns[0], fns[1])
+    }
 }
