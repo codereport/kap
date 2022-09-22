@@ -3,12 +3,7 @@ package array.builtins
 import array.*
 
 class CommuteOp : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, operatorAxis: Instruction?, pos: Position): APLFunctionDescriptor {
-        if (operatorAxis != null) {
-            throwAPLException(AxisNotSupported(pos))
-        }
-        return CommuteFunctionDescriptor(fn)
-    }
+    override fun combineFunction(fn: APLFunction, pos: Position) = CommuteFunctionDescriptor(fn)
 
     class CommuteFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
         override fun make(pos: Position): APLFunction {

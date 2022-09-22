@@ -1018,4 +1018,53 @@ Monadic single arg:          ∇            (foo) x          {
             """.trimMargin())
         assertSimpleNumber(15, result)
     }
+
+    @Test
+    fun shortFormWithIllegalSymbol0() {
+        assertFailsWith<ParseException> {
+            parseAPLExpression("1 ⇐ {⍺+⍵}")
+        }
+    }
+
+    @Test
+    fun shortFormWithIllegalSymbol1() {
+        assertFailsWith<ParseException> {
+            parseAPLExpression("1 foo ⇐ {⍺+⍵}")
+        }
+    }
+
+    @Test
+    fun shortFormWithIllegalSymbol2() {
+        assertFailsWith<ParseException> {
+            parseAPLExpression("abc def ⇐ {⍺+⍵}")
+        }
+    }
+
+    @Test
+    fun shortFormWithIllegalSymbol3() {
+        assertFailsWith<ParseException> {
+            parseAPLExpression("foo 1 ⇐ {⍺+⍵}")
+        }
+    }
+
+    @Test
+    fun shortFormWithIllegalSymbol4() {
+        assertFailsWith<ParseException> {
+            parseAPLExpression("1+2 ◊ ⇐ {⍺+⍵}")
+        }
+    }
+
+    @Test
+    fun shortFormWithIllegalSymbol5() {
+        assertFailsWith<ParseException> {
+            parseAPLExpression("(a) ⇐ {⍺+⍵}")
+        }
+    }
+
+    @Test
+    fun shortFormWithIllegalSymbol6() {
+        assertFailsWith<ParseException> {
+            parseAPLExpression("(a;b) ⇐ {⍺+⍵}")
+        }
+    }
 }

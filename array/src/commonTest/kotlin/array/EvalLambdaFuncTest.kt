@@ -3,7 +3,7 @@ package array
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
-class EvalLambdaFunc : APLTest() {
+class EvalLambdaFuncTest : APLTest() {
     @Test
     fun simpleLambdaStatement() {
         val result = parseAPLExpression("a ← λ { 1 + ⍵ } ◊ (⍞a 1) + ⍞a 5")

@@ -125,7 +125,7 @@ class ParallelCompressTaskList(val value: APLValue, numTasks: Int, val pos: Posi
 }
 
 class ParallelOp : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, operatorAxis: Instruction?, pos: Position): APLFunctionDescriptor {
+    override fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor {
         if (fn !is ParallelSupported) {
             throw ParallelNotSupported(pos)
         }
