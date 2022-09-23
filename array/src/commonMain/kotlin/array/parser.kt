@@ -316,11 +316,8 @@ class APLParser(val tokeniser: TokenGenerator) {
         }
         val (closureFn, instructions) = holder.fn.computeClosure(this)
         currentEnvironment().registerLocalFunction(sym, RelocalisedFunctionDescriptor(closureFn))
-        return if (instructions.isEmpty()) {
-            ParseResultHolder.EmptyParseResult(holder.lastToken)
-        } else {
-            ParseResultHolder.InstrParseResult(InstructionList(instructions.asReversed()), holder.lastToken)
-        }
+        val resultInstrs = instructions.asReversed() + LiteralAPLNullValue(pos)
+        return ParseResultHolder.InstrParseResult(InstructionList(resultInstrs), holder.lastToken)
     }
 
     private fun registerDefinedUserFunction(definedUserFunction: DefinedUserFunction) {
@@ -691,7 +688,7 @@ class APLParser(val tokeniser: TokenGenerator) {
 
     class EvalLambdaFnx(val fn: APLFunction, pos: Position, val relatedInstructions: List<Instruction> = emptyList()) : Instruction(pos) {
         override fun evalWithContext(context: RuntimeContext): APLValue {
-            relatedInstructions.forEach { instr ->
+            relatedInstructions.asReversed().forEach { instr ->
                 instr.evalWithContext(context)
             }
             return LambdaValue(fn, context)
@@ -700,24 +697,25 @@ class APLParser(val tokeniser: TokenGenerator) {
 
     private fun processLambda(pos: Position): EvalLambdaFnx {
         val (token, pos2) = tokeniser.nextTokenWithPosition()
-        return when (token) {
+        val fn = when (token) {
             is OpenFnDef -> {
-                val fnDefinition = parseFnDefinition(pos)
-                EvalLambdaFnx(fnDefinition.make(pos), pos)
+                parseFnDefinition(pos).make(pos)
             }
             is Symbol -> {
                 val fnDefinition = lookupFunction(token) ?: throw ParseException("Symbol is not a valid function", pos)
-                EvalLambdaFnx(fnDefinition.make(pos), pos)
+                fnDefinition.make(pos)
             }
             is OpenParen -> {
                 val holder = parseExprToplevel(CloseParen)
                 if (holder !is ParseResultHolder.FnParseResult) {
                     throw ParseException("Argument is not a function", pos)
                 }
-                EvalLambdaFnx(holder.fn, pos)
+                holder.fn
             }
             else -> throw UnexpectedToken(token, pos2)
         }
+        val (closureFn, relatedInstructions) = fn.computeClosure(this)
+        return EvalLambdaFnx(closureFn, pos, relatedInstructions)
     }
 
     fun parseFnDefinition(

@@ -406,6 +406,35 @@ class ComplexExpressionsTest : APLTest() {
         assertEquals("0100102", out)
     }
 
+    @Test
+    fun lambdaWithLeftAssignAndAxis() {
+        val src =
+            """
+            |a ← λ(def[io:print 1] def[io:print 2])
+            |io:print 6
+            |⍞a 4            
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(2500, result)
+        assertEquals("216", out)
+    }
+
+    @Test
+    fun lambdaWithLeftAssignAndAxisAndOperator() {
+        val src =
+            """
+            |a ← λ(def[io:print 1] def[io:print 2])
+            |io:print 5
+            |b ← λ(⍞a abc[io:print 6])
+            |io:print 3
+            |⍞b 4
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(6 * 1000000 + 2500 * 1000, result)
+        assertEquals("21563", out)
+    }
+
+
     private fun defAbcResult(fnIndex: Long, opIndex: Long, rightArg: Long): Long {
         return (rightArg * 10 + fnIndex * 100) * 1000 + opIndex * 1000000
     }

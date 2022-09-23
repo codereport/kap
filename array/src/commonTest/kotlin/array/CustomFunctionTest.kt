@@ -1067,4 +1067,55 @@ Monadic single arg:          ∇            (foo) x          {
             parseAPLExpression("(a;b) ⇐ {⍺+⍵}")
         }
     }
+
+    @Test
+    fun functionAssignmentReturnsNull() {
+        val src =
+            """
+            |1 , (a ⇐ +[2])                
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assert1DArray(arrayOf(1), result)
+        }
+    }
+
+    @Test
+    fun functionAssignmentReturnsNullWithSideEffect() {
+        val src =
+            """
+            |1 , (a ⇐ +[io:print 2])                
+            """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assert1DArray(arrayOf(1), result)
+            assertEquals("2", out)
+        }
+    }
+
+    @Test
+    fun lambdaWithAssignment() {
+        val src =
+            """
+            |q ← λ(+[0])
+            |10 20 ⍞q 2 2 ⍴ ⍳4           
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertDimension(dimensionsOfSize(2, 2), result)
+            assertArrayContent(arrayOf(10, 11, 22, 23), result)
+        }
+    }
+
+    @Test
+    fun lambdaWithAssignmentWithSideEffect() {
+        val src =
+            """
+            |q ← λ(+[io:print 0])
+            |io:print 2
+            |10 20 ⍞q 2 2 ⍴ ⍳4           
+            """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assertDimension(dimensionsOfSize(2, 2), result)
+            assertArrayContent(arrayOf(10, 11, 22, 23), result)
+            assertEquals("02", out)
+        }
+    }
 }
