@@ -173,10 +173,10 @@ actual fun currentDirectory(): String {
         while (result == null) {
             val buf = allocArray<ByteVar>(size)
             val res = getcwd(buf, size.toULong())
-            if (res != null) {
-                result = res.toKString()
-            } else {
-                size *= 2
+            when {
+                res != null -> result = res.toKString()
+                errno == ERANGE -> size *= 2
+                else -> throw MPFileException("Error getting cwd: ${strerror(errno)}")
             }
         }
         return result
