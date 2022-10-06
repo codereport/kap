@@ -8,6 +8,7 @@ import array.gui.styledarea.EditorContent
 import array.gui.styledarea.StringEditorContentEntry
 import array.gui.styledarea.TextStyle
 import array.rendertext.renderStringValueOptionalQuotes
+import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.geometry.HPos
 import javafx.geometry.Insets
@@ -56,12 +57,11 @@ class Array2ValueRenderer(private val client: Client, override val value: APLVal
     override fun renderValue() = makeArrayNode(client, value)
 
     override fun addToMenu(contextMenu: ContextMenu) {
-        val item = MenuItem("Open in editor").apply { onAction = EventHandler { ArrayEditor.open(client, value) } }
+        val item = MenuItem("Open in editor").apply { onAction = EventHandler { Platform.runLater { ArrayEditor.open(client, value) } } }
         contextMenu.items.add(item)
     }
 }
 
-// foo ← msoffice:read "/home/elias/Downloads/MurexJan18-18-1-2022.xlsx"
 private class Array2ContentEntry(val renderer: ValueRenderer) : EditorContent {
     override fun length() = renderer.text.length
 
