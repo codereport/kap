@@ -831,6 +831,14 @@ class TakeAPLFunction : APLFunctionDescriptor {
             return TakeArrayValue(selection, b, pos)
         }
 
+        override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            val underValue = eval2Arg(context, a, b)
+            if(underValue !is TakeArrayValue) {
+                throw IllegalStateException("Result is not of the correct type. Type = ${underValue::class}")
+            }
+            
+        }
+
         override val name1Arg get() = "take"
         override val name2Arg get() = "take"
     }

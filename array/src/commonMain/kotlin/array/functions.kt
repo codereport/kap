@@ -65,6 +65,14 @@ abstract class APLFunction(val pos: Position, val fns: List<APLFunction> = empty
         throw IllegalStateException("copy function must be implemented. class = ${this::class.simpleName}")
     }
 
+    open fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue): APLValue {
+        throwAPLException(StructuralUnderNotSupported(pos))
+    }
+
+    open fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+        throwAPLException(StructuralUnderNotSupported(pos))
+    }
+
     open val name1Arg get() = this::class.simpleName ?: "unnamed"
     open val name2Arg get() = this::class.simpleName ?: "unnamed"
 }
@@ -240,6 +248,15 @@ class LeftAssignedFunction(val baseFn: APLFunction, val leftArgs: Instruction, p
     }
 
     override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        throwAPLException(LeftAssigned2ArgException(pos))
+    }
+
+    override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue): APLValue {
+        val leftArg = leftArgs.evalWithContext(context)
+        return super.evalWithStructuralUnder2Arg(baseFn, context, leftArg, a)
+    }
+
+    override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
         throwAPLException(LeftAssigned2ArgException(pos))
     }
 

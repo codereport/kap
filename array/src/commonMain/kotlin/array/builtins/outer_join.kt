@@ -133,11 +133,11 @@ class OuterJoinOp : APLOperatorOneArg {
 }
 
 class OuterInnerJoinOp : APLOperatorTwoArg {
-    override fun combineFunction(fn1: APLFunction, fn2: APLFunction, opPos: Position): APLFunctionDescriptor {
-        return if (fn1 is NullFunction.NullFunctionImpl) {
-            OuterJoinFunctionDescriptor(fn2)
+    override fun combineFunction(fn0: APLFunction, fn1: APLFunction, opPos: Position): APLFunctionDescriptor {
+        return if (fn0 is NullFunction.NullFunctionImpl) {
+            OuterJoinFunctionDescriptor(fn1)
         } else {
-            InnerJoinFunctionDescriptor(fn1, fn2)
+            InnerJoinFunctionDescriptor(fn0, fn1)
         }
     }
 

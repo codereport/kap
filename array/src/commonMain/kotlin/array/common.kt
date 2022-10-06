@@ -75,6 +75,8 @@ class LeftAssigned2ArgException(pos: Position? = null) :
 class ArraySizeException(d: IntArray, pos: Position? = null) :
     APLEvalException("Array too large. Requested size: [${d.joinToString(", ")}]", pos)
 
+class StructuralUnderNotSupported(pos: Position? = null) : APLEvalException("under not supported for function", pos)
+
 open class ParseException(message: String, pos: Position? = null) : APLGenericException(message, pos)
 class UnexpectedSymbol(ch: Int, pos: Position? = null) :
     ParseException("Unexpected symbol: '${charToString(ch)}' (${ch.toString(16)})", pos)

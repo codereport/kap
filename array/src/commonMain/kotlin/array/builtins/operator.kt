@@ -235,7 +235,7 @@ class ComposeFunctionDescriptor(val fn0: APLFunction, val fn1: APLFunction) : AP
 }
 
 class ComposeOp : APLOperatorTwoArg {
-    override fun combineFunction(fn1: APLFunction, fn2: APLFunction, opPos: Position) = ComposeFunctionDescriptor(fn1, fn2)
+    override fun combineFunction(fn0: APLFunction, fn1: APLFunction, opPos: Position) = ComposeFunctionDescriptor(fn0, fn1)
 }
 
 class ReverseComposeFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) : APLFunctionDescriptor {
@@ -268,7 +268,7 @@ class ReverseComposeFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunctio
 }
 
 class ReverseComposeOp : APLOperatorTwoArg {
-    override fun combineFunction(fn1: APLFunction, fn2: APLFunction, opPos: Position) = ReverseComposeFunctionDescriptor(fn1, fn2)
+    override fun combineFunction(fn0: APLFunction, fn1: APLFunction, opPos: Position) = ReverseComposeFunctionDescriptor(fn0, fn1)
 }
 
 class OverDerivedFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) : APLFunctionDescriptor {
@@ -294,7 +294,26 @@ class OverDerivedFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) 
     override fun make(pos: Position) = OverDerivedFunctionImpl(pos)
 }
 
-
 class OverOp : APLOperatorTwoArg {
-    override fun combineFunction(fn1: APLFunction, fn2: APLFunction, opPos: Position) = OverDerivedFunctionDescriptor(fn1, fn2)
+    override fun combineFunction(fn0: APLFunction, fn1: APLFunction, opPos: Position) = OverDerivedFunctionDescriptor(fn0, fn1)
+}
+
+class StructuralUnderDerivedFunction(val baseFn: APLFunction, val wrapperFn: APLFunction) : APLFunctionDescriptor {
+    inner class StructuralUnderDerivedFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            return wrapperFn.evalWithStructuralUnder1Arg(baseFn, context, a)
+        }
+
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            return wrapperFn.evalWithStructuralUnder2Arg(baseFn, context, a, b)
+        }
+    }
+
+    override fun make(pos: Position): APLFunction {
+        return StructuralUnderDerivedFunctionImpl(pos)
+    }
+}
+
+class StructuralUnderOp : APLOperatorTwoArg {
+    override fun combineFunction(fn0: APLFunction, fn1: APLFunction, opPos: Position) = StructuralUnderDerivedFunction(fn0, fn1)
 }
