@@ -163,10 +163,10 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
                     onAction = EventHandler { keyboardHelpWindow.show() }
                 })
                 items.add(MenuItem("Array Editor").apply {
-                    onAction = EventHandler { ArrayEditor.open(this@Client) }
+                    onAction = EventHandler { Platform.runLater{ ArrayEditor.open(this@Client) } }
                 })
                 items.add(MenuItem("Structure Viewer").apply {
-                    onAction = EventHandler { StructureViewer.open(this@Client) }
+                    onAction = EventHandler { Platform.runLater { StructureViewer.open(this@Client) } }
                 })
             }
             menus.add(windowMenu)
