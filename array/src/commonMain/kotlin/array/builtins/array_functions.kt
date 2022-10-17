@@ -798,23 +798,34 @@ class TakeArrayValue(val selection: IntArray, val source: APLValue, val pos: Pos
     }
 
     fun replaceForUnder(replacement: APLValue): APLValue {
-        val offset = IntArray(dimensions.size) { i->
+        val offset = IntArray(dimensions.size) { i ->
             val selectionValue = selection[i]
-            if(selectionValue >= 0) {
+            if (selectionValue >= 0) {
                 0
             } else {
                 sourceDimensions[i] + selectionValue
             }
         }
-        return OverlayReplacementValue(source, replacement, offset, pos)
+        return OverlayReplacementValue(source, dimensions, replacement, offset, pos)
     }
 }
 
-class OverlayReplacementValue(val src: APLValue, val replacement: APLValue, val offset: IntArray, pos: Position?) : APLArray() {
-    override val dimensions = src.dimensions
-
-    private val multipliers = dimensions.multipliers()
+class OverlayReplacementValue(
+    val src: APLValue,
+    val srcReplacementDimensions: Dimensions,
+    val replacement: APLValue,
+    val offset: IntArray,
+    pos: Position?
+) : APLArray() {
+    private val srcDimensions = src.dimensions
     private val replacementDimensions = replacement.dimensions
+
+    override val dimensions = Dimensions(IntArray(srcReplacementDimensions.size) { i ->
+        srcDimensions[i] - srcReplacementDimensions[i] + replacementDimensions[i]
+    })
+
+    private val srcMultipliers = srcDimensions.multipliers()
+    private val multipliers = dimensions.multipliers()
 
     init {
         if (dimensions.size != offset.size) {
@@ -823,7 +834,28 @@ class OverlayReplacementValue(val src: APLValue, val replacement: APLValue, val 
         if (dimensions.size != replacementDimensions.size) {
             throwAPLException(InvalidDimensionsException("replacement array rank mismatch", pos))
         }
+
+        // After the below loop, resizableDimension will have the following value:
+        //   positive integer: The dimension that can be resized
+        //   null: All dimensions can be resized
+        //   -1: No dimensions can be resized
+        var resizableDimension: Int? = null
         repeat(dimensions.size) { i ->
+            // If all but a single dimension extends over the entire range, then that dimension can be resized
+            if (replacementDimensions[i] != srcDimensions[i]) {
+                if (resizableDimension == null) {
+                    resizableDimension = i
+                } else {
+                    resizableDimension = -1
+                }
+            }
+        }
+        repeat(dimensions.size) { i ->
+            if (resizableDimension != null) {
+                if (srcReplacementDimensions[i] != replacementDimensions[i] && i != resizableDimension) {
+                    throwAPLException(InvalidDimensionsException("cannot resize axis: ${i}", pos))
+                }
+            }
             if (dimensions[i] < offset[i] + replacementDimensions[i]) {
                 throwAPLException(InvalidDimensionsException("replacement array size overflows at index ${i}", pos))
             }
@@ -836,7 +868,15 @@ class OverlayReplacementValue(val src: APLValue, val replacement: APLValue, val 
             val newPosArray = IntArray(posArray.size) { i -> posArray[i] - offset[i] }
             replacement.valueAt(replacementDimensions.indexFromPosition(newPosArray))
         } else {
-            src.valueAt(p)
+            val newPosArray = IntArray(posArray.size) { i ->
+                val posOnAxis = posArray[i]
+                if (posOnAxis < offset[i]) {
+                    posOnAxis
+                } else {
+                    posOnAxis - replacementDimensions[i] + srcReplacementDimensions[i]
+                }
+            }
+            src.valueAt(srcDimensions.indexFromPosition(newPosArray, srcMultipliers))
         }
     }
 
