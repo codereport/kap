@@ -14,11 +14,11 @@ value class Dimensions(val dimensions: IntArray) {
     init {
         var curr = 1L
         dimensions.forEach { v ->
-            if(v < 0) {
+            if (v < 0) {
                 throw InvalidDimensionsException("Dimensions contains negative values")
             }
             curr *= v
-            if(curr > Int.MAX_VALUE) {
+            if (curr > Int.MAX_VALUE) {
                 throw ArraySizeException(dimensions)
             }
         }
@@ -57,7 +57,7 @@ value class Dimensions(val dimensions: IntArray) {
         return Dimensions(IntArray(dimensions.size) { i -> if (i == axis) newValue else dimensions[i] })
     }
 
-    fun indexFromPosition(p: IntArray, multipliers: IntArray? = null, pos: Position? = null): Int {
+    fun indexFromPosition(p: IntArray, multipliers: DimensionMultipliers? = null, pos: Position? = null): Int {
         if (p.size != dimensions.size) {
             throwAPLException(InvalidDimensionsException("Dimensions does not match", pos))
         }
@@ -74,18 +74,18 @@ value class Dimensions(val dimensions: IntArray) {
         return curr
     }
 
-    fun multipliers(): IntArray {
+    fun multipliers(): DimensionMultipliers {
         var curr = 1
         val a = IntArray(dimensions.size) { 0 }
         for (i in dimensions.size - 1 downTo 0) {
             a[i] = curr
             curr *= dimensions[i]
         }
-        return a
+        return DimensionMultipliers(a)
     }
 
     fun positionFromIndex(p: Int): IntArray {
-        return positionFromIndexWithMultipliers(p, multipliers())
+        return multipliers().positionFromIndex(p)
     }
 
     fun lastDimension(pos: Position? = null): Int {
@@ -106,16 +106,21 @@ value class Dimensions(val dimensions: IntArray) {
 
     override fun toString() = "Dimensions[${dimensions.joinToString(", ")}]"
 
-    companion object {
-        fun positionFromIndexWithMultipliers(p: Int, multipliers: IntArray): IntArray {
+    @JvmInline
+    value class DimensionMultipliers(val values: IntArray) {
+        fun positionFromIndex(p: Int): IntArray {
             var curr = p
-            return IntArray(multipliers.size) { i ->
-                val multiplier = multipliers[i]
+            return IntArray(values.size) { i ->
+                val multiplier = values[i]
                 val result = curr / multiplier
                 curr %= multiplier
                 result
             }
         }
+
+        val size: Int get() = values.size
+        val indices: IntRange get() = values.indices
+        operator fun get(i: Int) = values[i]
     }
 }
 

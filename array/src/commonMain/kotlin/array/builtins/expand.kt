@@ -7,7 +7,7 @@ class ExpandValue(override val dimensions: Dimensions, val axis: Int, val value:
     private val valueMultipliers = value.dimensions.multipliers()
 
     override fun valueAt(p: Int): APLValue {
-        val position = Dimensions.positionFromIndexWithMultipliers(p, multipliers)
+        val position = multipliers.positionFromIndex(p)
         val index = indexes[position[axis]]
         return if (index == -1) {
             APLLONG_0

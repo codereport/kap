@@ -29,7 +29,7 @@ class MutableAPLValue(value: APLValue) {
         val newDimensionsMultipliers = newDimensions.multipliers()
         val newContent = ArrayList<APLValue>()
         repeat(newDimensions.contentSize()) { i ->
-            val p = Dimensions.positionFromIndexWithMultipliers(i, newDimensionsMultipliers)
+            val p = newDimensionsMultipliers.positionFromIndex(i)
             val positionOnAxis = p[axis]
             val res = if (positionOnAxis >= index && positionOnAxis < index + n) {
                 APLLONG_0

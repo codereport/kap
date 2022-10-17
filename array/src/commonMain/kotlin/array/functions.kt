@@ -251,9 +251,9 @@ class LeftAssignedFunction(val baseFn: APLFunction, val leftArgs: Instruction, p
         throwAPLException(LeftAssigned2ArgException(pos))
     }
 
-    override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue): APLValue {
+    override fun evalWithStructuralUnder1Arg(underFn: APLFunction, context: RuntimeContext, a: APLValue): APLValue {
         val leftArg = leftArgs.evalWithContext(context)
-        return super.evalWithStructuralUnder2Arg(baseFn, context, leftArg, a)
+        return baseFn.evalWithStructuralUnder2Arg(underFn, context, leftArg, a)
     }
 
     override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
