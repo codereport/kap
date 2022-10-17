@@ -70,7 +70,7 @@ interface APLOperatorTwoArg : APLOperator {
         }
     }
 
-    fun combineFunction(fn1: APLFunction, fn2: APLFunction, opPos: Position): APLFunctionDescriptor
+    fun combineFunction(fn0: APLFunction, fn1: APLFunction, opPos: Position): APLFunctionDescriptor
 }
 
 interface APLOperatorValueRightArg : APLOperator {

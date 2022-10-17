@@ -45,7 +45,7 @@ class AxisMultiDimensionEnclosedValue(val value: APLValue, numDimensions: Int) :
     override val dimensions: Dimensions
 
     private val aDimensions = value.dimensions
-    private val multipliers: IntArray
+    private val multipliers: Dimensions.DimensionMultipliers
     private val highValFactor: Int
     private val lowDimensions: Dimensions
 
@@ -75,9 +75,9 @@ class AxisMultiDimensionEnclosedValue(val value: APLValue, numDimensions: Int) :
 
 class PartitionedValue(val b: APLValue, val axis: Int, val partitionIndexes: List<Int>) : APLArray() {
     override val dimensions: Dimensions
-    private val multipliers: IntArray
+    private val multipliers: Dimensions.DimensionMultipliers
     private val bDimensions: Dimensions
-    private val bMult: IntArray
+    private val bMult: Dimensions.DimensionMultipliers
 
     init {
         bDimensions = b.dimensions
@@ -93,7 +93,7 @@ class PartitionedValue(val b: APLValue, val axis: Int, val partitionIndexes: Lis
     }
 
     override fun valueAt(p: Int): APLValue {
-        val indexes = Dimensions.positionFromIndexWithMultipliers(p, multipliers)
+        val indexes = multipliers.positionFromIndex(p)
         val start = partitionIndexes[indexes[axis] * 2]
         val end = partitionIndexes[indexes[axis] * 2 + 1]
         return APLArrayImpl(dimensionsOfSize(end - start), Array(end - start) { i ->
@@ -225,7 +225,7 @@ class DisclosedArrayValue(value: APLValue) : APLArray() {
     override val dimensions: Dimensions
 
     private val cutoffMultiplier: Int
-    private val newDimensionsMultipliers: IntArray
+    private val newDimensionsMultipliers: Dimensions.DimensionMultipliers
 
     init {
         val d = valueInt.dimensions
@@ -261,7 +261,7 @@ class DisclosedArrayValue(value: APLValue) : APLArray() {
         } else if (d.size == 0) {
             v.defaultValue()
         } else {
-            val position = Dimensions.positionFromIndexWithMultipliers(innerIndex, newDimensionsMultipliers)
+            val position = newDimensionsMultipliers.positionFromIndex(innerIndex)
             val n = position.size - d.size
             for (i in position.indices) {
                 val size = if (i < n) 1 else d[i - n]

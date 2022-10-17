@@ -7,7 +7,7 @@ class IndexedArrayValue(val content: APLValue, indexValue: Array<Either<Int, Int
     class AxisValueAndOffset(
         val sourceIndex: Int,
         val source: IntArrayValue,
-        val sourceMultipliers: IntArray,
+        val sourceMultipliers: Dimensions.DimensionMultipliers,
         val multiplier: Int
     )
 

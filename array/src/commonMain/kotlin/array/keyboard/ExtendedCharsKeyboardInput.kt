@@ -23,7 +23,7 @@ class ExtendedCharsKeyboardInput {
             // q is unassigned
             makeKeyDescriptor("w") to "⍵", makeKeyDescriptor("W", Flag.SHIFT) to "⍹",
             makeKeyDescriptor("e") to "∊", makeKeyDescriptor("E", Flag.SHIFT) to "⍷",
-            makeKeyDescriptor("r") to "⍴",
+            makeKeyDescriptor("r") to "⍴", makeKeyDescriptor("R", Flag.SHIFT) to "⌾",
             makeKeyDescriptor("t") to "∼", makeKeyDescriptor("T", Flag.SHIFT) to "⍨",
             makeKeyDescriptor("y") to "↑", makeKeyDescriptor("Y", Flag.SHIFT) to "¥",
             makeKeyDescriptor("u") to "↓", makeKeyDescriptor("U", Flag.SHIFT) to "⇐",
