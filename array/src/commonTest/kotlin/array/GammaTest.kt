@@ -60,7 +60,7 @@ class GammaTest {
         assertEquals(0, countLeadingZeroes(-12345678901234L))
         assertEquals(1, countLeadingZeroes(0x7FFFFF0000000000))
     }
-    
+
     private fun assertRangeVal(expected: Pair<Double, Double>, result: Double) {
         assertTrue(expected.first <= result && expected.second >= result, "Expected: ${expected}, result: ${result}")
     }
