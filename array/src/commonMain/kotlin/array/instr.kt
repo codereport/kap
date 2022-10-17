@@ -327,10 +327,13 @@ sealed class FunctionCallChain(pos: Position, fns: List<APLFunction>) : APLFunct
             return fn1.evalInverse1Arg(context, res, null)
         }
 
-        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue) =
+            inversibleStructuralUnder1Arg(this, baseFn, context, a)
+
+        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             if (axis != null) throw AxisNotSupported(pos)
             val res = fn0.evalInverse1Arg(context, b, null)
-            return fn1.evalInverse2ArgA(context, a, res, null)
+            return fn1.evalInverse2ArgB(context, a, res, null)
         }
 
         override fun copy(fns: List<APLFunction>): APLFunction {

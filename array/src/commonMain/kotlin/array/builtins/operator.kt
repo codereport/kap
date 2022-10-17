@@ -214,14 +214,14 @@ class ComposeFunctionDescriptor(val fn0: APLFunction, val fn1: APLFunction) : AP
             return fn0.eval2ArgDoubleDouble(context, a, res, null)
         }
 
-        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            val res = fn0.evalInverse2ArgA(context, a, b, null)
+        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            val res = fn0.evalInverse2ArgB(context, a, b, null)
             return fn1.evalInverse1Arg(context, res, null)
         }
 
-        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             val res = fn1.eval1Arg(context, b, null)
-            return fn0.evalInverse2ArgB(context, a, res, null)
+            return fn0.evalInverse2ArgA(context, a, res, null)
         }
 
         fun fn1() = fn0
@@ -250,13 +250,13 @@ class ReverseComposeFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunctio
             return fn2.eval2Arg(context, res, b, null)
         }
 
-        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             val res = fn1.eval1Arg(context, a, null)
-            return fn2.evalInverse2ArgA(context, res, b, null)
+            return fn2.evalInverse2ArgB(context, res, b, null)
         }
 
-        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            val res = fn2.evalInverse2ArgB(context, a, b, null)
+        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            val res = fn2.evalInverse2ArgA(context, a, b, null)
             return fn1.evalInverse1Arg(context, res, null)
         }
 

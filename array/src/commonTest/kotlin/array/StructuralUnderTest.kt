@@ -43,8 +43,14 @@ class StructuralUnderTest : APLTest() {
     @Test
     fun dropUnderTakeIllegalDropAxis() {
         assertFailsWith<InvalidDimensionsException> {
-            val x = parseAPLExpression("((0 1↓)⌾(2↑)) 5 4 ⍴ ⍳20")
-            println(x.formatted(FormatStyle.PRETTY))
+            parseAPLExpression("((0 1↓)⌾(2↑)) 5 4 ⍴ ⍳20")
+        }
+    }
+
+    @Test
+    fun mulUnderInverseSub() {
+        parseAPLExpression("(10×)⌾(1-⍨) ⍳6").let { result ->
+            assert1DArray(arrayOf(-9, 1, 11, 21, 31, 41), result)
         }
     }
 }

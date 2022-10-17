@@ -212,7 +212,7 @@ class InverseFnFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            return fn.evalInverse2ArgA(context, a, b, axis)
+            return fn.evalInverse2ArgB(context, a, b, axis)
         }
     }
 
