@@ -65,12 +65,12 @@ It is therefore often not necessary to actually open an editor to write a progra
 
 === Download
 
-Currently, KAP is only available in source form and can be downloaded from https://github.com/lokedhs/array[Github].
+Currently, KAP is only available in source form and can be downloaded using Git from: from https://codeberg.org/loke/array.
 The source code can be downloaded using the following command:
 
 [source,sh]
 ----
-git clone https://github.com/lokedhs/array
+git clone https://codeberg.org/loke/array
 ----
 
 === Running the UI
