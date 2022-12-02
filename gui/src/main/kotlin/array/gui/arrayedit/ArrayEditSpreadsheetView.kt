@@ -76,13 +76,13 @@ class ArrayEditSpreadsheetView : SpreadsheetView() {
     }
 
     private fun insertRowAbove() {
-        val row = selectionModel.selectedCells.minOf { it.row }
-        insertRow(row)
+        val row = selectionModel.selectedCells.minOfOrNull { it.row }
+        insertRow(row ?: 0)
     }
 
     private fun insertRowBelow() {
-        val row = selectionModel.selectedCells.maxOf { it.row }
-        insertRow(row + 1)
+        val row = selectionModel.selectedCells.maxOfOrNull { it.row }
+        insertRow(if (row == null) 0 else row + 1)
     }
 
     private fun insertRow(rowIndex: Int) {
@@ -97,13 +97,13 @@ class ArrayEditSpreadsheetView : SpreadsheetView() {
     }
 
     private fun insertColLeft() {
-        val col = selectionModel.selectedCells.minOf { it.column }
-        insertCol(col)
+        val col = selectionModel.selectedCells.minOfOrNull { it.column }
+        insertCol(col ?: 0)
     }
 
     private fun insertColRight() {
-        val col = selectionModel.selectedCells.maxOf { it.column }
-        insertCol(col + 1)
+        val col = selectionModel.selectedCells.maxOfOrNull { it.column }
+        insertCol(if (col == null) 0 else col + 1)
     }
 
     private fun insertCol(colIndex: Int) {
@@ -116,7 +116,6 @@ class ArrayEditSpreadsheetView : SpreadsheetView() {
     }
 
     override fun getSpreadsheetViewContextMenu(): ContextMenu {
-        println("Creating menu")
         val menu = super.getSpreadsheetViewContextMenu()
         menu.items.add(MenuItem("Insert expression").apply {
             onAction = EventHandler {
