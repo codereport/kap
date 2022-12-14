@@ -1,0 +1,3 @@
+∇ solve1 {
+	+/ (@_ , unicode:fromCodepoints (97+q),(65+q←⍳26)) ⍳ {↑↑ ∩/ (⊂⍤1) 2 ¯1 ⍴ ⍵}¨ io:read "part03.txt"
+}
