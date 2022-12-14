@@ -172,5 +172,6 @@ rootProject.plugins.withType(YarnPlugin.class) {
         resolution("minimist", "1.2.6")
         resolution("async", "2.6.4")
         resolution("minimatch", "3.0.5")
+        resolution("qs", "6.9.7")
     }
 }
