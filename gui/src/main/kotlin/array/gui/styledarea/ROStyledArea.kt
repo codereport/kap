@@ -96,7 +96,7 @@ class ROStyledArea(
     }
 
     fun displayPrompt() {
-        withUpdateEnabled {
+        withUpdateEnabledNoPreserveCursor {
             val inputDocument = ReadOnlyStyledDocumentBuilder(segOps, ParStyle(ParStyle.ParStyleType.NORMAL))
                 .addParagraph(
                     listOf(
@@ -201,12 +201,35 @@ class ROStyledArea(
         val oldEnabled = updatesEnabled
         updatesEnabled = true
         try {
-            val result = fn()
-            moveToEndOfInput()
-            return result
+            return withPreservedSelection {
+                fn()
+            }
         } finally {
             updatesEnabled = oldEnabled
         }
+    }
+
+    fun <T> withUpdateEnabledNoPreserveCursor(fn: () -> T): T {
+        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+        val oldEnabled = updatesEnabled
+        updatesEnabled = true
+        try {
+            return fn()
+        } finally {
+            updatesEnabled = oldEnabled
+        }
+    }
+
+    private fun <T> withPreservedSelection(fn: () -> T): T {
+        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+        val inputPosition = findInputStartEnd()
+        val sel = caretSelectionBind.underlyingSelection
+        val selStart = sel.startPosition - inputPosition.inputStart
+        val selEnd = sel.endPosition - inputPosition.inputStart
+        val result = fn()
+        val newPosition = findInputStartEnd()
+        caretSelectionBind.selectRange(selStart + newPosition.inputStart, selEnd + newPosition.inputStart)
+        return result
     }
 
     fun appendTextEnd(
