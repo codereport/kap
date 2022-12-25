@@ -4,6 +4,7 @@ import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import platform.posix.*
+import kotlin.native.concurrent.AtomicReference
 import kotlin.native.concurrent.FreezableAtomicReference
 import kotlin.native.concurrent.freeze
 import kotlin.native.concurrent.isFrozen
@@ -19,19 +20,16 @@ actual fun sleepMillis(time: Long) {
 }
 
 class LinuxMPAtomicRefArray<T>(size: Int) : MPAtomicRefArray<T> {
-    private val content = ArrayList<FreezableAtomicReference<T?>>(size)
+    private val content = ArrayList<AtomicReference<T?>>(size)
 
     init {
-        repeat(size) { content.add(FreezableAtomicReference(null)) }
+        repeat(size) { content.add(AtomicReference(null)) }
     }
 
     override operator fun get(index: Int): T? = content[index].value
 
     override fun compareAndExchange(index: Int, expected: T?, newValue: T?): T? {
         val reference = content[index]
-        if (reference.isFrozen) {
-            newValue.freeze()
-        }
         return reference.compareAndSwap(expected, newValue)
     }
 }

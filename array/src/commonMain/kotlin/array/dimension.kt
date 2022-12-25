@@ -1,7 +1,6 @@
 package array
 
 import kotlin.jvm.JvmInline
-import kotlin.native.concurrent.SharedImmutable
 
 @JvmInline
 value class Dimensions(val dimensions: IntArray) {
@@ -124,10 +123,7 @@ value class Dimensions(val dimensions: IntArray) {
     }
 }
 
-@SharedImmutable
 private val NULL_DIMENSIONS = Dimensions(intArrayOf(0))
-
-@SharedImmutable
 private val EMPTY_DIMENSIONS = Dimensions(intArrayOf())
 
 fun nullDimensions() = NULL_DIMENSIONS
