@@ -105,7 +105,7 @@ If the `@` symbol is followed by a `\`, and at least one more character, the fol
 - `@\e` -- escape (`U+001B`)
 - `@\\` -- backslash `\`
 - `@\uNNNN` -- explicit Unicode codepoint in hex. For example: `@\u905` for `अ`
-- `@\UNICODE_CHARACTER` -- Unicode name. For example: `@\LATIN_SMALL_LETTER_A_WITH_DIAERESIS` for `ä`
+- `@\UNICODE_CHARACTER` -- Unicode name. For example: `@\LATIN_SMALL_LETTER_A_WITH_DIAERESIS` for `ä`. Note that this syntax is not available in the Javascript backend as this would either require the use of extra external files.
 
 === Symbols
 
