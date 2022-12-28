@@ -19,6 +19,21 @@ actual fun charToString(codepoint: Int): String {
     return Char.toChars(codepoint).concatToString()
 }
 
+actual fun nameToCodepoint(name: String): Int? {
+    memScoped {
+        val errorCode = alloc<icu.UErrorCodeVar>()
+        val nameBuf = name.cstr.getPointer(this)
+        val codepoint = icu.u_charFromName!!(icu.U_UNICODE_CHAR_NAME, nameBuf, errorCode.ptr)
+        return if(icu.icu_u_success(errorCode.value)) {
+            codepoint
+        } else {
+            null
+        }
+    }
+}
+
+actual val backendSupportsUnicodeNames = true
+
 actual fun StringBuilder.addCodepoint(codepoint: Int): StringBuilder {
     val v = Char.toChars(codepoint)
     v.forEach {

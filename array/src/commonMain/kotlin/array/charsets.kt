@@ -4,6 +4,10 @@ expect fun isLetter(codepoint: Int): Boolean
 expect fun isDigit(codepoint: Int): Boolean
 expect fun isWhitespace(codepoint: Int): Boolean
 expect fun charToString(codepoint: Int): String
+expect fun nameToCodepoint(name: String): Int?
+expect val backendSupportsUnicodeNames: Boolean
+
+fun isAlphanumeric(codepoint: Int) = isLetter(codepoint) || isDigit(codepoint)
 
 expect fun StringBuilder.addCodepoint(codepoint: Int): StringBuilder
 expect fun String.asCodepointList(): List<Int>

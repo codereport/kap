@@ -18,6 +18,16 @@ actual fun charToString(codepoint: Int): String {
     return Character.toString(codepoint)
 }
 
+actual fun nameToCodepoint(name: String): Int? {
+    return try {
+        Character.codePointOf(name)
+    } catch(e: IllegalArgumentException) {
+        null
+    }
+}
+
+actual val backendSupportsUnicodeNames = true
+
 actual fun StringBuilder.addCodepoint(codepoint: Int): StringBuilder {
     return this.appendCodePoint(codepoint)
 }
