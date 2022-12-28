@@ -183,9 +183,10 @@ class ROStyledArea(
         val listener = commandListener
         if (listener != null && listener.valid(text)) {
             if (client.settings.newlineBehaviourWithDefault() === ReturnBehaviour.CLEAR_INPUT) {
-                withUpdateEnabled {
+                withUpdateEnabledNoPreserveCursor {
                     deleteText(inputPosition.inputStart, inputPosition.inputEnd)
                 }
+                moveToEndOfInput()
             }
             listener.handle(text)
         }
@@ -224,11 +225,15 @@ class ROStyledArea(
         contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
         val inputPosition = findInputStartEnd()
         val sel = caretSelectionBind.underlyingSelection
-        val selStart = sel.startPosition - inputPosition.inputStart
-        val selEnd = sel.endPosition - inputPosition.inputStart
+        val selStart = sel.startPosition
+        val selEnd = sel.endPosition
+        val selectionStartOffset = selStart - inputPosition.inputStart
+        val selectionEndOffset = selEnd - inputPosition.inputStart
         val result = fn()
         val newPosition = findInputStartEnd()
-        caretSelectionBind.selectRange(selStart + newPosition.inputStart, selEnd + newPosition.inputStart)
+        if(selStart >= inputPosition.inputStart && selEnd <= inputPosition.inputEnd) {
+            caretSelectionBind.selectRange(selectionStartOffset + newPosition.inputStart, selectionEndOffset + newPosition.inputStart)
+        }
         return result
     }
 
@@ -319,10 +324,11 @@ class ROStyledArea(
 
     fun replaceInputText(s: String) {
         val inputPos = findInputStartEnd()
-        withUpdateEnabled {
+        withUpdateEnabledNoPreserveCursor {
             deleteText(inputPos.inputStart, inputPos.inputEnd)
             replace(inputPos.inputStart, inputPos.inputStart, makeInputStyle(s))
         }
+        moveToEndOfInput()
     }
 
     private fun moveToBeginningOfInput() {
