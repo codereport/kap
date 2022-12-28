@@ -98,6 +98,15 @@ Thus, the following two lines both specify the same string:
 @a @b @c
 ----
 
+If the `@` symbol is followed by a `\`, and at least one more character, the following rules apply:
+
+- `@\n` -- newline (`U+000A`)
+- `@\r` -- carriage return (`U+000D`)
+- `@\e` -- escape (`U+001B`)
+- `@\\` -- backslash `\`
+- `@\uNNNN` -- explicit Unicode codepoint in hex. For example: `@\u905` for `अ`
+- `@\UNICODE_CHARACTER` -- Unicode name. For example: `@\LATIN_SMALL_LETTER_A_WITH_DIAERESIS` for `ä`
+
 === Symbols
 
 Symbols are first-class objects in KAP.
