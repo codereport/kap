@@ -941,7 +941,7 @@ class TakeAPLFunction : APLFunctionDescriptor {
     override fun make(pos: Position) = TakeAPLFunctionImpl(pos)
 }
 
-class DropArrayValue(val selection: IntArray, val source: APLValue) : APLArray() {
+class DropArrayValue(val selection: IntArray, val source: APLValue, val pos: Position) : APLArray() {
     private val sourceDimensions = source.dimensions
     override val dimensions = Dimensions(selection.mapIndexed { index, v -> sourceDimensions[index] - v.absoluteValue }.toIntArray())
 
@@ -958,9 +958,21 @@ class DropArrayValue(val selection: IntArray, val source: APLValue) : APLArray()
         }
         return source.valueAt(sourceDimensions.indexFromPosition(adjusted))
     }
+
+    fun replaceForUnder(replacement: APLValue): APLValue {
+        val offset = IntArray(dimensions.size) { i ->
+            val selectionValue = selection[i]
+            if (selectionValue >= 0) {
+                selectionValue
+            } else {
+                0
+            }
+        }
+        return OverlayReplacementValue(source, dimensions, replacement, offset, pos)
+    }
 }
 
-class DropResultValueOneArg(val a: APLValue, pos: Position) : APLArray() {
+class DropResultValueOneArg(val a: APLValue, val pos: Position) : APLArray() {
     override val dimensions: Dimensions
 
     init {
@@ -972,6 +984,13 @@ class DropResultValueOneArg(val a: APLValue, pos: Position) : APLArray() {
     }
 
     override fun valueAt(p: Int) = a.valueAt(p + 1)
+
+    fun replaceForUnder(updated: APLValue): APLValue {
+        if (updated.dimensions.size != 1) {
+            throwAPLException(APLIllegalArgumentException("Result of under function must be a 1-dimensional array", pos))
+        }
+        return Concatenated1DArrays(APLArrayImpl(dimensionsOfSize(1), arrayOf(a.valueAt(0))), updated)
+    }
 }
 
 class DropAPLFunction : APLFunctionDescriptor {
@@ -997,7 +1016,25 @@ class DropAPLFunction : APLFunctionDescriptor {
                     0
                 }
             }
-            return DropArrayValue(axisArray, b)
+            return DropArrayValue(axisArray, b, pos)
+        }
+
+        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue): APLValue {
+            val underValue = eval1Arg(context, a)
+            if (underValue !is DropResultValueOneArg) {
+                throw IllegalStateException("Result is not of the correct type. Type = ${underValue::class}")
+            }
+            val updated = baseFn.eval1Arg(context, underValue, null)
+            return underValue.replaceForUnder(updated)
+        }
+
+        override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            val underValue = eval2Arg(context, a, b)
+            if (underValue !is DropArrayValue) {
+                throw IllegalStateException("Result is not of the correct type. Type = ${underValue::class}")
+            }
+            val updated = baseFn.eval1Arg(context, underValue, null)
+            return underValue.replaceForUnder(updated)
         }
 
         override val name1Arg get() = "drop"

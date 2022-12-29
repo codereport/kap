@@ -299,7 +299,8 @@ class UserFunction(
 }
 
 sealed class FunctionCallChain(pos: Position, fns: List<APLFunction>) : APLFunction(pos, fns) {
-    class Chain2(pos: Position, fn0: APLFunction, fn1: APLFunction, val inFunctionChainContext: Boolean) : FunctionCallChain(pos, listOf(fn0, fn1)) {
+    class Chain2(pos: Position, fn0: APLFunction, fn1: APLFunction, val inFunctionChainContext: Boolean) :
+        FunctionCallChain(pos, listOf(fn0, fn1)) {
         val fn0 get() = fns[0]
         val fn1 get() = fns[1]
 

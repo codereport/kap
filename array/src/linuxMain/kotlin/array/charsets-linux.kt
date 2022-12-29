@@ -24,7 +24,7 @@ actual fun nameToCodepoint(name: String): Int? {
         val errorCode = alloc<icu.UErrorCodeVar>()
         val nameBuf = name.cstr.getPointer(this)
         val codepoint = icu.u_charFromName!!(icu.U_UNICODE_CHAR_NAME, nameBuf, errorCode.ptr)
-        return if(icu.icu_u_success(errorCode.value)) {
+        return if (icu.icu_u_success(errorCode.value)) {
             codepoint
         } else {
             null

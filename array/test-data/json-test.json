@@ -1,6 +1,15 @@
 {
   "foo": 1,
-  "someArray": [1, 2, 3, 4, [5, 6]],
+  "someArray": [
+    1,
+    2,
+    3,
+    4,
+    [
+      5,
+      6
+    ]
+  ],
   "someString": "foo test",
   "booleanValue": true,
   "booleanValue2": false,

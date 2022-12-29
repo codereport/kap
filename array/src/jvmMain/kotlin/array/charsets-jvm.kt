@@ -21,7 +21,7 @@ actual fun charToString(codepoint: Int): String {
 actual fun nameToCodepoint(name: String): Int? {
     return try {
         Character.codePointOf(name)
-    } catch(e: IllegalArgumentException) {
+    } catch (e: IllegalArgumentException) {
         null
     }
 }

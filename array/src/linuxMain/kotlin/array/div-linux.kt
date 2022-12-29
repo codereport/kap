@@ -5,9 +5,6 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import platform.posix.*
 import kotlin.native.concurrent.AtomicReference
-import kotlin.native.concurrent.FreezableAtomicReference
-import kotlin.native.concurrent.freeze
-import kotlin.native.concurrent.isFrozen
 import kotlin.reflect.KClass
 
 actual fun sleepMillis(time: Long) {
