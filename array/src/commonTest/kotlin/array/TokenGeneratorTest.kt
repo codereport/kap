@@ -195,7 +195,7 @@ class TokenGeneratorTest {
 
     @Test
     fun unicodeNames() {
-        if(backendSupportsUnicodeNames) {
+        if (backendSupportsUnicodeNames) {
             val gen = makeGenerator("@\\SPACE @\\GREATER-THAN_OR_EQUIVALENT_TO @\\MATHEMATICAL_BOLD_SMALL_E")
             assertTokenIsCharacter(' '.code, gen.nextToken())
             assertTokenIsCharacter(0x2273, gen.nextToken())

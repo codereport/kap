@@ -231,7 +231,7 @@ class ROStyledArea(
         val selectionEndOffset = selEnd - inputPosition.inputStart
         val result = fn()
         val newPosition = findInputStartEnd()
-        if(selStart >= inputPosition.inputStart && selEnd <= inputPosition.inputEnd) {
+        if (selStart >= inputPosition.inputStart && selEnd <= inputPosition.inputEnd) {
             caretSelectionBind.selectRange(selectionStartOffset + newPosition.inputStart, selectionEndOffset + newPosition.inputStart)
         }
         return result
