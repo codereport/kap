@@ -1,5 +1,14 @@
 package array
 
+/**
+ * Class representing a function in KAP. Any subclass of this class that contains
+ * a reference to another function should store this reference in the [fns] property.
+ * This ensures that any closures created from this function will properly delegate
+ * to dependent functions.
+ *
+ * @param pos The position where the function was defined.
+ * @param fns A list of functions that is used to implement this function.
+ */
 abstract class APLFunction(val pos: Position, val fns: List<APLFunction> = emptyList()) {
     open fun evalArgsAndCall1Arg(context: RuntimeContext, rightArgs: Instruction): APLValue {
         val rightValue = rightArgs.evalWithContext(context)
@@ -41,13 +50,17 @@ abstract class APLFunction(val pos: Position, val fns: List<APLFunction> = empty
         throwAPLException(InverseNotAvailable(pos))
 
     /**
-     * Compute `x` given the equation `a FN x = b`
+     * Compute `x` given the equation `a FN x = b`.
+     *
+     * @throws InverseNotAvailable if the inverse cannot be computed
      */
     open fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue =
         throwAPLException(InverseNotAvailable(pos))
 
     /**
-     * Compute `x` given the equation `x FN b = a`
+     * Compute `x` given the equation `x FN b = a`.
+     *
+     * @throws InverseNotAvailable if the inverse cannot be computed
      */
     open fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue =
         throwAPLException(InverseNotAvailable(pos))
