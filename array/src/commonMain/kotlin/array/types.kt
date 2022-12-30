@@ -808,7 +808,7 @@ class APLChar(val value: Int) : APLSingleValue() {
 
     override fun formattedAsCodeRequiresParens() = false
 
-    override fun compareEquals(reference: APLValue) = reference is APLChar && value == reference.value
+    override fun compareEquals(reference: APLValue) = reference.unwrapDeferredValue().let { v -> v is APLChar && value == v.value }
 
     override fun compare(reference: APLValue, pos: Position?): Int {
         return if (reference is APLChar) {
