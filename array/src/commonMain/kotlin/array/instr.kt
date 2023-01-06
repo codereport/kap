@@ -366,12 +366,4 @@ sealed class FunctionCallChain(pos: Position, fns: List<APLFunction>) : APLFunct
         }
     }
 
-    companion object {
-        fun make(pos: Position, fn0: APLFunction, fn1: APLFunction, functionChainContext: Boolean): FunctionCallChain {
-            return when {
-                fn1 is Chain2 && fn1.inFunctionChainContext -> Chain3(pos, fn0, fn1.fn0, fn1.fn1)
-                else -> Chain2(pos, fn0, fn1, functionChainContext)
-            }
-        }
-    }
 }

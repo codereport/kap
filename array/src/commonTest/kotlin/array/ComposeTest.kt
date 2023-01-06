@@ -609,4 +609,11 @@ class ComposeTest : APLTest() {
             """.trimIndent()
         assertSimpleNumber(65, parseAPLExpression(src))
     }
+
+    @Test
+    fun forkWithNewSyntax() {
+        parseAPLExpression("+/«÷»≢ 1 2 3 4").let { result ->
+            assertSimpleDouble(2.5, result)
+        }
+    }
 }

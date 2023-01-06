@@ -1,5 +1,6 @@
 package array
 
+import array.FunctionCallChain.Chain2
 import array.syntax.processCustomSyntax
 import array.syntax.processDefsyntax
 import array.syntax.processDefsyntaxSub
@@ -217,7 +218,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                 }
             }
             is ParseResultHolder.FnParseResult -> {
-                fun baseFn() = FunctionCallChain.make(parsedFn.pos, parsedFn, holder.fn, functionChainContext = functionChainContext)
+                fun baseFn() = Chain2(parsedFn.pos, parsedFn, holder.fn, inFunctionChainContext = functionChainContext)
                 when {
                     leftArgs.isEmpty() -> {
                         ParseResultHolder.FnParseResult(baseFn(), holder.lastToken)
@@ -504,9 +505,7 @@ class APLParser(val tokeniser: TokenGenerator) {
         while (true) {
             val tokenWithPosition = tokeniser.nextTokenWithPosition()
             val (token, pos) = tokenWithPosition
-            if (listOf(CloseParen, EndOfFile, StatementSeparator, CloseFnDef, CloseBracket, ListSeparator, Newline).contains(
-                    tokenWithPosition.token)
-            ) {
+            if (END_EXPR_TOKEN_LIST.contains(tokenWithPosition.token)) {
                 val resultList = makeResultList(leftArgs)
                 return if (resultList == null) {
                     ParseResultHolder.EmptyParseResult(tokenWithPosition)
@@ -762,6 +761,21 @@ class APLParser(val tokeniser: TokenGenerator) {
                         currentFn,
                         fn.pos.copy(callerName = token.symbolName, endLine = currToken.pos.endLine, endCol = currToken.pos.endCol))
                 }
+                is LeftForkToken -> {
+                    val midExpr = parseExprToplevel(RightForkToken)
+                    if (midExpr !is ParseResultHolder.FnParseResult) {
+                        throw ParseException("Value in a fork was not a function", currToken.pos)
+                    }
+                    when (val res = parseFunctionForOperatorRightArg(this)) {
+                        is Either.Left -> {
+                            currentFn =
+                                FunctionCallChain.Chain3(currToken.pos.expandToEnd(res.value.second), currentFn, midExpr.fn, res.value.first)
+                        }
+                        is Either.Right -> {
+                            throw ParseException("Right argument is not a function", res.value.second)
+                        }
+                    }
+                }
                 else -> break
             }
         }
@@ -781,5 +795,15 @@ class APLParser(val tokeniser: TokenGenerator) {
 
     companion object {
         const val OUTER_CALL_SYMBOL = "⍓"
+
+        val END_EXPR_TOKEN_LIST = listOf(
+            CloseParen,
+            EndOfFile,
+            StatementSeparator,
+            CloseFnDef,
+            CloseBracket,
+            ListSeparator,
+            Newline,
+            RightForkToken)
     }
 }

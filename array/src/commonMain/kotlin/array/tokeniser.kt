@@ -32,6 +32,8 @@ object DefsyntaxSubToken : Token()
 object DefsyntaxToken : Token()
 object IncludeToken : Token()
 object DeclareToken : Token()
+object LeftForkToken : Token()
+object RightForkToken : Token()
 
 class Namespace(val name: String) {
     private val symbols = HashMap<String, NamespaceEntry>()
@@ -181,7 +183,9 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
         "⍬" to APLNullSym,
         "λ" to LambdaToken,
         "⍞" to ApplyToken,
-        ";" to ListSeparator)
+        ";" to ListSeparator,
+        "«" to LeftForkToken,
+        "»" to RightForkToken)
 
     init {
         singleCharFunctions = hashSetOf(

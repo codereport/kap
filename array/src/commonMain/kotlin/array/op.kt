@@ -19,7 +19,7 @@ interface APLOperatorOneArg : APLOperator {
  * Parse a single function with strong left-binding. This is used when parsing the right
  * side of a two-argument operator.
  */
-private fun parseFunctionForOperatorRightArg(parser: APLParser): Either<Pair<APLFunction, Position>, Pair<Token, Position>> {
+fun parseFunctionForOperatorRightArg(parser: APLParser): Either<Pair<APLFunction, Position>, Pair<Token, Position>> {
     val tokenWithPos = parser.tokeniser.nextTokenWithPosition()
     val (token, pos) = tokenWithPos
     return when (token) {
