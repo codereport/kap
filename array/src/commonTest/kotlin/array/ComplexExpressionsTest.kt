@@ -228,7 +228,7 @@ class ComplexExpressionsTest : APLTest() {
 
     @Test
     fun findWithSelect() {
-        parseAPLExpression("\"abcabc\" (⊣(⫽⍨)∊) @c").let { result ->
+        parseAPLExpression("\"abcabc\" ⊣«⫽⍨»∊ @c").let { result ->
             assertString("cc", result)
         }
     }
@@ -370,7 +370,7 @@ class ComplexExpressionsTest : APLTest() {
     fun testAxis11() {
         val src =
             """
-            |a ⇐ def[io:print 1] - def[io:print 2]
+            |a ⇐ def[io:print 1] «-» def[io:print 2]
             |io:print 6
             |a 4
             """.trimMargin()

@@ -135,7 +135,7 @@ class ComposeTest : APLTest() {
 
     @Test
     fun simpleFork0() {
-        parseAPLExpression("1 (⊢⊣,) 2").let { result ->
+        parseAPLExpression("1 ⊢«⊣», 2").let { result ->
             assertSimpleNumber(2, result)
         }
     }
@@ -315,7 +315,7 @@ class ComposeTest : APLTest() {
 
     @Test
     fun chainWithDfns0() {
-        parseAPLExpressionWithOutput("({io:print ⍵+1} {io:print ⍺+⍵+10} {io:print ⍵+3}) 1").let { (result, out) ->
+        parseAPLExpressionWithOutput("({io:print ⍵+1} «{io:print ⍺+⍵+10}» {io:print ⍵+3}) 1").let { (result, out) ->
             assertSimpleNumber(16, result)
             assertEquals("4216", out)
         }
@@ -323,7 +323,7 @@ class ComposeTest : APLTest() {
 
     @Test
     fun chainWithDfns1() {
-        parseAPLExpressionWithOutput("(+ {io:print ⍺+⍵+10} +) 1").let { (result, out) ->
+        parseAPLExpressionWithOutput("(+ «{io:print ⍺+⍵+10}» +) 1").let { (result, out) ->
             assertSimpleNumber(12, result)
             assertEquals("12", out)
         }
@@ -331,7 +331,7 @@ class ComposeTest : APLTest() {
 
     @Test
     fun chainWithDfns2() {
-        parseAPLExpressionWithOutput("10 ({io:print ⍺+⍵+1} {io:print ⍺+⍵+10} {io:print ⍺+⍵+3}) 100").let { (result, out) ->
+        parseAPLExpressionWithOutput("10 ({io:print ⍺+⍵+1} «{io:print ⍺+⍵+10}» {io:print ⍺+⍵+3}) 100").let { (result, out) ->
             assertSimpleNumber(234, result)
             assertEquals("113111234", out)
         }
@@ -339,7 +339,7 @@ class ComposeTest : APLTest() {
 
     @Test
     fun chainWithDfns3() {
-        parseAPLExpressionWithOutput("10 (+ {io:print ⍺+⍵+10} +) 9").let { (result, out) ->
+        parseAPLExpressionWithOutput("10 (+ «{io:print ⍺+⍵+10}» +) 9").let { (result, out) ->
             assertSimpleNumber(48, result)
             assertEquals("48", out)
         }
@@ -347,7 +347,7 @@ class ComposeTest : APLTest() {
 
     @Test
     fun chainWithDfns4() {
-        parseAPLExpressionWithOutput("({io:print ⍵+1} + +) 1").let { (result, out) ->
+        parseAPLExpressionWithOutput("({io:print ⍵+1} «+» +) 1").let { (result, out) ->
             assertSimpleNumber(3, result)
             assertEquals("2", out)
         }
@@ -355,7 +355,7 @@ class ComposeTest : APLTest() {
 
     @Test
     fun chainWithDfns5() {
-        parseAPLExpressionWithOutput("(+ + {io:print ⍵+1}) 1").let { (result, out) ->
+        parseAPLExpressionWithOutput("(+ «+» {io:print ⍵+1}) 1").let { (result, out) ->
             assertSimpleNumber(3, result)
             assertEquals("2", out)
         }
@@ -534,7 +534,7 @@ class ComposeTest : APLTest() {
 
     @Test
     fun leftBindMultipleFunctions2() {
-        parseAPLExpressionWithOutput("(((io:print 11)+)×((io:print 22)+)) 100").let { (result, out) ->
+        parseAPLExpressionWithOutput("(((io:print 11)+)«×»((io:print 22)+)) 100").let { (result, out) ->
             assertSimpleNumber(13542, result)
             assertEquals("2211", out)
         }
