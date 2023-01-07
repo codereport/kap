@@ -195,7 +195,7 @@ class ComposeTest : APLTest() {
 
     @Test
     fun nested2ChainNoParen() {
-        parseAPLExpression("(-+,×) 2 5").let { result ->
+        parseAPLExpression("(-+«,»×) 2 5").let { result ->
             assertDimension(dimensionsOfSize(4), result)
             assertArrayContent(arrayOf(-2, -5, -1, -1), result)
         }
@@ -219,7 +219,7 @@ class ComposeTest : APLTest() {
 
     @Test
     fun nested3Chain0() {
-        parseAPLExpression("10 11 (-+(÷⌈)) 3").let { result ->
+        parseAPLExpression("10 11 (-«+»(÷⌈)) 3").let { result ->
             assertDimension(dimensionsOfSize(2), result)
             assertArrayContent(arrayOf(NearDouble(7.1, 4), NearDouble(8.090909091, 4)), result)
         }
@@ -227,7 +227,7 @@ class ComposeTest : APLTest() {
 
     @Test
     fun nested3ChainWithFunction() {
-        parseAPLExpression("a ⇐ ÷⌈ ⋄ 10 11 (-+a) 3").let { result ->
+        parseAPLExpression("a ⇐ ÷⌈ ⋄ 10 11 -«+»a 3").let { result ->
             assertDimension(dimensionsOfSize(2), result)
             assertArrayContent(arrayOf(NearDouble(7.1, 4), NearDouble(8.090909091, 4)), result)
         }
@@ -259,7 +259,7 @@ class ComposeTest : APLTest() {
 
     @Test
     fun contribTest2() {
-        val src = "${makeFunctions()}\n(A(B C)D E)@y ⋄ 3"
+        val src = "${makeFunctions()}\n(A(B C)«D» E)@y ⋄ 3"
         val (result, out) = parseAPLExpressionWithOutput(src, withStandardLib = true)
         assertEquals("(Ey)(Cy)(B(Cy))((B(Cy))D(Ey))(A((B(Cy))D(Ey)))", out)
         assertSimpleNumber(3, result)
@@ -267,7 +267,7 @@ class ComposeTest : APLTest() {
 
     @Test
     fun contribTest3() {
-        val src = "${makeFunctions()}\n@x(A(B C)D E)@y ⋄ 3"
+        val src = "${makeFunctions()}\n@x(A(B C)«D» E)@y ⋄ 3"
         val (result, out) = parseAPLExpressionWithOutput(src, withStandardLib = true)
         assertEquals("(xEy)(xCy)(B(xCy))((B(xCy))D(xEy))(A((B(xCy))D(xEy)))", out)
         assertSimpleNumber(3, result)
@@ -564,7 +564,7 @@ class ComposeTest : APLTest() {
 
     @Test
     fun leftBindChain3() {
-        parseAPLExpression("((1+2+)×(5+20+)) 1").let { result ->
+        parseAPLExpression("((1+2+)«×»(5+20+)) 1").let { result ->
             assertSimpleNumber(104, result)
         }
     }

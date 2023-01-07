@@ -169,8 +169,8 @@ class RankOperator : APLOperatorValueRightArg {
     }
 }
 
-class ComposeFunctionDescriptor(val fn0: APLFunction, val fn1: APLFunction) : APLFunctionDescriptor {
-    inner class ComposeFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+class ComposeFunctionDescriptor(val fn0Inner: APLFunction, val fn1Inner: APLFunction) : APLFunctionDescriptor {
+    class ComposeFunctionImpl(pos: Position, fn0: APLFunction, fn1: APLFunction) : NoAxisAPLFunction(pos, listOf(fn0, fn1)) {
         override val optimisationFlags = computeOptimisationFlags()
 
         private fun computeOptimisationFlags(): OptimisationFlags {
@@ -211,11 +211,11 @@ class ComposeFunctionDescriptor(val fn0: APLFunction, val fn1: APLFunction) : AP
 
         override fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?): Double {
             val res = fn1.eval1ArgDouble(context, b, null)
-            return fn0.eval2ArgDoubleDouble(context, a, res, null)
+            return fn1.eval2ArgDoubleDouble(context, a, res, null)
         }
 
         override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            val res = fn0.evalInverse2ArgB(context, a, b, null)
+            val res = fn1.evalInverse2ArgB(context, a, b, null)
             return fn1.evalInverse1Arg(context, res, null)
         }
 
@@ -224,14 +224,16 @@ class ComposeFunctionDescriptor(val fn0: APLFunction, val fn1: APLFunction) : AP
             return fn0.evalInverse2ArgA(context, a, res, null)
         }
 
-        fun fn1() = fn0
-        fun fn2() = fn1
+        override fun copy(fns: List<APLFunction>) = ComposeFunctionImpl(pos, fns[0], fns[1])
+
+        val fn0 get() = fns[0]
+        val fn1 get() = fns[1]
 
         override val name1Arg = "compose [${fn0.name1Arg}, ${fn1.name1Arg}]"
         override val name2Arg = "compose [${fn0.name2Arg}, ${fn1.name1Arg}]"
     }
 
-    override fun make(pos: Position) = ComposeFunctionImpl(pos)
+    override fun make(pos: Position) = ComposeFunctionImpl(pos, fn0Inner, fn1Inner)
 }
 
 class ComposeOp : APLOperatorTwoArg {

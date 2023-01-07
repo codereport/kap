@@ -746,7 +746,7 @@ class APLParser(val tokeniser: TokenGenerator) {
     private fun parseOperator(fn: APLFunction): APLFunction {
         var currentFn = fn
         var currToken: TokenWithPosition
-        loop@ while (true) {
+        while (true) {
             val axis = parseAxis()
             if (axis != null) {
                 currentFn = AxisValAssignedFunctionDirect(currentFn, axis)
@@ -769,7 +769,11 @@ class APLParser(val tokeniser: TokenGenerator) {
                     when (val res = parseFunctionForOperatorRightArg(this)) {
                         is Either.Left -> {
                             currentFn =
-                                FunctionCallChain.Chain3(currToken.pos.expandToEnd(res.value.second), currentFn, midExpr.fn, res.value.first)
+                                FunctionCallChain.Chain3(
+                                    currToken.pos.expandToEnd(res.value.second),
+                                    currentFn,
+                                    midExpr.fn,
+                                    res.value.first)
                         }
                         is Either.Right -> {
                             throw ParseException("Right argument is not a function", res.value.second)

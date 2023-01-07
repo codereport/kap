@@ -22,6 +22,17 @@ interface APLOperatorOneArg : APLOperator {
 fun parseFunctionForOperatorRightArg(parser: APLParser): Either<Pair<APLFunction, Position>, Pair<Token, Position>> {
     val tokenWithPos = parser.tokeniser.nextTokenWithPosition()
     val (token, pos) = tokenWithPos
+
+    fun makeFunctionResult(fn: APLFunction): Either.Left<Pair<APLFunction, Position>> {
+        val axis = parser.parseAxis()
+        val updated = if (axis != null) {
+            AxisValAssignedFunctionDirect(fn, axis)
+        } else {
+            fn
+        }
+        return Either.Left(Pair(updated, pos))
+    }
+
     return when (token) {
         is Symbol -> {
             val fn = parser.lookupFunction(token)
@@ -29,21 +40,21 @@ fun parseFunctionForOperatorRightArg(parser: APLParser): Either<Pair<APLFunction
                 parser.tokeniser.pushBackToken(tokenWithPos)
                 Either.Right(Pair(token, pos))
             } else {
-                Either.Left(Pair(fn.make(pos.withCallerName(token.symbolName)), pos))
+                makeFunctionResult(fn.make(pos.withCallerName(token.symbolName)))
             }
         }
         is OpenFnDef -> {
-            Either.Left(Pair(parser.parseFnDefinition(pos).make(pos), pos))
+            makeFunctionResult(parser.parseFnDefinition(pos).make(pos))
         }
         is OpenParen -> {
             val holder = parser.parseExprToplevel(CloseParen)
             if (holder !is ParseResultHolder.FnParseResult) {
                 throw ParseException("Expected function", pos)
             }
-            Either.Left(Pair(holder.fn, pos))
+            makeFunctionResult(holder.fn)
         }
         is ApplyToken -> {
-            Either.Left(Pair(parser.parseApplyDefinition().make(pos), pos))
+            makeFunctionResult(parser.parseApplyDefinition().make(pos))
         }
         else -> {
             parser.tokeniser.pushBackToken(tokenWithPos)

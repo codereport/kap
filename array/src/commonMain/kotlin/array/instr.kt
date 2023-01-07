@@ -337,9 +337,7 @@ sealed class FunctionCallChain(pos: Position, fns: List<APLFunction>) : APLFunct
             return fn1.evalInverse2ArgB(context, a, res, null)
         }
 
-        override fun copy(fns: List<APLFunction>): APLFunction {
-            return Chain2(pos, fns[0], fns[1], inFunctionChainContext)
-        }
+        override fun copy(fns: List<APLFunction>) = Chain2(pos, fns[0], fns[1], inFunctionChainContext)
     }
 
     class Chain3(pos: Position, fn0: APLFunction, fn1: APLFunction, fn2: APLFunction) : FunctionCallChain(pos, listOf(fn0, fn1, fn2)) {
@@ -361,9 +359,7 @@ sealed class FunctionCallChain(pos: Position, fns: List<APLFunction>) : APLFunct
             return fn1.eval2Arg(context, left, right, null)
         }
 
-        override fun copy(fns: List<APLFunction>): APLFunction {
-            return Chain3(pos, fns[0], fns[1], fns[2])
-        }
+        override fun copy(fns: List<APLFunction>) = Chain3(pos, fns[0], fns[1], fns[2])
     }
 
 }
