@@ -743,7 +743,7 @@ class APLParser(val tokeniser: TokenGenerator) {
         }
     }
 
-    private fun parseOperator(fn: APLFunction): APLFunction {
+    fun parseOperator(fn: APLFunction): APLFunction {
         var currentFn = fn
         var currToken: TokenWithPosition
         while (true) {

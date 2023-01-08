@@ -383,12 +383,25 @@ class ComplexExpressionsTest : APLTest() {
     fun testAxisWithFunctionBoundToOperator() {
         val src =
             """
-            |a ⇐ (def[io:print 1])∘(def[io:print 2])
+            |a ⇐ def[io:print 1]∘def[io:print 2]
             |io:print 6
             |1 a 4
             """.trimMargin()
         val (result, out) = evalWithDebugFunctionsOutput(src)
         assertSimpleNumber(1 + (4 * 10 + 2 * 100) * 10 + 1 * 100, result)
+        assertEquals("216", out)
+    }
+
+    @Test
+    fun testAxisWithReverseCompose() {
+        val src =
+            """
+            |a ⇐ def[io:print 1]⍛def[io:print 2]
+            |io:print 6
+            |1 a 4
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber((1 * 10 + 1 * 100) + 4 * 10 + 2 * 100, result)
         assertEquals("216", out)
     }
 

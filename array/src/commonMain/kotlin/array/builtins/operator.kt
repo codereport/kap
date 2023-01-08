@@ -211,11 +211,11 @@ class ComposeFunctionDescriptor(val fn0Inner: APLFunction, val fn1Inner: APLFunc
 
         override fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?): Double {
             val res = fn1.eval1ArgDouble(context, b, null)
-            return fn1.eval2ArgDoubleDouble(context, a, res, null)
+            return fn0.eval2ArgDoubleDouble(context, a, res, null)
         }
 
         override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            val res = fn1.evalInverse2ArgB(context, a, b, null)
+            val res = fn0.evalInverse2ArgB(context, a, b, null)
             return fn1.evalInverse1Arg(context, res, null)
         }
 
@@ -240,33 +240,37 @@ class ComposeOp : APLOperatorTwoArg {
     override fun combineFunction(fn0: APLFunction, fn1: APLFunction, opPos: Position) = ComposeFunctionDescriptor(fn0, fn1)
 }
 
-class ReverseComposeFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) : APLFunctionDescriptor {
-    inner class ReverseComposeFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+class ReverseComposeFunctionDescriptor(val fn0Inner: APLFunction, val fn1Inner: APLFunction) : APLFunctionDescriptor {
+    class ReverseComposeFunctionImpl(pos: Position, fn0: APLFunction, fn1: APLFunction) : NoAxisAPLFunction(pos, listOf(fn0, fn1)) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            val res = fn1.eval1Arg(context, a, null)
-            return fn2.eval2Arg(context, res, a, null)
+            val res = fn0.eval1Arg(context, a, null)
+            return fn1.eval2Arg(context, res, a, null)
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            val res = fn1.eval1Arg(context, a, null)
-            return fn2.eval2Arg(context, res, b, null)
+            val res = fn0.eval1Arg(context, a, null)
+            return fn1.eval2Arg(context, res, b, null)
         }
 
         override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            val res = fn1.eval1Arg(context, a, null)
-            return fn2.evalInverse2ArgB(context, res, b, null)
+            val res = fn0.eval1Arg(context, a, null)
+            return fn1.evalInverse2ArgB(context, res, b, null)
         }
 
         override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            val res = fn2.evalInverse2ArgA(context, a, b, null)
-            return fn1.evalInverse1Arg(context, res, null)
+            val res = fn1.evalInverse2ArgA(context, a, b, null)
+            return fn0.evalInverse1Arg(context, res, null)
         }
 
-        fun fn1() = fn1
-        fun fn2() = fn2
+        override fun copy(fns: List<APLFunction>): ReverseComposeFunctionImpl {
+            return ReverseComposeFunctionImpl(pos, fns[0], fns[1])
+        }
+
+        val fn0 get() = fns[0]
+        val fn1 get() = fns[1]
     }
 
-    override fun make(pos: Position) = ReverseComposeFunctionImpl(pos)
+    override fun make(pos: Position) = ReverseComposeFunctionImpl(pos, fn0Inner, fn1Inner)
 }
 
 class ReverseComposeOp : APLOperatorTwoArg {

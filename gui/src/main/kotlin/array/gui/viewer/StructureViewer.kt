@@ -538,8 +538,8 @@ class ComposeA1GraphNode(graph: Graph, fn: ComposeFunctionDescriptor.ComposeFunc
 }
 
 class ReverseComposeA1GraphNode(graph: Graph, fn: ReverseComposeFunctionDescriptor.ReverseComposeFunctionImpl, rightArgsNode: KNode) : KNode(graph) {
-    val leftNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn1(), graph, rightArgsNode)
-    val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn2(), graph, leftNode, rightArgsNode)
+    val leftNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn0, graph, rightArgsNode)
+    val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn1, graph, leftNode, rightArgsNode)
 
     override fun bounds(): BoundsDimensions {
         val lb = leftNode.bounds()
@@ -576,8 +576,8 @@ class ReverseComposeA2GraphNode(
     leftArgLink: KNode,
     rightNode: KNode
 ) : KNode(graph) {
-    val leftNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn1(), graph, leftArgLink)
-    val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn2(), graph, leftNode, rightNode)
+    val leftNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn0, graph, leftArgLink)
+    val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn1, graph, leftNode, rightNode)
     val container = ContainerGraphNode(graph, middleNode, leftNode, rightNode)
 
     override fun bounds() = container.bounds()
