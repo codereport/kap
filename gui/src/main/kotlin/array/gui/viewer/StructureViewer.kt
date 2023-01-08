@@ -586,13 +586,13 @@ class ReverseComposeA2GraphNode(
 }
 
 class OverA1GraphNode(graph: Graph, fn: OverDerivedFunctionDescriptor.OverDerivedFunctionImpl, rightArgsNode: KNode) :
-    AbstractCallSeq2A1GraphNode(graph, fn.fn1(), fn.fn2(), rightArgsNode)
+    AbstractCallSeq2A1GraphNode(graph, fn.fn0, fn.fn1, rightArgsNode)
 
 class OverA2GraphNode(graph: Graph, fn: OverDerivedFunctionDescriptor.OverDerivedFunctionImpl, leftArgsNode: KNode, rightArgsNode: KNode) :
     KNode(graph) {
-    val leftNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn2(), graph, leftArgsNode)
-    val rightNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn2(), graph, rightArgsNode)
-    val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn1(), graph, leftNode, rightNode)
+    val leftNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn1, graph, leftArgsNode)
+    val rightNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn1, graph, rightArgsNode)
+    val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn0, graph, leftNode, rightNode)
     val container = ContainerGraphNode(graph, middleNode, leftNode, rightNode)
 
     override fun bounds() = container.bounds()

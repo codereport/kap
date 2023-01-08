@@ -277,27 +277,29 @@ class ReverseComposeOp : APLOperatorTwoArg {
     override fun combineFunction(fn0: APLFunction, fn1: APLFunction, opPos: Position) = ReverseComposeFunctionDescriptor(fn0, fn1)
 }
 
-class OverDerivedFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) : APLFunctionDescriptor {
-    inner class OverDerivedFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+class OverDerivedFunctionDescriptor(val fn0Inner: APLFunction, val fn1Inner: APLFunction) : APLFunctionDescriptor {
+    class OverDerivedFunctionImpl(pos: Position, fn0: APLFunction, fn1: APLFunction) : NoAxisAPLFunction(pos, listOf(fn0, fn1)) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            val result0 = fn2.eval1Arg(context, a, null)
-            return fn1.eval1Arg(context, result0, null)
+            val result0 = fn1.eval1Arg(context, a, null)
+            return fn0.eval1Arg(context, result0, null)
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            val result0 = fn2.eval1Arg(context, b, null)
-            val result1 = fn2.eval1Arg(context, a, null)
-            return fn1.eval2Arg(context, result1, result0, null)
+            val result0 = fn1.eval1Arg(context, b, null)
+            val result1 = fn1.eval1Arg(context, a, null)
+            return fn0.eval2Arg(context, result1, result0, null)
         }
 
-        fun fn1() = fn1
-        fun fn2() = fn2
+        override fun copy(fns: List<APLFunction>) = OverDerivedFunctionImpl(pos, fns[0], fns[1])
 
-        override val name1Arg = "over [${fn1.name1Arg}, ${fn2.name1Arg}]"
-        override val name2Arg = "over [${fn1.name2Arg}, ${fn2.name1Arg}]"
+        val fn0 get() = fns[0]
+        val fn1 get() = fns[1]
+
+        override val name1Arg = "over [${fn0.name1Arg}, ${fn1.name1Arg}]"
+        override val name2Arg = "over [${fn0.name2Arg}, ${fn1.name1Arg}]"
     }
 
-    override fun make(pos: Position) = OverDerivedFunctionImpl(pos)
+    override fun make(pos: Position) = OverDerivedFunctionImpl(pos, fn0Inner, fn1Inner)
 }
 
 class OverOp : APLOperatorTwoArg {

@@ -142,8 +142,8 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
     }
 
 
-    class OuterJoinFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
-        inner class OuterJoinFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class OuterJoinFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescriptor {
+        class OuterJoinFunctionImpl(pos: Position, fn: APLFunction) : NoAxisAPLFunction(pos, listOf(fn)) {
             override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
                 val sta = a.specialisedType
                 val stb = b.specialisedType
@@ -156,15 +156,17 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
                     }
                     else -> OuterJoinResult(context, a, b, fn, pos)
                 }
-
-
             }
+
+            override fun copy(fns: List<APLFunction>) = OuterJoinFunctionImpl(pos, fns[0])
+
+            val fn = fns[0]
 
             override val name2Arg get() = "outer product"
         }
 
         override fun make(pos: Position): APLFunction {
-            return OuterJoinFunctionImpl(pos)
+            return OuterJoinFunctionImpl(pos, fnInner)
 
         }
     }
