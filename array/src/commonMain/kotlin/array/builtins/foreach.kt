@@ -37,36 +37,41 @@ class ForEachResult2Arg(
     override val size get() = arg1.size
 }
 
-class ForEachFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
-    override fun make(pos: Position): APLFunction {
-        return object : APLFunction(pos), ParallelSupported {
-            override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-                return if (a.isScalar()) {
-                    return EnclosedAPLValue.make(fn.eval1Arg(context, a.disclose(), null))
-                } else {
-                    ForEachResult1Arg(context, fn, a, axis, pos)
-                }
+class ForEachFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescriptor {
+    class ForEachFunctionImpl(pos: Position, fn: APLFunction) : APLFunction(pos, listOf(fn)), ParallelSupported {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+            return if (a.isScalar()) {
+                return EnclosedAPLValue.make(fn.eval1Arg(context, a.disclose(), null))
+            } else {
+                ForEachResult1Arg(context, fn, a, axis, pos)
             }
-
-            override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-                return compute2Arg(context, fn, a, b, axis, pos)
-            }
-
-            override fun computeParallelTasks1Arg(
-                context: RuntimeContext, numTasks: Int, a: APLValue, axis: APLValue?
-            ): ParallelTaskList {
-                val res = eval1Arg(context, a, axis)
-                return ParallelCompressTaskList.make(res, numTasks, pos)
-            }
-
-            override fun computeParallelTasks2Arg(
-                context: RuntimeContext, numTasks: Int, a: APLValue, b: APLValue, axis: APLValue?
-            ): ParallelTaskList {
-                val res = eval2Arg(context, a, b, axis)
-                return ParallelCompressTaskList.make(res, numTasks, pos)
-            }
-
         }
+
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            return compute2Arg(context, fn, a, b, axis, pos)
+        }
+
+        override fun computeParallelTasks1Arg(
+            context: RuntimeContext, numTasks: Int, a: APLValue, axis: APLValue?
+        ): ParallelTaskList {
+            val res = eval1Arg(context, a, axis)
+            return ParallelCompressTaskList.make(res, numTasks, pos)
+        }
+
+        override fun computeParallelTasks2Arg(
+            context: RuntimeContext, numTasks: Int, a: APLValue, b: APLValue, axis: APLValue?
+        ): ParallelTaskList {
+            val res = eval2Arg(context, a, b, axis)
+            return ParallelCompressTaskList.make(res, numTasks, pos)
+        }
+
+        override fun copy(fns: List<APLFunction>) = ForEachFunctionImpl(pos, fns[0])
+
+        val fn = fns[0]
+    }
+
+    override fun make(pos: Position): APLFunction {
+        return ForEachFunctionImpl(pos, fnInner)
     }
 
     companion object {

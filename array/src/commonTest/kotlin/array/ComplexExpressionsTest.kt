@@ -419,7 +419,7 @@ class ComplexExpressionsTest : APLTest() {
     }
 
     @Test
-    fun testAxisWithOuterJoin() {
+    fun testAxisWithOuterJoin0() {
         val src =
             """
             |a ⇐ def[io:print 1]⌺
@@ -433,6 +433,36 @@ class ComplexExpressionsTest : APLTest() {
         assertSimpleNumber(2 + 3 * 10 + 1 * 100, result.valueAt(2))
         assertSimpleNumber(2 + 4 * 10 + 1 * 100, result.valueAt(3))
         assertEquals("16", out)
+    }
+
+    @Test
+    fun testAxisWithOuterJoin1() {
+        val src =
+            """
+            |a ⇐ ∘.def[io:print 1]
+            |io:print 6
+            |1 2 a 3 4
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertDimension(dimensionsOfSize(2, 2), result)
+        assertSimpleNumber(1 + 3 * 10 + 1 * 100, result.valueAt(0))
+        assertSimpleNumber(1 + 4 * 10 + 1 * 100, result.valueAt(1))
+        assertSimpleNumber(2 + 3 * 10 + 1 * 100, result.valueAt(2))
+        assertSimpleNumber(2 + 4 * 10 + 1 * 100, result.valueAt(3))
+        assertEquals("16", out)
+    }
+
+    @Test
+    fun testAxisWithInnerJoin() {
+        val src =
+            """
+            |a ⇐ def[io:print 2]¨.(def[io:print 1]¨)
+            |io:print 6
+            |100 200 a 4 5
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(3940, result)
+        assertEquals("126", out)
     }
 
     @Test
