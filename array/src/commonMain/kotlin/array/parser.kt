@@ -193,11 +193,10 @@ class APLParser(val tokeniser: TokenGenerator) {
 
     private fun processFn(
         fn: APLFunction,
-        leftArgs: List<Instruction>,
-        functionChainContext: Boolean = false
+        leftArgs: List<Instruction>
     ): ParseResultHolder {
         val parsedFn = parseOperator(fn)
-        return when (val holder = parseValue(functionChainContext = true)) {
+        return when (val holder = parseValue()) {
             is ParseResultHolder.EmptyParseResult -> {
                 if (leftArgs.isEmpty()) {
                     ParseResultHolder.FnParseResult(parsedFn, holder.lastToken)
@@ -218,7 +217,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                 }
             }
             is ParseResultHolder.FnParseResult -> {
-                fun baseFn() = Chain2(parsedFn.pos, parsedFn, holder.fn, inFunctionChainContext = functionChainContext)
+                fun baseFn() = Chain2(parsedFn.pos, parsedFn, holder.fn)
                 when {
                     leftArgs.isEmpty() -> {
                         ParseResultHolder.FnParseResult(baseFn(), holder.lastToken)
@@ -490,7 +489,7 @@ class APLParser(val tokeniser: TokenGenerator) {
         return tokeniser.engine.getFunction(name)
     }
 
-    fun parseValue(functionChainContext: Boolean = false): ParseResultHolder {
+    fun parseValue(): ParseResultHolder {
         val leftArgs = ArrayList<Instruction>()
 
         fun processIndex(pos: Position) {
@@ -533,8 +532,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                         if (fn != null) {
                             return processFn(
                                 fn.make(pos.withCallerName(token.symbolName)),
-                                leftArgs,
-                                functionChainContext = functionChainContext)
+                                leftArgs)
                         } else {
                             leftArgs.add(makeVariableRef(token, pos))
                         }
@@ -544,11 +542,10 @@ class APLParser(val tokeniser: TokenGenerator) {
                     is ParseResultHolder.InstrParseResult -> leftArgs.add(expr.instr)
                     is ParseResultHolder.FnParseResult -> return processFn(
                         expr.fn,
-                        leftArgs,
-                        functionChainContext = functionChainContext)
+                        leftArgs)
                     is ParseResultHolder.EmptyParseResult -> throw ParseException("Empty expression", pos)
                 }
-                is OpenFnDef -> return processFn(parseFnDefinition(pos).make(pos), leftArgs, functionChainContext = functionChainContext)
+                is OpenFnDef -> return processFn(parseFnDefinition(pos).make(pos), leftArgs)
                 is ParsedLong -> leftArgs.add(LiteralInteger(token.value, pos))
                 is ParsedDouble -> leftArgs.add(LiteralDouble(token.value, pos))
                 is ParsedComplex -> leftArgs.add(LiteralComplex(token.value, pos))
@@ -559,7 +556,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                 is StringToken -> leftArgs.add(LiteralStringValue(token.value, pos))
                 is QuotePrefix -> leftArgs.add(LiteralSymbol(tokeniser.nextTokenWithType(), pos))
                 is LambdaToken -> leftArgs.add(processLambda(pos))
-                is ApplyToken -> return processFn(parseApplyDefinition().make(pos), leftArgs, functionChainContext = functionChainContext)
+                is ApplyToken -> return processFn(parseApplyDefinition().make(pos), leftArgs)
                 is NamespaceToken -> processNamespace()
                 is ImportToken -> processImport()
                 is DefsyntaxSubToken -> processDefsyntaxSub(this, pos)
