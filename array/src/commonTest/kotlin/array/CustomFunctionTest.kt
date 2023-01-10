@@ -236,7 +236,7 @@ class CustomFunctionTest : APLTest() {
 
     @Test
     fun simpleFork0() {
-        parseAPLExpression("f ⇐ ⊢⊣, ⋄ 1 f 2").let { result ->
+        parseAPLExpression("f ⇐ ⊢«⊣», ⋄ 1 f 2").let { result ->
             assertSimpleNumber(2, result)
         }
     }
@@ -856,7 +856,7 @@ Monadic single arg:          ∇            (foo) x          {
     fun shortFormWith3Train() {
         val result = parseAPLExpression(
             """
-            |foo ⇐ ⊢⊣,
+            |foo ⇐ ⊢«⊣»,
             |1 foo 2
             """.trimMargin())
         assertSimpleNumber(2, result)

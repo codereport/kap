@@ -299,7 +299,7 @@ class UserFunction(
 }
 
 sealed class FunctionCallChain(pos: Position, fns: List<APLFunction>) : APLFunction(pos, fns) {
-    class Chain2(pos: Position, fn0: APLFunction, fn1: APLFunction, val inFunctionChainContext: Boolean) :
+    class Chain2(pos: Position, fn0: APLFunction, fn1: APLFunction) :
         FunctionCallChain(pos, listOf(fn0, fn1)) {
         val fn0 get() = fns[0]
         val fn1 get() = fns[1]
@@ -337,9 +337,7 @@ sealed class FunctionCallChain(pos: Position, fns: List<APLFunction>) : APLFunct
             return fn1.evalInverse2ArgB(context, a, res, null)
         }
 
-        override fun copy(fns: List<APLFunction>): APLFunction {
-            return Chain2(pos, fns[0], fns[1], inFunctionChainContext)
-        }
+        override fun copy(fns: List<APLFunction>) = Chain2(pos, fns[0], fns[1])
     }
 
     class Chain3(pos: Position, fn0: APLFunction, fn1: APLFunction, fn2: APLFunction) : FunctionCallChain(pos, listOf(fn0, fn1, fn2)) {
@@ -361,17 +359,7 @@ sealed class FunctionCallChain(pos: Position, fns: List<APLFunction>) : APLFunct
             return fn1.eval2Arg(context, left, right, null)
         }
 
-        override fun copy(fns: List<APLFunction>): APLFunction {
-            return Chain3(pos, fns[0], fns[1], fns[2])
-        }
+        override fun copy(fns: List<APLFunction>) = Chain3(pos, fns[0], fns[1], fns[2])
     }
 
-    companion object {
-        fun make(pos: Position, fn0: APLFunction, fn1: APLFunction, functionChainContext: Boolean): FunctionCallChain {
-            return when {
-                fn1 is Chain2 && fn1.inFunctionChainContext -> Chain3(pos, fn0, fn1.fn0, fn1.fn1)
-                else -> Chain2(pos, fn0, fn1, functionChainContext)
-            }
-        }
-    }
 }

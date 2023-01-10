@@ -142,8 +142,8 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
     }
 
 
-    class OuterJoinFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
-        inner class OuterJoinFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class OuterJoinFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescriptor {
+        class OuterJoinFunctionImpl(pos: Position, fn: APLFunction) : NoAxisAPLFunction(pos, listOf(fn)) {
             override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
                 val sta = a.specialisedType
                 val stb = b.specialisedType
@@ -156,21 +156,23 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
                     }
                     else -> OuterJoinResult(context, a, b, fn, pos)
                 }
-
-
             }
+
+            override fun copy(fns: List<APLFunction>) = OuterJoinFunctionImpl(pos, fns[0])
+
+            val fn = fns[0]
 
             override val name2Arg get() = "outer product"
         }
 
         override fun make(pos: Position): APLFunction {
-            return OuterJoinFunctionImpl(pos)
+            return OuterJoinFunctionImpl(pos, fnInner)
 
         }
     }
 
-    class InnerJoinFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) : APLFunctionDescriptor {
-        inner class InnerJoinFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class InnerJoinFunctionDescriptor(val fn0Inner: APLFunction, val fn1Inner: APLFunction) : APLFunctionDescriptor {
+        class InnerJoinFunctionImpl(pos: Position, fn0: APLFunction, fn1: APLFunction) : NoAxisAPLFunction(pos, listOf(fn0, fn1)) {
             override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
                 val aDimensions = a.dimensions
                 val bDimensions = b.dimensions
@@ -195,18 +197,23 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
                     throwAPLException(InvalidDimensionsException("a and b dimensions are incompatible", pos))
                 }
                 return if (a1Dimensions.size == 1 && b1Dimensions.size == 1) {
-                    val v = fn2.eval2Arg(context, a1, b1, null)
-                    ReduceResult1Arg(context, fn1, v, 0, pos)
+                    val v = fn1.eval2Arg(context, a1, b1, null)
+                    ReduceResult1Arg(context, fn0, v, 0, pos)
                 } else {
-                    InnerJoinResult(context, a1, b1, fn1, fn2, pos)
+                    InnerJoinResult(context, a1, b1, fn0, fn1, pos)
                 }
             }
+
+            override fun copy(fns: List<APLFunction>) = InnerJoinFunctionImpl(pos, fns[0], fns[1])
+
+            val fn0 = fns[0]
+            val fn1 = fns[1]
 
             override val name2Arg get() = "inner product"
         }
 
         override fun make(pos: Position): APLFunction {
-            return InnerJoinFunctionImpl(pos)
+            return InnerJoinFunctionImpl(pos, fn0Inner, fn1Inner)
         }
     }
 }
