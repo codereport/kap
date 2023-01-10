@@ -243,6 +243,9 @@ fun engineAvailableCallback(worker: Worker) {
     val topElement = findElement<HTMLDivElement>("top")
     val outer = document.create.div {
         div {
+            createKeyboardHelp()
+        }
+        div {
             id = "result-history"
         }
         div {

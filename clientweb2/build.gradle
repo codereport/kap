@@ -8,8 +8,6 @@ repositories {
     maven { url 'https://kotlin.bintray.com/kotlinx' }
 }
 
-//var fritz2Version = "0.14"
-
 kotlin {
     js("webworker") {
         binaries.executable()
