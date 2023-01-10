@@ -12,8 +12,8 @@ private val row1 = listOf(
 
 private val row2 = listOf(
     Key("Tab", "", 3), Key("q", "Q"), Key("w", "W"), Key("e", "E"), Key("r", "R"), Key("t", "T"),
-    Key("y", "Y"), Key("u", "U"), Key("i", "I"), Key("o", "P"), Key("[", "{"), Key("]", "}"),
-    Key("\\", "|", 3))
+    Key("y", "Y"), Key("u", "U"), Key("i", "I"), Key("o", "O"), Key("p", "P"),
+    Key("[", "{"), Key("]", "}"), Key("\\", "|", 3))
 
 private val row3 = listOf(
     Key("Caps", "", 4), Key("a", "A"), Key("s", "S"), Key("d", "D"), Key("f", "F"), Key("g", "G"),
@@ -52,12 +52,12 @@ private fun TR.renderCell(keyboard: ExtendedCharsKeyboardInput, key: Key) {
     td {
         colSpan = key.width.toString()
         div {
-            span { +(shiftedMapping ?: "") }
             span { +key.shifted }
+            span { +(shiftedMapping ?: "") }
         }
         div {
-            span { +(unshiftedMapping ?: "") }
             span { +key.unshifted }
+            span { +(unshiftedMapping ?: "") }
         }
     }
 }

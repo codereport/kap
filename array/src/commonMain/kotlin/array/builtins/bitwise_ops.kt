@@ -1,5 +1,5 @@
 package array.builtins
-//≠∵⌺⍨ ⍳30
+//≠∵⌻⍨ ⍳30
 import array.*
 
 abstract class BitwiseCombineAPLFunction(pos: Position) : MathCombineAPLFunction(pos) {

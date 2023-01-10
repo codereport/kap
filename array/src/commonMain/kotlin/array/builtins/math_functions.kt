@@ -840,10 +840,40 @@ class AtanAPLFunction : APLFunctionDescriptor {
     override fun make(pos: Position) = AtanAPLFunctionImpl(pos)
 }
 
+class SqrtAPLFunction : APLFunctionDescriptor {
+    class SqrtAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+        override fun numberCombine1Arg(a: APLNumber): APLValue {
+            return singleArgNumericRelationOperation(
+                pos,
+                a,
+                { x -> sqrt(x.toDouble()).makeAPLNumber() },
+                { x -> sqrt(x).makeAPLNumber() },
+                { x -> x.pow(0.5.toComplex()).makeAPLNumber() })
+        }
+
+        override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
+            return numericRelationOperation(
+                pos,
+                a,
+                b,
+                { x, y -> y.toDouble().pow(1 / x.toDouble()).makeAPLNumber() },
+                { x, y -> y.pow(1.0 / x).makeAPLNumber() },
+                { x, y -> y.pow(1.0 / x).makeAPLNumber() })
+        }
+
+        override val name1Arg get() = "square root"
+        override val name2Arg get() = "nth root"
+    }
+
+    override fun make(pos: Position) = SqrtAPLFunctionImpl(pos)
+}
+
+
 class AndAPLFunction : APLFunctionDescriptor {
     class AndAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
-            return numericRelationOperation(pos,
+            return numericRelationOperation(
+                pos,
                 a,
                 b,
                 { x, y -> opLong(x, y).makeAPLNumber() },

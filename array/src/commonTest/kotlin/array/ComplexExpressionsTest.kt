@@ -422,7 +422,7 @@ class ComplexExpressionsTest : APLTest() {
     fun testAxisWithOuterJoin0() {
         val src =
             """
-            |a ⇐ def[io:print 1]⌺
+            |a ⇐ def[io:print 1]⌻
             |io:print 6
             |1 2 a 3 4
             """.trimMargin()

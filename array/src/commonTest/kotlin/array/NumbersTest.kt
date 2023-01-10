@@ -272,4 +272,13 @@ class NumbersTest : APLTest() {
                 ), result)
         }
     }
+
+    @Test
+    fun squareRootInt() {
+        parseAPLExpression("√4 2 10 1 0").let { result ->
+            assert1DArray(
+                arrayOf(NearDouble(2.0), NearDouble(1.414213562), NearDouble(3.16227766), NearDouble(1.0), NearDouble(0.0)),
+                result)
+        }
+    }
 }

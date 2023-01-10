@@ -218,6 +218,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("asin", AsinAPLFunction(), "math")
         registerNativeFunction("acos", AcosAPLFunction(), "math")
         registerNativeFunction("atan", AtanAPLFunction(), "math")
+        registerNativeFunction("√", SqrtAPLFunction())
 
         // metafunctions
         registerNativeFunction("typeof", TypeofFunction())
@@ -228,7 +229,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeOperator("¨", ForEachOp())
         registerNativeOperator("/", ReduceOpLastAxis())
         registerNativeOperator("⌿", ReduceOpFirstAxis())
-        registerNativeOperator("⌺", OuterJoinOp())
+        registerNativeOperator("⌻", OuterJoinOp())
         registerNativeOperator(".", OuterInnerJoinOp())
         registerNativeOperator("⍨", CommuteOp())
         registerNativeOperator("⍣", PowerAPLOperator())
@@ -244,7 +245,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeOperator("inverse", InverseFnOp())
         registerNativeOperator("˝", InverseFnOp())
         registerNativeOperator("under", StructuralUnderOp())
-        registerNativeOperator("⌾", StructuralUnderOp())
+        registerNativeOperator("⍢", StructuralUnderOp())
 
         // function aliases                             
         functionAliases[coreNamespace.internAndExport("*")] = coreNamespace.internAndExport("⋆")
