@@ -281,4 +281,45 @@ class NumbersTest : APLTest() {
                 result)
         }
     }
+
+    @Test
+    fun squareRootIntNegative() {
+        parseAPLExpression("√¯1 ¯2 ¯5 ¯123459").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearComplex(Complex(0.0, 1.0)),
+                    NearComplex(Complex(0.0, 1.414213562)),
+                    NearComplex(Complex(0.0, 2.236067977)),
+                    NearComplex(Complex(0.0, 351.3673292))),
+                result)
+        }
+    }
+
+    @Test
+    fun squareRootDouble() {
+        parseAPLExpression("√1.7 0.1 12345.9 9.7 9876.1234 1.987654321").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearDouble(1.303840481),
+                    NearDouble(0.316227766),
+                    NearDouble(111.1121056),
+                    NearDouble(3.1144823),
+                    NearDouble(99.37868685),
+                    NearDouble(1.409841949)),
+                result)
+        }
+    }
+
+    @Test
+    fun squareRootDoubleNegative() {
+        parseAPLExpression("√¯1.7 ¯10000.2 ¯0.001 ¯9.5").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearComplex(Complex(0.0, 1.303840481)),
+                    NearComplex(Complex(0.0, 100.001)),
+                    NearComplex(Complex(0.0, 0.0316227766)),
+                    NearComplex(Complex(0.0, 3.082207001))),
+                result)
+        }
+    }
 }
