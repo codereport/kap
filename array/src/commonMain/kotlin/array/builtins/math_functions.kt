@@ -846,9 +846,9 @@ class SqrtAPLFunction : APLFunctionDescriptor {
             return singleArgNumericRelationOperation(
                 pos,
                 a,
-                { x -> sqrt(x.toDouble()).makeAPLNumber() },
-                { x -> sqrt(x).makeAPLNumber() },
-                { x -> x.pow(0.5.toComplex()).makeAPLNumber() })
+                { x -> if (x < 0) x.toDouble().pow(COMPLEX_HALF).makeAPLNumber() else sqrt(x.toDouble()).makeAPLNumber() },
+                { x -> if (x < 0) x.pow(COMPLEX_HALF).makeAPLNumber() else sqrt(x).makeAPLNumber() },
+                { x -> x.pow(COMPLEX_HALF).makeAPLNumber() })
         }
 
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
@@ -863,11 +863,14 @@ class SqrtAPLFunction : APLFunctionDescriptor {
 
         override val name1Arg get() = "square root"
         override val name2Arg get() = "nth root"
+
+        companion object {
+            val COMPLEX_HALF = 0.5.toComplex()
+        }
     }
 
     override fun make(pos: Position) = SqrtAPLFunctionImpl(pos)
 }
-
 
 class AndAPLFunction : APLFunctionDescriptor {
     class AndAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
