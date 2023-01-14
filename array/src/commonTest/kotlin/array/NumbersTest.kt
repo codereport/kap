@@ -296,8 +296,36 @@ class NumbersTest : APLTest() {
     }
 
     @Test
+    fun squareRootIntNegativeBase3() {
+        parseAPLExpression("3√¯1 ¯2 ¯5 ¯123459").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearComplex(Complex(0.5, 0.8660254038)),
+                    NearComplex(Complex(0.6299605249, 1.091123636)),
+                    NearComplex(Complex(0.8549879733, 1.48088261)),
+                    NearComplex(Complex(24.89684159, 43.12259457))),
+                result)
+        }
+    }
+
+    @Test
     fun squareRootDouble() {
         parseAPLExpression("√1.7 0.1 12345.9 9.7 9876.1234 1.987654321").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearDouble(1.303840481),
+                    NearDouble(0.316227766),
+                    NearDouble(111.1121056),
+                    NearDouble(3.1144823),
+                    NearDouble(99.37868685),
+                    NearDouble(1.409841949)),
+                result)
+        }
+    }
+
+    @Test
+    fun squareRootExplicitBase() {
+        parseAPLExpression("2√1.7 0.1 12345.9 9.7 9876.1234 1.987654321").let { result ->
             assert1DArray(
                 arrayOf(
                     NearDouble(1.303840481),
@@ -319,6 +347,47 @@ class NumbersTest : APLTest() {
                     NearComplex(Complex(0.0, 100.001)),
                     NearComplex(Complex(0.0, 0.0316227766)),
                     NearComplex(Complex(0.0, 3.082207001))),
+                result)
+        }
+    }
+
+    @Test
+    fun squareRootDoubleNegativeExplicitBase() {
+        parseAPLExpression("2√¯1.7 ¯10000.2 ¯0.001 ¯9.5").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearComplex(Complex(0.0, 1.303840481)),
+                    NearComplex(Complex(0.0, 100.001)),
+                    NearComplex(Complex(0.0, 0.0316227766)),
+                    NearComplex(Complex(0.0, 3.082207001))),
+                result)
+        }
+    }
+
+    @Test
+    fun squareRootNegativeIntegerComplexBase() {
+        parseAPLExpression("2J1√¯1 ¯2 ¯5 ¯123459").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearComplex(Complex(0.5792387863, 1.782713677)),
+                    NearComplex(Complex(1.082032803, 2.224120703)),
+                    NearComplex(Complex(2.119650817, 2.870532607)),
+                    NearComplex(Complex(94.65947366, -180.6312599))),
+                result)
+        }
+    }
+
+    @Test
+    fun squareRootDoubleComplexBase() {
+        parseAPLExpression("1J1√1.7 0.1 12345.9 9.7 9876.1234 1.987654321").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearComplex(Complex(1.258219338, -0.3418831619)),
+                    NearComplex(Complex(0.1288018808, 0.2888080254)),
+                    NearComplex(Complex(-0.2054827018, 111.1119155)),
+                    NearComplex(Complex(1.311722151, -2.824780522)),
+                    NearComplex(Complex(-11.25047118, 98.73981111)),
+                    NearComplex(Complex(1.327491996, -0.4747834466))),
                 result)
         }
     }

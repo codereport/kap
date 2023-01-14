@@ -856,8 +856,20 @@ class SqrtAPLFunction : APLFunctionDescriptor {
                 pos,
                 a,
                 b,
-                { x, y -> y.toDouble().pow(1 / x.toDouble()).makeAPLNumber() },
-                { x, y -> y.pow(1.0 / x).makeAPLNumber() },
+                { x, y ->
+                    if (y < 0) {
+                        y.toDouble().pow(x.toDouble().toComplex().reciprocal()).makeAPLNumber()
+                    } else {
+                        y.toDouble().pow(1.0 / x.toDouble()).makeAPLNumber()
+                    }
+                },
+                { x, y ->
+                    if (y < 0) {
+                        y.pow(x.toComplex().reciprocal()).makeAPLNumber()
+                    } else {
+                        y.pow(1.0 / x).makeAPLNumber()
+                    }
+                },
                 { x, y -> y.pow(1.0 / x).makeAPLNumber() })
         }
 
