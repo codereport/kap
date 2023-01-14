@@ -110,7 +110,7 @@ class DoubleArraySum2Args(
         dimensions = a0.dimensions
     }
 
-    override fun valueAt(p: Int) = valueAtLong(p, pos).makeAPLNumber()
+    override fun valueAt(p: Int) = valueAtDouble(p, pos).makeAPLNumber()
 
     override fun valueAtDouble(p: Int, pos: Position?): Double {
         return fn.combine2ArgDouble(a0.valueAtDouble(p, pos), b0.valueAtDouble(p, pos))

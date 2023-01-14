@@ -520,6 +520,33 @@ class ComplexExpressionsTest : APLTest() {
         assertEquals("21563", out)
     }
 
+    @Test
+    fun arraySumDoubleConvertToLong() {
+        parseAPLExpression("(10 100)[1.1 0.1 + 0.1 0.1]").let { result ->
+            assert1DArray(arrayOf(100, 10), result)
+        }
+    }
+
+    @Test
+    fun arraySumLongConvertToDouble() {
+        parseAPLExpression("math:sin 1 2 + 1 1").let { result ->
+            assert1DArray(arrayOf(NearDouble(0.9092974268), NearDouble(0.1411200081)), result)
+        }
+    }
+
+    @Test
+    fun arraySumDoubleComputeWithLong() {
+        parseAPLExpression("2 + 1.1 0.1 + 0.1 0.1").let { result ->
+            assert1DArray(arrayOf(NearDouble(3.2), NearDouble(2.2)), result)
+        }
+    }
+
+    @Test
+    fun arraySumDoubleComputeWithDouble() {
+        parseAPLExpression("2.0 + 1.1 0.1 + 0.1 0.1").let { result ->
+            assert1DArray(arrayOf(NearDouble(3.2), NearDouble(2.2)), result)
+        }
+    }
 
     private fun defAbcResult(fnIndex: Long, opIndex: Long, rightArg: Long): Long {
         return (rightArg * 10 + fnIndex * 100) * 1000 + opIndex * 1000000
