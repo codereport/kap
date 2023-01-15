@@ -37,6 +37,7 @@
 /website/build
 /text-client/build
 /client-java/build
+/mpbignum/build
 
 /*.hprof
 /website/src/orchid/resources/pages/*.html
