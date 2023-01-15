@@ -140,6 +140,8 @@ class MultiResultInstr(val instructionList: List<Instruction>, pos: Position) : 
         }
         return APLArrayImpl(dimensionsOfSize(valueList.size), valueList)
     }
+
+    override fun children() = instructionList
 }
 
 class RepeatSyntaxRule(val name: EnvironmentBinding, val customSyntax: CustomSyntax) : SyntaxRule {
@@ -267,6 +269,8 @@ class CallWithVarInstruction(
             instr.evalWithContext(newContext)
         }
     }
+
+    override fun children() = listOf(instr)
 }
 
 fun processCustomSyntax(parser: APLParser, customSyntax: CustomSyntax): Instruction {

@@ -76,6 +76,8 @@ class ArrayIndex(val content: Instruction, val indexInstr: Instruction, pos: Pos
         }
     }
 
+    override fun children() = listOf(content, indexInstr)
+
     private fun lookupFromArray(
         indexValue: APLValue,
         contentValue: APLValue,

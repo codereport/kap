@@ -8,6 +8,7 @@ interface LvalueReader {
 
 abstract class Instruction(val pos: Position) {
     abstract fun evalWithContext(context: RuntimeContext): APLValue
+    abstract fun children(): List<Instruction>
     open fun deriveLvalueReader(): LvalueReader? = null
 }
 
@@ -15,12 +16,16 @@ class DummyInstr(pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
         throw IllegalStateException("Attempt to call dummy instruction")
     }
+
+    override fun children(): List<Instruction> = emptyList()
 }
 
 class RootEnvironmentInstruction(val environment: Environment, val instr: Instruction, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
         throw IllegalStateException("Root environment called with context")
     }
+
+    override fun children() = listOf(instr)
 
     fun evalWithNewContext(engine: Engine, extraBindings: List<Pair<EnvironmentBinding, APLValue>>?): APLValue {
         val context = RuntimeContext(engine, environment, engine.rootContext)
@@ -39,6 +44,8 @@ class InstructionList(val instructions: List<Instruction>) : Instruction(compute
         }
         return instructions.last().evalWithContext(context)
     }
+
+    override fun children() = instructions
 
     companion object {
         private fun computePos(l: List<Instruction>): Position {
@@ -59,6 +66,8 @@ class ParsedAPLList(val instructions: List<Instruction>) : Instruction(instructi
         }
         return APLList(resultList)
     }
+
+    override fun children() = instructions
 }
 
 class FunctionCall1Arg(
@@ -69,6 +78,8 @@ class FunctionCall1Arg(
     override fun evalWithContext(context: RuntimeContext): APLValue {
         return fn.evalArgsAndCall1Arg(context, rightArgs)
     }
+
+    override fun children() = listOf(rightArgs)
 
     override fun toString() = "FunctionCall1Arg(fn=${fn}, rightArgs=${rightArgs})"
 }
@@ -82,6 +93,8 @@ class FunctionCall2Arg(
     override fun evalWithContext(context: RuntimeContext): APLValue {
         return fn.evalArgsAndCall2Arg(context, leftArgs, rightArgs)
     }
+
+    override fun children() = listOf(leftArgs, rightArgs)
 
     override fun toString() = "FunctionCall2Arg(fn=${fn}, leftArgs=${leftArgs}, rightArgs=${rightArgs})"
 }
@@ -116,6 +129,8 @@ class VariableRef(val name: Symbol, val binding: EnvironmentBinding, pos: Positi
         return context.getVar(binding) ?: throwAPLException(VariableNotAssigned(binding.name, pos))
     }
 
+    override fun children(): List<Instruction> = emptyList()
+
     override fun deriveLvalueReader(): LvalueReader {
         return object : LvalueReader {
             override fun makeInstruction(rightArgs: Instruction, pos: Position): Instruction {
@@ -136,6 +151,8 @@ class Literal1DArray private constructor(val values: List<Instruction>, pos: Pos
         }
         return APLArrayImpl.make(dimensionsOfSize(size)) { result[it]!! }
     }
+
+    override fun children() = values
 
     override fun deriveLvalueReader(): LvalueReader {
         if (values.any { instr -> instr !is VariableRef }) {
@@ -198,6 +215,7 @@ class LiteralInteger(value: Long, pos: Position) : Instruction(pos) {
     private val valueInt = APLLong(value)
 
     override fun evalWithContext(context: RuntimeContext) = valueInt
+    override fun children(): List<Instruction> = emptyList()
     override fun toString() = "LiteralInteger[value=$valueInt]"
     val value get() = valueInt.value
 }
@@ -206,6 +224,7 @@ class LiteralDouble(value: Double, pos: Position) : Instruction(pos) {
     private val valueInt = APLDouble(value)
 
     override fun evalWithContext(context: RuntimeContext) = valueInt
+    override fun children(): List<Instruction> = emptyList()
     override fun toString() = "LiteralDouble[value=$valueInt]"
     val value get() = valueInt.value
 }
@@ -214,6 +233,7 @@ class LiteralComplex(value: Complex, pos: Position) : Instruction(pos) {
     private val valueInt = value.makeAPLNumber()
 
     override fun evalWithContext(context: RuntimeContext) = valueInt
+    override fun children(): List<Instruction> = emptyList()
     override fun toString() = "LiteralComplex[value=$valueInt]"
     val value get() = valueInt.asComplex()
 }
@@ -222,32 +242,39 @@ class LiteralCharacter(value: Int, pos: Position) : Instruction(pos) {
     val valueInt = APLChar(value)
 
     override fun evalWithContext(context: RuntimeContext) = valueInt
+    override fun children(): List<Instruction> = emptyList()
     override fun toString() = "LiteralCharacter[value=$valueInt]"
 }
 
 class LiteralSymbol(name: Symbol, pos: Position) : Instruction(pos) {
     private val value = APLSymbol(name)
     override fun evalWithContext(context: RuntimeContext): APLValue = value
+    override fun children(): List<Instruction> = emptyList()
 }
 
 class LiteralAPLNullValue(pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext) = APLNullValue.APL_NULL_INSTANCE
+    override fun children(): List<Instruction> = emptyList()
 }
 
 class EmptyValueMarker(pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext) = APLEmpty()
+    override fun children(): List<Instruction> = emptyList()
 }
 
 class LiteralStringValue(val s: String, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext) = APLString.make(s)
+    override fun children(): List<Instruction> = emptyList()
 }
 
 class LiteralLongArray(val value: LongArray, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue = APLArrayLong(dimensionsOfSize(value.size), value)
+    override fun children(): List<Instruction> = emptyList()
 }
 
 class LiteralDoubleArray(val value: DoubleArray, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue = APLArrayDouble(dimensionsOfSize(value.size), value)
+    override fun children(): List<Instruction> = emptyList()
 }
 
 class AssignmentInstruction(val variableList: Array<EnvironmentBinding>, val instr: Instruction, pos: Position) : Instruction(pos) {
@@ -269,6 +296,8 @@ class AssignmentInstruction(val variableList: Array<EnvironmentBinding>, val ins
         }
         return v
     }
+
+    override fun children() = listOf(instr)
 }
 
 class UserFunction(

@@ -14,8 +14,10 @@ sealed class ParseResultHolder(val lastToken: TokenWithPosition) {
 }
 
 class EnvironmentBinding(val environment: Environment, val name: Symbol) {
+    var canEscape: Boolean = false
+
     override fun toString(): String {
-        return "EnvironmentBinding[environment=${environment}, name=${name}, key=${hashCode().toString(16)}]"
+        return "EnvironmentBinding[environment=${environment}, name=${name}, canEscape=${canEscape}, key=${hashCode().toString(16)}]"
     }
 }
 
@@ -570,10 +572,11 @@ class APLParser(val tokeniser: TokenGenerator) {
     }
 
     private fun makeVariableRef(symbol: Symbol, pos: Position): Instruction {
-        if (tokeniser.engine.isSelfEvaluatingSymbol(symbol)) {
-            return LiteralSymbol(symbol, pos)
+        return if (tokeniser.engine.isSelfEvaluatingSymbol(symbol)) {
+            LiteralSymbol(symbol, pos)
+        } else {
+            VariableRef(symbol, findEnvironmentBinding(symbol), pos)
         }
-        return VariableRef(symbol, findEnvironmentBinding(symbol), pos)
     }
 
     private fun processInclude(pos: Position): Instruction {
@@ -689,6 +692,8 @@ class APLParser(val tokeniser: TokenGenerator) {
             }
             return LambdaValue(fn, context)
         }
+
+        override fun children() = relatedInstructions
     }
 
     private fun processLambda(pos: Position): EvalLambdaFnx {
