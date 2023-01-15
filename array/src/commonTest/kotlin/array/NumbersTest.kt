@@ -100,6 +100,19 @@ class NumbersTest : APLTest() {
     }
 
     @Test
+    fun testExponentialWithComplex() {
+        parseAPLExpression("1J1 ¯2J9 1J¯9 ¯2J¯2*3").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearComplex(Complex(-2.0, 2.0)),
+                    NearComplex(Complex(478.0, -621.0)),
+                    NearComplex(Complex(-242.0, 702.0)),
+                    NearComplex(Complex(16.0, -16.0))),
+                result)
+        }
+    }
+
+    @Test
     fun invalidExpressions() {
         assertFailsWith<ParseException> {
             parseAPLExpression("1+")
