@@ -73,6 +73,12 @@ class ContextStack(toplevel: RuntimeContext) {
 
 val threadLocalContextStack = makeMPThreadLocal<ContextStack>()
 
+fun lookupContextStack(): ContextStack {
+    val contextStack = threadLocalContextStack.value
+    assertx(contextStack != null) { "context stack is null" }
+    return contextStack
+}
+
 /**
  * A handler that is registered by [Engine.registerClosableHandler] which is responsible for implementing
  * the backend for the `close` KAP function.
@@ -577,26 +583,9 @@ class RuntimeContext(val engine: Engine, val environment: Environment) {
 
     private fun initBindings() {
         val localBindings = environment.localBindings()
-        if (localBindings.isNotEmpty()) {
-            val contextStack = lookupContextStack()
-            environment.localBindings().forEach { b ->
-                val holder = if (b.environment === environment) {
-                    VariableHolder()
-                } else {
-//                fun recurse(c: RuntimeContext?): VariableHolder {
-//                    if (c == null) {
-//                        throw IllegalStateException("Can't find binding in parents")
-//                    }
-//                    return c.localVariables[b] ?: recurse(c.parent)
-//                }
-//                recurse(parent)
-                    val holder = contextStack.stack[b.environment.index].localVariables[b]
-                    if (holder == null) {
-                        throw IllegalStateException("Variable ${b.name.nameWithNamespace()} was not found in stack")
-                    }
-                    holder
-                }
-                localVariables[b] = holder
+        localBindings.forEach { b ->
+            if (b.environment === environment) {
+                localVariables[b] = VariableHolder()
             }
         }
     }
@@ -618,7 +607,9 @@ class RuntimeContext(val engine: Engine, val environment: Environment) {
     fun findVariables() = localVariables.map { (k, v) -> k.name to v.value }.toList()
 
     private fun findOrThrow(name: EnvironmentBinding): VariableHolder {
-        return localVariables[name]
+//        return localVariables[name]
+//            ?: throw IllegalStateException("Attempt to set the value of a nonexistent binding: ${name}")
+        return lookupContextStack().stack[name.environment.index].localVariables[name]
             ?: throw IllegalStateException("Attempt to set the value of a nonexistent binding: ${name}")
     }
 
@@ -650,12 +641,6 @@ class RuntimeContext(val engine: Engine, val environment: Environment) {
                 contextStack.stack.removeLast()
             }
         }
-    }
-
-    fun lookupContextStack(): ContextStack {
-        val contextStack = threadLocalContextStack.value
-        assertx(contextStack != null) { "context stack is null" }
-        return contextStack
     }
 
     fun assignArgs(args: List<EnvironmentBinding>, a: APLValue, pos: Position? = null) {

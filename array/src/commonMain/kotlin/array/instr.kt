@@ -126,7 +126,9 @@ class DynamicFunctionDescriptor(val instr: Instruction) : APLFunctionDescriptor 
 
 class VariableRef(val name: Symbol, val binding: EnvironmentBinding, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
-        return context.getVar(binding) ?: throwAPLException(VariableNotAssigned(binding.name, pos))
+        //return context.getVar(binding) ?: throwAPLException(VariableNotAssigned(binding.name, pos))
+        return lookupContextStack().stack[binding.environment.index].getVar(binding)
+            ?: throwAPLException(VariableNotAssigned(binding.name, pos))
     }
 
     override fun children(): List<Instruction> = emptyList()
