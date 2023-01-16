@@ -82,7 +82,7 @@ class SyntaxTest : APLTest() {
     }
 
     @Test
-    fun ifTestWithOptionalElse() {
+    fun ifTestWithOptionalElse0() {
         val result = parseAPLExpression(
             """
             |defsyntax xif (:value cond :function thenStatement :optional (:constant xelse :function elseStatement)) {
@@ -97,13 +97,51 @@ class SyntaxTest : APLTest() {
     }
 
     @Test
-    fun ifTestWithElse() {
+    fun ifTestWithOptionalElse1() {
+        val result = parseAPLExpression(
+            """
+            |defsyntax xif (:value cond :function thenStatement :optional (:constant xelse :function elseStatement)) {
+            |  ⍞((cond ≡ 1) ⌷ (⍞((isLocallyBound 'elseStatement) ⌷ λ{λ{⍬}} λ{elseStatement}) ⍬) thenStatement) cond
+            |}
+            |
+            |∇ foo {
+            |  (xif (1) { 10 }) (xif (0) { 10 })
+            |}
+            |
+            |foo 3
+            """.trimMargin())
+        assertDimension(dimensionsOfSize(2), result)
+        assertSimpleNumber(10, result.valueAt(0))
+        val secondRes = result.valueAt(1)
+        assertDimension(dimensionsOfSize(0), secondRes)
+    }
+
+    @Test
+    fun ifTestWithElse0() {
         val result = parseAPLExpression(
             """
             |defsyntax xif (:value cond :function thenStatement :optional (:constant xelse :function elseStatement)) {
             |  ⍞((cond ≡ 1) ⌷ (⍞((isLocallyBound 'elseStatement) ⌷ λ{λ{⍬}} λ{elseStatement}) ⍬) thenStatement) cond
             |}
             |(xif (1) { 10 } xelse { 20 }) (xif (0) { 11 } xelse { 22 })
+            """.trimMargin())
+        assertDimension(dimensionsOfSize(2), result)
+        assertArrayContent(arrayOf(10, 22), result)
+    }
+
+    @Test
+    fun ifTestWithElse1() {
+        val result = parseAPLExpression(
+            """
+            |defsyntax xif (:value cond :function thenStatement :optional (:constant xelse :function elseStatement)) {
+            |  ⍞((cond ≡ 1) ⌷ (⍞((isLocallyBound 'elseStatement) ⌷ λ{λ{⍬}} λ{elseStatement}) ⍬) thenStatement) cond
+            |}
+            |
+            |∇ foo {
+            |  (xif (1) { 10 } xelse { 20 }) (xif (0) { 11 } xelse { 22 })
+            |}
+            |
+            |foo 3
             """.trimMargin())
         assertDimension(dimensionsOfSize(2), result)
         assertArrayContent(arrayOf(10, 22), result)

@@ -21,7 +21,7 @@ class EnvironmentBinding(val environment: Environment, val name: Symbol) {
     }
 }
 
-class Environment {
+class Environment(val index: Int) {
     private val bindings = HashMap<Symbol, EnvironmentBinding>()
     private val localFunctions = HashMap<Symbol, APLFunctionDescriptor>()
 
@@ -46,7 +46,7 @@ class Environment {
     }
 
     companion object {
-        fun nullEnvironment() = Environment()
+        fun nullEnvironment() = Environment(0)
     }
 }
 
@@ -65,7 +65,7 @@ class APLParser(val tokeniser: TokenGenerator) {
     fun currentEnvironment() = environments.last()
 
     fun pushEnvironment(): Environment {
-        val env = Environment()
+        val env = Environment(currentEnvironment().index + 1)
         environments.add(env)
         return env
     }
@@ -92,11 +92,11 @@ class APLParser(val tokeniser: TokenGenerator) {
     }
 
     inline fun <T> withNullEnvironment(fn: (Environment) -> T): T {
-        val oldEnvironment = reinitialiseEnvironments()
+        val oldEnvironmentList = reinitialiseEnvironments()
         try {
             return fn(currentEnvironment())
         } finally {
-            reinitialiseEnvironments(oldEnvironment)
+            reinitialiseEnvironments(oldEnvironmentList)
         }
     }
 
@@ -721,16 +721,14 @@ class APLParser(val tokeniser: TokenGenerator) {
 
     fun parseFnDefinition(
         pos: Position,
-        leftArgName: Symbol? = null,
-        rightArgName: Symbol? = null,
         endToken: Token = CloseFnDef,
         allocateEnvironment: Boolean = true
     ): APLFunctionDescriptor {
         return if (allocateEnvironment) {
             val engine = tokeniser.engine
             withEnvironment {
-                val leftBinding = currentEnvironment().bindLocal(leftArgName ?: engine.internSymbol("⍺", engine.coreNamespace))
-                val rightBinding = currentEnvironment().bindLocal(rightArgName ?: engine.internSymbol("⍵", engine.coreNamespace))
+                val leftBinding = currentEnvironment().bindLocal(engine.internSymbol("⍺", engine.coreNamespace))
+                val rightBinding = currentEnvironment().bindLocal(engine.internSymbol("⍵", engine.coreNamespace))
                 val name = tokeniser.engine.currentNamespace.internSymbol(OUTER_CALL_SYMBOL)
                 val inProcessUserFunction = UserFunction(
                     name, listOf(leftBinding), listOf(rightBinding), DummyInstr(pos), currentEnvironment())
@@ -740,8 +738,10 @@ class APLParser(val tokeniser: TokenGenerator) {
                 DeclaredFunction("<unnamed>", instruction, leftBinding, rightBinding, currentEnvironment())
             }
         } else {
-            val instruction = parseValueToplevel(endToken)
-            DeclaredNonBoundFunction(instruction)
+            withEnvironment {
+                val instruction = parseValueToplevel(endToken)
+                DeclaredNonBoundFunction(instruction)
+            }
         }
     }
 

@@ -28,7 +28,7 @@ class RootEnvironmentInstruction(val environment: Environment, val instr: Instru
     override fun children() = listOf(instr)
 
     fun evalWithNewContext(engine: Engine, extraBindings: List<Pair<EnvironmentBinding, APLValue>>?): APLValue {
-        val context = RuntimeContext(engine, environment, engine.rootContext)
+        val context = RuntimeContext(engine, environment)
         extraBindings?.forEach { (binding, value) ->
             context.setVar(binding, value)
         }
