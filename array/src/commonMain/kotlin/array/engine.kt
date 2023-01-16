@@ -67,6 +67,18 @@ data class CallStackElement(val name: String, val pos: Position?)
 
 val threadLocalCallstackRef = makeMPThreadLocal<ThreadLocalCallStack>()
 
+class ContextStack(toplevel: RuntimeContext) {
+    val stack = arrayListOf(toplevel)
+}
+
+val threadLocalContextStack = makeMPThreadLocal<ContextStack>()
+
+fun lookupContextStack(): ContextStack {
+    val contextStack = threadLocalContextStack.value
+    assertx(contextStack != null) { "context stack is null" }
+    return contextStack
+}
+
 /**
  * A handler that is registered by [Engine.registerClosableHandler] which is responsible for implementing
  * the backend for the `close` KAP function.
@@ -90,7 +102,7 @@ class Engine(numComputeEngines: Int? = null) {
     private val modules = ArrayList<KapModule>()
     private val exportedSingleCharFunctions = HashSet<String>()
 
-    val rootContext = RuntimeContext(this, Environment())
+    val rootContext = RuntimeContext(this, Environment(0))
     var standardOutput: CharacterOutput = NullCharacterOutput()
     var standardInput: CharacterProvider = NullCharacterProvider()
 
@@ -459,6 +471,7 @@ class Engine(numComputeEngines: Int? = null) {
         val callStackElement = CallStackElement(name, pos)
         callStack.add(callStackElement)
         val prevSize = callStack.size
+
         try {
             return fn(callStackElement)
         } finally {
@@ -471,9 +484,12 @@ class Engine(numComputeEngines: Int? = null) {
     inline fun <T> withThreadLocalAssigned(fn: () -> T): T {
         val oldThreadLocal = threadLocalCallstackRef.value
         threadLocalCallstackRef.value = ThreadLocalCallStack(this)
+        val oldContextStack = threadLocalContextStack.value
+        threadLocalContextStack.value = ContextStack(rootContext)
         try {
             return fn()
         } finally {
+            threadLocalContextStack.value = oldContextStack
             threadLocalCallstackRef.value = oldThreadLocal
         }
     }
@@ -537,7 +553,7 @@ class VariableHolder {
     var value: APLValue? = null
 }
 
-class RuntimeContext(val engine: Engine, val environment: Environment, val parent: RuntimeContext? = null) {
+class RuntimeContext(val engine: Engine, val environment: Environment) {
     private val localVariables = HashMap<EnvironmentBinding, VariableHolder>()
     private var releaseCallbacks: MutableList<() -> Unit>? = null
 
@@ -566,19 +582,11 @@ class RuntimeContext(val engine: Engine, val environment: Environment, val paren
     }
 
     private fun initBindings() {
-        environment.localBindings().forEach { b ->
-            val holder = if (b.environment === environment) {
-                VariableHolder()
-            } else {
-                fun recurse(c: RuntimeContext?): VariableHolder {
-                    if (c == null) {
-                        throw IllegalStateException("Can't find binding in parents")
-                    }
-                    return c.localVariables[b] ?: recurse(c.parent)
-                }
-                recurse(parent)
+        val localBindings = environment.localBindings()
+        localBindings.forEach { b ->
+            if (b.environment === environment) {
+                localVariables[b] = VariableHolder()
             }
-            localVariables[b] = holder
         }
     }
 
@@ -599,7 +607,9 @@ class RuntimeContext(val engine: Engine, val environment: Environment, val paren
     fun findVariables() = localVariables.map { (k, v) -> k.name to v.value }.toList()
 
     private fun findOrThrow(name: EnvironmentBinding): VariableHolder {
-        return localVariables[name]
+//        return localVariables[name]
+//            ?: throw IllegalStateException("Attempt to set the value of a nonexistent binding: ${name}")
+        return lookupContextStack().stack[name.environment.index].localVariables[name]
             ?: throw IllegalStateException("Attempt to set the value of a nonexistent binding: ${name}")
     }
 
@@ -612,12 +622,23 @@ class RuntimeContext(val engine: Engine, val environment: Environment, val paren
     @OptIn(ExperimentalContracts::class)
     inline fun <T> withLinkedContext(env: Environment, name: String, pos: Position, fn: (RuntimeContext) -> T): T {
         contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
-        val newContext = RuntimeContext(engine, env, this)
+        val newContext = RuntimeContext(engine, env)
+
+        val contextStack = lookupContextStack()
+        contextStack.stack.add(newContext)
+        val prevContextStackSize = contextStack.stack.size
+
         return withCallStackElement(name, pos) {
             try {
                 fn(newContext)
             } finally {
                 newContext.fireReleaseCallbacks()
+                contextStack.stack.size.let { updatedSize ->
+                    if (updatedSize != prevContextStackSize) {
+                        throw IllegalStateException("Context stack was changed. Prev size = ${prevContextStackSize}, new size = $updatedSize")
+                    }
+                }
+                contextStack.stack.removeLast()
             }
         }
     }

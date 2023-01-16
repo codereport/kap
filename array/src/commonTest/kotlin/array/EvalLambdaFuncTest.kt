@@ -105,6 +105,23 @@ class EvalLambdaFuncTest : APLTest() {
         assertSimpleNumber(3, result)
     }
 
+    @Test
+    fun nestedLambda() {
+        val src =
+            """
+            |∇ foo {
+            |  a ← 1
+            |  λ{ 2 + { a + ⍵ } 100 }
+            |}
+            |
+            |bar ← foo 1000
+            |⍞bar 10000
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertSimpleNumber(103, result)
+        }
+    }
+
     private fun evalWithEngine(engine: Engine, expr: String): APLValue {
         return engine.parseAndEval(StringSourceLocation(expr), false)
     }
