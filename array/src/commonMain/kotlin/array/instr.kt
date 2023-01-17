@@ -124,10 +124,12 @@ class DynamicFunctionDescriptor(val instr: Instruction) : APLFunctionDescriptor 
     }
 }
 
-class VariableRef(val name: Symbol, val binding: EnvironmentBinding, pos: Position) : Instruction(pos) {
+class VariableRef(val name: Symbol, val binding: EnvironmentBinding, baseEnvironment: Environment, pos: Position) : Instruction(pos) {
+    val stackIndex = baseEnvironment.index - binding.environment.index
+
     override fun evalWithContext(context: RuntimeContext): APLValue {
-        //return context.getVar(binding) ?: throwAPLException(VariableNotAssigned(binding.name, pos))
-        return lookupContextStack().stack[binding.environment.index].getVar(binding)
+        val stack = lookupContextStack().stack
+        return stack[stack.size - stackIndex - 1].getVar(binding)
             ?: throwAPLException(VariableNotAssigned(binding.name, pos))
     }
 
@@ -307,7 +309,7 @@ class UserFunction(
     private var leftFnArgs: List<EnvironmentBinding>,
     private var rightFnArgs: List<EnvironmentBinding>,
     var instr: Instruction,
-    private var env: Environment
+    private val env: Environment
 ) : APLFunctionDescriptor {
     inner class UserFunctionImpl(pos: Position) : APLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {

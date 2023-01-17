@@ -1118,4 +1118,18 @@ Monadic single arg:          ∇            (foo) x          {
             assertEquals("02", out)
         }
     }
+
+    @Test
+    fun nestedDfns() {
+        parseAPLExpression("{ ⍵ + { ⍵ + { ⍵ + { 1 + ⍵ } 2 } 4 } 8 } 16").let { result ->
+            assertSimpleNumber(31, result)
+        }
+    }
+
+    @Test
+    fun nestedDnfsOuterRef() {
+        parseAPLExpression("q ⇐ { a ← 1 ◊ { a + ⍵ } ⍵ } ◊ { { ⍵ + q 2 } 4 } 100").let { result ->
+            assertSimpleNumber(7, result)
+        }
+    }
 }

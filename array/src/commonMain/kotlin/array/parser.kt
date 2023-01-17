@@ -13,11 +13,9 @@ sealed class ParseResultHolder(val lastToken: TokenWithPosition) {
     class EmptyParseResult(lastToken: TokenWithPosition) : ParseResultHolder(lastToken)
 }
 
-class EnvironmentBinding(val environment: Environment, val name: Symbol) {
-    var canEscape: Boolean = false
-
+class EnvironmentBinding(val environment: Environment, val name: Symbol, val origin: EnvironmentBinding? = null) {
     override fun toString(): String {
-        return "EnvironmentBinding[environment=${environment}, name=${name}, canEscape=${canEscape}, key=${hashCode().toString(16)}]"
+        return "EnvironmentBinding[environment=${environment}, name=${name}, key=${hashCode().toString(16)}, origin=${origin}]"
     }
 }
 
@@ -575,7 +573,7 @@ class APLParser(val tokeniser: TokenGenerator) {
         return if (tokeniser.engine.isSelfEvaluatingSymbol(symbol)) {
             LiteralSymbol(symbol, pos)
         } else {
-            VariableRef(symbol, findEnvironmentBinding(symbol), pos)
+            VariableRef(symbol, findEnvironmentBinding(symbol), currentEnvironment(), pos)
         }
     }
 

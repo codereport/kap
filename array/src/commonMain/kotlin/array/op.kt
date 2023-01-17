@@ -137,7 +137,7 @@ class UserDefinedOperatorOneArg(
     inner class UserDefinedOperatorFn(val opFn: APLFunction, pos: Position) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
-                inner.assignArgs(rightArgs, a, pos)
+                inner.assignArgs(rightArgs, a)
                 inner.setVar(opBinding, LambdaValue(opFn, context))
                 instr.evalWithContext(inner)
             }
@@ -145,8 +145,8 @@ class UserDefinedOperatorOneArg(
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
-                inner.assignArgs(leftArgs, a, pos)
-                inner.assignArgs(rightArgs, b, pos)
+                inner.assignArgs(leftArgs, a)
+                inner.assignArgs(rightArgs, b)
                 inner.setVar(opBinding, LambdaValue(opFn, context))
                 instr.evalWithContext(inner)
             }
@@ -187,7 +187,7 @@ class UserDefinedOperatorTwoArg(
     abstract inner class APLUserDefinedOperatorFunction(val leftFn: APLFunction, pos: Position) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
-                inner.assignArgs(rightArgs, a, pos)
+                inner.assignArgs(rightArgs, a)
                 inner.setVar(leftOpBinding, LambdaValue(leftFn, context))
                 inner.setVar(rightOpBinding, mkArg(context))
                 instr.evalWithContext(inner)
@@ -196,8 +196,8 @@ class UserDefinedOperatorTwoArg(
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
-                inner.assignArgs(leftArgs, a, pos)
-                inner.assignArgs(rightArgs, b, pos)
+                inner.assignArgs(leftArgs, a)
+                inner.assignArgs(rightArgs, b)
                 inner.setVar(leftOpBinding, LambdaValue(leftFn, context))
                 inner.setVar(rightOpBinding, mkArg(context))
                 instr.evalWithContext(inner)

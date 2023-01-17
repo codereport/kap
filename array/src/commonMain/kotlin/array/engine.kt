@@ -386,6 +386,7 @@ class Engine(numComputeEngines: Int? = null) {
                         val newInstr = RootEnvironmentInstruction(parser.currentEnvironment(), instr, instr.pos)
                         Pair(newInstr, mapped)
                     }
+                    newInstr.escapeAnalysis()
                     return newInstr.evalWithNewContext(this, mapped)
                 }
             }
@@ -400,6 +401,7 @@ class Engine(numComputeEngines: Int? = null) {
                 }
                 val parser = APLParser(tokeniser)
                 val instr = parser.parseValueToplevel(EndOfFile)
+                instr.escapeAnalysis()
                 rootContext.reinitRootBindings()
                 return instr.evalWithContext(rootContext)
             }
@@ -606,18 +608,15 @@ class RuntimeContext(val engine: Engine, val environment: Environment) {
 
     fun findVariables() = localVariables.map { (k, v) -> k.name to v.value }.toList()
 
-    private fun findOrThrow(name: EnvironmentBinding): VariableHolder {
-//        return localVariables[name]
-//            ?: throw IllegalStateException("Attempt to set the value of a nonexistent binding: ${name}")
-        return lookupContextStack().stack[name.environment.index].localVariables[name]
-            ?: throw IllegalStateException("Attempt to set the value of a nonexistent binding: ${name}")
-    }
-
     fun setVar(name: EnvironmentBinding, value: APLValue) {
-        this.findOrThrow(name).value = value
+        val holder = localVariables[name] ?: throw IllegalStateException("Attempt to set the value of a nonexistent binding: ${name}")
+        holder.value = value
     }
 
-    fun getVar(binding: EnvironmentBinding): APLValue? = findOrThrow(binding).value
+    fun getVar(binding: EnvironmentBinding): APLValue? {
+        val holder = localVariables[binding] ?: throw IllegalStateException("Attempt to get the value of a nonexistent binding: ${binding}")
+        return holder.value
+    }
 
     @OptIn(ExperimentalContracts::class)
     inline fun <T> withLinkedContext(env: Environment, name: String, pos: Position, fn: (RuntimeContext) -> T): T {
