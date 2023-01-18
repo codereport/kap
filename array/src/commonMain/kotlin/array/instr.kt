@@ -126,6 +126,7 @@ class DynamicFunctionDescriptor(val instr: Instruction) : APLFunctionDescriptor 
 
 class VariableRef(val name: Symbol, val binding: EnvironmentBinding, baseEnvironment: Environment, pos: Position) : Instruction(pos) {
     val stackIndex = baseEnvironment.index - binding.environment.index
+    var frameOffset = -1
 
     override fun evalWithContext(context: RuntimeContext): APLValue {
         val stack = lookupContextStack().stack

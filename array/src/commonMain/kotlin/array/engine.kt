@@ -556,11 +556,21 @@ class VariableHolder {
 }
 
 class RuntimeContext(val engine: Engine, val environment: Environment) {
-    private val localVariables = HashMap<EnvironmentBinding, VariableHolder>()
+    //    private val localVariables = HashMap<EnvironmentBinding, VariableHolder>()
+    private val localVariables: Array<VariableHolder>
+
     private var releaseCallbacks: MutableList<() -> Unit>? = null
 
     init {
-        initBindings()
+//        val localBindings = environment.localBindings()
+//        localBindings.forEach { b ->
+//            if (b.environment === environment) {
+//                localVariables[b] = VariableHolder()
+//            } else {
+//                throw Exception("blip")
+//            }
+//        }
+        localVariables = Array(environment.localBindings().size) { VariableHolder() }
     }
 
     fun pushReleaseCallback(callback: () -> Unit) {
@@ -583,27 +593,25 @@ class RuntimeContext(val engine: Engine, val environment: Environment) {
         }
     }
 
-    private fun initBindings() {
-        val localBindings = environment.localBindings()
-        localBindings.forEach { b ->
-            if (b.environment === environment) {
-                localVariables[b] = VariableHolder()
-            }
-        }
-    }
-
     fun reinitRootBindings() {
-        environment.localBindings().forEach { b ->
-            if (localVariables[b] == null) {
-                localVariables[b] = VariableHolder()
-            }
+//        environment.localBindings().forEach { b ->
+//            if (localVariables[b] == null) {
+//                localVariables[b] = VariableHolder()
+//            }
+//        }
+        repeat(localVariables.size) { i ->
+            localVariables[i] = VariableHolder()
         }
     }
 
     fun isLocallyBound(sym: Symbol): Boolean {
         // TODO: This hack is needed for the KAP function isLocallyBound to work. A better strategy is needed.
-        val holder = localVariables.entries.find { it.key.name === sym } ?: return false
-        return holder.value.value != null
+        val index = environment.localBindings().indexOfFirst { it.name === sym }
+        return if (index == -1) {
+            false
+        } else {
+            localVariables[index].value != null
+        }
     }
 
     fun findVariables() = localVariables.map { (k, v) -> k.name to v.value }.toList()
