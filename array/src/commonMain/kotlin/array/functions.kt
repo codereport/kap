@@ -309,7 +309,7 @@ class LeftAssignedFunction(val underlying: APLFunction, val leftArgs: Instructio
         val (innerFn, relatedInstrs) = underlying.computeClosure(parser)
         val list = mutableListOf<Instruction>(AssignmentInstruction(arrayOf(binding), leftArgs, pos))
         list.addAll(relatedInstrs)
-        return Pair(LeftAssignedFunction(innerFn, VariableRef(sym, binding, pos), pos), list)
+        return Pair(LeftAssignedFunction(innerFn, VariableRef(sym, binding, parser.currentEnvironment(), pos), pos), list)
     }
 
     override val name1Arg get() = underlying.name2Arg
@@ -356,7 +356,7 @@ class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction) 
         val binding = parser.currentEnvironment().bindLocal(sym)
         val (innerFn, relatedInstrs) = baseFn.computeClosure(parser)
         return Pair(
-            AxisValAssignedFunctionAxisReader(innerFn, VariableRef(sym, binding, pos)),
+            AxisValAssignedFunctionAxisReader(innerFn, VariableRef(sym, binding, parser.currentEnvironment(), pos)),
             relatedInstrs + AssignmentInstruction(arrayOf(binding), axis, pos))
     }
 }

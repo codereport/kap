@@ -13,28 +13,29 @@ sealed class ParseResultHolder(val lastToken: TokenWithPosition) {
     class EmptyParseResult(lastToken: TokenWithPosition) : ParseResultHolder(lastToken)
 }
 
-class EnvironmentBinding(val environment: Environment, val name: Symbol) {
-    var canEscape: Boolean = false
-
+class EnvironmentBinding(val environment: Environment, val name: Symbol, val origin: EnvironmentBinding? = null) {
     override fun toString(): String {
-        return "EnvironmentBinding[environment=${environment}, name=${name}, canEscape=${canEscape}, key=${hashCode().toString(16)}]"
+        return "EnvironmentBinding[environment=${environment}, name=${name}, key=${hashCode().toString(16)}, origin=${origin}]"
     }
 }
 
 class Environment(val index: Int) {
-    private val bindings = HashMap<Symbol, EnvironmentBinding>()
+    private val bindings = ArrayList<EnvironmentBinding>()
     private val localFunctions = HashMap<Symbol, APLFunctionDescriptor>()
 
-    fun findBinding(sym: Symbol) = bindings[sym]
+    fun findBinding(sym: Symbol) = bindings.find { b -> b.name == sym }
 
-    fun bindLocal(sym: Symbol, binding: EnvironmentBinding? = null): EnvironmentBinding {
-        val newBinding = binding ?: EnvironmentBinding(this, sym)
-        bindings[sym] = newBinding
+    fun bindLocal(sym: Symbol): EnvironmentBinding {
+        if (findBinding(sym) != null) {
+            throw IllegalStateException("Symbol ${sym} is already bound in environment")
+        }
+        val newBinding = EnvironmentBinding(this, sym)
+        bindings.add(newBinding)
         return newBinding
     }
 
     fun localBindings(): Collection<EnvironmentBinding> {
-        return bindings.values
+        return bindings
     }
 
     fun registerLocalFunction(name: Symbol, userFn: APLFunctionDescriptor) {
@@ -104,7 +105,6 @@ class APLParser(val tokeniser: TokenGenerator) {
         environments.asReversed().forEach { env ->
             val binding = env.findBinding(sym)
             if (binding != null) {
-                currentEnvironment().bindLocal(sym, binding)
                 return binding
             }
         }
@@ -575,7 +575,7 @@ class APLParser(val tokeniser: TokenGenerator) {
         return if (tokeniser.engine.isSelfEvaluatingSymbol(symbol)) {
             LiteralSymbol(symbol, pos)
         } else {
-            VariableRef(symbol, findEnvironmentBinding(symbol), pos)
+            VariableRef(symbol, findEnvironmentBinding(symbol), currentEnvironment(), pos)
         }
     }
 

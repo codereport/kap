@@ -386,6 +386,7 @@ class Engine(numComputeEngines: Int? = null) {
                         val newInstr = RootEnvironmentInstruction(parser.currentEnvironment(), instr, instr.pos)
                         Pair(newInstr, mapped)
                     }
+                    newInstr.escapeAnalysis()
                     return newInstr.evalWithNewContext(this, mapped)
                 }
             }
@@ -400,6 +401,7 @@ class Engine(numComputeEngines: Int? = null) {
                 }
                 val parser = APLParser(tokeniser)
                 val instr = parser.parseValueToplevel(EndOfFile)
+                instr.escapeAnalysis()
                 rootContext.reinitRootBindings()
                 return instr.evalWithContext(rootContext)
             }
@@ -554,11 +556,21 @@ class VariableHolder {
 }
 
 class RuntimeContext(val engine: Engine, val environment: Environment) {
-    private val localVariables = HashMap<EnvironmentBinding, VariableHolder>()
+    //    private val localVariables = HashMap<EnvironmentBinding, VariableHolder>()
+    private val localVariables: Array<VariableHolder>
+
     private var releaseCallbacks: MutableList<() -> Unit>? = null
 
     init {
-        initBindings()
+//        val localBindings = environment.localBindings()
+//        localBindings.forEach { b ->
+//            if (b.environment === environment) {
+//                localVariables[b] = VariableHolder()
+//            } else {
+//                throw Exception("blip")
+//            }
+//        }
+        localVariables = Array(environment.localBindings().size) { VariableHolder() }
     }
 
     fun pushReleaseCallback(callback: () -> Unit) {
@@ -581,43 +593,38 @@ class RuntimeContext(val engine: Engine, val environment: Environment) {
         }
     }
 
-    private fun initBindings() {
-        val localBindings = environment.localBindings()
-        localBindings.forEach { b ->
-            if (b.environment === environment) {
-                localVariables[b] = VariableHolder()
-            }
-        }
-    }
-
     fun reinitRootBindings() {
-        environment.localBindings().forEach { b ->
-            if (localVariables[b] == null) {
-                localVariables[b] = VariableHolder()
-            }
+//        environment.localBindings().forEach { b ->
+//            if (localVariables[b] == null) {
+//                localVariables[b] = VariableHolder()
+//            }
+//        }
+        repeat(localVariables.size) { i ->
+            localVariables[i] = VariableHolder()
         }
     }
 
     fun isLocallyBound(sym: Symbol): Boolean {
         // TODO: This hack is needed for the KAP function isLocallyBound to work. A better strategy is needed.
-        val holder = localVariables.entries.find { it.key.name === sym } ?: return false
-        return holder.value.value != null
+        val index = environment.localBindings().indexOfFirst { it.name === sym }
+        return if (index == -1) {
+            false
+        } else {
+            localVariables[index].value != null
+        }
     }
 
     fun findVariables() = localVariables.map { (k, v) -> k.name to v.value }.toList()
 
-    private fun findOrThrow(name: EnvironmentBinding): VariableHolder {
-//        return localVariables[name]
-//            ?: throw IllegalStateException("Attempt to set the value of a nonexistent binding: ${name}")
-        return lookupContextStack().stack[name.environment.index].localVariables[name]
-            ?: throw IllegalStateException("Attempt to set the value of a nonexistent binding: ${name}")
-    }
-
     fun setVar(name: EnvironmentBinding, value: APLValue) {
-        this.findOrThrow(name).value = value
+        val holder = localVariables[name] ?: throw IllegalStateException("Attempt to set the value of a nonexistent binding: ${name}")
+        holder.value = value
     }
 
-    fun getVar(binding: EnvironmentBinding): APLValue? = findOrThrow(binding).value
+    fun getVar(binding: EnvironmentBinding): APLValue? {
+        val holder = localVariables[binding] ?: throw IllegalStateException("Attempt to get the value of a nonexistent binding: ${binding}")
+        return holder.value
+    }
 
     @OptIn(ExperimentalContracts::class)
     inline fun <T> withLinkedContext(env: Environment, name: String, pos: Position, fn: (RuntimeContext) -> T): T {
