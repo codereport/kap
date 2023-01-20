@@ -73,7 +73,7 @@ class CalculationQueue(val engine: Engine) {
                     engine.internSymbol(k.second, engine.makeNamespace(k.first)) to v
                 }?.toMap()
                 val result = engine.withThreadLocalAssigned {
-                    engine.parseAndEval(source, newContext = linkNewContext, extraBindings = resolvedSymbols).collapse()
+                    engine.parseAndEval(source, extraBindings = resolvedSymbols).collapse()
                 }
                 Either.Left(result)
             } catch (e: InterruptedException) {
@@ -94,9 +94,10 @@ class CalculationQueue(val engine: Engine) {
             val result = if (sym == null) {
                 null
             } else {
-                engine.rootContext.environment.findBinding(sym)?.let { binding ->
-                    engine.rootContext.getVar(binding)?.collapse()
-                }
+                TODO("Need to fix")
+//                engine.rootContext.environment.findBinding(sym)?.let { binding ->
+//                    engine.rootContext.getVar(binding)?.collapse()
+//                }
             }
             callback(result)
         }
@@ -104,11 +105,12 @@ class CalculationQueue(val engine: Engine) {
 
     private inner class WriteVariableRequest(val name: String, val value: APLValue, val callback: (Exception?) -> Unit) : Request {
         override fun processRequest() {
-            val sym = engine.currentNamespace.internSymbol(name)
-            val binding = engine.rootContext.environment.findBinding(sym) ?: engine.rootContext.environment.bindLocal(sym)
-            engine.rootContext.reinitRootBindings()
-            engine.rootContext.setVar(binding, value)
-            callback(null)
+            TODO("need to fix")
+//            val sym = engine.currentNamespace.internSymbol(name)
+//            val binding = engine.rootContext.environment.findBinding(sym) ?: engine.rootContext.environment.bindLocal(sym)
+//            engine.rootContext.reinitRootBindings()
+//            engine.rootContext.setVar(binding, value)
+//            callback(null)
         }
     }
 

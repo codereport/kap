@@ -60,7 +60,7 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
         engine.addLibrarySearchPath("../array/standard-lib")
         extraPaths?.forEach(engine::addLibrarySearchPath)
         initModules()
-        engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"), false)
+        engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
 
         engine.standardOutput = SendToMainCharacterOutput()
         calculationQueue = CalculationQueue(engine)

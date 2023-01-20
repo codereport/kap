@@ -123,6 +123,6 @@ class EvalLambdaFuncTest : APLTest() {
     }
 
     private fun evalWithEngine(engine: Engine, expr: String): APLValue {
-        return engine.parseAndEval(StringSourceLocation(expr), false)
+        return engine.parseAndEval(StringSourceLocation(expr))
     }
 }

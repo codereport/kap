@@ -231,17 +231,20 @@ class DeclaredFunction(
     val env: Environment
 ) : APLFunctionDescriptor {
     inner class DeclaredFunctionImpl(pos: Position) : APLFunction(pos) {
+        private val leftArgRef = StackStorageRef(leftArgName)
+        private val rightArgRef = StackStorageRef(rightArgName)
+
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             return context.withLinkedContext(env, "declaredFunction1arg(${name})", pos) { localContext ->
-                localContext.setVar(rightArgName, a)
+                localContext.setVar(rightArgRef, a)
                 instruction.evalWithContext(localContext)
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             return context.withLinkedContext(env, "declaredFunction2arg(${name})", pos) { localContext ->
-                localContext.setVar(leftArgName, a)
-                localContext.setVar(rightArgName, b)
+                localContext.setVar(leftArgRef, a)
+                localContext.setVar(rightArgRef, b)
                 instruction.evalWithContext(localContext)
             }
         }
@@ -307,9 +310,10 @@ class LeftAssignedFunction(val underlying: APLFunction, val leftArgs: Instructio
         val sym = parser.tokeniser.engine.createAnonymousSymbol()
         val binding = parser.currentEnvironment().bindLocal(sym)
         val (innerFn, relatedInstrs) = underlying.computeClosure(parser)
-        val list = mutableListOf<Instruction>(AssignmentInstruction(arrayOf(binding), leftArgs, pos))
+        val ref = StackStorageRef(binding)
+        val list = mutableListOf<Instruction>(AssignmentInstruction(arrayOf(ref), leftArgs, pos))
         list.addAll(relatedInstrs)
-        return Pair(LeftAssignedFunction(innerFn, VariableRef(sym, binding, parser.currentEnvironment(), pos), pos), list)
+        return Pair(LeftAssignedFunction(innerFn, VariableRef(sym, ref, pos), pos), list)
     }
 
     override val name1Arg get() = underlying.name2Arg
@@ -355,9 +359,10 @@ class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction) 
         val sym = parser.tokeniser.engine.createAnonymousSymbol()
         val binding = parser.currentEnvironment().bindLocal(sym)
         val (innerFn, relatedInstrs) = baseFn.computeClosure(parser)
+        val ref = StackStorageRef(binding)
         return Pair(
-            AxisValAssignedFunctionAxisReader(innerFn, VariableRef(sym, binding, parser.currentEnvironment(), pos)),
-            relatedInstrs + AssignmentInstruction(arrayOf(binding), axis, pos))
+            AxisValAssignedFunctionAxisReader(innerFn, VariableRef(sym, ref, pos)),
+            relatedInstrs + AssignmentInstruction(arrayOf(ref), axis, pos))
     }
 }
 

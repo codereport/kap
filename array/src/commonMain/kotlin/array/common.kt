@@ -176,6 +176,13 @@ class Arrays {
     }
 }
 
+fun <T> List<T>.rest(): List<T> {
+    if (this.isEmpty()) {
+        throw IllegalStateException("Cannot take the rest of an empty list")
+    }
+    return this.subList(1, this.size)
+}
+
 @OptIn(ExperimentalContracts::class)
 inline fun assertx(condition: Boolean, message: () -> String = { "Assertion error" }) {
     contract { returns() implies condition }

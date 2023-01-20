@@ -234,8 +234,7 @@ class FlowControlTest : APLTest() {
         engine.standardOutput = output
         assertFailsWith<APLEvalException> {
             engine.parseAndEval(
-                StringSourceLocation("int:unwindProtect λ{io:print \"bar\" ◊ b ◊ io:print \"foo\"} λ{io:print \"qwe\"}"),
-                true)
+                StringSourceLocation("int:unwindProtect λ{io:print \"bar\" ◊ b ◊ io:print \"foo\"} λ{io:print \"qwe\"}"))
         }
         assertEquals("barqwe", output.buf.toString())
     }

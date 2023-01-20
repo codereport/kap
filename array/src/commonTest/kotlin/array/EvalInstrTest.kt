@@ -8,10 +8,10 @@ class EvalInstrTest : APLTest() {
     @Test
     fun plainEvalSameContext() {
         val engine = Engine()
-        engine.parseAndEval(StringSourceLocation("foo ← 1"), newContext = false).let { result ->
+        engine.parseAndEval(StringSourceLocation("foo ← 1")).let { result ->
             assertSimpleNumber(1, result)
         }
-        engine.parseAndEval(StringSourceLocation("foo + 3"), newContext = false).let { result ->
+        engine.parseAndEval(StringSourceLocation("foo + 3")).let { result ->
             assertSimpleNumber(4, result)
         }
     }
@@ -19,11 +19,11 @@ class EvalInstrTest : APLTest() {
     @Test
     fun plainEvalNewContext() {
         val engine = Engine()
-        engine.parseAndEval(StringSourceLocation("foo ← 1"), newContext = true).let { result ->
+        engine.parseAndEval(StringSourceLocation("foo ← 1")).let { result ->
             assertSimpleNumber(1, result)
         }
         assertFailsWith<VariableNotAssigned> {
-            engine.parseAndEval(StringSourceLocation("foo + 3"), newContext = true)
+            engine.parseAndEval(StringSourceLocation("foo + 3"))
         }
     }
 
@@ -41,7 +41,7 @@ class EvalInstrTest : APLTest() {
         val engine = Engine()
         val b = mapOf(engine.internSymbol("a") to APLLong(3))
         assertFails {
-            engine.parseAndEval(StringSourceLocation("a + 7"), newContext = false, extraBindings = b)
+            engine.parseAndEval(StringSourceLocation("a + 7"), extraBindings = b)
         }
     }
 }

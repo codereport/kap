@@ -206,7 +206,7 @@ class SyntaxTest : APLTest() {
             |b
             """.trimMargin())
         assertFailsWith<VariableNotAssigned> {
-            engine.parseAndEval(sourceLocation, true).collapse()
+            engine.parseAndEval(sourceLocation).collapse()
         }
         assertEquals("40", out.buf.toString())
     }

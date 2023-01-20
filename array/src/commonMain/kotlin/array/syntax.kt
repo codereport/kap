@@ -258,12 +258,14 @@ class CallWithVarInstruction(
     val name: String,
     val instr: Instruction,
     val env: Environment,
-    val bindings: List<Pair<EnvironmentBinding, Instruction>>,
+    bindings: List<Pair<EnvironmentBinding, Instruction>>,
     pos: Position
 ) : Instruction(pos) {
+    private val refs = bindings.map { (b, instr) -> Pair(StackStorageRef(b), instr) }
+
     override fun evalWithContext(context: RuntimeContext): APLValue {
         return context.withLinkedContext(env, name, pos) { newContext ->
-            bindings.forEach { (envBinding, instr) ->
+            refs.forEach { (envBinding, instr) ->
                 newContext.setVar(envBinding, instr.evalWithContext(context))
             }
             instr.evalWithContext(newContext)

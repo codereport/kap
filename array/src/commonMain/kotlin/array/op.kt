@@ -135,19 +135,23 @@ class UserDefinedOperatorOneArg(
     }
 
     inner class UserDefinedOperatorFn(val opFn: APLFunction, pos: Position) : NoAxisAPLFunction(pos) {
+        private val operatorRef = StackStorageRef(opBinding)
+        private val leftArgsRef = leftArgs.map(::StackStorageRef)
+        private val rightArgsRef = leftArgs.map(::StackStorageRef)
+
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
-                inner.assignArgs(rightArgs, a)
-                inner.setVar(opBinding, LambdaValue(opFn, context))
+                inner.assignArgs(rightArgsRef, a)
+                inner.setVar(operatorRef, LambdaValue(opFn, context))
                 instr.evalWithContext(inner)
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
-                inner.assignArgs(leftArgs, a)
-                inner.assignArgs(rightArgs, b)
-                inner.setVar(opBinding, LambdaValue(opFn, context))
+                inner.assignArgs(leftArgsRef, a)
+                inner.assignArgs(rightArgsRef, b)
+                inner.setVar(operatorRef, LambdaValue(opFn, context))
                 instr.evalWithContext(inner)
             }
         }
@@ -185,21 +189,26 @@ class UserDefinedOperatorTwoArg(
     }
 
     abstract inner class APLUserDefinedOperatorFunction(val leftFn: APLFunction, pos: Position) : NoAxisAPLFunction(pos) {
+        private val leftOperatorRef = StackStorageRef(leftOpBinding)
+        private val rightOperatorRef = StackStorageRef(rightOpBinding)
+        private val leftArgsRef = leftArgs.map(::StackStorageRef)
+        private val rightArgsRef = rightArgs.map(::StackStorageRef)
+
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
-                inner.assignArgs(rightArgs, a)
-                inner.setVar(leftOpBinding, LambdaValue(leftFn, context))
-                inner.setVar(rightOpBinding, mkArg(context))
+                inner.assignArgs(rightArgsRef, a)
+                inner.setVar(leftOperatorRef, LambdaValue(leftFn, context))
+                inner.setVar(rightOperatorRef, mkArg(context))
                 instr.evalWithContext(inner)
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
-                inner.assignArgs(leftArgs, a)
-                inner.assignArgs(rightArgs, b)
-                inner.setVar(leftOpBinding, LambdaValue(leftFn, context))
-                inner.setVar(rightOpBinding, mkArg(context))
+                inner.assignArgs(leftArgsRef, a)
+                inner.assignArgs(rightArgsRef, b)
+                inner.setVar(leftOperatorRef, LambdaValue(leftFn, context))
+                inner.setVar(rightOperatorRef, mkArg(context))
                 instr.evalWithContext(inner)
             }
         }

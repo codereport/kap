@@ -89,7 +89,7 @@ class OperatorsTest : APLTest() {
 
         val engine = Engine()
         engine.registerOperator(engine.currentNamespace.internAndExport("foo"), FooOperator())
-        engine.parseAndEval(StringSourceLocation("1 (+foo 2) 3"), newContext = false).let { result ->
+        engine.parseAndEval(StringSourceLocation("1 (+foo 2) 3")).let { result ->
             assertSimpleNumber(9, result)
         }
     }

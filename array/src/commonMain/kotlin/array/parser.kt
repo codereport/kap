@@ -13,13 +13,40 @@ sealed class ParseResultHolder(val lastToken: TokenWithPosition) {
     class EmptyParseResult(lastToken: TokenWithPosition) : ParseResultHolder(lastToken)
 }
 
-class EnvironmentBinding(val environment: Environment, val name: Symbol, val origin: EnvironmentBinding? = null) {
+class StackStorageDescriptor(val env: Environment, val index: Int)
+
+class StackStorageRef(val binding: EnvironmentBinding) {
+    val frameIndex get() = binding.frameIndex
+    val storageOffset get() = binding.storage.index
+}
+
+class EnvironmentBinding(val environment: Environment, val name: Symbol, val storage: StackStorageDescriptor) {
+    var frameIndex: Int = -1
+
+    init {
+        var i = 0
+        var curr: Environment? = environment
+        while (curr != null) {
+            if (curr === storage.env) {
+                frameIndex = i
+                break
+            }
+            i++
+            curr = curr.parent
+        }
+        if (frameIndex == -1) {
+            throw IllegalStateException("sotrage descriptor not found in parent environments")
+        }
+    }
+
     override fun toString(): String {
-        return "EnvironmentBinding[environment=${environment}, name=${name}, key=${hashCode().toString(16)}, origin=${origin}]"
+        return "EnvironmentBinding[environment=${environment}, name=${name}, key=${hashCode().toString(16)}, storage=${storage}]"
     }
 }
 
-class Environment(val index: Int) {
+class Environment(val parent: Environment?) {
+    val index: Int = if (parent == null) 0 else parent.index + 1
+    val storageList = ArrayList<StackStorageDescriptor>()
     private val bindings = ArrayList<EnvironmentBinding>()
     private val localFunctions = HashMap<Symbol, APLFunctionDescriptor>()
 
@@ -29,7 +56,16 @@ class Environment(val index: Int) {
         if (findBinding(sym) != null) {
             throw IllegalStateException("Symbol ${sym} is already bound in environment")
         }
-        val newBinding = EnvironmentBinding(this, sym)
+        val storage = StackStorageDescriptor(this, storageList.size)
+        storageList.add(storage)
+        val newBinding = EnvironmentBinding(this, sym, storage)
+        bindings.add(newBinding)
+        return newBinding
+    }
+
+    fun bindRemote(sym: Symbol, binding: EnvironmentBinding): EnvironmentBinding {
+        assertx(findBinding(sym) == null) { "Local binding found when creating remote binding: ${binding}" }
+        val newBinding = EnvironmentBinding(this, sym, binding.storage)
         bindings.add(newBinding)
         return newBinding
     }
@@ -47,7 +83,7 @@ class Environment(val index: Int) {
     }
 
     companion object {
-        fun nullEnvironment() = Environment(0)
+        fun nullEnvironment() = Environment(null)
     }
 }
 
@@ -61,12 +97,12 @@ private fun makeResultList(leftArgs: List<Instruction>): Instruction? {
 }
 
 class APLParser(val tokeniser: TokenGenerator) {
-    private var environments = mutableListOf(tokeniser.engine.rootContext.environment)
+    private var environments = mutableListOf(tokeniser.engine.rootEnvironment)
 
     fun currentEnvironment() = environments.last()
 
     fun pushEnvironment(): Environment {
-        val env = Environment(currentEnvironment().index + 1)
+        val env = Environment(currentEnvironment())
         environments.add(env)
         return env
     }
@@ -102,13 +138,23 @@ class APLParser(val tokeniser: TokenGenerator) {
     }
 
     private fun findEnvironmentBinding(sym: Symbol): EnvironmentBinding {
-        environments.asReversed().forEach { env ->
-            val binding = env.findBinding(sym)
+        val curr = currentEnvironment()
+        // If the symbol is already bound in the current environment, return that binding
+        curr.findBinding(sym).let { binding ->
             if (binding != null) {
                 return binding
             }
         }
-        return currentEnvironment().bindLocal(sym)
+        // If the symbol is bound in a parent environment, bind it in the local environment
+        // and return the new binding
+        environments.asReversed().rest().forEach { env ->
+            val binding = env.findBinding(sym)
+            if (binding != null) {
+                return curr.bindRemote(sym, binding)
+            }
+        }
+        // If there is no existing binding, create a new binding with storage in the current environment
+        return curr.bindLocal(sym)
     }
 
     fun parseValueToplevelWithPosition(endToken: Token): Pair<Instruction, Position> {
@@ -575,7 +621,7 @@ class APLParser(val tokeniser: TokenGenerator) {
         return if (tokeniser.engine.isSelfEvaluatingSymbol(symbol)) {
             LiteralSymbol(symbol, pos)
         } else {
-            VariableRef(symbol, findEnvironmentBinding(symbol), currentEnvironment(), pos)
+            VariableRef(symbol, StackStorageRef(findEnvironmentBinding(symbol)), pos)
         }
     }
 

@@ -38,14 +38,14 @@ class SymbolTest : APLTest() {
     @Test
     fun testParseSymbol() {
         val engine = Engine()
-        val result = engine.parseAndEval(StringSourceLocation("'foo"), false)
+        val result = engine.parseAndEval(StringSourceLocation("'foo"))
         assertSame(engine.internSymbol("foo"), result.ensureSymbol().value)
     }
 
     @Test
     fun keywordSymbol() {
         val engine = Engine()
-        val result = engine.parseAndEval(StringSourceLocation(":foo"), false)
+        val result = engine.parseAndEval(StringSourceLocation(":foo"))
         assertSame(engine.makeNamespace("keyword").internSymbol("foo"), result.ensureSymbol().value)
     }
 }

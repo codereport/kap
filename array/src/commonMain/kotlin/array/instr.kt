@@ -28,10 +28,11 @@ class RootEnvironmentInstruction(val environment: Environment, val instr: Instru
     override fun children() = listOf(instr)
 
     fun evalWithNewContext(engine: Engine, extraBindings: List<Pair<EnvironmentBinding, APLValue>>?): APLValue {
-        val context = RuntimeContext(engine, environment)
-        extraBindings?.forEach { (binding, value) ->
-            context.setVar(binding, value)
-        }
+        assertx(extraBindings.isNullOrEmpty()) { "Extra bindings not supported yet" }
+        val context = RuntimeContext(engine)
+//        extraBindings?.forEach { (binding, value) ->
+//            context.setVar(binding, value)
+//        }
         return instr.evalWithContext(context)
     }
 }
@@ -124,14 +125,9 @@ class DynamicFunctionDescriptor(val instr: Instruction) : APLFunctionDescriptor 
     }
 }
 
-class VariableRef(val name: Symbol, val binding: EnvironmentBinding, baseEnvironment: Environment, pos: Position) : Instruction(pos) {
-    val stackIndex = baseEnvironment.index - binding.environment.index
-    var frameOffset = -1
-
+class VariableRef(val name: Symbol, val storageRef: StackStorageRef, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
-        val stack = lookupContextStack().stack
-        return stack[stack.size - stackIndex - 1].getVar(binding)
-            ?: throwAPLException(VariableNotAssigned(binding.name, pos))
+        return context.stack.findStorage(storageRef).value ?: throwAPLException(VariableNotAssigned(storageRef.binding.name, pos))
     }
 
     override fun children(): List<Instruction> = emptyList()
@@ -139,7 +135,7 @@ class VariableRef(val name: Symbol, val binding: EnvironmentBinding, baseEnviron
     override fun deriveLvalueReader(): LvalueReader {
         return object : LvalueReader {
             override fun makeInstruction(rightArgs: Instruction, pos: Position): Instruction {
-                return AssignmentInstruction(arrayOf(binding), rightArgs, pos)
+                return AssignmentInstruction(arrayOf(storageRef), rightArgs, pos)
             }
         }
     }
@@ -165,7 +161,7 @@ class Literal1DArray private constructor(val values: List<Instruction>, pos: Pos
         }
         return object : LvalueReader {
             override fun makeInstruction(rightArgs: Instruction, pos: Position): Instruction {
-                return AssignmentInstruction(values.map { instr -> (instr as VariableRef).binding }.toTypedArray(), rightArgs, pos)
+                return AssignmentInstruction(values.map { instr -> (instr as VariableRef).storageRef }.toTypedArray(), rightArgs, pos)
             }
         }
     }
@@ -282,7 +278,7 @@ class LiteralDoubleArray(val value: DoubleArray, pos: Position) : Instruction(po
     override fun children(): List<Instruction> = emptyList()
 }
 
-class AssignmentInstruction(val variableList: Array<EnvironmentBinding>, val instr: Instruction, pos: Position) : Instruction(pos) {
+class AssignmentInstruction(val variableList: Array<StackStorageRef>, val instr: Instruction, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
         val res = instr.evalWithContext(context)
         val v = res.collapse()
@@ -313,17 +309,20 @@ class UserFunction(
     private val env: Environment
 ) : APLFunctionDescriptor {
     inner class UserFunctionImpl(pos: Position) : APLFunction(pos) {
+        private val leftStorageRefs = leftFnArgs.map(::StackStorageRef)
+        private val rightStorageRefs = rightFnArgs.map(::StackStorageRef)
+
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
-                inner.assignArgs(rightFnArgs, a, pos)
+                inner.assignArgs(rightStorageRefs, a, pos)
                 instr.evalWithContext(inner)
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
-                inner.assignArgs(leftFnArgs, a, pos)
-                inner.assignArgs(rightFnArgs, b, pos)
+                inner.assignArgs(leftStorageRefs, a, pos)
+                inner.assignArgs(rightStorageRefs, b, pos)
                 instr.evalWithContext(inner)
             }
         }

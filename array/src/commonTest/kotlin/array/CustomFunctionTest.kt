@@ -40,7 +40,7 @@ class CustomFunctionTest : APLTest() {
         val engine = Engine()
         val output = StringBuilderOutput()
         engine.standardOutput = output
-        val result = engine.parseAndEval(StringSourceLocation("∇ foo (A) { io:print A ◊ A+10 } ◊ foo(1000) "), false)
+        val result = engine.parseAndEval(StringSourceLocation("∇ foo (A) { io:print A ◊ A+10 } ◊ foo(1000) "))
         assertSimpleNumber(1010, result)
         assertEquals("1000", output.buf.toString())
     }
@@ -271,21 +271,21 @@ class CustomFunctionTest : APLTest() {
     @Test
     fun functionRedefinition() {
         val engine = Engine()
-        engine.parseAndEval(StringSourceLocation("∇ foo (x) { x+1 }"), false).collapse()
-        engine.parseAndEval(StringSourceLocation("foo 100"), false).let { result ->
+        engine.parseAndEval(StringSourceLocation("∇ foo (x) { x+1 }")).collapse()
+        engine.parseAndEval(StringSourceLocation("foo 100")).let { result ->
             assertSimpleNumber(101, result.collapse())
         }
-        engine.parseAndEval(StringSourceLocation("∇ bar (x) { foo x + 2 }"), false).collapse()
-        engine.parseAndEval(StringSourceLocation("bar 210"), false).let { result ->
+        engine.parseAndEval(StringSourceLocation("∇ bar (x) { foo x + 2 }")).collapse()
+        engine.parseAndEval(StringSourceLocation("bar 210")).let { result ->
             assertSimpleNumber(213, result.collapse())
         }
         // Redefine foo and call bar again to confirm that bar now has the new definition
-        engine.parseAndEval(StringSourceLocation("∇ foo (x) { x + 5 }"), false).collapse()
-        engine.parseAndEval(StringSourceLocation("foo 310"), false).let { result ->
+        engine.parseAndEval(StringSourceLocation("∇ foo (x) { x + 5 }")).collapse()
+        engine.parseAndEval(StringSourceLocation("foo 310")).let { result ->
             assertSimpleNumber(315, result.collapse())
         }
         // This should use the new definition of foo
-        engine.parseAndEval(StringSourceLocation("bar 410"), false).let { result ->
+        engine.parseAndEval(StringSourceLocation("bar 410")).let { result ->
             assertSimpleNumber(417, result.collapse())
         }
     }

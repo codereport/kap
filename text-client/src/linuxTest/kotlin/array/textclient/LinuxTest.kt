@@ -9,7 +9,7 @@ class LinuxTest {
     @Test
     fun testCompilation() {
         val engine = Engine()
-        val result = engine.parseAndEval(StringSourceLocation("10000 + ⍳3"), true).collapse()
+        val result = engine.parseAndEval(StringSourceLocation("10000 + ⍳3")).collapse()
         val d = result.dimensions
         assertEquals(1, d.size)
         assertEquals(3, d[0])

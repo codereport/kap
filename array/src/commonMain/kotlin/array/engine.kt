@@ -67,16 +67,36 @@ data class CallStackElement(val name: String, val pos: Position?)
 
 val threadLocalCallstackRef = makeMPThreadLocal<ThreadLocalCallStack>()
 
-class ContextStack(toplevel: RuntimeContext) {
-    val stack = arrayListOf(toplevel)
+class StorageStackElement(environment: Environment, val name: String) {
+    val storageList: List<VariableHolder>
+
+    init {
+        val size = environment.storageList.size
+        storageList = ArrayList(size)
+        repeat(size) { i ->
+            storageList.add(VariableHolder())
+        }
+    }
 }
 
-val threadLocalContextStack = makeMPThreadLocal<ContextStack>()
+class StorageStack(env: Environment) {
+    val stack = arrayListOf(StorageStackElement(env, "root"))
 
-fun lookupContextStack(): ContextStack {
-    val contextStack = threadLocalContextStack.value
-    assertx(contextStack != null) { "context stack is null" }
-    return contextStack
+    inline fun <T> withStackFrame(environment: Environment, name: String, fn: (StorageStackElement) -> T): T {
+        val frame = StorageStackElement(environment, name)
+        stack.add(frame)
+        try {
+            return fn(frame)
+        } finally {
+            val removed = stack.removeLast()
+            assertx(removed === frame)
+        }
+    }
+
+    fun findStorage(storageRef: StackStorageRef): VariableHolder {
+        val frame = stack[stack.size - storageRef.frameIndex - 1]
+        return frame.storageList[storageRef.storageOffset]
+    }
 }
 
 /**
@@ -102,7 +122,7 @@ class Engine(numComputeEngines: Int? = null) {
     private val modules = ArrayList<KapModule>()
     private val exportedSingleCharFunctions = HashSet<String>()
 
-    val rootContext = RuntimeContext(this, Environment(0))
+    val rootEnvironment = Environment(null)
     var standardOutput: CharacterOutput = NullCharacterOutput()
     var standardInput: CharacterProvider = NullCharacterProvider()
 
@@ -402,21 +422,17 @@ class Engine(numComputeEngines: Int? = null) {
                 val parser = APLParser(tokeniser)
                 val instr = parser.parseValueToplevel(EndOfFile)
                 instr.escapeAnalysis()
-                rootContext.reinitRootBindings()
-                return instr.evalWithContext(rootContext)
+                val context = RuntimeContext(this)
+                return instr.evalWithContext(context)
             }
         }
     }
 
-    fun parseAndEval(source: SourceLocation, newContext: Boolean = true, extraBindings: Map<Symbol, APLValue>? = null): APLValue {
-        return if (newContext) {
-            parseAndEvalNewContext(source, extraBindings)
-        } else {
-            if (extraBindings != null) {
-                throw IllegalArgumentException("newContext is required when specifying bindings")
-            }
-            parseAndEvalNoContext(source)
+    fun parseAndEval(source: SourceLocation, extraBindings: Map<Symbol, APLValue>? = null): APLValue {
+        if (extraBindings != null) {
+            throw IllegalArgumentException("extra bindings is not supported at the moment")
         }
+        return parseAndEvalNoContext(source)
     }
 
     fun internSymbol(name: String, namespace: Namespace? = null): Symbol = (namespace ?: currentNamespace).internSymbol(name)
@@ -486,12 +502,9 @@ class Engine(numComputeEngines: Int? = null) {
     inline fun <T> withThreadLocalAssigned(fn: () -> T): T {
         val oldThreadLocal = threadLocalCallstackRef.value
         threadLocalCallstackRef.value = ThreadLocalCallStack(this)
-        val oldContextStack = threadLocalContextStack.value
-        threadLocalContextStack.value = ContextStack(rootContext)
         try {
             return fn()
         } finally {
-            threadLocalContextStack.value = oldContextStack
             threadLocalCallstackRef.value = oldThreadLocal
         }
     }
@@ -555,42 +568,28 @@ class VariableHolder {
     var value: APLValue? = null
 }
 
-class RuntimeContext(val engine: Engine, val environment: Environment) {
-    //    private val localVariables = HashMap<EnvironmentBinding, VariableHolder>()
-    private val localVariables: Array<VariableHolder>
-
-    private var releaseCallbacks: MutableList<() -> Unit>? = null
-
-    init {
-//        val localBindings = environment.localBindings()
-//        localBindings.forEach { b ->
-//            if (b.environment === environment) {
-//                localVariables[b] = VariableHolder()
-//            } else {
-//                throw Exception("blip")
-//            }
-//        }
-        localVariables = Array(environment.localBindings().size) { VariableHolder() }
-    }
+class RuntimeContext(val engine: Engine) {
+    val stack = StorageStack(engine.rootEnvironment)
 
     fun pushReleaseCallback(callback: () -> Unit) {
-        val list = releaseCallbacks
-        if (list == null) {
-            val updated = ArrayList<() -> Unit>()
-            updated.add(callback)
-            releaseCallbacks = updated
-        } else {
-            list.add(callback)
-        }
+        TODO("need to fix")
+//        val list = releaseCallbacks
+//        if (list == null) {
+//            val updated = ArrayList<() -> Unit>()
+//            updated.add(callback)
+//            releaseCallbacks = updated
+//        } else {
+//            list.add(callback)
+//        }
     }
 
     fun fireReleaseCallbacks() {
-        val list = releaseCallbacks
-        if (list != null) {
-            list.asReversed().forEach { fn ->
-                fn()
-            }
-        }
+//        val list = releaseCallbacks
+//        if (list != null) {
+//            list.asReversed().forEach { fn ->
+//                fn()
+//            }
+//        }
     }
 
     fun reinitRootBindings() {
@@ -599,58 +598,66 @@ class RuntimeContext(val engine: Engine, val environment: Environment) {
 //                localVariables[b] = VariableHolder()
 //            }
 //        }
-        repeat(localVariables.size) { i ->
-            localVariables[i] = VariableHolder()
-        }
+//        repeat(localVariables.size) { i ->
+//            localVariables[i] = VariableHolder()
+//        }
     }
 
     fun isLocallyBound(sym: Symbol): Boolean {
-        // TODO: This hack is needed for the KAP function isLocallyBound to work. A better strategy is needed.
-        val index = environment.localBindings().indexOfFirst { it.name === sym }
-        return if (index == -1) {
-            false
-        } else {
-            localVariables[index].value != null
-        }
+        TODO("need to fix")
+//        // TODO: This hack is needed for the KAP function isLocallyBound to work. A better strategy is needed.
+//        val index = environment.localBindings().indexOfFirst { it.name === sym }
+//        return if (index == -1) {
+//            false
+//        } else {
+//            localVariables[index].value != null
+//        }
     }
 
-    fun findVariables() = localVariables.map { (k, v) -> k.name to v.value }.toList()
+//    fun findVariables() = localVariables.map { (k, v) -> k.name to v.value }.toList()
 
-    fun setVar(name: EnvironmentBinding, value: APLValue) {
-        val holder = localVariables[name] ?: throw IllegalStateException("Attempt to set the value of a nonexistent binding: ${name}")
+    fun setVar(storageRef: StackStorageRef, value: APLValue) {
+        val holder = stack.findStorage(storageRef)
         holder.value = value
+//        val holder = localVariables[name] ?: throw IllegalStateException("Attempt to set the value of a nonexistent binding: ${name}")
+//        holder.value = value
     }
 
-    fun getVar(binding: EnvironmentBinding): APLValue? {
-        val holder = localVariables[binding] ?: throw IllegalStateException("Attempt to get the value of a nonexistent binding: ${binding}")
+    fun getVar(storageRef: StackStorageRef): APLValue? {
+        val holder = stack.findStorage(storageRef)
         return holder.value
+//        val holder = localVariables[binding] ?: throw IllegalStateException("Attempt to get the value of a nonexistent binding: ${binding}")
+//        return holder.value
     }
 
     @OptIn(ExperimentalContracts::class)
     inline fun <T> withLinkedContext(env: Environment, name: String, pos: Position, fn: (RuntimeContext) -> T): T {
         contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
-        val newContext = RuntimeContext(engine, env)
-
-        val contextStack = lookupContextStack()
-        contextStack.stack.add(newContext)
-        val prevContextStackSize = contextStack.stack.size
-
-        return withCallStackElement(name, pos) {
-            try {
-                fn(newContext)
-            } finally {
-                newContext.fireReleaseCallbacks()
-                contextStack.stack.size.let { updatedSize ->
-                    if (updatedSize != prevContextStackSize) {
-                        throw IllegalStateException("Context stack was changed. Prev size = ${prevContextStackSize}, new size = $updatedSize")
-                    }
-                }
-                contextStack.stack.removeLast()
-            }
+        stack.withStackFrame(env, name) {
+            return fn(this)
         }
+//        val newContext = RuntimeContext(engine, env)
+//
+//        val contextStack = lookupContextStack()
+//        contextStack.stack.add(newContext)
+//        val prevContextStackSize = contextStack.stack.size
+//
+//        return withCallStackElement(name, pos) {
+//            try {
+//                fn(newContext)
+//            } finally {
+//                newContext.fireReleaseCallbacks()
+//                contextStack.stack.size.let { updatedSize ->
+//                    if (updatedSize != prevContextStackSize) {
+//                        throw IllegalStateException("Context stack was changed. Prev size = ${prevContextStackSize}, new size = $updatedSize")
+//                    }
+//                }
+//                contextStack.stack.removeLast()
+//            }
+//        }
     }
 
-    fun assignArgs(args: List<EnvironmentBinding>, a: APLValue, pos: Position? = null) {
+    fun assignArgs(args: List<StackStorageRef>, a: APLValue, pos: Position? = null) {
         fun checkLength(expectedLength: Int, actualLength: Int) {
             if (expectedLength != actualLength) {
                 throwAPLException(IllegalArgumentNumException(expectedLength, actualLength, pos))

@@ -27,11 +27,9 @@ kotlin {
         binaries.executable()
         browser {
             webpackTask {
-                cssSupport.enabled = true
             }
             runTask {
                 dependsOn("webworkerBrowserDistribution")
-                cssSupport.enabled = true
                 // https://gist.github.com/karlrwjohnson/a631cbda6b2fb316bc0a9f37156eae5d
                 var list = new ArrayList()
                 list.addAll(devServer.static)
@@ -41,7 +39,6 @@ kotlin {
             testTask {
                 useKarma {
                     useChromeHeadless()
-                    webpackConfig.cssSupport.enabled = true
                 }
             }
         }

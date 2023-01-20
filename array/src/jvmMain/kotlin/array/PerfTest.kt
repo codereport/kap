@@ -27,13 +27,13 @@ private fun benchmarkMultipleCall(): String {
 fun main() {
     val engine = Engine()
     engine.addLibrarySearchPath("standard-lib")
-    engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"), true)
+    engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
     val srcString = benchmarkMultipleCall()
     println("Starting")
     val iterations = 10
     val elapsed = measureTimeMillis {
         repeat(iterations) {
-            val result = engine.parseAndEval(StringSourceLocation(srcString), true)
+            val result = engine.parseAndEval(StringSourceLocation(srcString))
             result.collapse()
         }
     }
