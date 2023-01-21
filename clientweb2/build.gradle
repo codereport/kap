@@ -9,7 +9,7 @@ repositories {
 }
 
 kotlin {
-    js("webworker") {
+    js("webworker", IR) {
         binaries.executable()
         browser {
             commonWebpackConfig {
@@ -23,13 +23,19 @@ kotlin {
 //            }
         }
     }
-    js("jsclient") {
+    js("jsclient", IR) {
         binaries.executable()
         browser {
             webpackTask {
+                cssSupport {
+                    enabled.set(true)
+                }
             }
             runTask {
                 dependsOn("webworkerBrowserDistribution")
+                cssSupport {
+                    enabled.set(true)
+                }
                 // https://gist.github.com/karlrwjohnson/a631cbda6b2fb316bc0a9f37156eae5d
                 var list = new ArrayList()
                 list.addAll(devServer.static)

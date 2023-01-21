@@ -24,12 +24,18 @@ dependencies {
 }
 
 kotlin {
-    js {
+    js(IR) {
         browser {
             binaries.executable()
             webpackTask {
+                cssSupport {
+                    enabled.set(true)
+                }
             }
             runTask {
+                cssSupport {
+                    enabled.set(true)
+                }
             }
             testTask {
                 useKarma {

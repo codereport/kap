@@ -63,7 +63,6 @@ class CalculationQueue(val engine: Engine) {
 
     private inner class EvalAPLRequest(
         val source: SourceLocation,
-        val linkNewContext: Boolean,
         val variableBindings: List<Pair<Pair<String, String>, APLValue>>?,
         val callback: (Either<APLValue, Exception>) -> Unit
     ) : Request {
@@ -134,7 +133,7 @@ class CalculationQueue(val engine: Engine) {
         variableBindings: List<Pair<Pair<String, String>, APLValue>>? = null,
         fn: (Either<APLValue, Exception>) -> Unit
     ): JobId {
-        return pushJobToQueue(EvalAPLRequest(source, linkNewContext, variableBindings, fn))
+        return pushJobToQueue(EvalAPLRequest(source, variableBindings, fn))
     }
 
     fun pushReadVariableRequest(name: String, callback: (APLValue?) -> Unit): JobId {

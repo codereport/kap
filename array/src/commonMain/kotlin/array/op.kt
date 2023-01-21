@@ -142,7 +142,7 @@ class UserDefinedOperatorOneArg(
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
                 inner.assignArgs(rightArgsRef, a)
-                inner.setVar(operatorRef, LambdaValue(opFn, context))
+                inner.setVar(operatorRef, LambdaValue(opFn, context.stack.currentFrame()))
                 instr.evalWithContext(inner)
             }
         }
@@ -151,7 +151,7 @@ class UserDefinedOperatorOneArg(
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
                 inner.assignArgs(leftArgsRef, a)
                 inner.assignArgs(rightArgsRef, b)
-                inner.setVar(operatorRef, LambdaValue(opFn, context))
+                inner.setVar(operatorRef, LambdaValue(opFn, context.stack.currentFrame()))
                 instr.evalWithContext(inner)
             }
         }
@@ -197,7 +197,7 @@ class UserDefinedOperatorTwoArg(
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
                 inner.assignArgs(rightArgsRef, a)
-                inner.setVar(leftOperatorRef, LambdaValue(leftFn, context))
+                inner.setVar(leftOperatorRef, LambdaValue(leftFn, context.stack.currentFrame()))
                 inner.setVar(rightOperatorRef, mkArg(context))
                 instr.evalWithContext(inner)
             }
@@ -207,7 +207,7 @@ class UserDefinedOperatorTwoArg(
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
                 inner.assignArgs(leftArgsRef, a)
                 inner.assignArgs(rightArgsRef, b)
-                inner.setVar(leftOperatorRef, LambdaValue(leftFn, context))
+                inner.setVar(leftOperatorRef, LambdaValue(leftFn, context.stack.currentFrame()))
                 inner.setVar(rightOperatorRef, mkArg(context))
                 instr.evalWithContext(inner)
             }
@@ -217,7 +217,7 @@ class UserDefinedOperatorTwoArg(
     }
 
     inner class FnCall(leftFn: APLFunction, val rightFn: APLFunction, pos: Position) : APLUserDefinedOperatorFunction(leftFn, pos) {
-        override fun mkArg(context: RuntimeContext) = LambdaValue(rightFn, context)
+        override fun mkArg(context: RuntimeContext) = LambdaValue(rightFn, context.stack.currentFrame())
     }
 
     inner class ValueCall(leftFn: APLFunction, val argInstr: Instruction, pos: Position) : APLUserDefinedOperatorFunction(leftFn, pos) {

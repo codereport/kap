@@ -13,21 +13,39 @@ sealed class ParseResultHolder(val lastToken: TokenWithPosition) {
     class EmptyParseResult(lastToken: TokenWithPosition) : ParseResultHolder(lastToken)
 }
 
-class StackStorageDescriptor(val env: Environment, val index: Int)
+class StackStorageDescriptor(val env: Environment, val index: Int, val comment: String) {
+    override fun toString() = "StackStorageDescriptor[comment=${comment}]"
+}
 
 class StackStorageRef(val binding: EnvironmentBinding) {
     val frameIndex get() = binding.frameIndex
     val storageOffset get() = binding.storage.index
 }
 
-class EnvironmentBinding(val environment: Environment, val name: Symbol, val storage: StackStorageDescriptor) {
+class ExternalStorageRef(var frameIndex: Int, var storageOffset: Int)
+
+class EnvironmentBinding(val environment: Environment, val name: Symbol, storage: StackStorageDescriptor) {
+    private var storageInt: StackStorageDescriptor
+
+    val storage get() = storageInt
+
     var frameIndex: Int = -1
 
     init {
+        storageInt = storage
+        recomputeStorageIndex()
+    }
+
+    fun updateStorage(storage: StackStorageDescriptor) {
+        storageInt = storage
+        recomputeStorageIndex()
+    }
+
+    private fun recomputeStorageIndex() {
         var i = 0
         var curr: Environment? = environment
         while (curr != null) {
-            if (curr === storage.env) {
+            if (curr === storageInt.env) {
                 frameIndex = i
                 break
             }
@@ -35,7 +53,7 @@ class EnvironmentBinding(val environment: Environment, val name: Symbol, val sto
             curr = curr.parent
         }
         if (frameIndex == -1) {
-            throw IllegalStateException("sotrage descriptor not found in parent environments")
+            throw IllegalStateException("storage descriptor not found in parent environments")
         }
     }
 
@@ -44,11 +62,19 @@ class EnvironmentBinding(val environment: Environment, val name: Symbol, val sto
     }
 }
 
-class Environment(val parent: Environment?) {
+class Environment(val name: String, val parent: Environment?) {
     val index: Int = if (parent == null) 0 else parent.index + 1
     val storageList = ArrayList<StackStorageDescriptor>()
+    val externalStorageList = ArrayList<ExternalStorageRef>()
+    val childEnvironments = ArrayList<Environment>()
+    var canEscape: Boolean = false
+
     private val bindings = ArrayList<EnvironmentBinding>()
     private val localFunctions = HashMap<Symbol, APLFunctionDescriptor>()
+
+    init {
+        parent?.let { it.childEnvironments += this }
+    }
 
     fun findBinding(sym: Symbol) = bindings.find { b -> b.name == sym }
 
@@ -56,7 +82,7 @@ class Environment(val parent: Environment?) {
         if (findBinding(sym) != null) {
             throw IllegalStateException("Symbol ${sym} is already bound in environment")
         }
-        val storage = StackStorageDescriptor(this, storageList.size)
+        val storage = StackStorageDescriptor(this, storageList.size, "local binding: ${sym.nameWithNamespace()} in ${name}")
         storageList.add(storage)
         val newBinding = EnvironmentBinding(this, sym, storage)
         bindings.add(newBinding)
@@ -70,7 +96,7 @@ class Environment(val parent: Environment?) {
         return newBinding
     }
 
-    fun localBindings(): Collection<EnvironmentBinding> {
+    fun localBindings(): List<EnvironmentBinding> {
         return bindings
     }
 
@@ -82,9 +108,7 @@ class Environment(val parent: Environment?) {
         return localFunctions[name]
     }
 
-    companion object {
-        fun nullEnvironment() = Environment(null)
-    }
+    override fun toString() = "Environment[name=${name}, hash=${hashCode().toString(16)}]"
 }
 
 
@@ -101,8 +125,8 @@ class APLParser(val tokeniser: TokenGenerator) {
 
     fun currentEnvironment() = environments.last()
 
-    fun pushEnvironment(): Environment {
-        val env = Environment(currentEnvironment())
+    fun pushEnvironment(name: String?): Environment {
+        val env = Environment(name ?: "<unnamed>", currentEnvironment())
         environments.add(env)
         return env
     }
@@ -113,27 +137,12 @@ class APLParser(val tokeniser: TokenGenerator) {
         return env
     }
 
-    fun reinitialiseEnvironments(newEnvironments: MutableList<Environment>? = null): MutableList<Environment> {
-        return environments.also {
-            environments = newEnvironments ?: ArrayList(listOf(Environment.nullEnvironment()))
-        }
-    }
-
-    inline fun <T> withEnvironment(fn: (Environment) -> T): T {
-        val env = pushEnvironment()
+    inline fun <T> withEnvironment(name: String? = null, fn: (Environment) -> T): T {
+        val env = pushEnvironment(name)
         try {
             return fn(env)
         } finally {
             popEnvironment()
-        }
-    }
-
-    inline fun <T> withNullEnvironment(fn: (Environment) -> T): T {
-        val oldEnvironmentList = reinitialiseEnvironments()
-        try {
-            return fn(currentEnvironment())
-        } finally {
-            reinitialiseEnvironments(oldEnvironmentList)
         }
     }
 
@@ -453,7 +462,7 @@ class APLParser(val tokeniser: TokenGenerator) {
             when (nameSymbols.size) {
                 1 -> {
                     // Parse like a normal function definition
-                    val definedUserFunction = withEnvironment {
+                    val definedUserFunction = withEnvironment("function0: ${name.nameWithNamespace()}") {
                         val leftFnBindings = leftArgs.map { sym -> currentEnvironment().bindLocal(sym) }
                         val rightFnBindings = rightArgs.map { sym -> currentEnvironment().bindLocal(sym) }
                         val inProcessUserFunction =
@@ -467,7 +476,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                 }
                 2 -> {
                     if (nameComponent.semicolonSeparated) throw ParseException("Invalid function name", pos)
-                    val op = withEnvironment {
+                    val op = withEnvironment("function1: ${name.nameWithNamespace()}") {
                         val leftFnBindings = leftArgs.map { sym -> currentEnvironment().bindLocal(sym) }
                         val rightFnBindings = rightArgs.map { sym -> currentEnvironment().bindLocal(sym) }
                         val opBinding = currentEnvironment().bindLocal(nameSymbols[0])
@@ -478,7 +487,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                 }
                 3 -> {
                     if (nameComponent.semicolonSeparated) throw ParseException("Invalid function name", pos)
-                    val op = withEnvironment {
+                    val op = withEnvironment("function2: ${name.nameWithNamespace()}") {
                         val leftFnBindings = leftArgs.map { sym -> currentEnvironment().bindLocal(sym) }
                         val rightFnBindings = rightArgs.map { sym -> currentEnvironment().bindLocal(sym) }
                         val leftOpBinding = currentEnvironment().bindLocal(nameSymbols[0])
@@ -499,31 +508,29 @@ class APLParser(val tokeniser: TokenGenerator) {
             }
         }
 
-        withNullEnvironment {
-            val componentList = ArrayList<FnArgComponent>()
-            while (true) {
-                val (token, innerPos) = tokeniser.nextTokenWithPosition()
-                when (token) {
-                    is OpenFnDef -> break
-                    is Symbol -> componentList += FnArgComponent(listOf(token), false)
-                    is OpenParen -> componentList += parseSymbolList()
-                    else -> throw UnexpectedToken(token, innerPos)
-                }
+        val componentList = ArrayList<FnArgComponent>()
+        while (true) {
+            val (token, innerPos) = tokeniser.nextTokenWithPosition()
+            when (token) {
+                is OpenFnDef -> break
+                is Symbol -> componentList += FnArgComponent(listOf(token), false)
+                is OpenParen -> componentList += parseSymbolList()
+                else -> throw UnexpectedToken(token, innerPos)
             }
+        }
 
-            when {
-                componentList.isEmpty() -> throw ParseException("No function name specified", pos)
-                componentList.size == 1 -> {
-                    processFnWithArg(componentList[0], null, null)
-                }
-                componentList.size == 2 -> {
-                    processFnWithArg(componentList[0], null, componentList[1])
-                }
-                componentList.size == 3 -> {
-                    processFnWithArg(componentList[1], componentList[0], componentList[2])
-                }
-                else -> throw ParseException("Invalid function definition format", pos)
+        when {
+            componentList.isEmpty() -> throw ParseException("No function name specified", pos)
+            componentList.size == 1 -> {
+                processFnWithArg(componentList[0], null, null)
             }
+            componentList.size == 2 -> {
+                processFnWithArg(componentList[0], null, componentList[1])
+            }
+            componentList.size == 3 -> {
+                processFnWithArg(componentList[1], componentList[0], componentList[2])
+            }
+            else -> throw ParseException("Invalid function definition format", pos)
         }
     }
 
@@ -732,14 +739,29 @@ class APLParser(val tokeniser: TokenGenerator) {
     }
 
     class EvalLambdaFnx(val fn: APLFunction, pos: Position, val relatedInstructions: List<Instruction> = emptyList()) : Instruction(pos) {
+        init {
+            if (fn is DeclaredFunction.DeclaredFunctionImpl) {
+                fn.env.canEscape = true
+            }
+        }
+
         override fun evalWithContext(context: RuntimeContext): APLValue {
             relatedInstructions.asReversed().forEach { instr ->
                 instr.evalWithContext(context)
             }
-            return LambdaValue(fn, context)
+            return LambdaValue(fn, context.stack.currentFrame())
         }
 
         override fun children() = relatedInstructions
+
+        override fun canEscape(): EscapeResult {
+            TODO("remove?")
+            return if (fn is DeclaredFunction.DeclaredFunctionImpl) {
+                EscapeResult(true, fn.env)
+            } else {
+                EscapeResult.FALSE
+            }
+        }
     }
 
     private fun processLambda(pos: Position): EvalLambdaFnx {
@@ -765,30 +787,32 @@ class APLParser(val tokeniser: TokenGenerator) {
         return EvalLambdaFnx(closureFn, pos, relatedInstructions)
     }
 
-    fun parseFnDefinition(
-        pos: Position,
-        endToken: Token = CloseFnDef,
-        allocateEnvironment: Boolean = true
-    ): APLFunctionDescriptor {
+    fun parseFnDefinition(pos: Position, endToken: Token = CloseFnDef, allocateEnvironment: Boolean = true): APLFunctionDescriptor {
         return if (allocateEnvironment) {
-            val engine = tokeniser.engine
-            withEnvironment {
-                val leftBinding = currentEnvironment().bindLocal(engine.internSymbol("⍺", engine.coreNamespace))
-                val rightBinding = currentEnvironment().bindLocal(engine.internSymbol("⍵", engine.coreNamespace))
-                val name = tokeniser.engine.currentNamespace.internSymbol(OUTER_CALL_SYMBOL)
-                val inProcessUserFunction = UserFunction(
-                    name, listOf(leftBinding), listOf(rightBinding), DummyInstr(pos), currentEnvironment())
-                currentEnvironment().registerLocalFunction(name, inProcessUserFunction)
-                val instruction = parseValueToplevel(endToken)
-                inProcessUserFunction.instr = instruction
-                DeclaredFunction("<unnamed>", instruction, leftBinding, rightBinding, currentEnvironment())
-            }
+            parseFnDefinitionNewEnvironment(pos, endToken)
         } else {
-            withEnvironment {
-                val instruction = parseValueToplevel(endToken)
-                DeclaredNonBoundFunction(instruction)
-            }
+            parseFnDefinitionSameEnvironment(endToken)
         }
+    }
+
+    fun parseFnDefinitionNewEnvironment(pos: Position, endToken: Token = CloseFnDef): DeclaredFunction {
+        val engine = tokeniser.engine
+        withEnvironment("declared function") {
+            val leftBinding = currentEnvironment().bindLocal(engine.internSymbol("⍺", engine.coreNamespace))
+            val rightBinding = currentEnvironment().bindLocal(engine.internSymbol("⍵", engine.coreNamespace))
+            val name = tokeniser.engine.currentNamespace.internSymbol(OUTER_CALL_SYMBOL)
+            val inProcessUserFunction = UserFunction(
+                name, listOf(leftBinding), listOf(rightBinding), DummyInstr(pos), currentEnvironment())
+            currentEnvironment().registerLocalFunction(name, inProcessUserFunction)
+            val instruction = parseValueToplevel(endToken)
+            inProcessUserFunction.instr = instruction
+            return DeclaredFunction("<unnamed>", instruction, leftBinding, rightBinding, currentEnvironment())
+        }
+    }
+
+    fun parseFnDefinitionSameEnvironment(endToken: Token = CloseFnDef): DeclaredNonBoundFunction {
+        val instruction = parseValueToplevel(endToken)
+        return DeclaredNonBoundFunction(instruction)
     }
 
     fun parseOperator(fn: APLFunction): APLFunction {

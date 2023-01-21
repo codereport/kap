@@ -194,8 +194,16 @@ class ComposeTest : APLTest() {
     }
 
     @Test
+    fun nested2Chain2() {
+        parseAPLExpression("7 3 (-÷⌈) 4").let { result ->
+            assertDimension(dimensionsOfSize(2), result)
+            assertArrayContent(arrayOf(NearDouble(-0.1428571429, 4), NearDouble(-0.25, 4)), result)
+        }
+    }
+
+    @Test
     fun nested2ChainNoParen() {
-        parseAPLExpression("(-+«,»×) 2 5").let { result ->
+        parseAPLExpression("-+«,»× 2 5").let { result ->
             assertDimension(dimensionsOfSize(4), result)
             assertArrayContent(arrayOf(-2, -5, -1, -1), result)
         }

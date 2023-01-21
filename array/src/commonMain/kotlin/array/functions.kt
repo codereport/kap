@@ -233,6 +233,7 @@ class DeclaredFunction(
     inner class DeclaredFunctionImpl(pos: Position) : APLFunction(pos) {
         private val leftArgRef = StackStorageRef(leftArgName)
         private val rightArgRef = StackStorageRef(rightArgName)
+        val env get() = this@DeclaredFunction.env
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             return context.withLinkedContext(env, "declaredFunction1arg(${name})", pos) { localContext ->

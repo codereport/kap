@@ -72,7 +72,11 @@ abstract class FunctionSyntaxRule(private val variable: EnvironmentBinding) : Sy
         if (token != startToken()) {
             throw UnexpectedToken(token, pos)
         }
-        val fnDefinition = parser.parseFnDefinition(pos, endToken = endToken(), allocateEnvironment = allocateEnvironment())
+        val fnDefinition = if (allocateEnvironment()) {
+            parser.parseFnDefinitionNewEnvironment(pos, endToken = endToken()).also { f -> f.env.canEscape = true }
+        } else {
+            parser.parseFnDefinitionSameEnvironment(endToken = endToken())
+        }
         syntaxRuleBindings.add(
             SyntaxRuleVariableBinding(
                 variable,
@@ -226,7 +230,7 @@ private fun processRepeat(parser: APLParser): SyntaxRule {
 }
 
 fun processDefsyntaxSub(parser: APLParser, pos: Position) {
-    parser.withEnvironment {
+    parser.withEnvironment("defsyntaxsub") {
         val tokeniser = parser.tokeniser
         val name = tokeniser.nextTokenWithType<Symbol>()
         val rulesList = processPairs(parser)
@@ -237,7 +241,7 @@ fun processDefsyntaxSub(parser: APLParser, pos: Position) {
 }
 
 fun processDefsyntax(parser: APLParser, pos: Position): Instruction {
-    parser.withEnvironment {
+    parser.withEnvironment("defsyntax") {
         val tokeniser = parser.tokeniser
         val triggerSymbol = tokeniser.nextTokenWithType<Symbol>()
         val rulesList = processPairs(parser)

@@ -6,10 +6,23 @@ interface LvalueReader {
     fun makeInstruction(rightArgs: Instruction, pos: Position): Instruction
 }
 
+class EscapeResult(val canEscape: Boolean, val env: Environment? = null) {
+    init {
+        if (canEscape && env == null) {
+            throw IllegalArgumentException("environment required")
+        }
+    }
+
+    companion object {
+        val FALSE = EscapeResult(false, null)
+    }
+}
+
 abstract class Instruction(val pos: Position) {
     abstract fun evalWithContext(context: RuntimeContext): APLValue
     abstract fun children(): List<Instruction>
     open fun deriveLvalueReader(): LvalueReader? = null
+    open fun canEscape(): EscapeResult = EscapeResult.FALSE
 }
 
 class DummyInstr(pos: Position) : Instruction(pos) {

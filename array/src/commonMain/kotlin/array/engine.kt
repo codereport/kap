@@ -67,18 +67,6 @@ data class CallStackElement(val name: String, val pos: Position?)
 
 val threadLocalCallstackRef = makeMPThreadLocal<ThreadLocalCallStack>()
 
-class StorageStackElement(environment: Environment, val name: String) {
-    val storageList: List<VariableHolder>
-
-    init {
-        val size = environment.storageList.size
-        storageList = ArrayList(size)
-        repeat(size) { i ->
-            storageList.add(VariableHolder())
-        }
-    }
-}
-
 class StorageStack(env: Environment) {
     val stack = arrayListOf(StorageStackElement(env, "root"))
 
@@ -93,9 +81,40 @@ class StorageStack(env: Environment) {
         }
     }
 
+    inline fun <T> withSavedStackFrame(frame: StorageStackElement, fn: () -> T): T {
+        stack.add(frame)
+        try {
+            return fn()
+        } finally {
+            val removed = stack.removeLast()
+            assertx(removed === frame)
+        }
+    }
+
     fun findStorage(storageRef: StackStorageRef): VariableHolder {
         val frame = stack[stack.size - storageRef.frameIndex - 1]
         return frame.storageList[storageRef.storageOffset]
+    }
+
+    fun currentFrame() = stack.last()
+
+    inner class StorageStackElement(val environment: Environment, val name: String) {
+        val storageList: List<VariableHolder>
+
+        init {
+            val localStorageSize = environment.storageList.size
+            val externalStorageSize = environment.externalStorageList.size
+            storageList = ArrayList(localStorageSize + externalStorageSize)
+            repeat(localStorageSize) {
+                storageList.add(VariableHolder())
+            }
+            environment.externalStorageList.forEach { ref ->
+                // We don't subtract 1 from stackIndex here because at this point the element has not been added to the stack yet
+                val stackIndex = stack.size - ref.frameIndex
+                val frame = stack[stackIndex]
+                storageList.add(frame.storageList[ref.storageOffset])
+            }
+        }
     }
 }
 
@@ -122,7 +141,7 @@ class Engine(numComputeEngines: Int? = null) {
     private val modules = ArrayList<KapModule>()
     private val exportedSingleCharFunctions = HashSet<String>()
 
-    val rootEnvironment = Environment(null)
+    val rootEnvironment = Environment("root", null)
     var standardOutput: CharacterOutput = NullCharacterOutput()
     var standardInput: CharacterProvider = NullCharacterProvider()
 
@@ -391,6 +410,7 @@ class Engine(numComputeEngines: Int? = null) {
     }
 
     private fun parseAndEvalNewContext(source: SourceLocation, extraBindings: Map<Symbol, APLValue>? = null): APLValue {
+        TODO("should be deleted")
         withThreadLocalAssigned {
             TokenGenerator(this, source).use { tokeniser ->
                 exportedSingleCharFunctions.forEach { token ->
@@ -406,7 +426,6 @@ class Engine(numComputeEngines: Int? = null) {
                         val newInstr = RootEnvironmentInstruction(parser.currentEnvironment(), instr, instr.pos)
                         Pair(newInstr, mapped)
                     }
-                    newInstr.escapeAnalysis()
                     return newInstr.evalWithNewContext(this, mapped)
                 }
             }
@@ -421,7 +440,7 @@ class Engine(numComputeEngines: Int? = null) {
                 }
                 val parser = APLParser(tokeniser)
                 val instr = parser.parseValueToplevel(EndOfFile)
-                instr.escapeAnalysis()
+                rootEnvironment.escapeAnalysis()
                 val context = RuntimeContext(this)
                 return instr.evalWithContext(context)
             }
@@ -604,14 +623,13 @@ class RuntimeContext(val engine: Engine) {
     }
 
     fun isLocallyBound(sym: Symbol): Boolean {
-        TODO("need to fix")
-//        // TODO: This hack is needed for the KAP function isLocallyBound to work. A better strategy is needed.
-//        val index = environment.localBindings().indexOfFirst { it.name === sym }
-//        return if (index == -1) {
-//            false
-//        } else {
-//            localVariables[index].value != null
-//        }
+        val b = stack.currentFrame().environment.findBinding(sym)
+        return if (b == null) {
+            false
+        } else {
+            val storage = stack.findStorage(StackStorageRef(b))
+            storage.value != null
+        }
     }
 
 //    fun findVariables() = localVariables.map { (k, v) -> k.name to v.value }.toList()
@@ -674,12 +692,6 @@ class RuntimeContext(val engine: Engine) {
             checkLength(args.size, 1)
             setVar(args[0], v)
         }
-    }
-
-    @OptIn(ExperimentalContracts::class)
-    inline fun <T> withCallStackElement(name: String, pos: Position, fn: (CallStackElement) -> T): T {
-        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
-        return engine.withCallStackElement(name, pos, fn)
     }
 }
 
