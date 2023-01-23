@@ -43,7 +43,7 @@ fun Environment.rewriteForEscape() {
 
 fun Environment.escapeAnalysis() {
     fun recurse(env: Environment) {
-        if (env.canEscape) {
+        if (env.canEscape()) {
             env.rewriteForEscape()
         }
         env.childEnvironments.forEach(::recurse)

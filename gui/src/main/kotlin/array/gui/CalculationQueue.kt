@@ -13,6 +13,7 @@ class Job(val id: JobId, val request: CalculationQueue.Request)
 class JobId
 
 class CalculationQueue(val engine: Engine) {
+    private val context = RuntimeContext(engine)
     private val queue: TransferQueue<Job> = LinkedTransferQueue()
     private val thread = Thread { computeLoop() }
     private val taskCompletedHandlers = CopyOnWriteArrayList<(Engine) -> Unit>()
@@ -72,7 +73,7 @@ class CalculationQueue(val engine: Engine) {
                     engine.internSymbol(k.second, engine.makeNamespace(k.first)) to v
                 }?.toMap()
                 val result = engine.withThreadLocalAssigned {
-                    engine.parseAndEval(source, extraBindings = resolvedSymbols).collapse()
+                    engine.parseAndEval(source, extraBindings = resolvedSymbols, context = context).collapse()
                 }
                 Either.Left(result)
             } catch (e: InterruptedException) {

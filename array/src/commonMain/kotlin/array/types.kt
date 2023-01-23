@@ -910,13 +910,13 @@ class LambdaValue(private val fn: APLFunction, private val savedFrame: StorageSt
     fun makeClosure(): APLFunction {
         return object : APLFunction(fn.pos) {
             override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-                context.stack.withSavedStackFrame(savedFrame) {
+                savedFrame.withSavedStackFrame {
                     return fn.eval1Arg(context, a, axis)
                 }
             }
 
             override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-                context.stack.withSavedStackFrame(savedFrame) {
+                savedFrame.withSavedStackFrame {
                     return fn.eval2Arg(context, a, b, axis)
                 }
             }

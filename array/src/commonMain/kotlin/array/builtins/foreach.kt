@@ -7,12 +7,13 @@ class ForEachResult1Arg(
     val fn: APLFunction,
     val value: APLValue,
     val axis: APLValue?,
-    val pos: Position
+    val pos: Position,
+    val savedStack: StorageStack.StorageStackElement?
 ) : APLArray() {
     override val dimensions
         get() = value.dimensions
     override val rank get() = value.rank
-    override fun valueAt(p: Int) = fn.eval1Arg(context, value.valueAt(p), axis)
+    override fun valueAt(p: Int) = withPossibleSavedStack(savedStack) { fn.eval1Arg(context, value.valueAt(p), axis) }
     override val size get() = value.size
 }
 
@@ -22,7 +23,8 @@ class ForEachResult2Arg(
     val arg1: APLValue,
     val arg2: APLValue,
     val axis: APLValue?,
-    val pos: Position
+    val pos: Position,
+    val savedStack: StorageStack.StorageStackElement?
 ) : APLArray() {
     init {
         unless(arg1.dimensions.compareEquals(arg2.dimensions)) {
@@ -33,22 +35,48 @@ class ForEachResult2Arg(
     override val dimensions: Dimensions
         get() = arg1.dimensions
     override val rank get() = arg1.rank
-    override fun valueAt(p: Int) = fn.eval2Arg(context, arg1.valueAt(p), arg2.valueAt(p), axis)
+    override fun valueAt(p: Int) = withPossibleSavedStack(savedStack) { fn.eval2Arg(context, arg1.valueAt(p), arg2.valueAt(p), axis) }
     override val size get() = arg1.size
 }
 
+interface SaveStackCapable {
+    fun computeCapturedEnvs(vararg fns: APLFunction)
+    fun savedStack(context: RuntimeContext) = if (saveStack()) context.stack.currentFrame() else null
+    fun saveStack(): Boolean
+}
+
+class SaveStackSupport : SaveStackCapable {
+    private var saveStack: Boolean = false
+
+    override fun saveStack() = saveStack
+
+    override fun computeCapturedEnvs(vararg fns: APLFunction) {
+        val capturedEnvs = fns.flatMap(APLFunction::allCapturedEnvironments)
+        if (capturedEnvs.isNotEmpty()) {
+            saveStack = capturedEnvs.isNotEmpty()
+            capturedEnvs.forEach(Environment::markCanEscape)
+        }
+    }
+}
+
 class ForEachFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescriptor {
-    class ForEachFunctionImpl(pos: Position, fn: APLFunction) : APLFunction(pos, listOf(fn)), ParallelSupported {
+    class ForEachFunctionImpl(pos: Position, fn: APLFunction)
+        : APLFunction(pos, listOf(fn)), ParallelSupported, SaveStackCapable by SaveStackSupport() {
+
+        init {
+            computeCapturedEnvs(fn)
+        }
+
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             return if (a.isScalar()) {
                 return EnclosedAPLValue.make(fn.eval1Arg(context, a.disclose(), null))
             } else {
-                ForEachResult1Arg(context, fn, a, axis, pos)
+                ForEachResult1Arg(context, fn, a, axis, pos, savedStack(context))
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            return compute2Arg(context, fn, a, b, axis, pos)
+            return compute2Arg(context, fn, a, b, axis, pos, savedStack(context))
         }
 
         override fun computeParallelTasks1Arg(
@@ -75,7 +103,15 @@ class ForEachFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescripto
     }
 
     companion object {
-        fun compute2Arg(context: RuntimeContext, fn: APLFunction, a: APLValue, b: APLValue, axis: APLValue?, pos: Position): APLValue {
+        fun compute2Arg(
+            context: RuntimeContext,
+            fn: APLFunction,
+            a: APLValue,
+            b: APLValue,
+            axis: APLValue?,
+            pos: Position,
+            savedStack: StorageStack.StorageStackElement?)
+                : APLValue {
             if (a.isScalar() && b.isScalar()) {
                 return EnclosedAPLValue.make(fn.eval2Arg(context, a.disclose(), b.disclose(), axis).unwrapDeferredValue())
             }
@@ -89,7 +125,7 @@ class ForEachFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescripto
             } else {
                 b
             }
-            return ForEachResult2Arg(context, fn, a1, b1, axis, pos)
+            return ForEachResult2Arg(context, fn, a1, b1, axis, pos, savedStack)
         }
     }
 }

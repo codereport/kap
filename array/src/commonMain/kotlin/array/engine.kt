@@ -67,27 +67,29 @@ data class CallStackElement(val name: String, val pos: Position?)
 
 val threadLocalCallstackRef = makeMPThreadLocal<ThreadLocalCallStack>()
 
-class StorageStack(env: Environment) {
-    val stack = arrayListOf(StorageStackElement(env, "root"))
+class StorageStack private constructor() {
+    val stack = ArrayList<StorageStackElement>()
 
+    constructor(env: Environment) : this() {
+        stack.add(StorageStackElement(env, "root"))
+    }
+
+    private constructor(prevStack: List<StorageStackElement>) : this() {
+        stack.addAll(prevStack)
+    }
+
+    fun copy() = StorageStack(stack)
+
+    @OptIn(ExperimentalContracts::class)
     inline fun <T> withStackFrame(environment: Environment, name: String, fn: (StorageStackElement) -> T): T {
+        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
         val frame = StorageStackElement(environment, name)
         stack.add(frame)
         try {
             return fn(frame)
         } finally {
             val removed = stack.removeLast()
-            assertx(removed === frame)
-        }
-    }
-
-    inline fun <T> withSavedStackFrame(frame: StorageStackElement, fn: () -> T): T {
-        stack.add(frame)
-        try {
-            return fn()
-        } finally {
-            val removed = stack.removeLast()
-            assertx(removed === frame)
+            assertx(removed === frame) { "Removed frame does not match inserted frame" }
         }
     }
 
@@ -99,7 +101,7 @@ class StorageStack(env: Environment) {
     fun currentFrame() = stack.last()
 
     inner class StorageStackElement(val environment: Environment, val name: String) {
-        val storageList: List<VariableHolder>
+        val storageList: MutableList<VariableHolder>
 
         init {
             val localStorageSize = environment.storageList.size
@@ -114,6 +116,28 @@ class StorageStack(env: Environment) {
                 val frame = stack[stackIndex]
                 storageList.add(frame.storageList[ref.storageOffset])
             }
+        }
+
+        inline fun <T> withSavedStackFrame(fn: () -> T): T {
+            stack.add(this)
+            try {
+                return fn()
+            } finally {
+                val removed = stack.removeLast()
+                assertx(removed === this) { "Removed frame does not match inserted frame" }
+            }
+        }
+    }
+}
+
+@OptIn(ExperimentalContracts::class)
+inline fun <T> withPossibleSavedStack(frame: StorageStack.StorageStackElement?, fn: () -> T): T {
+    contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+    return if (frame == null) {
+        fn()
+    } else {
+        frame.withSavedStackFrame {
+            fn()
         }
     }
 }
@@ -409,30 +433,10 @@ class Engine(numComputeEngines: Int? = null) {
         }
     }
 
-    private fun parseAndEvalNewContext(source: SourceLocation, extraBindings: Map<Symbol, APLValue>? = null): APLValue {
-        TODO("should be deleted")
-        withThreadLocalAssigned {
-            TokenGenerator(this, source).use { tokeniser ->
-                exportedSingleCharFunctions.forEach { token ->
-                    tokeniser.registerSingleCharFunction(token)
-                }
-                val parser = APLParser(tokeniser)
-                withSavedNamespace {
-                    val (newInstr, mapped) = parser.withEnvironment { env ->
-                        val mapped = extraBindings?.map { e ->
-                            Pair(env.bindLocal(e.key), e.value)
-                        }
-                        val instr = parser.parseValueToplevel(EndOfFile)
-                        val newInstr = RootEnvironmentInstruction(parser.currentEnvironment(), instr, instr.pos)
-                        Pair(newInstr, mapped)
-                    }
-                    return newInstr.evalWithNewContext(this, mapped)
-                }
-            }
+    fun parseAndEval(source: SourceLocation, extraBindings: Map<Symbol, APLValue>? = null, context: RuntimeContext? = null): APLValue {
+        if (extraBindings != null) {
+            throw IllegalArgumentException("extra bindings is not supported at the moment")
         }
-    }
-
-    private fun parseAndEvalNoContext(source: SourceLocation): APLValue {
         withThreadLocalAssigned {
             TokenGenerator(this, source).use { tokeniser ->
                 exportedSingleCharFunctions.forEach { token ->
@@ -441,17 +445,14 @@ class Engine(numComputeEngines: Int? = null) {
                 val parser = APLParser(tokeniser)
                 val instr = parser.parseValueToplevel(EndOfFile)
                 rootEnvironment.escapeAnalysis()
-                val context = RuntimeContext(this)
-                return instr.evalWithContext(context)
+                val newContext = if (context == null) {
+                    RuntimeContext(this)
+                } else {
+                    context.also(RuntimeContext::recomputeRootFrame)
+                }
+                return instr.evalWithContext(newContext)
             }
         }
-    }
-
-    fun parseAndEval(source: SourceLocation, extraBindings: Map<Symbol, APLValue>? = null): APLValue {
-        if (extraBindings != null) {
-            throw IllegalArgumentException("extra bindings is not supported at the moment")
-        }
-        return parseAndEvalNoContext(source)
     }
 
     fun internSymbol(name: String, namespace: Namespace? = null): Symbol = (namespace ?: currentNamespace).internSymbol(name)
@@ -587,9 +588,7 @@ class VariableHolder {
     var value: APLValue? = null
 }
 
-class RuntimeContext(val engine: Engine) {
-    val stack = StorageStack(engine.rootEnvironment)
-
+class RuntimeContext(val engine: Engine, val stack: StorageStack = StorageStack(engine.rootEnvironment)) {
     fun pushReleaseCallback(callback: () -> Unit) {
         TODO("need to fix")
 //        val list = releaseCallbacks
@@ -691,6 +690,24 @@ class RuntimeContext(val engine: Engine) {
         } else {
             checkLength(args.size, 1)
             setVar(args[0], v)
+        }
+    }
+
+    /**
+     * Resizes the root frame to accommodate new variable assignments
+     */
+    fun recomputeRootFrame() {
+        if (stack.stack.size != 1) {
+            throw IllegalStateException("Attempt to recompute the root frame without an empty stack")
+        }
+        val frame = stack.stack[0]
+        val env = engine.rootEnvironment
+        if (env.externalStorageList.isNotEmpty()) {
+            throw IllegalStateException("External storage list for the root environment is not empty")
+        }
+        val origSize = frame.storageList.size
+        repeat(env.storageList.size - origSize) {
+            frame.storageList.add(VariableHolder())
         }
     }
 }

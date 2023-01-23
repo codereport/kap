@@ -57,9 +57,9 @@ class VariableListController(val client: Client) {
 
         table.columns.setAll(/*expanderColumn,*/ namespaceNameColumn, symbolNameColumn, valueColumn)
 
-        content.setAll(loadVariableContent(client.engine.rootContext.findVariables()))
+        content.setAll(loadVariableContent(findVariablesFromEnvironment(client.engine)))
         client.calculationQueue.addTaskCompletedHandler { engine ->
-            val updated = engine.rootContext.findVariables()
+            val updated = findVariablesFromEnvironment(engine)
             Platform.runLater {
                 content.clear()
                 content.addAll(loadVariableContent(updated))
@@ -67,6 +67,11 @@ class VariableListController(val client: Client) {
         }
 
         table.items = content
+    }
+
+    private fun findVariablesFromEnvironment(engine: Engine): List<Pair<Symbol, APLValue?>> {
+        // TODO: Need to be able to access root stack frame
+        return emptyList()
     }
 
     private fun loadVariableContent(updated: List<Pair<Symbol, APLValue?>>): ArrayList<ValueWrapper> {

@@ -92,6 +92,22 @@ abstract class APLFunction(val pos: Position, val fns: List<APLFunction> = empty
         throwAPLException(StructuralUnderNotSupported(pos))
     }
 
+    open fun capturedEnvironments(): List<Environment> = emptyList()
+
+    fun allCapturedEnvironments(): List<Environment> {
+        val result = ArrayList<Environment>()
+        fun recurse(fn: APLFunction) {
+            result.addAll(fn.capturedEnvironments())
+            fn.fns.forEach(::recurse)
+        }
+        recurse(this)
+        return result
+    }
+
+    fun markEscapeEnvironment() {
+        allCapturedEnvironments().forEach(Environment::markCanEscape)
+    }
+
     open val name1Arg get() = this::class.simpleName ?: "unnamed"
     open val name2Arg get() = this::class.simpleName ?: "unnamed"
 
@@ -233,7 +249,6 @@ class DeclaredFunction(
     inner class DeclaredFunctionImpl(pos: Position) : APLFunction(pos) {
         private val leftArgRef = StackStorageRef(leftArgName)
         private val rightArgRef = StackStorageRef(rightArgName)
-        val env get() = this@DeclaredFunction.env
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             return context.withLinkedContext(env, "declaredFunction1arg(${name})", pos) { localContext ->
@@ -249,6 +264,8 @@ class DeclaredFunction(
                 instruction.evalWithContext(localContext)
             }
         }
+
+        override fun capturedEnvironments() = listOf(env)
 
         override val name1Arg: String get() = name
         override val name2Arg: String get() = name

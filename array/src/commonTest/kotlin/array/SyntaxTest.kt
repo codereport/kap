@@ -283,4 +283,28 @@ class SyntaxTest : APLTest() {
                 """.trimMargin())
         }
     }
+
+    @Test
+    fun nexprfunctionWithVariableLookup() {
+        val src =
+            """
+            |defsyntax foo (:nexprfunction a) { 1 + ⍞a 2 }
+            |{ b ← 5+⍵ ◊ foo (b) } 100
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertSimpleNumber(106, result)
+        }
+    }
+
+    @Test
+    fun exprfunctionWithVariableLookup() {
+        val src =
+            """
+            |defsyntax foo (:exprfunction a) { 1 + ⍞a 2 }
+            |{ b ← 5+⍵ ◊ foo (b) } 100
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertSimpleNumber(106, result)
+        }
+    }
 }

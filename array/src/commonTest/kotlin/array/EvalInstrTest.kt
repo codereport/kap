@@ -8,10 +8,11 @@ class EvalInstrTest : APLTest() {
     @Test
     fun plainEvalSameContext() {
         val engine = Engine()
-        engine.parseAndEval(StringSourceLocation("foo ← 1")).let { result ->
+        val context = RuntimeContext(engine)
+        engine.parseAndEval(StringSourceLocation("foo ← 1"), context = context).let { result ->
             assertSimpleNumber(1, result)
         }
-        engine.parseAndEval(StringSourceLocation("foo + 3")).let { result ->
+        engine.parseAndEval(StringSourceLocation("foo + 3"), context = context).let { result ->
             assertSimpleNumber(4, result)
         }
     }

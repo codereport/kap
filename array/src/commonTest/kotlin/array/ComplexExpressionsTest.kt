@@ -548,6 +548,21 @@ class ComplexExpressionsTest : APLTest() {
         }
     }
 
+    /**
+     * Ensure that assignments to variables in the root environment are visible in subsequent evaluations.
+     */
+    @Test
+    fun rootEnvironmentVariablesArePreserved() {
+        val engine = Engine()
+        val context = RuntimeContext(engine)
+        engine.parseAndEval(StringSourceLocation("x ← 1"), context = context).let { result ->
+            assertSimpleNumber(1, result)
+        }
+        engine.parseAndEval(StringSourceLocation("x + 2"), context = context).let { result ->
+            assertSimpleNumber(3, result)
+        }
+    }
+
     private fun defAbcResult(fnIndex: Long, opIndex: Long, rightArg: Long): Long {
         return (rightArg * 10 + fnIndex * 100) * 1000 + opIndex * 1000000
     }

@@ -6,23 +6,10 @@ interface LvalueReader {
     fun makeInstruction(rightArgs: Instruction, pos: Position): Instruction
 }
 
-class EscapeResult(val canEscape: Boolean, val env: Environment? = null) {
-    init {
-        if (canEscape && env == null) {
-            throw IllegalArgumentException("environment required")
-        }
-    }
-
-    companion object {
-        val FALSE = EscapeResult(false, null)
-    }
-}
-
 abstract class Instruction(val pos: Position) {
     abstract fun evalWithContext(context: RuntimeContext): APLValue
     abstract fun children(): List<Instruction>
     open fun deriveLvalueReader(): LvalueReader? = null
-    open fun canEscape(): EscapeResult = EscapeResult.FALSE
 }
 
 class DummyInstr(pos: Position) : Instruction(pos) {
@@ -344,9 +331,24 @@ class UserFunction(
     override fun make(pos: Position) = UserFunctionImpl(pos)
 }
 
+class EvalLambdaFnx(val fn: APLFunction, pos: Position, val relatedInstructions: List<Instruction> = emptyList()) : Instruction(pos) {
+    init {
+        fn.markEscapeEnvironment()
+    }
+
+    override fun evalWithContext(context: RuntimeContext): APLValue {
+        relatedInstructions.asReversed().forEach { instr ->
+            instr.evalWithContext(context)
+        }
+        return LambdaValue(fn, context.stack.currentFrame())
+    }
+
+    override fun children() = relatedInstructions
+}
+
 sealed class FunctionCallChain(pos: Position, fns: List<APLFunction>) : APLFunction(pos, fns) {
     class Chain2(pos: Position, fn0: APLFunction, fn1: APLFunction) :
-        FunctionCallChain(pos, listOf(fn0, fn1)) {
+            FunctionCallChain(pos, listOf(fn0, fn1)) {
         val fn0 get() = fns[0]
         val fn1 get() = fns[1]
 

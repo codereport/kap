@@ -73,14 +73,14 @@ abstract class FunctionSyntaxRule(private val variable: EnvironmentBinding) : Sy
             throw UnexpectedToken(token, pos)
         }
         val fnDefinition = if (allocateEnvironment()) {
-            parser.parseFnDefinitionNewEnvironment(pos, endToken = endToken()).also { f -> f.env.canEscape = true }
+            parser.parseFnDefinitionNewEnvironment(pos, endToken = endToken(), name = "function syntax rule")
         } else {
             parser.parseFnDefinitionSameEnvironment(endToken = endToken())
         }
         syntaxRuleBindings.add(
             SyntaxRuleVariableBinding(
                 variable,
-                APLParser.EvalLambdaFnx(fnDefinition.make(pos), pos)))
+                EvalLambdaFnx(fnDefinition.make(pos), pos)))
     }
 
     abstract fun startToken(): Token
@@ -268,9 +268,10 @@ class CallWithVarInstruction(
     private val refs = bindings.map { (b, instr) -> Pair(StackStorageRef(b), instr) }
 
     override fun evalWithContext(context: RuntimeContext): APLValue {
+        val results = refs.map { (envBinding, instr) -> Pair(envBinding, instr.evalWithContext(context)) }
         return context.withLinkedContext(env, name, pos) { newContext ->
-            refs.forEach { (envBinding, instr) ->
-                newContext.setVar(envBinding, instr.evalWithContext(context))
+            results.forEach { (envBinding, result) ->
+                newContext.setVar(envBinding, result)
             }
             instr.evalWithContext(newContext)
         }
