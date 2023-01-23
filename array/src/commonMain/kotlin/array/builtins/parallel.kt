@@ -160,11 +160,10 @@ private class ParallelHandler(val derived: ParallelSupported, val numTasksWeight
             val engine = context.engine
             val dispatcher = context.engine.backgroundDispatcher
             val tasks = parallelTaskList.tasks.map { task ->
-                val newContext = RuntimeContext(engine, context.stack.copy())
                 dispatcher.start {
                     engine.inComputeThread.value = true
                     engine.withThreadLocalAssigned {
-                        task.computeResult(newContext)
+                        task.computeResult(context)
                     }
                 }
             }

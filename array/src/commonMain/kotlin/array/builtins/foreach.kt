@@ -8,7 +8,7 @@ class ForEachResult1Arg(
     val value: APLValue,
     val axis: APLValue?,
     val pos: Position,
-    val savedStack: StorageStack.StorageStackElement?
+    val savedStack: StorageStack.StorageStackFrame?
 ) : APLArray() {
     override val dimensions
         get() = value.dimensions
@@ -24,7 +24,7 @@ class ForEachResult2Arg(
     val arg2: APLValue,
     val axis: APLValue?,
     val pos: Position,
-    val savedStack: StorageStack.StorageStackElement?
+    val savedStack: StorageStack.StorageStackFrame?
 ) : APLArray() {
     init {
         unless(arg1.dimensions.compareEquals(arg2.dimensions)) {
@@ -41,7 +41,7 @@ class ForEachResult2Arg(
 
 interface SaveStackCapable {
     fun computeCapturedEnvs(vararg fns: APLFunction)
-    fun savedStack(context: RuntimeContext) = if (saveStack()) context.stack.currentFrame() else null
+    fun savedStack(context: RuntimeContext) = if (saveStack()) currentStack().currentFrame() else null
     fun saveStack(): Boolean
 }
 
@@ -110,7 +110,7 @@ class ForEachFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescripto
             b: APLValue,
             axis: APLValue?,
             pos: Position,
-            savedStack: StorageStack.StorageStackElement?)
+            savedStack: StorageStack.StorageStackFrame?)
                 : APLValue {
             if (a.isScalar() && b.isScalar()) {
                 return EnclosedAPLValue.make(fn.eval2Arg(context, a.disclose(), b.disclose(), axis).unwrapDeferredValue())

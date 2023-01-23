@@ -4,6 +4,9 @@ import array.FunctionCallChain.Chain2
 import array.syntax.processCustomSyntax
 import array.syntax.processDefsyntax
 import array.syntax.processDefsyntaxSub
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 sealed class ParseResultHolder(val lastToken: TokenWithPosition) {
     val pos: Position get() = lastToken.pos
@@ -163,7 +166,9 @@ class APLParser(val tokeniser: TokenGenerator) {
         return env
     }
 
+    @OptIn(ExperimentalContracts::class)
     inline fun <T> withEnvironment(name: String? = null, closed: Boolean = false, fn: (Environment) -> T): T {
+        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
         val env = pushEnvironment(name, closed = closed)
         try {
             return fn(env)
@@ -806,12 +811,36 @@ class APLParser(val tokeniser: TokenGenerator) {
             val leftBinding = currentEnvironment().bindLocal(engine.internSymbol("⍺", engine.coreNamespace))
             val rightBinding = currentEnvironment().bindLocal(engine.internSymbol("⍵", engine.coreNamespace))
             val outerCallSymbol = tokeniser.engine.currentNamespace.internSymbol(OUTER_CALL_SYMBOL)
-            val inProcessUserFunction = UserFunction(
-                outerCallSymbol, listOf(leftBinding), listOf(rightBinding), DummyInstr(pos), currentEnvironment())
-            currentEnvironment().registerLocalFunction(outerCallSymbol, inProcessUserFunction)
+            val inProcessUserFunction = UserFunction(outerCallSymbol, listOf(leftBinding), listOf(rightBinding), DummyInstr(pos), currentEnvironment())
+            val outerCallFn = withEnvironment { env -> OuterCallFunction(env, inProcessUserFunction) }
+            currentEnvironment().registerLocalFunction(outerCallSymbol, outerCallFn)
             val instruction = parseValueToplevel(endToken)
             inProcessUserFunction.instr = instruction
             return DeclaredFunction("<unnamed>", instruction, leftBinding, rightBinding, currentEnvironment())
+        }
+    }
+
+    // TODO: When instantiating an outer call function, its environment needs to find all variables that
+    //       are used by the outer environment so that it can all be copied properly.
+    class OuterCallFunction(val env: Environment, val fnInner: UserFunction) : APLFunctionDescriptor {
+        inner class OuterCallFunctionImpl(fn: UserFunction.UserFunctionImpl, pos: Position) : NoAxisAPLFunction(pos, listOf(fn)) {
+            override fun capturedEnvironments() = listOf(env)
+
+            override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+                currentStack().withStackFrame(env, "outer call function", pos) {
+                    return fn.eval1Arg(context, a, null)
+                }
+            }
+
+            override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+                return fn.eval2Arg(context, a, b, null)
+            }
+
+            private val fn = fns[0]
+        }
+
+        override fun make(pos: Position): APLFunction {
+            return OuterCallFunctionImpl(fnInner.make(pos), pos)
         }
     }
 

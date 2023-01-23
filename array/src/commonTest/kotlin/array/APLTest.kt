@@ -50,9 +50,7 @@ abstract class APLTest {
             engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
         }
         val result = engine.parseAndEval(StringSourceLocation(expr))
-        engine.withThreadLocalAssigned {
-            return Pair(if (collapse) result.collapse() else result, engine)
-        }
+        return Pair(if (collapse) result.collapse() else result, engine)
     }
 
     fun parseAPLExpressionWithOutput(

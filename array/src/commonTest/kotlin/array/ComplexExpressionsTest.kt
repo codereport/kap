@@ -554,12 +554,13 @@ class ComplexExpressionsTest : APLTest() {
     @Test
     fun rootEnvironmentVariablesArePreserved() {
         val engine = Engine()
-        val context = RuntimeContext(engine)
-        engine.parseAndEval(StringSourceLocation("x ← 1"), context = context).let { result ->
-            assertSimpleNumber(1, result)
-        }
-        engine.parseAndEval(StringSourceLocation("x + 2"), context = context).let { result ->
-            assertSimpleNumber(3, result)
+        engine.withThreadLocalAssigned {
+            engine.parseAndEval(StringSourceLocation("x ← 1"), allocateThreadLocals = false).let { result ->
+                assertSimpleNumber(1, result)
+            }
+            engine.parseAndEval(StringSourceLocation("x + 2"), allocateThreadLocals = false).let { result ->
+                assertSimpleNumber(3, result)
+            }
         }
     }
 
@@ -578,7 +579,7 @@ class ComplexExpressionsTest : APLTest() {
         engine.registerFunction(namespace.internAndExport("def"), TestFunction())
         val output = StringBuilderOutput()
         engine.standardOutput = output
-        val result = engine.parseAndEval(StringSourceLocation(src)).collapse()
+        val result = engine.parseAndEval(StringSourceLocation(src))
         return Pair(result, output.buf.toString())
     }
 

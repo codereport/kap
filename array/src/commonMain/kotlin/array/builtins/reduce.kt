@@ -9,7 +9,7 @@ class ReduceResult1Arg(
     val arg: APLValue,
     opAxis: Int,
     val pos: Position,
-    val savedStack: StorageStack.StorageStackElement?
+    val savedStack: StorageStack.StorageStackFrame?
 ) : APLArray() {
     override val dimensions: Dimensions
     private val stepLength: Int
@@ -97,7 +97,7 @@ class ReduceNWiseResultValue(
     val reductionSize: Int,
     val b: APLValue,
     operatorAxis: Int,
-    val savedStack: StorageStack.StorageStackElement?
+    val savedStack: StorageStack.StorageStackFrame?
 ) : APLArray() {
     override val dimensions: Dimensions
 

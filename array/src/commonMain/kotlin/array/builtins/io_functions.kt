@@ -112,7 +112,7 @@ class LoadFunction : APLFunctionDescriptor {
             val file = context.engine.resolveLibraryFile(requestedFile) ?: requestedFile
             val engine = context.engine
             engine.withSavedNamespace {
-                return engine.parseAndEval(FileSourceLocation(file))
+                return engine.parseAndEval(FileSourceLocation(file), allocateThreadLocals = false)
             }
         }
     }

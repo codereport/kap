@@ -80,7 +80,7 @@ class InnerJoinResult(
     val fn1: APLFunction,
     val fn2: APLFunction,
     val pos: Position,
-    val savedStack: StorageStack.StorageStackElement?
+    val savedStack: StorageStack.StorageStackFrame?
 ) : APLArray() {
 
     override val dimensions: Dimensions

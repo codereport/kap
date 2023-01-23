@@ -64,10 +64,17 @@ class CustomFunctionTest : APLTest() {
     }
 
     @Test
-    fun selfRecursion() {
+    fun selfRecursion0() {
         parseAPLExpression("n←0 ◊ foo ⇐ { if(⍵≡0) { 1 } else {  n←n+1 ◊ ⍓ ¯1+⍵ } } ◊ n,foo 10", true).let { result ->
             assertDimension(dimensionsOfSize(2), result)
             assertArrayContent(arrayOf(10, 1), result)
+        }
+    }
+
+    @Test
+    fun selfRecursion1() {
+        parseAPLExpression("{ if(⍵≡0) {10} else {1+⍓ 0} } 1", withStandardLib = true).let { result ->
+            assertSimpleNumber(11, result)
         }
     }
 

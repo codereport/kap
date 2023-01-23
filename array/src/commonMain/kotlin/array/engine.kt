@@ -65,31 +65,30 @@ class ThreadLocalCallStack(val engine: Engine) {
 
 data class CallStackElement(val name: String, val pos: Position?)
 
-val threadLocalCallstackRef = makeMPThreadLocal<ThreadLocalCallStack>()
-
 class StorageStack private constructor() {
-    val stack = ArrayList<StorageStackElement>()
+    val stack = ArrayList<StorageStackFrame>()
 
     constructor(env: Environment) : this() {
-        stack.add(StorageStackElement(env, "root"))
+        stack.add(StorageStackFrame(env, "root", null))
     }
 
-    private constructor(prevStack: List<StorageStackElement>) : this() {
+    private constructor(prevStack: List<StorageStackFrame>) : this() {
         stack.addAll(prevStack)
     }
 
     fun copy() = StorageStack(stack)
 
     @OptIn(ExperimentalContracts::class)
-    inline fun <T> withStackFrame(environment: Environment, name: String, fn: (StorageStackElement) -> T): T {
+    inline fun <T> withStackFrame(environment: Environment, name: String, pos: Position, fn: (StorageStackFrame) -> T): T {
         contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
-        val frame = StorageStackElement(environment, name)
+        val frame = StorageStackFrame(environment, name, pos)
         stack.add(frame)
         try {
             return fn(frame)
         } finally {
             val removed = stack.removeLast()
             assertx(removed === frame) { "Removed frame does not match inserted frame" }
+            frame.fireReleaseCallbacks()
         }
     }
 
@@ -100,8 +99,9 @@ class StorageStack private constructor() {
 
     fun currentFrame() = stack.last()
 
-    inner class StorageStackElement(val environment: Environment, val name: String) {
+    inner class StorageStackFrame(val environment: Environment, val name: String, val pos: Position?) {
         val storageList: MutableList<VariableHolder>
+        private var releaseCallbacks: MutableList<() -> Unit>? = null
 
         init {
             val localStorageSize = environment.storageList.size
@@ -118,27 +118,50 @@ class StorageStack private constructor() {
             }
         }
 
-        inline fun <T> withSavedStackFrame(fn: () -> T): T {
-            stack.add(this)
-            try {
-                return fn()
-            } finally {
-                val removed = stack.removeLast()
-                assertx(removed === this) { "Removed frame does not match inserted frame" }
+        fun pushReleaseCallback(callback: () -> Unit) {
+            val list = releaseCallbacks
+            if (list == null) {
+                val updated = ArrayList<() -> Unit>()
+                updated.add(callback)
+                releaseCallbacks = updated
+            } else {
+                list.add(callback)
             }
+        }
+
+        fun fireReleaseCallbacks() {
+            val list = releaseCallbacks
+            if (list != null) {
+                list.asReversed().forEach { fn ->
+                    fn()
+                }
+            }
+        }
+
+    }
+}
+
+@OptIn(ExperimentalContracts::class)
+inline fun <T> withPossibleSavedStack(frame: StorageStack.StorageStackFrame?, fn: () -> T): T {
+    contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+    return if (frame == null) {
+        fn()
+    } else {
+        withSavedStackFrame(frame) {
+            fn()
         }
     }
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun <T> withPossibleSavedStack(frame: StorageStack.StorageStackElement?, fn: () -> T): T {
+inline fun <T> withSavedStackFrame(frame: StorageStack.StorageStackFrame, fn: () -> T): T {
     contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
-    return if (frame == null) {
-        fn()
-    } else {
-        frame.withSavedStackFrame {
-            fn()
-        }
+    currentStack().stack.add(frame)
+    try {
+        return fn()
+    } finally {
+        val removed = currentStack().stack.removeLast()
+        assertx(removed === frame) { "Removed frame does not match inserted frame" }
     }
 }
 
@@ -152,6 +175,11 @@ interface ClosableHandler<T : APLValue> {
      */
     fun close(value: T)
 }
+
+val threadLocalCallstackRef = makeMPThreadLocal<ThreadLocalCallStack>()
+val threadLocalStorageStackRef = makeMPThreadLocal<StorageStack>()
+
+fun currentStack() = threadLocalStorageStackRef.value ?: throw IllegalStateException("Storage stack is not bound")
 
 class Engine(numComputeEngines: Int? = null) {
     private val functions = HashMap<Symbol, APLFunctionDescriptor>()
@@ -433,24 +461,38 @@ class Engine(numComputeEngines: Int? = null) {
         }
     }
 
-    fun parseAndEval(source: SourceLocation, extraBindings: Map<Symbol, APLValue>? = null, context: RuntimeContext? = null): APLValue {
+    fun parseAndEval(
+        source: SourceLocation,
+        extraBindings: Map<Symbol, APLValue>? = null,
+        allocateThreadLocals: Boolean = true,
+        collapseResult: Boolean = true): APLValue {
         if (extraBindings != null) {
             throw IllegalArgumentException("extra bindings is not supported at the moment")
         }
-        withThreadLocalAssigned {
-            TokenGenerator(this, source).use { tokeniser ->
-                exportedSingleCharFunctions.forEach { token ->
-                    tokeniser.registerSingleCharFunction(token)
-                }
-                val parser = APLParser(tokeniser)
-                val instr = parser.parseValueToplevel(EndOfFile)
-                rootEnvironment.escapeAnalysis()
-                val newContext = if (context == null) {
-                    RuntimeContext(this)
+        TokenGenerator(this, source).use { tokeniser ->
+            exportedSingleCharFunctions.forEach { token ->
+                tokeniser.registerSingleCharFunction(token)
+            }
+            val parser = APLParser(tokeniser)
+            val instr = parser.parseValueToplevel(EndOfFile)
+            rootEnvironment.escapeAnalysis()
+
+            fun evalInstrs(): APLValue {
+                val result = instr.evalWithContext(RuntimeContext(this))
+                return if (collapseResult) {
+                    result.collapse()
                 } else {
-                    context.also(RuntimeContext::recomputeRootFrame)
+                    result
                 }
-                return instr.evalWithContext(newContext)
+            }
+
+            return if (allocateThreadLocals) {
+                withThreadLocalAssigned {
+                    evalInstrs()
+                }
+            } else {
+                recomputeRootFrame()
+                evalInstrs()
             }
         }
     }
@@ -522,10 +564,31 @@ class Engine(numComputeEngines: Int? = null) {
     inline fun <T> withThreadLocalAssigned(fn: () -> T): T {
         val oldThreadLocal = threadLocalCallstackRef.value
         threadLocalCallstackRef.value = ThreadLocalCallStack(this)
+        val oldStack = threadLocalStorageStackRef.value
+        assertx(oldStack == null) { "Overriding old stack" }
+        threadLocalStorageStackRef.value = StorageStack(rootEnvironment)
         try {
             return fn()
         } finally {
             threadLocalCallstackRef.value = oldThreadLocal
+            threadLocalStorageStackRef.value = oldStack
+        }
+    }
+
+    /**
+     * Resizes the root frame to accommodate new variable assignments
+     */
+    fun recomputeRootFrame() {
+        if (currentStack().stack.size != 1) {
+            throw IllegalStateException("Attempt to recompute the root frame without an empty stack")
+        }
+        val frame = currentStack().stack[0]
+        if (rootEnvironment.externalStorageList.isNotEmpty()) {
+            throw IllegalStateException("External storage list for the root environment is not empty")
+        }
+        val origSize = frame.storageList.size
+        repeat(rootEnvironment.storageList.size - origSize) {
+            frame.storageList.add(VariableHolder())
         }
     }
 
@@ -588,90 +651,33 @@ class VariableHolder {
     var value: APLValue? = null
 }
 
-class RuntimeContext(val engine: Engine, val stack: StorageStack = StorageStack(engine.rootEnvironment)) {
-    fun pushReleaseCallback(callback: () -> Unit) {
-        TODO("need to fix")
-//        val list = releaseCallbacks
-//        if (list == null) {
-//            val updated = ArrayList<() -> Unit>()
-//            updated.add(callback)
-//            releaseCallbacks = updated
-//        } else {
-//            list.add(callback)
-//        }
-    }
-
-    fun fireReleaseCallbacks() {
-//        val list = releaseCallbacks
-//        if (list != null) {
-//            list.asReversed().forEach { fn ->
-//                fn()
-//            }
-//        }
-    }
-
-    fun reinitRootBindings() {
-//        environment.localBindings().forEach { b ->
-//            if (localVariables[b] == null) {
-//                localVariables[b] = VariableHolder()
-//            }
-//        }
-//        repeat(localVariables.size) { i ->
-//            localVariables[i] = VariableHolder()
-//        }
-    }
-
+class RuntimeContext(val engine: Engine) {
     fun isLocallyBound(sym: Symbol): Boolean {
-        val b = stack.currentFrame().environment.findBinding(sym)
+        val b = currentStack().currentFrame().environment.findBinding(sym)
         return if (b == null) {
             false
         } else {
-            val storage = stack.findStorage(StackStorageRef(b))
+            val storage = currentStack().findStorage(StackStorageRef(b))
             storage.value != null
         }
     }
 
-//    fun findVariables() = localVariables.map { (k, v) -> k.name to v.value }.toList()
-
     fun setVar(storageRef: StackStorageRef, value: APLValue) {
-        val holder = stack.findStorage(storageRef)
+        val holder = currentStack().findStorage(storageRef)
         holder.value = value
-//        val holder = localVariables[name] ?: throw IllegalStateException("Attempt to set the value of a nonexistent binding: ${name}")
-//        holder.value = value
     }
 
     fun getVar(storageRef: StackStorageRef): APLValue? {
-        val holder = stack.findStorage(storageRef)
+        val holder = currentStack().findStorage(storageRef)
         return holder.value
-//        val holder = localVariables[binding] ?: throw IllegalStateException("Attempt to get the value of a nonexistent binding: ${binding}")
-//        return holder.value
     }
 
     @OptIn(ExperimentalContracts::class)
     inline fun <T> withLinkedContext(env: Environment, name: String, pos: Position, fn: (RuntimeContext) -> T): T {
         contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
-        stack.withStackFrame(env, name) {
+        currentStack().withStackFrame(env, name, pos) {
             return fn(this)
         }
-//        val newContext = RuntimeContext(engine, env)
-//
-//        val contextStack = lookupContextStack()
-//        contextStack.stack.add(newContext)
-//        val prevContextStackSize = contextStack.stack.size
-//
-//        return withCallStackElement(name, pos) {
-//            try {
-//                fn(newContext)
-//            } finally {
-//                newContext.fireReleaseCallbacks()
-//                contextStack.stack.size.let { updatedSize ->
-//                    if (updatedSize != prevContextStackSize) {
-//                        throw IllegalStateException("Context stack was changed. Prev size = ${prevContextStackSize}, new size = $updatedSize")
-//                    }
-//                }
-//                contextStack.stack.removeLast()
-//            }
-//        }
     }
 
     fun assignArgs(args: List<StackStorageRef>, a: APLValue, pos: Position? = null) {
@@ -690,24 +696,6 @@ class RuntimeContext(val engine: Engine, val stack: StorageStack = StorageStack(
         } else {
             checkLength(args.size, 1)
             setVar(args[0], v)
-        }
-    }
-
-    /**
-     * Resizes the root frame to accommodate new variable assignments
-     */
-    fun recomputeRootFrame() {
-        if (stack.stack.size != 1) {
-            throw IllegalStateException("Attempt to recompute the root frame without an empty stack")
-        }
-        val frame = stack.stack[0]
-        val env = engine.rootEnvironment
-        if (env.externalStorageList.isNotEmpty()) {
-            throw IllegalStateException("External storage list for the root environment is not empty")
-        }
-        val origSize = frame.storageList.size
-        repeat(env.storageList.size - origSize) {
-            frame.storageList.add(VariableHolder())
         }
     }
 }

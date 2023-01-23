@@ -143,18 +143,20 @@ class UserDefinedOperatorOneArg(
         private val rightArgsRef = rightArgs.map(::StackStorageRef)
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val frame = currentStack().currentFrame()
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
                 inner.assignArgs(rightArgsRef, a)
-                inner.setVar(operatorRef, LambdaValue(opFn, context.stack.currentFrame()))
+                inner.setVar(operatorRef, LambdaValue(opFn, frame))
                 instr.evalWithContext(inner)
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            val frame = currentStack().currentFrame()
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
                 inner.assignArgs(leftArgsRef, a)
                 inner.assignArgs(rightArgsRef, b)
-                inner.setVar(operatorRef, LambdaValue(opFn, context.stack.currentFrame()))
+                inner.setVar(operatorRef, LambdaValue(opFn, frame))
                 instr.evalWithContext(inner)
             }
         }
@@ -199,7 +201,7 @@ class UserDefinedOperatorTwoArg(
         private val rightArgsRef = rightArgs.map(::StackStorageRef)
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            val frame = context.stack.currentFrame()
+            val frame = currentStack().currentFrame()
             val arg = mkArg(context)
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
                 inner.assignArgs(rightArgsRef, a)
@@ -210,7 +212,7 @@ class UserDefinedOperatorTwoArg(
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            val frame = context.stack.currentFrame()
+            val frame = currentStack().currentFrame()
             val arg = mkArg(context)
             return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
                 inner.assignArgs(leftArgsRef, a)
@@ -232,7 +234,7 @@ class UserDefinedOperatorTwoArg(
             computeCapturedEnvs(leftFn, rightFn)
         }
 
-        override fun mkArg(context: RuntimeContext) = LambdaValue(rightFn, context.stack.currentFrame())
+        override fun mkArg(context: RuntimeContext) = LambdaValue(rightFn, currentStack().currentFrame())
         private val rightFn = fns[1]
     }
 

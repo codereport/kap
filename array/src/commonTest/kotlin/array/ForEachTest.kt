@@ -133,7 +133,7 @@ class ForEachTest : APLTest() {
     @Test
     fun forEachWithImplicitClosure() {
         parseAPLExpression("+/ { a←⍵ ◊ {⍵+a}¨ ⍳10 } 400").let { result ->
-            assertSimpleNumber(1045, result)
+            assertSimpleNumber(4045, result)
         }
     }
 }
