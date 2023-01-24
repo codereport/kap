@@ -73,9 +73,7 @@ class CalculationQueue(val engine: Engine) {
                 val resolvedSymbols = variableBindings?.map { (k, v) ->
                     engine.internSymbol(k.second, engine.makeNamespace(k.first)) to v
                 }?.toMap()
-                val result = engine.withThreadLocalAssigned {
-                    engine.parseAndEval(source, extraBindings = resolvedSymbols, allocateThreadLocals = false).collapse()
-                }
+                val result = engine.parseAndEval(source, extraBindings = resolvedSymbols, allocateThreadLocals = false).collapse()
                 Either.Left(result)
             } catch (e: InterruptedException) {
                 throw e

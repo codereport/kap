@@ -127,6 +127,11 @@ class DynamicFunctionDescriptor(val instr: Instruction) : APLFunctionDescriptor 
 
 class VariableRef(val name: Symbol, val storageRef: StackStorageRef, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
+        val a = currentStack()
+        val b = a.findStorage(storageRef)
+        if (b.value == null) {
+            println(a)
+        }
         return currentStack().findStorage(storageRef).value ?: throwAPLException(VariableNotAssigned(storageRef.binding.name, pos))
     }
 
@@ -306,21 +311,21 @@ class UserFunction(
     private var leftFnArgs: List<EnvironmentBinding>,
     private var rightFnArgs: List<EnvironmentBinding>,
     var instr: Instruction,
-    private val env: Environment
+    val env: Environment
 ) : APLFunctionDescriptor {
     inner class UserFunctionImpl(pos: Position) : APLFunction(pos) {
         private val leftStorageRefs = leftFnArgs.map(::StackStorageRef)
         private val rightStorageRefs = rightFnArgs.map(::StackStorageRef)
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
+            return context.withLinkedContext(env, name.nameWithNamespace, pos) { inner ->
                 inner.assignArgs(rightStorageRefs, a, pos)
                 instr.evalWithContext(inner)
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
+            return context.withLinkedContext(env, name.nameWithNamespace, pos) { inner ->
                 inner.assignArgs(leftStorageRefs, a, pos)
                 inner.assignArgs(rightStorageRefs, b, pos)
                 instr.evalWithContext(inner)
@@ -332,10 +337,6 @@ class UserFunction(
 }
 
 class EvalLambdaFnx(val fn: APLFunction, pos: Position, val relatedInstructions: List<Instruction> = emptyList()) : Instruction(pos) {
-    init {
-        fn.markEscapeEnvironment()
-    }
-
     override fun evalWithContext(context: RuntimeContext): APLValue {
         relatedInstructions.asReversed().forEach { instr ->
             instr.evalWithContext(context)

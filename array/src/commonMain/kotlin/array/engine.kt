@@ -59,12 +59,6 @@ private const val KEYWORD_NAMESPACE_NAME = "keyword"
 private const val DEFAULT_NAMESPACE_NAME = "default"
 private const val ANONYMOUS_SYMBOL_NAMESPACE_NAME = "anonymous"
 
-class ThreadLocalCallStack(val engine: Engine) {
-    val callStack = ArrayList<CallStackElement>()
-}
-
-data class CallStackElement(val name: String, val pos: Position?)
-
 class StorageStack private constructor() {
     val stack = ArrayList<StorageStackFrame>()
 
@@ -138,7 +132,12 @@ class StorageStack private constructor() {
             }
         }
 
+        fun makeStackFrameDescription(): StackFrameDescription {
+            return StackFrameDescription("name:${name}, envName:${environment.name}", pos)
+        }
     }
+
+    data class StackFrameDescription(val name: String, val pos: Position?)
 }
 
 @OptIn(ExperimentalContracts::class)
@@ -176,8 +175,19 @@ interface ClosableHandler<T : APLValue> {
     fun close(value: T)
 }
 
-val threadLocalCallstackRef = makeMPThreadLocal<ThreadLocalCallStack>()
 val threadLocalStorageStackRef = makeMPThreadLocal<StorageStack>()
+
+@OptIn(ExperimentalContracts::class)
+inline fun <T> withThreadLocalsUnassigned(fn: () -> T): T {
+    contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+    val oldStack = threadLocalStorageStackRef.value
+    threadLocalStorageStackRef.value = null
+    try {
+        return fn()
+    } finally {
+        threadLocalStorageStackRef.value = oldStack
+    }
+}
 
 fun currentStack() = threadLocalStorageStackRef.value ?: throw IllegalStateException("Storage stack is not bound")
 
@@ -465,7 +475,8 @@ class Engine(numComputeEngines: Int? = null) {
         source: SourceLocation,
         extraBindings: Map<Symbol, APLValue>? = null,
         allocateThreadLocals: Boolean = true,
-        collapseResult: Boolean = true): APLValue {
+        collapseResult: Boolean = true)
+            : APLValue {
         if (extraBindings != null) {
             throw IllegalArgumentException("extra bindings is not supported at the moment")
         }
@@ -539,38 +550,14 @@ class Engine(numComputeEngines: Int? = null) {
     }
 
     @OptIn(ExperimentalContracts::class)
-    inline fun <T> withCallStackElement(name: String, pos: Position, fn: (CallStackElement) -> T): T {
-        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
-        checkInterrupted(pos)
-        val threadLocalCallStack = threadLocalCallstackRef.value
-        assertx(threadLocalCallStack != null) { "threadLocalCallStack is null" }
-        val callStack = threadLocalCallStack.callStack
-        if (callStack.size >= 100) {
-            throwAPLException(APLEvalException("Stack overflow", pos))
-        }
-        val callStackElement = CallStackElement(name, pos)
-        callStack.add(callStackElement)
-        val prevSize = callStack.size
-
-        try {
-            return fn(callStackElement)
-        } finally {
-            assertx(prevSize == callStack.size) { "previous size is not the same as the callstack size" }
-            val removedElement = callStack.removeLast()
-            assertx(removedElement === callStackElement)
-        }
-    }
-
     inline fun <T> withThreadLocalAssigned(fn: () -> T): T {
-        val oldThreadLocal = threadLocalCallstackRef.value
-        threadLocalCallstackRef.value = ThreadLocalCallStack(this)
+        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
         val oldStack = threadLocalStorageStackRef.value
         assertx(oldStack == null) { "Overriding old stack" }
         threadLocalStorageStackRef.value = StorageStack(rootEnvironment)
         try {
             return fn()
         } finally {
-            threadLocalCallstackRef.value = oldThreadLocal
             threadLocalStorageStackRef.value = oldStack
         }
     }
@@ -638,9 +625,9 @@ class CloseAPLFunction : APLFunctionDescriptor {
 }
 
 fun throwAPLException(ex: APLEvalException): Nothing {
-    val threadLocalCallStack = threadLocalCallstackRef.value
-    if (threadLocalCallStack != null) {
-        ex.callStack = threadLocalCallStack.callStack.map { e -> e.copy() }
+    val stack = threadLocalStorageStackRef.value
+    if (stack != null) {
+        ex.callStack = stack.stack.map(StorageStack.StorageStackFrame::makeStackFrameDescription)
     }
     throw ex
 }
@@ -663,7 +650,8 @@ class RuntimeContext(val engine: Engine) {
     }
 
     fun setVar(storageRef: StackStorageRef, value: APLValue) {
-        val holder = currentStack().findStorage(storageRef)
+        val stack = currentStack()
+        val holder = stack.findStorage(storageRef)
         holder.value = value
     }
 

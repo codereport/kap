@@ -65,7 +65,7 @@ class CustomFunctionTest : APLTest() {
 
     @Test
     fun selfRecursion0() {
-        parseAPLExpression("n←0 ◊ foo ⇐ { if(⍵≡0) { 1 } else {  n←n+1 ◊ ⍓ ¯1+⍵ } } ◊ n,foo 10", true).let { result ->
+        parseAPLExpression("n←0 ◊ foo ⇐ { if(⍵≡0) { 1 } else { n←n+1 ◊ ⍓ ¯1+⍵ } } ◊ n,foo 10", true).let { result ->
             assertDimension(dimensionsOfSize(2), result)
             assertArrayContent(arrayOf(10, 1), result)
         }
@@ -75,6 +75,29 @@ class CustomFunctionTest : APLTest() {
     fun selfRecursion1() {
         parseAPLExpression("{ if(⍵≡0) {10} else {1+⍓ 0} } 1", withStandardLib = true).let { result ->
             assertSimpleNumber(11, result)
+        }
+    }
+
+    @Test
+    fun ycombinator() {
+        val src =
+            """
+            |outer ← λ{
+            |  a0 ← ⍵
+            |  inner ← λ{
+            |    (f arg) ← ⍵
+            |    if (0≡arg) {
+            |      0
+            |    } else {
+            |      arg + ⍞f f (arg - 1)
+            |    }
+            |  }
+            |  ⍞inner inner a0
+            |}
+            |⍞outer 10
+            """.trimMargin()
+        parseAPLExpression(src, withStandardLib = true).let { result ->
+            assertSimpleNumber(55, result)
         }
     }
 

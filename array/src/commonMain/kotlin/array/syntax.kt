@@ -77,6 +77,7 @@ abstract class FunctionSyntaxRule(private val variable: EnvironmentBinding) : Sy
         } else {
             parser.parseFnDefinitionSameEnvironment(endToken = endToken())
         }
+        parser.currentEnvironment().markCanEscape()
         syntaxRuleBindings.add(
             SyntaxRuleVariableBinding(
                 variable,
@@ -170,7 +171,7 @@ private fun processPair(parser: APLParser, curr: MutableList<SyntaxRule>, token:
 
     fun ensureKeyword(symbol: Symbol) {
         if (symbol.namespace !== tokeniser.engine.keywordNamespace) {
-            throw ParseException("Tag is not a keyword: ${symbol.nameWithNamespace()}", pos)
+            throw ParseException("Tag is not a keyword: ${symbol.nameWithNamespace}", pos)
         }
     }
 
@@ -193,7 +194,7 @@ private fun processPair(parser: APLParser, curr: MutableList<SyntaxRule>, token:
                 parser.currentEnvironment().bindLocal(tokeniser.nextTokenWithType())))
         "optional" -> curr.add(processOptional(parser))
         "repeat" -> curr.add(processRepeat(parser))
-        else -> throw ParseException("Unexpected tag: ${token.nameWithNamespace()}")
+        else -> throw ParseException("Unexpected tag: ${token.nameWithNamespace}")
     }
 }
 
@@ -287,7 +288,7 @@ fun processCustomSyntax(parser: APLParser, customSyntax: CustomSyntax): Instruct
     }
     val envBindings = bindings.map { b -> Pair(b.name, b.value) }
     return CallWithVarInstruction(
-        "CustomSyntax: ${customSyntax.name.nameWithNamespace()}",
+        "CustomSyntax: ${customSyntax.name.nameWithNamespace}",
         customSyntax.instr,
         customSyntax.environment,
         envBindings,

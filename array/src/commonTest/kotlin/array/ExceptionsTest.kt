@@ -71,7 +71,7 @@ class ExceptionsTest : APLTest() {
         } catch (ex: APLEvalException) {
             val callStack = ex.callStack
             assertNotNull(callStack)
-            assertEquals(2, callStack.size)
+            assertEquals(3, callStack.size)
         }
     }
 }

@@ -223,7 +223,7 @@ class ReaddirFunction : APLFunctionDescriptor {
                 }
                 val found =
                     keywordToType[collapsed.value]
-                        ?: throwAPLException(APLIllegalArgumentException("Illegal selector: ${collapsed.value.nameWithNamespace()}", pos))
+                        ?: throwAPLException(APLIllegalArgumentException("Illegal selector: ${collapsed.value.nameWithNamespace}", pos))
                 result.add(found)
             }
             return result

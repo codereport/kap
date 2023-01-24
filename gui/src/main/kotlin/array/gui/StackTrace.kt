@@ -1,7 +1,8 @@
 package array.gui
 
 import array.APLEvalException
-import array.CallStackElement
+import array.Position
+import array.StorageStack
 import javafx.beans.property.SimpleObjectProperty
 import javafx.beans.value.ChangeListener
 import javafx.beans.value.ObservableValue
@@ -21,10 +22,10 @@ class StackTrace {
 
     fun updateException(ex: APLEvalException) {
         val rows = ArrayList<StackTraceRow>().apply {
-            add(StackTraceRow(0, CallStackElement(ex.formattedError(), ex.pos), ex.formattedError()))
+            add(StackTraceRow(0, CallStackEntry(ex.formattedError(), ex.pos), ex.formattedError()))
             ex.callStack?.let { callStack ->
                 callStack.asReversed().forEachIndexed { i, element ->
-                    add(StackTraceRow(i + 1, element, null))
+                    add(StackTraceRow(i + 1, CallStackEntry(element), null))
                 }
             }
         }
@@ -60,7 +61,11 @@ class StackTrace {
     }
 }
 
-data class StackTraceRow(val level: Int, val entry: CallStackElement, val message: String?)
+data class CallStackEntry(val description: String, val pos: Position?) {
+    constructor(frame: StorageStack.StackFrameDescription) : this(frame.name, frame.pos)
+}
+
+data class StackTraceRow(val level: Int, val entry: CallStackEntry, val message: String?)
 
 /////////////////////////////////////////////
 // Level
@@ -102,7 +107,7 @@ class StackTraceNameCellFactory : Callback<TableColumn<StackTraceRow, String>, T
 
 class StackTraceNameCellValueFactory : Callback<TableColumn.CellDataFeatures<StackTraceRow, String>, ObservableValue<String>> {
     override fun call(param: TableColumn.CellDataFeatures<StackTraceRow, String>): ObservableValue<String> {
-        return SimpleObjectProperty(param.value.entry.name)
+        return SimpleObjectProperty(param.value.entry.description)
     }
 }
 

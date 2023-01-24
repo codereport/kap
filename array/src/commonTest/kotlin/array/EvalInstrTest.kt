@@ -1,5 +1,6 @@
 package array
 
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
@@ -29,7 +30,9 @@ class EvalInstrTest : APLTest() {
         }
     }
 
+    // Support for extraBindings was removed in the rewrite of the stack management
     @Test
+    @Ignore
     fun evalWithExtraBindings() {
         val engine = Engine()
         val b = mapOf(engine.internSymbol("a") to APLLong(2))
