@@ -14,23 +14,35 @@ private fun benchmarkPrimes(): String {
     return srcString
 }
 
+private fun benchmarkVarLookupScope(): String {
+    // Orig: 1.2875
+    // removed redundant: 1.0207
+    // New stack: 0.9316
+    return "{ a←⍵ ◊ {a+⍺+⍵}/⍳10000000 } 4"
+}
+
 private fun benchmarkMultipleCall(): String {
     val srcString = """
             |f ⇐ {⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵}
             |({f 5}⍣10000000) 0
         """.trimMargin()
-    // orig: 3.5761 (with jprofiler)
-    // precomputed literals: 3.3647
+    // Orig: 5.375100000000001
+    // removed redundant lookup: 3.7815
+    // New stack: 3.3473
     return srcString
 }
 
 fun main() {
     val engine = Engine()
-    engine.addLibrarySearchPath("standard-lib")
+    engine.addLibrarySearchPath("array/standard-lib")
     engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
     val srcString = benchmarkMultipleCall()
     println("Starting")
     val iterations = 10
+    repeat(iterations) {
+        val result = engine.parseAndEval(StringSourceLocation(srcString))
+        result.collapse()
+    }
     val elapsed = measureTimeMillis {
         repeat(iterations) {
             val result = engine.parseAndEval(StringSourceLocation(srcString))
