@@ -21,6 +21,10 @@ private fun benchmarkVarLookupScope(): String {
     return "{ a←⍵ ◊ {a+⍺+⍵}/⍳10000000 } 4"
 }
 
+private fun contribBench(): String {
+    return "+/{+/⍵(⍵+1)}¨⍳1000000"
+}
+
 private fun benchmarkMultipleCall(): String {
     val srcString = """
             |f ⇐ {⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵}
@@ -36,7 +40,7 @@ fun main() {
     val engine = Engine()
     engine.addLibrarySearchPath("array/standard-lib")
     engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
-    val srcString = benchmarkMultipleCall()
+    val srcString = contribBench()
     println("Starting")
     val iterations = 10
     repeat(iterations) {
