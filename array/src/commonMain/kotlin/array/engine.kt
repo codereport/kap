@@ -94,21 +94,23 @@ class StorageStack private constructor() {
     fun currentFrame() = stack.last()
 
     inner class StorageStackFrame(val environment: Environment, val name: String, val pos: Position?) {
-        val storageList: MutableList<VariableHolder>
+        var storageList: Array<VariableHolder>
         private var releaseCallbacks: MutableList<() -> Unit>? = null
 
         init {
             val localStorageSize = environment.storageList.size
-            val externalStorageSize = environment.externalStorageList.size
-            storageList = ArrayList(localStorageSize + externalStorageSize)
-            repeat(localStorageSize) {
-                storageList.add(VariableHolder())
-            }
-            environment.externalStorageList.forEach { ref ->
-                // We don't subtract 1 from stackIndex here because at this point the element has not been added to the stack yet
-                val stackIndex = stack.size - ref.frameIndex
-                val frame = stack[stackIndex]
-                storageList.add(frame.storageList[ref.storageOffset])
+            val externalStoageList = environment.externalStorageList
+            val externalStorageSize = externalStoageList.size
+            storageList = Array(localStorageSize + externalStorageSize) { i ->
+                if (i < localStorageSize) {
+                    VariableHolder()
+                } else {
+                    val ref = externalStoageList[i - localStorageSize]
+                    // We don't subtract 1 from stackIndex here because at this point the element has not been added to the stack yet
+                    val stackIndex = stack.size - ref.frameIndex
+                    val frame = stack[stackIndex]
+                    frame.storageList[ref.storageOffset]
+                }
             }
         }
 
@@ -573,9 +575,13 @@ class Engine(numComputeEngines: Int? = null) {
         if (rootEnvironment.externalStorageList.isNotEmpty()) {
             throw IllegalStateException("External storage list for the root environment is not empty")
         }
-        val origSize = frame.storageList.size
-        repeat(rootEnvironment.storageList.size - origSize) {
-            frame.storageList.add(VariableHolder())
+        val oldStorageList = frame.storageList
+        frame.storageList = Array(rootEnvironment.storageList.size) { i ->
+            if (i < oldStorageList.size) {
+                frame.storageList[i]
+            } else {
+                VariableHolder()
+            }
         }
     }
 
