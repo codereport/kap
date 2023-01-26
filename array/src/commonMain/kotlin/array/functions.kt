@@ -251,17 +251,17 @@ class DeclaredFunction(
         private val rightArgRef = StackStorageRef(rightArgName)
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            return context.withLinkedContext(env, "declaredFunction1arg(${name})", pos) { localContext ->
-                localContext.setVar(rightArgRef, a)
-                instruction.evalWithContext(localContext)
+            return withLinkedContext(env, "declaredFunction1arg(${name})", pos) {
+                context.setVar(rightArgRef, a)
+                instruction.evalWithContext(context)
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            return context.withLinkedContext(env, "declaredFunction2arg(${name})", pos) { localContext ->
-                localContext.setVar(leftArgRef, a)
-                localContext.setVar(rightArgRef, b)
-                instruction.evalWithContext(localContext)
+            return withLinkedContext(env, "declaredFunction2arg(${name})", pos) {
+                context.setVar(leftArgRef, a)
+                context.setVar(rightArgRef, b)
+                instruction.evalWithContext(context)
             }
         }
 

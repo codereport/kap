@@ -127,7 +127,7 @@ class DynamicFunctionDescriptor(val instr: Instruction) : APLFunctionDescriptor 
 
 class VariableRef(val name: Symbol, val storageRef: StackStorageRef, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
-        return currentStack().findStorage(storageRef).value ?: throwAPLException(VariableNotAssigned(storageRef.binding.name, pos))
+        return currentStack().findStorage(storageRef).value ?: throwAPLException(VariableNotAssigned(storageRef.name, pos))
     }
 
     override fun children(): List<Instruction> = emptyList()
@@ -313,17 +313,17 @@ class UserFunction(
         private val rightStorageRefs = rightFnArgs.map(::StackStorageRef)
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            return context.withLinkedContext(env, name.nameWithNamespace, pos) { inner ->
-                inner.assignArgs(rightStorageRefs, a, pos)
-                instr.evalWithContext(inner)
+            return withLinkedContext(env, name.nameWithNamespace, pos) {
+                context.assignArgs(rightStorageRefs, a, pos)
+                instr.evalWithContext(context)
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            return context.withLinkedContext(env, name.nameWithNamespace, pos) { inner ->
-                inner.assignArgs(leftStorageRefs, a, pos)
-                inner.assignArgs(rightStorageRefs, b, pos)
-                instr.evalWithContext(inner)
+            return withLinkedContext(env, name.nameWithNamespace, pos) {
+                context.assignArgs(leftStorageRefs, a, pos)
+                context.assignArgs(rightStorageRefs, b, pos)
+                instr.evalWithContext(context)
             }
         }
     }

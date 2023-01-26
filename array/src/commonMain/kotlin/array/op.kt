@@ -144,20 +144,20 @@ class UserDefinedOperatorOneArg(
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val frame = currentStack().currentFrame()
-            return context.withLinkedContext(env, name.nameWithNamespace, pos) { inner ->
-                inner.assignArgs(rightArgsRef, a)
-                inner.setVar(operatorRef, LambdaValue(opFn, frame))
-                instr.evalWithContext(inner)
+            return withLinkedContext(env, name.nameWithNamespace, pos) {
+                context.assignArgs(rightArgsRef, a)
+                context.setVar(operatorRef, LambdaValue(opFn, frame))
+                instr.evalWithContext(context)
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val frame = currentStack().currentFrame()
-            return context.withLinkedContext(env, name.nameWithNamespace, pos) { inner ->
-                inner.assignArgs(leftArgsRef, a)
-                inner.assignArgs(rightArgsRef, b)
-                inner.setVar(operatorRef, LambdaValue(opFn, frame))
-                instr.evalWithContext(inner)
+            return withLinkedContext(env, name.nameWithNamespace, pos) {
+                context.assignArgs(leftArgsRef, a)
+                context.assignArgs(rightArgsRef, b)
+                context.setVar(operatorRef, LambdaValue(opFn, frame))
+                instr.evalWithContext(context)
             }
         }
     }
@@ -203,23 +203,23 @@ class UserDefinedOperatorTwoArg(
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val frame = currentStack().currentFrame()
             val arg = mkArg(context)
-            return context.withLinkedContext(env, name.nameWithNamespace, pos) { inner ->
-                inner.assignArgs(rightArgsRef, a)
-                inner.setVar(leftOperatorRef, LambdaValue(leftFn, frame))
-                inner.setVar(rightOperatorRef, arg)
-                instr.evalWithContext(inner)
+            return withLinkedContext(env, name.nameWithNamespace, pos) {
+                context.assignArgs(rightArgsRef, a)
+                context.setVar(leftOperatorRef, LambdaValue(leftFn, frame))
+                context.setVar(rightOperatorRef, arg)
+                instr.evalWithContext(context)
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val frame = currentStack().currentFrame()
             val arg = mkArg(context)
-            return context.withLinkedContext(env, name.nameWithNamespace, pos) { inner ->
-                inner.assignArgs(leftArgsRef, a)
-                inner.assignArgs(rightArgsRef, b)
-                inner.setVar(leftOperatorRef, LambdaValue(leftFn, frame))
-                inner.setVar(rightOperatorRef, arg)
-                instr.evalWithContext(inner)
+            return withLinkedContext(env, name.nameWithNamespace, pos) {
+                context.assignArgs(leftArgsRef, a)
+                context.assignArgs(rightArgsRef, b)
+                context.setVar(leftOperatorRef, LambdaValue(leftFn, frame))
+                context.setVar(rightOperatorRef, arg)
+                instr.evalWithContext(context)
             }
         }
 

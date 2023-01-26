@@ -644,6 +644,14 @@ class VariableHolder {
     var value: APLValue? = null
 }
 
+@OptIn(ExperimentalContracts::class)
+inline fun <T> withLinkedContext(env: Environment, name: String, pos: Position, fn: () -> T): T {
+    contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+    currentStack().withStackFrame(env, name, pos) {
+        return fn()
+    }
+}
+
 class RuntimeContext(val engine: Engine) {
     fun isLocallyBound(sym: Symbol): Boolean {
         val b = currentStack().currentFrame().environment.findBinding(sym)
@@ -664,14 +672,6 @@ class RuntimeContext(val engine: Engine) {
     fun getVar(storageRef: StackStorageRef): APLValue? {
         val holder = currentStack().findStorage(storageRef)
         return holder.value
-    }
-
-    @OptIn(ExperimentalContracts::class)
-    inline fun <T> withLinkedContext(env: Environment, name: String, pos: Position, fn: (RuntimeContext) -> T): T {
-        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
-        currentStack().withStackFrame(env, name, pos) {
-            return fn(this)
-        }
     }
 
     fun assignArgs(args: List<StackStorageRef>, a: APLValue, pos: Position? = null) {

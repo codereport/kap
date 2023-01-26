@@ -15,14 +15,17 @@ private fun benchmarkPrimes(): String {
 }
 
 private fun benchmarkVarLookupScope(): String {
+    // Pre-rewrite: 1.3536
     // Orig: 1.2875
     // removed redundant: 1.0207
     // New stack: 0.9316
     // Storage list in array: 0.9357000000000001
+    // Standalone stack allocation: 0.9074
     return "{ a←⍵ ◊ {a+⍺+⍵}/⍳10000000 } 4"
 }
 
 private fun contribBench(): String {
+    // Pre-rewrite: 0.18969999999999998
     return "+/{+/⍵(⍵+1)}¨⍳1000000"
 }
 
@@ -31,6 +34,7 @@ private fun benchmarkMultipleCall(): String {
             |f ⇐ {⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵}
             |({f 5}⍣10000000) 0
         """.trimMargin()
+    // Pre-rewrite: 3.4658
     // Orig: 5.375100000000001
     // removed redundant lookup: 3.7815
     // New stack: 3.3473
@@ -42,7 +46,7 @@ fun main() {
     val engine = Engine()
     engine.addLibrarySearchPath("array/standard-lib")
     engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
-    val srcString = benchmarkMultipleCall()
+    val srcString = benchmarkVarLookupScope()
     println("Starting")
     val iterations = 10
     repeat(iterations) {

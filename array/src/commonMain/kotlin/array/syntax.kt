@@ -270,11 +270,11 @@ class CallWithVarInstruction(
 
     override fun evalWithContext(context: RuntimeContext): APLValue {
         val results = refs.map { (envBinding, instr) -> Pair(envBinding, instr.evalWithContext(context)) }
-        return context.withLinkedContext(env, name, pos) { newContext ->
+        return withLinkedContext(env, name, pos) {
             results.forEach { (envBinding, result) ->
-                newContext.setVar(envBinding, result)
+                context.setVar(envBinding, result)
             }
-            instr.evalWithContext(newContext)
+            instr.evalWithContext(context)
         }
     }
 

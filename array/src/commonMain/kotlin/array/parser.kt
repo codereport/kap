@@ -20,9 +20,10 @@ class StackStorageDescriptor(val env: Environment, val index: Int, val comment: 
     override fun toString() = "StackStorageDescriptor[comment=${comment}]"
 }
 
-class StackStorageRef(val binding: EnvironmentBinding) {
-    val frameIndex get() = binding.frameIndex
-    val storageOffset get() = binding.storage.index
+class StackStorageRef(binding: EnvironmentBinding) {
+    val name = binding.name
+    val frameIndex = binding.frameIndex
+    val storageOffset = binding.storage.index
 }
 
 class ExternalStorageRef(var frameIndex: Int, var storageOffset: Int)
