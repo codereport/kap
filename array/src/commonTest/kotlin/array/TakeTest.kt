@@ -354,4 +354,18 @@ class TakeTest : APLTest() {
             parseAPLExpression("(1 1 ⍴ 1) ↓ 1 2 3 4 5 6")
         }
     }
+
+    @Test
+    fun dropFromEmptyArray() {
+        parseAPLExpression("1↓⍬").let { result ->
+            assertDimension(dimensionsOfSize(0), result)
+        }
+    }
+
+    @Test
+    fun dropExtraElements() {
+        parseAPLExpression("3↓11 12").let { result ->
+            assertDimension(dimensionsOfSize(0), result)
+        }
+    }
 }

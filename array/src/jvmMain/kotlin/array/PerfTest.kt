@@ -4,7 +4,7 @@ import kotlin.system.measureTimeMillis
 
 private fun benchmarkPrimes(): String {
     val srcString = """
-            |+/ (⍳N) /⍨ {~0∊⍵|⍨1↓1+⍳⍵⋆0.5}¨ ⍳N←2000000
+            |+/ (⍳N) /⍨ {~0∊⍵|⍨1↓1+⍳√⍵}¨ ⍳N←200000
         """.trimMargin()
     // N←1000
     // Default: 0.548
@@ -26,6 +26,7 @@ private fun benchmarkVarLookupScope(): String {
 
 private fun contribBench(): String {
     // Pre-rewrite: 0.18969999999999998
+    // Standalone stack allocation: 0.1326
     return "+/{+/⍵(⍵+1)}¨⍳1000000"
 }
 
@@ -46,7 +47,7 @@ fun main() {
     val engine = Engine()
     engine.addLibrarySearchPath("array/standard-lib")
     engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
-    val srcString = benchmarkVarLookupScope()
+    val srcString = contribBench()
     println("Starting")
     val iterations = 10
     repeat(iterations) {

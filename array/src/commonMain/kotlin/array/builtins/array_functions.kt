@@ -943,7 +943,7 @@ class TakeAPLFunction : APLFunctionDescriptor {
 
 class DropArrayValue(val selection: IntArray, val source: APLValue, val pos: Position) : APLArray() {
     private val sourceDimensions = source.dimensions
-    override val dimensions = Dimensions(selection.mapIndexed { index, v -> sourceDimensions[index] - v.absoluteValue }.toIntArray())
+    override val dimensions = Dimensions(selection.mapIndexed { index, v -> max(0, sourceDimensions[index] - v.absoluteValue) }.toIntArray())
 
     override fun valueAt(p: Int): APLValue {
         val coords = dimensions.positionFromIndex(p)
