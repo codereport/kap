@@ -801,53 +801,20 @@ class APLParser(val tokeniser: TokenGenerator) {
 
     fun parseFnDefinition(pos: Position, endToken: Token = CloseFnDef, allocateEnvironment: Boolean = true): APLFunctionDescriptor {
         return if (allocateEnvironment) {
-            parseFnDefinitionNewEnvironment(pos, endToken)
+            parseFnDefinitionNewEnvironment(endToken)
         } else {
             parseFnDefinitionSameEnvironment(endToken)
         }
     }
 
-    fun parseFnDefinitionNewEnvironment(pos: Position, endToken: Token = CloseFnDef, name: String = "declared function"): DeclaredFunction {
+    fun parseFnDefinitionNewEnvironment(endToken: Token = CloseFnDef, name: String = "declared function"): DeclaredFunction {
         val engine = tokeniser.engine
         withEnvironment(name) { env ->
             val leftBinding = env.bindLocal(engine.internSymbol("⍺", engine.coreNamespace))
             val rightBinding = env.bindLocal(engine.internSymbol("⍵", engine.coreNamespace))
-            val outerCallSymbol = tokeniser.engine.currentNamespace.internSymbol(OUTER_CALL_SYMBOL)
-            val innerEnv = Environment("self reference: ${name}", env)
-            val inProcessUserFunction =
-                OuterCallFunction(env, UserFunction(outerCallSymbol, listOf(leftBinding), listOf(rightBinding), DummyInstr(pos), innerEnv))
-            currentEnvironment().registerLocalFunction(outerCallSymbol, inProcessUserFunction)
             val instruction = parseValueToplevel(endToken)
-            env.markCanEscape()
-            inProcessUserFunction.updateInstr(instruction)
             return DeclaredFunction("<unnamed>", instruction, leftBinding, rightBinding, env)
         }
-    }
-
-    class OuterCallFunction(val parentEnv: Environment, val fnDescriptor: UserFunction) : APLFunctionDescriptor {
-        fun updateInstr(newInstr: Instruction) {
-            parentEnv.bindings.filter { b -> b.environment === parentEnv }.forEach { b ->
-                fnDescriptor.env.bindLocal(b.name)
-            }
-            parentEnv.bindings.filter { b -> b.environment !== parentEnv }.forEach { b ->
-                fnDescriptor.env.bindings.add(EnvironmentBinding(fnDescriptor.env, b.name, b.storage))
-            }
-            fnDescriptor.instr = newInstr
-        }
-
-        inner class OuterCallFunctionImpl(pos: Position, fn: UserFunction.UserFunctionImpl) : NoAxisAPLFunction(pos, listOf(fn)) {
-            override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-                return fn.eval1Arg(context, a, null)
-            }
-
-            override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-                return fn.eval2Arg(context, a, b, null)
-            }
-
-            val fn = fns[0]
-        }
-
-        override fun make(pos: Position) = OuterCallFunctionImpl(pos, fnDescriptor.make(pos))
     }
 
     fun parseFnDefinitionSameEnvironment(endToken: Token = CloseFnDef): DeclaredNonBoundFunction {

@@ -302,9 +302,9 @@ class AssignmentInstruction(val variableList: Array<StackStorageRef>, val instr:
 }
 
 class UserFunction(
-    private val name: Symbol,
-    private var leftFnArgs: List<EnvironmentBinding>,
-    private var rightFnArgs: List<EnvironmentBinding>,
+    val name: Symbol,
+    val leftFnArgs: List<EnvironmentBinding>,
+    val rightFnArgs: List<EnvironmentBinding>,
     var instr: Instruction,
     val env: Environment
 ) : APLFunctionDescriptor {

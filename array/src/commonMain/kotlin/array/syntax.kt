@@ -73,7 +73,7 @@ abstract class FunctionSyntaxRule(private val variable: EnvironmentBinding) : Sy
             throw UnexpectedToken(token, pos)
         }
         val fnDefinition = if (allocateEnvironment()) {
-            parser.parseFnDefinitionNewEnvironment(pos, endToken = endToken(), name = "function syntax rule")
+            parser.parseFnDefinitionNewEnvironment(endToken = endToken(), name = "function syntax rule")
         } else {
             parser.parseFnDefinitionSameEnvironment(endToken = endToken())
         }
