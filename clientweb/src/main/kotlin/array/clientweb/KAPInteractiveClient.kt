@@ -32,7 +32,7 @@ class KAPInteractiveClient(props: ClientProps) : RComponent<ClientProps, ClientS
     init {
         engine.addLibrarySearchPath("standard-lib")
         try {
-            engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"), false)
+            engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
         } catch (e: APLGenericException) {
             console.log("Error loading standard-lib: ${e.message}")
         }
@@ -107,7 +107,7 @@ class KAPInteractiveClient(props: ClientProps) : RComponent<ClientProps, ClientS
                         val inputText = state.inputText
                         var historyResult: HistoryResult
                         try {
-                            val result = engine.parseAndEval(StringSourceLocation(inputText), false).collapse()
+                            val result = engine.parseAndEval(StringSourceLocation(inputText)).collapse()
                             historyResult = HistoryResult(inputText, result, null)
                         } catch (e: APLGenericException) {
                             historyResult = HistoryResult(inputText, null, e.formattedError())

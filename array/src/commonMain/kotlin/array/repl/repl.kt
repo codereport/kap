@@ -43,7 +43,7 @@ fun runRepl(args: Array<String>, defaultLibPath: String? = null, init: ((Engine)
         }
     }
     if (!argResult.containsKey("no-standard-lib")) {
-        engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"), true)
+        engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
     }
     try {
         argResult["load"]?.let { file ->
@@ -57,7 +57,7 @@ fun runRepl(args: Array<String>, defaultLibPath: String? = null, init: ((Engine)
                     else -> throw ReplFailedException("Not a file: ${file}")
                 }
             }
-            engine.parseAndEval(sourceLocation, false).collapse()
+            engine.parseAndEval(sourceLocation).collapse()
         }
 
         if (!argResult.containsKey("no-repl")) {
@@ -66,7 +66,7 @@ fun runRepl(args: Array<String>, defaultLibPath: String? = null, init: ((Engine)
                 val line = keyboardInput.readString(prompt) ?: break
                 val stringTrimmed = line.trim()
                 if (stringTrimmed != "") {
-                    val result = engine.parseAndEval(StringSourceLocation(line), false)
+                    val result = engine.parseAndEval(StringSourceLocation(line))
                     println(result.formatted(FormatStyle.PRETTY))
                 }
             }

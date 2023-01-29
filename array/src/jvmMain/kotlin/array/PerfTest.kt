@@ -4,7 +4,7 @@ import kotlin.system.measureTimeMillis
 
 private fun benchmarkPrimes(): String {
     val srcString = """
-            |+/ (⍳N) /⍨ {~0∊⍵|⍨1↓1+⍳⍵⋆0.5}¨ ⍳N←2000000
+            |+/ (⍳N) /⍨ {~0∊⍵|⍨1↓1+⍳√⍵}¨ ⍳N←200000
         """.trimMargin()
     // N←1000
     // Default: 0.548
@@ -20,11 +20,13 @@ private fun benchmarkVarLookupScope(): String {
     // removed redundant: 1.0207
     // New stack: 0.9316
     // Storage list in array: 0.9357000000000001
+    // Standalone stack allocation: 0.9074
     return "{ a←⍵ ◊ {a+⍺+⍵}/⍳10000000 } 4"
 }
 
 private fun contribBench(): String {
     // Pre-rewrite: 0.18969999999999998
+    // Standalone stack allocation: 0.1326
     return "+/{+/⍵(⍵+1)}¨⍳1000000"
 }
 
@@ -43,17 +45,19 @@ private fun benchmarkMultipleCall(): String {
 
 fun main() {
     val engine = Engine()
-    engine.addLibrarySearchPath("standard-lib")
+    engine.addLibrarySearchPath("array/standard-lib")
     engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
-    val srcString = benchmarkVarLookupScope()
+    val srcString = contribBench()
     println("Starting")
-    val iterations = 20
+    val iterations = 10
+    repeat(iterations) {
+        val result = engine.parseAndEval(StringSourceLocation(srcString))
+        result.collapse()
+    }
     val elapsed = measureTimeMillis {
         repeat(iterations) {
-            engine.withThreadLocalAssigned {
-                val result = engine.parseAndEval(StringSourceLocation(srcString))
-                result.collapse()
-            }
+            val result = engine.parseAndEval(StringSourceLocation(srcString))
+            result.collapse()
         }
     }
     println("Elapsed: ${elapsed / iterations.toDouble() / 1000.0}")

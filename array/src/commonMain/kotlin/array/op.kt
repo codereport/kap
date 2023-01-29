@@ -1,5 +1,8 @@
 package array
 
+import array.builtins.SaveStackCapable
+import array.builtins.SaveStackSupport
+
 interface APLOperator {
     fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction
 }
@@ -135,20 +138,26 @@ class UserDefinedOperatorOneArg(
     }
 
     inner class UserDefinedOperatorFn(val opFn: APLFunction, pos: Position) : NoAxisAPLFunction(pos) {
+        private val operatorRef = StackStorageRef(opBinding)
+        private val leftArgsRef = leftArgs.map(::StackStorageRef)
+        private val rightArgsRef = rightArgs.map(::StackStorageRef)
+
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
-                inner.assignArgs(rightArgs, a, pos)
-                inner.setVar(opBinding, LambdaValue(opFn, context))
-                instr.evalWithContext(inner)
+            val frame = currentStack().currentFrame()
+            return withLinkedContext(env, name.nameWithNamespace, pos) {
+                context.assignArgs(rightArgsRef, a)
+                context.setVar(operatorRef, LambdaValue(opFn, frame))
+                instr.evalWithContext(context)
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
-                inner.assignArgs(leftArgs, a, pos)
-                inner.assignArgs(rightArgs, b, pos)
-                inner.setVar(opBinding, LambdaValue(opFn, context))
-                instr.evalWithContext(inner)
+            val frame = currentStack().currentFrame()
+            return withLinkedContext(env, name.nameWithNamespace, pos) {
+                context.assignArgs(leftArgsRef, a)
+                context.assignArgs(rightArgsRef, b)
+                context.setVar(operatorRef, LambdaValue(opFn, frame))
+                instr.evalWithContext(context)
             }
         }
     }
@@ -184,34 +193,57 @@ class UserDefinedOperatorTwoArg(
         }
     }
 
-    abstract inner class APLUserDefinedOperatorFunction(val leftFn: APLFunction, pos: Position) : NoAxisAPLFunction(pos) {
+    abstract inner class APLUserDefinedOperatorFunction(leftFn: APLFunction, extraFns: List<APLFunction>, pos: Position) :
+            NoAxisAPLFunction(pos, listOf(leftFn) + extraFns), SaveStackCapable by SaveStackSupport() {
+        private val leftOperatorRef = StackStorageRef(leftOpBinding)
+        private val rightOperatorRef = StackStorageRef(rightOpBinding)
+        private val leftArgsRef = leftArgs.map(::StackStorageRef)
+        private val rightArgsRef = rightArgs.map(::StackStorageRef)
+
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
-                inner.assignArgs(rightArgs, a, pos)
-                inner.setVar(leftOpBinding, LambdaValue(leftFn, context))
-                inner.setVar(rightOpBinding, mkArg(context))
-                instr.evalWithContext(inner)
+            val frame = currentStack().currentFrame()
+            val arg = mkArg(context)
+            return withLinkedContext(env, name.nameWithNamespace, pos) {
+                context.assignArgs(rightArgsRef, a)
+                context.setVar(leftOperatorRef, LambdaValue(leftFn, frame))
+                context.setVar(rightOperatorRef, arg)
+                instr.evalWithContext(context)
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
-                inner.assignArgs(leftArgs, a, pos)
-                inner.assignArgs(rightArgs, b, pos)
-                inner.setVar(leftOpBinding, LambdaValue(leftFn, context))
-                inner.setVar(rightOpBinding, mkArg(context))
-                instr.evalWithContext(inner)
+            val frame = currentStack().currentFrame()
+            val arg = mkArg(context)
+            return withLinkedContext(env, name.nameWithNamespace, pos) {
+                context.assignArgs(leftArgsRef, a)
+                context.assignArgs(rightArgsRef, b)
+                context.setVar(leftOperatorRef, LambdaValue(leftFn, frame))
+                context.setVar(rightOperatorRef, arg)
+                instr.evalWithContext(context)
             }
         }
 
         abstract fun mkArg(context: RuntimeContext): APLValue
+
+        private val leftFn = fns[0]
     }
 
-    inner class FnCall(leftFn: APLFunction, val rightFn: APLFunction, pos: Position) : APLUserDefinedOperatorFunction(leftFn, pos) {
-        override fun mkArg(context: RuntimeContext) = LambdaValue(rightFn, context)
+    inner class FnCall(leftFn: APLFunction, rightFn: APLFunction, pos: Position) :
+            APLUserDefinedOperatorFunction(leftFn, listOf(rightFn), pos) {
+        init {
+            computeCapturedEnvs(leftFn, rightFn)
+        }
+
+        override fun mkArg(context: RuntimeContext) = LambdaValue(rightFn, currentStack().currentFrame())
+        private val rightFn = fns[1]
     }
 
-    inner class ValueCall(leftFn: APLFunction, val argInstr: Instruction, pos: Position) : APLUserDefinedOperatorFunction(leftFn, pos) {
+    inner class ValueCall(leftFn: APLFunction, val argInstr: Instruction, pos: Position) :
+            APLUserDefinedOperatorFunction(leftFn, emptyList(), pos) {
+        init {
+            computeCapturedEnvs(leftFn)
+        }
+
         override fun mkArg(context: RuntimeContext) = argInstr.evalWithContext(context)
     }
 }

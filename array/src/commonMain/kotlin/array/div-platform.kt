@@ -52,8 +52,6 @@ interface BackgroundTask<T> {
     fun await(): T
 }
 
-//expect fun <T> BackgroundTask<T>.make(fn: () -> T): BackgroundTask<T>
-
 interface MPThreadPoolExecutor {
     val numThreads: Int
     fun <T> start(fn: () -> T): BackgroundTask<T>
@@ -66,7 +64,9 @@ class SingleThreadedThreadPoolExecutor : MPThreadPoolExecutor {
     override fun <T> start(fn: () -> T): BackgroundTask<T> {
         return object : BackgroundTask<T> {
             override fun await(): T {
-                return fn()
+                withThreadLocalsUnassigned {
+                    return fn()
+                }
             }
         }
     }

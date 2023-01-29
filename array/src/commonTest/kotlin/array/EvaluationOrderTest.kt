@@ -32,7 +32,7 @@ class EvaluationOrderTest : APLTest() {
 
         val output = StringBuilderOutput()
         engine.standardOutput = output
-        val result = engine.parseAndEval(StringSourceLocation("(io:print 1) foo[io:print 2] io:print 3"), false)
+        val result = engine.parseAndEval(StringSourceLocation("(io:print 1) foo[io:print 2] io:print 3"))
 
         assertEquals("321", output.buf.toString())
         assertAPLValue(8, result)

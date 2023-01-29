@@ -228,7 +228,7 @@ class LiteralDoubleGraphNode(graph: Graph, value: Double) :
     SimpleGraphNode(graph, LabelledContainer("Double", Label(value.toString())))
 
 class VarRefGraphNode(graph: Graph, instr: VariableRef) :
-    SimpleGraphNode(graph, LabelledContainer("Variable", Label(instr.name.nameWithNamespace())))
+    SimpleGraphNode(graph, LabelledContainer("Variable", Label(instr.name.nameWithNamespace)))
 
 fun makeCharacterLabel(value: Int): Node {
     val vbox = VBox()

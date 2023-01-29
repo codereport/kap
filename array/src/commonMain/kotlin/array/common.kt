@@ -39,7 +39,7 @@ fun <T : APLGenericException> T.details(description: String): T {
 class APLEvaluationInterrupted(pos: Position? = null) : APLGenericException("Interrupted", pos)
 
 open class APLEvalException(message: String, pos: Position? = null, cause: Throwable? = null) : APLGenericException(message, pos, cause) {
-    var callStack: List<CallStackElement>? = null
+    var callStack: List<StorageStack.StackFrameDescription>? = null
 }
 
 open class IncompatibleTypeException(message: String, pos: Position? = null) : APLEvalException(message, pos)
@@ -49,7 +49,7 @@ class InvalidDimensionsException(message: String, pos: Position? = null) : APLEv
 }
 
 class APLIndexOutOfBoundsException(message: String, pos: Position? = null) : APLEvalException("Index out of bounds: ${message}", pos)
-class VariableNotAssigned(name: Symbol, pos: Position? = null) : APLEvalException("Variable not assigned: ${name.nameWithNamespace()}", pos)
+class VariableNotAssigned(name: Symbol, pos: Position? = null) : APLEvalException("Variable not assigned: ${name.nameWithNamespace}", pos)
 class IllegalAxisException(message: String, pos: Position?) : APLEvalException(message, pos) {
     constructor(axis: Int, dimensions: Dimensions, pos: Position? = null)
             : this("Axis $axis is not valid. Expected: ${dimensions.size}", pos)
@@ -95,7 +95,7 @@ class SyntaxSubRuleNotFound(name: Symbol, pos: Position? = null) : ParseExceptio
 class IllegalDeclaration(message: String, pos: Position? = null) : ParseException("Illegal declaration: ${message}", pos)
 
 class InvalidFunctionRedefinition(name: Symbol, pos: Position? = null) :
-    ParseException("Function cannot be redefined: ${name.nameWithNamespace()}", pos)
+        ParseException("Function cannot be redefined: ${name.nameWithNamespace}", pos)
 
 @OptIn(ExperimentalContracts::class)
 inline fun unless(cond: Boolean, fn: () -> Unit) {
@@ -174,6 +174,13 @@ class Arrays {
             return buf.toString()
         }
     }
+}
+
+fun <T> List<T>.rest(): List<T> {
+    if (this.isEmpty()) {
+        throw IllegalStateException("Cannot take the rest of an empty list")
+    }
+    return this.subList(1, this.size)
 }
 
 @OptIn(ExperimentalContracts::class)

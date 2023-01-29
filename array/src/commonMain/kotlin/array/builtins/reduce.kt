@@ -8,7 +8,8 @@ class ReduceResult1Arg(
     val fn: APLFunction,
     val arg: APLValue,
     opAxis: Int,
-    val pos: Position
+    val pos: Position,
+    val savedStack: StorageStack.StorageStackFrame?
 ) : APLArray() {
     override val dimensions: Dimensions
     private val stepLength: Int
@@ -45,25 +46,31 @@ class ReduceResult1Arg(
             when {
                 specialisedType === ArrayMemberType.LONG && fn.optimisationFlags.is2ALongLong -> {
                     var curr = arg.valueAtLong(posInSrc, pos)
-                    for (i in 1 until sizeAlongAxis) {
-                        engine.checkInterrupted(pos)
-                        curr = fn.eval2ArgLongLong(context, curr, arg.valueAtLong(i * stepLength + posInSrc, pos), null)
+                    withPossibleSavedStack(savedStack) {
+                        for (i in 1 until sizeAlongAxis) {
+                            engine.checkInterrupted(pos)
+                            curr = fn.eval2ArgLongLong(context, curr, arg.valueAtLong(i * stepLength + posInSrc, pos), null)
+                        }
                     }
                     curr.makeAPLNumber()
                 }
                 specialisedType === ArrayMemberType.DOUBLE && fn.optimisationFlags.is2ADoubleDouble -> {
                     var curr = arg.valueAtDouble(posInSrc, pos)
-                    for (i in 1 until sizeAlongAxis) {
-                        engine.checkInterrupted(pos)
-                        curr = fn.eval2ArgDoubleDouble(context, curr, arg.valueAtDouble(i * stepLength + posInSrc, pos), null)
+                    withPossibleSavedStack(savedStack) {
+                        for (i in 1 until sizeAlongAxis) {
+                            engine.checkInterrupted(pos)
+                            curr = fn.eval2ArgDoubleDouble(context, curr, arg.valueAtDouble(i * stepLength + posInSrc, pos), null)
+                        }
                     }
                     curr.makeAPLNumber()
                 }
                 else -> {
                     var curr = arg.valueAt(posInSrc)
-                    for (i in 1 until sizeAlongAxis) {
-                        engine.checkInterrupted(pos)
-                        curr = fn.eval2Arg(context, curr, arg.valueAt(i * stepLength + posInSrc), null).collapse()
+                    withPossibleSavedStack(savedStack) {
+                        for (i in 1 until sizeAlongAxis) {
+                            engine.checkInterrupted(pos)
+                            curr = fn.eval2Arg(context, curr, arg.valueAt(i * stepLength + posInSrc), null).collapse()
+                        }
                     }
                     curr
                 }
@@ -89,7 +96,8 @@ class ReduceNWiseResultValue(
     val fn: APLFunction,
     val reductionSize: Int,
     val b: APLValue,
-    operatorAxis: Int
+    operatorAxis: Int,
+    val savedStack: StorageStack.StorageStackFrame?
 ) : APLArray() {
     override val dimensions: Dimensions
 
@@ -130,17 +138,24 @@ class ReduceNWiseResultValue(
         axisActionFactors.withFactors(p) { high, low, axisCoord ->
             var pos = if (reductionSize < 0) reductionSizeAbsolute - 1 else 0
             var curr = lookupSource((high * highMultiplier) + ((axisCoord + pos) * axisMultiplier) + low)
-            repeat(reductionSizeAbsolute - 1) {
-                pos += dir
-                val value = lookupSource((high * highMultiplier) + ((axisCoord + pos) * axisMultiplier) + low)
-                curr = fn.eval2Arg(context, curr, value, null)
+            withPossibleSavedStack(savedStack) {
+                repeat(reductionSizeAbsolute - 1) {
+                    pos += dir
+                    val value = lookupSource((high * highMultiplier) + ((axisCoord + pos) * axisMultiplier) + low)
+                    curr = fn.eval2Arg(context, curr, value, null)
+                }
             }
             return curr
         }
     }
 }
 
-abstract class ReduceFunctionImpl(val fn: APLFunction, pos: Position) : APLFunction(pos) {
+@Suppress("LeakingThis")
+abstract class ReduceFunctionImpl(val fn: APLFunction, pos: Position) : APLFunction(pos), SaveStackCapable by SaveStackSupport() {
+    init {
+        computeCapturedEnvs(fn)
+    }
+
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
         val axisParam = if (axis == null) null else axis.ensureNumber(pos).asInt(pos)
         return if (a.rank == 0) {
@@ -151,7 +166,7 @@ abstract class ReduceFunctionImpl(val fn: APLFunction, pos: Position) : APLFunct
         } else {
             val axisInt = axisParam ?: defaultAxis(a)
             ensureValidAxis(axisInt, a.dimensions, pos)
-            ReduceResult1Arg(context, fn, a, axisInt, pos)
+            ReduceResult1Arg(context, fn, a, axisInt, pos, savedStack(context))
         }
     }
 
@@ -183,7 +198,7 @@ abstract class ReduceFunctionImpl(val fn: APLFunction, pos: Position) : APLFunct
                 APLArrayImpl(d, emptyArray())
             }
             else -> {
-                ReduceNWiseResultValue(context, fn, size, b, axisInt)
+                ReduceNWiseResultValue(context, fn, size, b, axisInt, savedStack(context))
             }
         }
     }

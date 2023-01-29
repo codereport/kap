@@ -34,31 +34,23 @@ class NearComplex(val expected: Complex, val realPrecision: Int = 4, val imPreci
 }
 
 abstract class APLTest {
-    fun parseAPLExpression(
-        expr: String,
-        withStandardLib: Boolean = false,
-        collapse: Boolean = true,
-        numTasks: Int? = null,
-        newContext: Boolean = true): APLValue {
-        return parseAPLExpression2(expr, withStandardLib, collapse, numTasks, newContext).first
+    fun parseAPLExpression(expr: String, withStandardLib: Boolean = false, collapse: Boolean = true, numTasks: Int? = null): APLValue {
+        return parseAPLExpression2(expr, withStandardLib, collapse, numTasks).first
     }
 
     fun parseAPLExpression2(
         expr: String,
         withStandardLib: Boolean = false,
         collapse: Boolean = true,
-        numTasks: Int? = null,
-        newContext: Boolean = true
-    ): Pair<APLValue, Engine> {
+        numTasks: Int? = null)
+            : Pair<APLValue, Engine> {
         val engine = Engine(numTasks)
         engine.addLibrarySearchPath("standard-lib")
         if (withStandardLib) {
-            engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"), newContext = newContext)
+            engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
         }
-        val result = engine.parseAndEval(StringSourceLocation(expr), false)
-        engine.withThreadLocalAssigned {
-            return Pair(if (collapse) result.collapse() else result, engine)
-        }
+        val result = engine.parseAndEval(StringSourceLocation(expr))
+        return Pair(if (collapse) result.collapse() else result, engine)
     }
 
     fun parseAPLExpressionWithOutput(
@@ -70,11 +62,11 @@ abstract class APLTest {
         val engine = Engine(numTasks)
         engine.addLibrarySearchPath("standard-lib")
         if (withStandardLib) {
-            engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"), true)
+            engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
         }
         val output = StringBuilderOutput()
         engine.standardOutput = output
-        val result = engine.parseAndEval(StringSourceLocation(expr), false)
+        val result = engine.parseAndEval(StringSourceLocation(expr))
         engine.withThreadLocalAssigned {
             return Pair(if (collapse) result.collapse() else result, output.buf.toString())
         }

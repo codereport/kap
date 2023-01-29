@@ -79,7 +79,8 @@ class InnerJoinResult(
     val b: APLValue,
     val fn1: APLFunction,
     val fn2: APLFunction,
-    val pos: Position
+    val pos: Position,
+    val savedStack: StorageStack.StorageStackFrame?
 ) : APLArray() {
 
     override val dimensions: Dimensions
@@ -121,8 +122,10 @@ class InnerJoinResult(
         var pb = posInB
         val rightArg = APLArrayImpl.make(axisDimensions) { b.valueAt(pb).also { pb += bStepSize } }
 
-        val v = fn2.eval2Arg(context, leftArg, rightArg, null)
-        return ReduceResult1Arg(context, fn1, v, 0, pos)
+        val v = withPossibleSavedStack(savedStack) {
+            fn2.eval2Arg(context, leftArg, rightArg, null)
+        }
+        return ReduceResult1Arg(context, fn1, v, 0, pos, savedStack)
     }
 }
 
@@ -172,7 +175,13 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
     }
 
     class InnerJoinFunctionDescriptor(val fn0Inner: APLFunction, val fn1Inner: APLFunction) : APLFunctionDescriptor {
-        class InnerJoinFunctionImpl(pos: Position, fn0: APLFunction, fn1: APLFunction) : NoAxisAPLFunction(pos, listOf(fn0, fn1)) {
+        class InnerJoinFunctionImpl(pos: Position, fn0: APLFunction, fn1: APLFunction)
+            : NoAxisAPLFunction(pos, listOf(fn0, fn1)), SaveStackCapable by SaveStackSupport() {
+
+            init {
+                computeCapturedEnvs(fn0, fn1)
+            }
+
             override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
                 val aDimensions = a.dimensions
                 val bDimensions = b.dimensions
@@ -198,9 +207,9 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
                 }
                 return if (a1Dimensions.size == 1 && b1Dimensions.size == 1) {
                     val v = fn1.eval2Arg(context, a1, b1, null)
-                    ReduceResult1Arg(context, fn0, v, 0, pos)
+                    ReduceResult1Arg(context, fn0, v, 0, pos, savedStack(context))
                 } else {
-                    InnerJoinResult(context, a1, b1, fn0, fn1, pos)
+                    InnerJoinResult(context, a1, b1, fn0, fn1, pos, savedStack(context))
                 }
             }
 

@@ -81,14 +81,18 @@ the monadic one (with Dyalog's ↑ meaning))
 
 class RankOperator : APLOperatorValueRightArg {
     override fun combineFunction(fn: APLFunction, instr: Instruction, opPos: Position): APLFunction {
-        return object : APLFunction(opPos) {
+        return object : APLFunction(opPos), SaveStackCapable by SaveStackSupport() {
+            init {
+                computeCapturedEnvs(fn)
+            }
+
             override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
                 val aReduced = a.collapseFirstLevel()
                 val aDimensions = aReduced.dimensions
                 val index = computeRankFromOpArg(context)
                 val k = max(0, if (index < 0) aDimensions.size + index else index)
                 val enclosedResult = AxisMultiDimensionEnclosedValue(aReduced, k)
-                val applyRes = ForEachResult1Arg(context, fn, enclosedResult, null, pos)
+                val applyRes = ForEachResult1Arg(context, fn, enclosedResult, null, pos, savedStack(context))
                 return DiscloseAPLFunction.discloseValue(applyRes)
             }
 
@@ -161,7 +165,14 @@ class RankOperator : APLOperatorValueRightArg {
                 val k1 = min(max(0, if (index1 < 0) bDimensions.size + index1 else index1), bDimensions.size)
                 val enclosedResult1 = AxisMultiDimensionEnclosedValue(bReduced, k1)
 
-                val applyRes = ForEachFunctionDescriptor.compute2Arg(context, fn, enclosedResult0, enclosedResult1, null, pos)
+                val applyRes = ForEachFunctionDescriptor.compute2Arg(
+                    context,
+                    fn,
+                    enclosedResult0,
+                    enclosedResult1,
+                    null,
+                    pos,
+                    savedStack(context))
                 return DiscloseAPLFunction.discloseValue(applyRes)
             }
 

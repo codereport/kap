@@ -548,6 +548,22 @@ class ComplexExpressionsTest : APLTest() {
         }
     }
 
+    /**
+     * Ensure that assignments to variables in the root environment are visible in subsequent evaluations.
+     */
+    @Test
+    fun rootEnvironmentVariablesArePreserved() {
+        val engine = Engine()
+        engine.withThreadLocalAssigned {
+            engine.parseAndEval(StringSourceLocation("x ← 1"), allocateThreadLocals = false).let { result ->
+                assertSimpleNumber(1, result)
+            }
+            engine.parseAndEval(StringSourceLocation("x + 2"), allocateThreadLocals = false).let { result ->
+                assertSimpleNumber(3, result)
+            }
+        }
+    }
+
     private fun defAbcResult(fnIndex: Long, opIndex: Long, rightArg: Long): Long {
         return (rightArg * 10 + fnIndex * 100) * 1000 + opIndex * 1000000
     }
@@ -563,7 +579,7 @@ class ComplexExpressionsTest : APLTest() {
         engine.registerFunction(namespace.internAndExport("def"), TestFunction())
         val output = StringBuilderOutput()
         engine.standardOutput = output
-        val result = engine.parseAndEval(StringSourceLocation(src)).collapse()
+        val result = engine.parseAndEval(StringSourceLocation(src))
         return Pair(result, output.buf.toString())
     }
 

@@ -112,7 +112,7 @@ class LoadFunction : APLFunctionDescriptor {
             val file = context.engine.resolveLibraryFile(requestedFile) ?: requestedFile
             val engine = context.engine
             engine.withSavedNamespace {
-                return engine.parseAndEval(FileSourceLocation(file), true)
+                return engine.parseAndEval(FileSourceLocation(file), allocateThreadLocals = false)
             }
         }
     }
@@ -223,7 +223,7 @@ class ReaddirFunction : APLFunctionDescriptor {
                 }
                 val found =
                     keywordToType[collapsed.value]
-                        ?: throwAPLException(APLIllegalArgumentException("Illegal selector: ${collapsed.value.nameWithNamespace()}", pos))
+                        ?: throwAPLException(APLIllegalArgumentException("Illegal selector: ${collapsed.value.nameWithNamespace}", pos))
                 result.add(found)
             }
             return result

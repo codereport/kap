@@ -85,7 +85,7 @@ kotlin {
             freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
         }
     }
-    js {
+    js(IR) {
 //        browser {
 //            testTask {
 //                useKarma {

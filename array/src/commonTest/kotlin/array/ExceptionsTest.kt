@@ -43,7 +43,7 @@ class ExceptionsTest : APLTest() {
     fun throwDefaultWithoutTagHandler() {
         val engine = Engine()
         try {
-            engine.parseAndEval(StringSourceLocation("→\"foo\""), true)
+            engine.parseAndEval(StringSourceLocation("→\"foo\""))
             fail("An exception should have been thrown here")
         } catch (e: TagCatch) {
             val sym = e.tag.ensureSymbol().value
@@ -71,7 +71,7 @@ class ExceptionsTest : APLTest() {
         } catch (ex: APLEvalException) {
             val callStack = ex.callStack
             assertNotNull(callStack)
-            assertEquals(2, callStack.size)
+            assertEquals(3, callStack.size)
         }
     }
 }
