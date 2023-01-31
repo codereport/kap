@@ -17,12 +17,6 @@ actual value class BigInt(val impl: Any) {
     }
 }
 
-actual fun Int.toBigint(): BigInt {
-    @Suppress("UNUSED_VARIABLE")
-    val stringified = this.toString()
-    return bigIntFromString(stringified)
-}
-
 actual operator fun BigInt.plus(other: BigInt): BigInt {
     @Suppress("UNUSED_VARIABLE")
     val a = this.inner
@@ -32,8 +26,46 @@ actual operator fun BigInt.plus(other: BigInt): BigInt {
     return BigInt.makeFromJs(js("a+b"))
 }
 
-actual fun bigIntFromString(s: String): BigInt {
+actual operator fun BigInt.minus(other: BigInt): BigInt {
+    @Suppress("UNUSED_VARIABLE")
+    val a = this.inner
+
+    @Suppress("UNUSED_VARIABLE")
+    val b = other.inner
+    return BigInt.makeFromJs(js("a-b"))
+}
+
+actual operator fun BigInt.times(other: BigInt): BigInt {
+    @Suppress("UNUSED_VARIABLE")
+    val a = this.inner
+
+    @Suppress("UNUSED_VARIABLE")
+    val b = other.inner
+    return BigInt.makeFromJs(js("a*b"))
+}
+
+actual operator fun BigInt.div(other: BigInt): BigInt {
+    @Suppress("UNUSED_VARIABLE")
+    val a = this.inner
+
+    @Suppress("UNUSED_VARIABLE")
+    val b = other.inner
+    return BigInt.makeFromJs(js("a/b"))
+}
+
+actual fun BigInt.Companion.of(value: Int): BigInt {
+    @Suppress("UNUSED_VARIABLE")
+    val stringified = value.toString()
+    return BigInt.of(stringified)
+}
+
+actual fun BigInt.Companion.of(s: String): BigInt {
+    val regex = "^-?[0-9]+$".toRegex()
+    if (!regex.matches(s)) {
+        throw NumberFormatException("Invalid decimal value: ${s}")
+    }
+
     @Suppress("UNUSED_VARIABLE")
     val stringified = s
-    return BigInt.makeFromJs(js("BigInt(stringified)"))
+    return makeFromJs(js("BigInt(stringified)"))
 }

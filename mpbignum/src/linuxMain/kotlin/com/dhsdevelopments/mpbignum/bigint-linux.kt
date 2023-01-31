@@ -10,6 +10,11 @@ class MpzWrapper(val value: mpz_t) {
             return MpzWrapper(m)
         }
     }
+
+    fun finalize() {
+        println("finalising: ${BigInt(this).toString()}")
+        mpz_clear!!(value)
+    }
 }
 
 actual value class BigInt actual constructor(actual val impl: Any) {
@@ -29,19 +34,24 @@ actual value class BigInt actual constructor(actual val impl: Any) {
     }
 }
 
-actual fun Int.toBigint(): BigInt {
-    return bigIntFromString(this.toString())
-}
-
-actual operator fun BigInt.plus(other: BigInt): BigInt {
+private inline fun BigInt.basicOperation(other: BigInt, fn: (result: MpzWrapper, a: mpz_t, b: mpz_t) -> Unit): BigInt {
     val a = this.inner
     val b = other.inner
     val result = MpzWrapper.allocMpz()
-    mpz_add!!(result.value, a, b)
+    fn(result, a, b)
     return BigInt(result)
 }
 
-actual fun bigIntFromString(s: String): BigInt {
+actual operator fun BigInt.plus(other: BigInt) = basicOperation(other) { result, a, b -> mpz_add!!(result.value, a, b) }
+actual operator fun BigInt.minus(other: BigInt) = basicOperation(other) { result, a, b -> mpz_sub!!(result.value, a, b) }
+actual operator fun BigInt.times(other: BigInt) = basicOperation(other) { result, a, b -> mpz_mul!!(result.value, a, b) }
+actual operator fun BigInt.div(other: BigInt) = basicOperation(other) { result, a, b -> mpz_div!!(result.value, a, b) }
+
+actual fun BigInt.Companion.of(value: Int): BigInt {
+    return BigInt.of(value.toString())
+}
+
+actual fun BigInt.Companion.of(s: String): BigInt {
     val result = MpzWrapper.allocMpz()
     val m = result.value
     mpz_init!!(m)
@@ -51,7 +61,10 @@ actual fun bigIntFromString(s: String): BigInt {
         utf.forEachIndexed { i, value ->
             buf[i] = value
         }
-        mpz_set_str!!(m, buf, 10)
+        val res = mpz_set_str!!(m, buf, 10)
+        if (res != 0) {
+            throw NumberFormatException("Invalid number format: ${s}")
+        }
         return BigInt(result)
     }
 }

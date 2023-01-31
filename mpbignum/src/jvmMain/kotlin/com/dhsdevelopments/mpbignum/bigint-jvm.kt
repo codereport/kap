@@ -14,14 +14,15 @@ actual value class BigInt(val impl: Any) {
     }
 }
 
-actual fun Int.toBigint(): BigInt {
-    return bigIntFromString(this.toString())
+actual fun BigInt.Companion.of(value: Int): BigInt {
+    return BigInt.of(value.toString())
 }
 
-actual operator fun BigInt.plus(other: BigInt): BigInt {
-    return BigInt(inner.plus(other.inner))
-}
+actual operator fun BigInt.plus(other: BigInt) = BigInt(inner.plus(other.inner))
+actual operator fun BigInt.minus(other: BigInt) = BigInt(inner.minus(other.inner))
+actual operator fun BigInt.times(other: BigInt) = BigInt(inner.times(other.inner))
+actual operator fun BigInt.div(other: BigInt) = BigInt(inner.div(other.inner))
 
-actual fun bigIntFromString(s: String): BigInt {
+actual fun BigInt.Companion.of(s: String): BigInt {
     return BigInt(BigInteger(s))
 }
