@@ -35,4 +35,20 @@ class AddTest {
         val c = b + a
         assertEquals("2147483657", c.toString())
     }
+
+    @Test
+    fun addBigIntToLong() {
+        val a = 10L
+        val b = BigInt.of(Int.MAX_VALUE)
+        val c = a + b
+        assertEquals("2147483657", c.toString())
+    }
+
+    @Test
+    fun addLongToBigInt() {
+        val a = 10L
+        val b = BigInt.of(Int.MAX_VALUE)
+        val c = b + a
+        assertEquals("2147483657", c.toString())
+    }
 }

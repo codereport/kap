@@ -53,7 +53,22 @@ actual operator fun BigInt.div(other: BigInt): BigInt {
     return BigInt.makeFromJs(js("a/b"))
 }
 
+actual fun BigInt.pow(other: Long): BigInt {
+    @Suppress("UNUSED_VARIABLE")
+    val a = this.toString()
+
+    @Suppress("UNUSED_VARIABLE")
+    val b = other.toString()
+    return BigInt.makeFromJs(js("(function(a0,b0){return eval(\"a0**b0\");})(BigInt(a),BigInt(b))"))
+}
+
 actual fun BigInt.Companion.of(value: Int): BigInt {
+    @Suppress("UNUSED_VARIABLE")
+    val stringified = value.toString()
+    return BigInt.of(stringified)
+}
+
+actual fun BigInt.Companion.of(value: Long): BigInt {
     @Suppress("UNUSED_VARIABLE")
     val stringified = value.toString()
     return BigInt.of(stringified)

@@ -26,7 +26,20 @@ class ParseTest {
 
     @Test
     fun makeBignumFromString() {
-        val a = BigInt.of("100000000000000000000")
-        assertEquals("100000000000000000000", a.toString())
+        BigInt.of("100000000000000000000").let { a ->
+            assertEquals("100000000000000000000", a.toString())
+        }
+        BigInt.of("1000000000000020").let { a ->
+            assertEquals("1000000000000020", a.toString())
+        }
+    }
+
+    @Test
+    fun differentLengths() {
+        repeat(200) { i ->
+            val s = "1" + "0".repeat(i)
+            val a = BigInt.of(s)
+            assertEquals(s, a.toString(), "Failed at: ${i}")
+        }
     }
 }

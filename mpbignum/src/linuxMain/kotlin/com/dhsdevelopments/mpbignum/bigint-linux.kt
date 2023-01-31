@@ -47,7 +47,21 @@ actual operator fun BigInt.minus(other: BigInt) = basicOperation(other) { result
 actual operator fun BigInt.times(other: BigInt) = basicOperation(other) { result, a, b -> mpz_mul!!(result.value, a, b) }
 actual operator fun BigInt.div(other: BigInt) = basicOperation(other) { result, a, b -> mpz_div!!(result.value, a, b) }
 
+actual fun BigInt.pow(other: Long): BigInt {
+    if (other < 0) {
+        throw IllegalArgumentException("Negative power: ${other}")
+    }
+    val a = this.inner
+    val result = MpzWrapper.allocMpz()
+    mpz_pow_ui!!(result.value, a, other.toULong())
+    return BigInt(result)
+}
+
 actual fun BigInt.Companion.of(value: Int): BigInt {
+    return BigInt.of(value.toString())
+}
+
+actual fun BigInt.Companion.of(value: Long): BigInt {
     return BigInt.of(value.toString())
 }
 
@@ -57,13 +71,14 @@ actual fun BigInt.Companion.of(s: String): BigInt {
     mpz_init!!(m)
     memScoped {
         val utf = s.encodeToByteArray()
-        val buf = allocArray<ByteVar>(utf.size)
+        val buf = allocArray<ByteVar>(utf.size + 1)
         utf.forEachIndexed { i, value ->
             buf[i] = value
         }
+        buf[utf.size] = 0
         val res = mpz_set_str!!(m, buf, 10)
         if (res != 0) {
-            throw NumberFormatException("Invalid number format: ${s}")
+            throw NumberFormatException("Invalid number format: ${s}, result: ${res}")
         }
         return BigInt(result)
     }
