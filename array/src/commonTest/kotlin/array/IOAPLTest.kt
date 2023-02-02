@@ -51,8 +51,7 @@ class IOAPLTest : APLTest() {
         val engine = Engine()
         try {
             engine.parseAndEval(
-                StringSourceLocation("io:read \"test-data/this-file-should-not-be-found-as-well\""),
-                true
+                StringSourceLocation("io:read \"test-data/this-file-should-not-be-found-as-well\"")
             ).collapse()
             fail("Read should not succeed")
         } catch (e: TagCatch) {
@@ -97,7 +96,7 @@ class IOAPLTest : APLTest() {
     fun changedWorkingDirectory() {
         val engine = Engine()
         engine.workingDirectory = currentDirectory() + "/test-data/subdir-test"
-        val result = engine.parseAndEval(StringSourceLocation("io:read \"foo.txt\""), true).collapse()
+        val result = engine.parseAndEval(StringSourceLocation("io:read \"foo.txt\"")).collapse()
         assertDimension(dimensionsOfSize(1), result)
         assertString("test message", result.valueAt(0))
     }
@@ -109,7 +108,7 @@ class IOAPLTest : APLTest() {
         engine.registerFunction(engine.internSymbol("makeClosable"), MakeClosable())
         engine.standardOutput = out
         engine.registerClosableHandler(ClosableTestValueHandler)
-        val result = engine.parseAndEval(StringSourceLocation(expr), true).collapse()
+        val result = engine.parseAndEval(StringSourceLocation(expr)).collapse()
         return Pair(result, out.buf.toString())
     }
 

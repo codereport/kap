@@ -32,6 +32,8 @@ object DefsyntaxSubToken : Token()
 object DefsyntaxToken : Token()
 object IncludeToken : Token()
 object DeclareToken : Token()
+object LeftForkToken : Token()
+object RightForkToken : Token()
 
 class Namespace(val name: String) {
     private val symbols = HashMap<String, NamespaceEntry>()
@@ -93,7 +95,7 @@ class Namespace(val name: String) {
 }
 
 class Symbol(val symbolName: String, val namespace: Namespace) : Token(), Comparable<Symbol> {
-    override fun toString() = "Symbol[name=${nameWithNamespace()}]"
+    override fun toString() = "Symbol[name=${nameWithNamespace}]"
     override fun compareTo(other: Symbol): Int {
         return if (namespace.name != other.namespace.name) {
             namespace.name.compareTo(other.namespace.name)
@@ -102,9 +104,9 @@ class Symbol(val symbolName: String, val namespace: Namespace) : Token(), Compar
         }
     }
 
-    override fun formatted() = nameWithNamespace()
+    override fun formatted() = nameWithNamespace
 
-    fun nameWithNamespace() = "${namespace.name}:${symbolName}"
+    val nameWithNamespace = "${namespace.name}:${symbolName}"
 }
 
 class StringToken(val value: String) : Token() {
@@ -181,16 +183,19 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
         "⍬" to APLNullSym,
         "λ" to LambdaToken,
         "⍞" to ApplyToken,
-        ";" to ListSeparator)
+        ";" to ListSeparator,
+        "«" to LeftForkToken,
+        "»" to RightForkToken)
 
     init {
         singleCharFunctions = hashSetOf(
             "!", "#", "%", "&", "*", "+", ",", "-", "/", "<", "=", ">", "?", "^", "|",
             "~", "¨", "×", "÷", "↑", "→", "↓", "∊", "∘", "∧", "∨", "∩", "∪", "∼", "≠", "≡",
             "≢", "≤", "≥", "⊂", "⊃", "⊖", "⊢", "⊣", "⊤", "⊥", "⋆", "⌈", "⌊", "⌶", "⌷", "⌹",
-            "⌺", "⌽", "⌿", "⍀", "⍉", "⍋", "⍎", "⍒", "⍕", "⍙", "⍞", "⍟", "⍠", "⍣", "⍤", "⍥",
+            "⌻", "⌽", "⌿", "⍀", "⍉", "⍋", "⍎", "⍒", "⍕", "⍙", "⍞", "⍟", "⍠", "⍣", "⍤", "⍥",
             "⍨", "⍪", "⍫", "⍱", "⍲", "⍳", "⍴", "⍵", "⍶", "⍷", "⍸", "⍹", "⍺", "◊",
-            "○", "$", "¥", "χ", "\\", ".", "∵", "⍓", "⫽", "⑊", "⊆", "⍥", "∥", "⍛", "˝")
+            "○", "$", "¥", "χ", "\\", ".", "∵", "⍓", "⫽", "⑊", "⊆", "⍥", "∥", "⍛", "˝", "⍢",
+            "√")
     }
 
     fun registerSingleCharFunction(name: String) {
@@ -264,7 +269,7 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
                 }
                 isNewline(ch) -> Newline
                 isWhitespace(ch) -> Whitespace
-                isCharQuote(ch) -> collectChar()
+                isCharQuote(ch) -> collectChar(posBeforeParse)
                 isSymbolStartChar(ch) -> collectSymbolOrKeyword(ch, posBeforeParse)
                 isQuoteChar(ch) -> collectString()
                 isCommentChar(ch) -> skipUntilNewline()
@@ -300,12 +305,76 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
         }
     }
 
-    private fun collectChar(): ParsedCharacter {
+    private fun nextCodepointForCharacterOrError(): Int {
         val (ch, pos) = content.nextCodepointWithPos()
         if (ch == null) {
             throw ParseException("Incomplete character in input", pos)
         }
-        return ParsedCharacter(ch)
+        return ch
+    }
+
+    private fun collectChar(pos: Position): ParsedCharacter {
+        val ch = nextCodepointForCharacterOrError()
+        return if (ch == '\\'.code) {
+            processEscapedChar(pos)
+        } else {
+            ParsedCharacter(ch)
+        }
+    }
+
+    private fun processEscapedChar(pos: Position): ParsedCharacter {
+        val resultChar = when (val ch = nextCodepointForCharacterOrError()) {
+            'n'.code -> '\n'.code
+            'r'.code -> '\r'.code
+            'e'.code -> 27
+            '\\'.code -> '\\'.code
+            'u'.code -> processUnicodeHexCode(pos)
+            in ('A'.code)..('Z'.code) -> processUnicodeName(ch, pos)
+            else -> throw ParseException("Invalid character specification", pos)
+        }
+        return ParsedCharacter(resultChar)
+    }
+
+    private fun processUnicodeHexCode(pos: Position): Int {
+        val buf = StringBuilder()
+        while (true) {
+            val ch = content.nextCodepoint() ?: break
+            if (!isAlphanumeric(ch)) {
+                content.pushBack()
+                break
+            }
+            if (!((ch in '0'.code..'9'.code) || (ch in 'a'.code..'z'.code) || (ch in 'A'.code..'z'.code))) {
+                throw ParseException("Invalid character in hex code", pos)
+            }
+            buf.addCodepoint(ch)
+        }
+        val s = buf.toString()
+        if (s.isEmpty()) {
+            throw ParseException("Hex code is blank", pos)
+        }
+        val code = s.toInt(16)
+        if (code < 0 || code > 0x10FFFF) {
+            throw ParseException("Invalid hex code", pos)
+        }
+        return code
+    }
+
+    private fun processUnicodeName(firstChar: Int, pos: Position): Int {
+        val buf = StringBuilder()
+        buf.addCodepoint(firstChar)
+        while (true) {
+            val ch = content.nextCodepoint() ?: break
+            if (!isAlphanumeric(ch) && ch != '_'.code && ch != '-'.code) {
+                content.pushBack()
+                break
+            }
+            if (!((ch in 'A'.code..'Z'.code) || ch == '_'.code || ch == '-'.code)) {
+                throw ParseException("Invalid character in unicode name", pos)
+            }
+            buf.addCodepoint(ch)
+        }
+        val s = buf.toString().replace('_', ' ')
+        return nameToCodepoint(s) ?: throw ParseException("Invalid codepoint name: '${s}'", pos)
     }
 
     private fun collectNumber(): Token {

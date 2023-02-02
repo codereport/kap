@@ -28,6 +28,12 @@ actual fun charToString(codepoint: Int): String {
     }
 }
 
+actual fun nameToCodepoint(name: String): Int? {
+    return null
+}
+
+actual val backendSupportsUnicodeNames = false
+
 actual fun StringBuilder.addCodepoint(codepoint: Int): StringBuilder {
     this.append(charToString(codepoint))
     return this

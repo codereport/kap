@@ -65,12 +65,12 @@ It is therefore often not necessary to actually open an editor to write a progra
 
 === Download
 
-Currently, KAP is only available in source form and can be downloaded from https://github.com/lokedhs/array[Github].
+Currently, KAP is only available in source form and can be downloaded using Git from: from https://codeberg.org/loke/array.
 The source code can be downloaded using the following command:
 
 [source,sh]
 ----
-git clone https://github.com/lokedhs/array
+git clone https://codeberg.org/loke/array
 ----
 
 === Running the UI
@@ -88,9 +88,6 @@ This is the recommended way to run KAP at the moment, as it implements all langu
 === Trying KAP online
 
 KAP can be compiled to Javascript, and a simple web-based demo is available on https://kapdemo.dhsdevelopments.com/
-
-Note that currently this website is very limited, and the user experience is not great.
-In particular, it does not provide a simple way to enter the special symbols.
 
 == Inputting APL symbols
 
@@ -550,7 +547,7 @@ For dyadic invocation, the following rules are applied:
 - If both arguments are scalar, then the result is simply the two arguments applied to each other.
 I.e. `10+11` results in `21`.
 - If one of the arguments is an array, the scalar argument is applied to each element in the array.
-- If both of the arguments are arrays, then the dimensions must match, and the function is applied on the matching values in each array.
+- If both of the arguments are arrays, then the dimensions must match, and the function is applied on the corresponding values in each array.
 
 Some examples:
 
@@ -657,7 +654,7 @@ Both the real and imaginary parts are always 64-bit floating point values even i
 
 Negative numbers are written using the `¯` symbol rather than `-`.
 In other words, the value -22 is written as `¯22`.
-The reason for this is that `-` is a regular function, so an expression such as `3 -2` will be interpreted as 1. Writing it as `3 ¯2` makes this consistent.
+The reason for this is that `-` is a regular function, so an expression such as `3 -2` will be interpreted as the expression to call the function `-` on the arguments `3` and `2`, which will subtract 2 from 3.
 
 == Characters
 
@@ -964,7 +961,7 @@ Reverse the order of the dimensions.
 |`¨`
 |Call function on each cell
 
-//        registerNativeOperator("⌺", OuterJoinOp())
+//        registerNativeOperator("⌻", OuterJoinOp())
 //        registerNativeOperator(".", OuterInnerJoinOp())
 
 |`⍨`

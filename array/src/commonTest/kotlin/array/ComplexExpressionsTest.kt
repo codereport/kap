@@ -228,8 +228,407 @@ class ComplexExpressionsTest : APLTest() {
 
     @Test
     fun findWithSelect() {
-        parseAPLExpression("\"abcabc\" (⊣(⫽⍨)∊) @c").let { result ->
+        parseAPLExpression("\"abcabc\" ⊣«⫽⍨»∊ @c").let { result ->
             assertString("cc", result)
         }
+    }
+
+    @Test
+    fun testAxis0() {
+        val src =
+            """
+            |a ⇐ def
+            |a[2] 1
+            """.trimMargin()
+        val result = evalWithDebugFunctions(src)
+        assertSimpleNumber(210, result)
+    }
+
+    @Test
+    fun testAxis1() {
+        val src =
+            """
+            |a ⇐ def[2]
+            |a 1
+            """.trimMargin()
+        val result = evalWithDebugFunctions(src)
+        assertSimpleNumber(210, result)
+    }
+
+    @Test
+    fun testAxis2() {
+        val src =
+            """
+            |a ⇐ def[2] abc
+            |a 1
+            """.trimMargin()
+        val result = evalWithDebugFunctions(src)
+        assertSimpleNumber(defAbcResult(2, 0, 1), result)
+    }
+
+    @Test
+    fun testAxis3() {
+        val src =
+            """
+            |a ⇐ def[2] abc[3]
+            |a 1
+            """.trimMargin()
+        val result = evalWithDebugFunctions(src)
+        assertSimpleNumber(defAbcResult(2, 3, 1), result)
+    }
+
+    @Test
+    fun testAxis4() {
+        val src =
+            """
+            |a ⇐ def[io:print 2] abc[io:print 3]
+            |io:print 6
+            |a 1
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(defAbcResult(2, 3, 1), result)
+        assertEquals("326", out)
+    }
+
+    @Test
+    fun testAxis5() {
+        val src =
+            """
+            |a ⇐ def[io:print 2]
+            |b ⇐ a abc[io:print 3]
+            |io:print 6
+            |b 1
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(defAbcResult(2, 3, 1), result)
+        assertEquals("236", out)
+    }
+
+    @Test
+    fun testAxis6() {
+        val src =
+            """
+            |a ⇐ def
+            |b ⇐ a[io:print 2] abc[io:print 3]
+            |io:print 6
+            |b 1
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(defAbcResult(2, 3, 1), result)
+        assertEquals("326", out)
+    }
+
+    @Test
+    fun testAxis7() {
+        val src =
+            """
+            |a ⇐ def[2] abc[3]
+            |a[4] 1
+            """.trimMargin()
+        assertFailsWith<AxisNotSupported> {
+            evalWithDebugFunctions(src)
+        }
+    }
+
+    @Test
+    fun testAxis8() {
+        val src =
+            """
+            |a ⇐ def[2]
+            |a[4] 1
+            """.trimMargin()
+        assertFailsWith<AxisNotSupported> {
+            evalWithDebugFunctions(src)
+        }
+    }
+
+    @Test
+    fun testAxis9() {
+        val src =
+            """
+            |a ⇐ def abc
+            |a[4] 1
+            """.trimMargin()
+        val result = evalWithDebugFunctions(src)
+        assertSimpleNumber(defAbcResult(0, 4, 1), result)
+    }
+
+    @Test
+    fun testAxis10() {
+        val src =
+            """
+            |a ⇐ def[io:print 1] def[io:print 2]
+            |io:print 6
+            |a 4
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(2500, result)
+        assertEquals("216", out)
+    }
+
+    @Test
+    fun testAxis11() {
+        val src =
+            """
+            |a ⇐ def[io:print 1] «-» def[io:print 2]
+            |io:print 6
+            |a 4
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(-100, result)
+        assertEquals("216", out)
+    }
+
+    @Test
+    fun testAxisWithFunctionBoundToOperator() {
+        val src =
+            """
+            |a ⇐ def[io:print 1]∘def[io:print 2]
+            |io:print 6
+            |1 a 4
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(1 + (4 * 10 + 2 * 100) * 10 + 1 * 100, result)
+        assertEquals("216", out)
+    }
+
+    @Test
+    fun testAxisWithReverseCompose() {
+        val src =
+            """
+            |a ⇐ def[io:print 1]⍛def[io:print 2]
+            |io:print 6
+            |1 a 4
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber((1 * 10 + 1 * 100) + 4 * 10 + 2 * 100, result)
+        assertEquals("216", out)
+    }
+
+    @Test
+    fun testAxisWithOver() {
+        val src =
+            """
+            |a ⇐ def[io:print 1]⍥def[io:print 2]
+            |io:print 6
+            |1 a 4
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber((1 * 10 + 2 * 100) + (4 * 10 + 2 * 100) * 10 + 1 * 100, result)
+        assertEquals("216", out)
+    }
+
+    @Test
+    fun testAxisWithOuterJoin0() {
+        val src =
+            """
+            |a ⇐ def[io:print 1]⌻
+            |io:print 6
+            |1 2 a 3 4
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertDimension(dimensionsOfSize(2, 2), result)
+        assertSimpleNumber(1 + 3 * 10 + 1 * 100, result.valueAt(0))
+        assertSimpleNumber(1 + 4 * 10 + 1 * 100, result.valueAt(1))
+        assertSimpleNumber(2 + 3 * 10 + 1 * 100, result.valueAt(2))
+        assertSimpleNumber(2 + 4 * 10 + 1 * 100, result.valueAt(3))
+        assertEquals("16", out)
+    }
+
+    @Test
+    fun testAxisWithOuterJoin1() {
+        val src =
+            """
+            |a ⇐ ∘.def[io:print 1]
+            |io:print 6
+            |1 2 a 3 4
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertDimension(dimensionsOfSize(2, 2), result)
+        assertSimpleNumber(1 + 3 * 10 + 1 * 100, result.valueAt(0))
+        assertSimpleNumber(1 + 4 * 10 + 1 * 100, result.valueAt(1))
+        assertSimpleNumber(2 + 3 * 10 + 1 * 100, result.valueAt(2))
+        assertSimpleNumber(2 + 4 * 10 + 1 * 100, result.valueAt(3))
+        assertEquals("16", out)
+    }
+
+    @Test
+    fun testAxisWithInnerJoin() {
+        val src =
+            """
+            |a ⇐ def[io:print 2]¨.(def[io:print 1]¨)
+            |io:print 6
+            |100 200 a 4 5
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(3940, result)
+        assertEquals("126", out)
+    }
+
+    @Test
+    fun testLeftBindAssigned0() {
+        val src =
+            """
+            |a ⇐ (io:print 1)+
+            |io:print 2
+            |a + 5
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(6, result)
+        assertEquals("12", out)
+    }
+
+    @Test
+    fun testLeftBindAssigned1() {
+        val src =
+            """
+            |a ⇐ ((io:print 10) (io:print 100))+[io:print 0]
+            |io:print 2
+            |a 2 3 ⍴ ⍳6
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertDimension(dimensionsOfSize(2, 3), result)
+        assertArrayContent(arrayOf(10, 11, 12, 103, 104, 105), result)
+        assertEquals("0100102", out)
+    }
+
+    @Test
+    fun lambdaWithLeftAssignAndAxis() {
+        val src =
+            """
+            |a ← λ(def[io:print 1] def[io:print 2])
+            |io:print 6
+            |⍞a 4            
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(2500, result)
+        assertEquals("216", out)
+    }
+
+    @Test
+    fun lambdaWithLeftAssignAndAxisAndOperator() {
+        val src =
+            """
+            |a ← λ(def[io:print 1] def[io:print 2])
+            |io:print 5
+            |b ← λ(⍞a abc[io:print 6])
+            |io:print 3
+            |⍞b 4
+            """.trimMargin()
+        val (result, out) = evalWithDebugFunctionsOutput(src)
+        assertSimpleNumber(6 * 1000000 + 2500 * 1000, result)
+        assertEquals("21563", out)
+    }
+
+    @Test
+    fun arraySumDoubleConvertToLong() {
+        parseAPLExpression("(10 100)[1.1 0.1 + 0.1 0.1]").let { result ->
+            assert1DArray(arrayOf(100, 10), result)
+        }
+    }
+
+    @Test
+    fun arraySumLongConvertToDouble() {
+        parseAPLExpression("math:sin 1 2 + 1 1").let { result ->
+            assert1DArray(arrayOf(NearDouble(0.9092974268), NearDouble(0.1411200081)), result)
+        }
+    }
+
+    @Test
+    fun arraySumDoubleComputeWithLong() {
+        parseAPLExpression("2 + 1.1 0.1 + 0.1 0.1").let { result ->
+            assert1DArray(arrayOf(NearDouble(3.2), NearDouble(2.2)), result)
+        }
+    }
+
+    @Test
+    fun arraySumDoubleComputeWithDouble() {
+        parseAPLExpression("2.0 + 1.1 0.1 + 0.1 0.1").let { result ->
+            assert1DArray(arrayOf(NearDouble(3.2), NearDouble(2.2)), result)
+        }
+    }
+
+    /**
+     * Ensure that assignments to variables in the root environment are visible in subsequent evaluations.
+     */
+    @Test
+    fun rootEnvironmentVariablesArePreserved() {
+        val engine = Engine()
+        engine.withThreadLocalAssigned {
+            engine.parseAndEval(StringSourceLocation("x ← 1"), allocateThreadLocals = false).let { result ->
+                assertSimpleNumber(1, result)
+            }
+            engine.parseAndEval(StringSourceLocation("x + 2"), allocateThreadLocals = false).let { result ->
+                assertSimpleNumber(3, result)
+            }
+        }
+    }
+
+    private fun defAbcResult(fnIndex: Long, opIndex: Long, rightArg: Long): Long {
+        return (rightArg * 10 + fnIndex * 100) * 1000 + opIndex * 1000000
+    }
+
+    private fun evalWithDebugFunctions(src: String): APLValue {
+        return evalWithDebugFunctionsOutput(src).first
+    }
+
+    private fun evalWithDebugFunctionsOutput(src: String): Pair<APLValue, String> {
+        val engine = Engine()
+        val namespace = engine.coreNamespace
+        engine.registerOperator(namespace.internAndExport("abc"), AbcOperator())
+        engine.registerFunction(namespace.internAndExport("def"), TestFunction())
+        val output = StringBuilderOutput()
+        engine.standardOutput = output
+        val result = engine.parseAndEval(StringSourceLocation(src))
+        return Pair(result, output.buf.toString())
+    }
+
+    class AbcOperator : APLOperatorOneArg {
+        override fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor {
+            return AbcFunctionDescriptor(fn)
+        }
+    }
+
+    class AbcFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
+        class AbcFunctionDescriptorImpl(fn: APLFunction, pos: Position) : APLFunction(pos, listOf(fn)) {
+            private val fn get() = fns[0]
+
+            override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+                val result = fn.eval1Arg(context, a, null)
+                val axisLong = if (axis == null) 0 else axis.ensureNumber(pos).asLong(pos)
+                return (result.ensureNumber(pos).asLong(pos) * 1000 + axisLong * 1000000).makeAPLNumber()
+            }
+
+            override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+                val result = fn.eval2Arg(context, a, b, null)
+                val axisLong = if (axis == null) 0 else axis.ensureNumber(pos).asLong(pos)
+                return (result.ensureNumber(pos).asLong(pos) * 1000 + axisLong * 1000000).makeAPLNumber()
+            }
+
+            override fun copy(fns: List<APLFunction>): APLFunction {
+                return AbcFunctionDescriptorImpl(fns[0], pos)
+            }
+        }
+
+        override fun make(pos: Position) = AbcFunctionDescriptorImpl(fn, pos)
+    }
+
+    class TestFunction : APLFunctionDescriptor {
+        class TestFunctionImpl(pos: Position) : APLFunction(pos) {
+            override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+                val aLong = a.ensureNumber(pos).asLong(pos)
+                val axisLong = if (axis == null) 0 else axis.ensureNumber(pos).asLong(pos)
+                return (aLong * 10 + axisLong * 100).makeAPLNumber()
+            }
+
+            override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+                val aLong = a.ensureNumber(pos).asLong(pos)
+                val bLong = b.ensureNumber(pos).asLong(pos)
+                val axisLong = if (axis == null) 0 else axis.ensureNumber(pos).asLong(pos)
+                return (aLong + bLong * 10 + axisLong * 100).makeAPLNumber()
+            }
+        }
+
+        override fun make(pos: Position) = TestFunctionImpl(pos)
     }
 }

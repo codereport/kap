@@ -1,5 +1,6 @@
 package array
 
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertFails
 import kotlin.test.assertFailsWith
@@ -8,26 +9,30 @@ class EvalInstrTest : APLTest() {
     @Test
     fun plainEvalSameContext() {
         val engine = Engine()
-        engine.parseAndEval(StringSourceLocation("foo ← 1"), newContext = false).let { result ->
-            assertSimpleNumber(1, result)
-        }
-        engine.parseAndEval(StringSourceLocation("foo + 3"), newContext = false).let { result ->
-            assertSimpleNumber(4, result)
+        engine.withThreadLocalAssigned {
+            engine.parseAndEval(StringSourceLocation("foo ← 1"), allocateThreadLocals = false).let { result ->
+                assertSimpleNumber(1, result)
+            }
+            engine.parseAndEval(StringSourceLocation("foo + 3"), allocateThreadLocals = false).let { result ->
+                assertSimpleNumber(4, result)
+            }
         }
     }
 
     @Test
     fun plainEvalNewContext() {
         val engine = Engine()
-        engine.parseAndEval(StringSourceLocation("foo ← 1"), newContext = true).let { result ->
+        engine.parseAndEval(StringSourceLocation("foo ← 1")).let { result ->
             assertSimpleNumber(1, result)
         }
         assertFailsWith<VariableNotAssigned> {
-            engine.parseAndEval(StringSourceLocation("foo + 3"), newContext = true)
+            engine.parseAndEval(StringSourceLocation("foo + 3"))
         }
     }
 
+    // Support for extraBindings was removed in the rewrite of the stack management
     @Test
+    @Ignore
     fun evalWithExtraBindings() {
         val engine = Engine()
         val b = mapOf(engine.internSymbol("a") to APLLong(2))
@@ -41,7 +46,7 @@ class EvalInstrTest : APLTest() {
         val engine = Engine()
         val b = mapOf(engine.internSymbol("a") to APLLong(3))
         assertFails {
-            engine.parseAndEval(StringSourceLocation("a + 7"), newContext = false, extraBindings = b)
+            engine.parseAndEval(StringSourceLocation("a + 7"), extraBindings = b)
         }
     }
 }

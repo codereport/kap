@@ -170,6 +170,83 @@ class TokenGeneratorTest {
         assertSame(EndOfFile, gen.nextToken())
     }
 
+    @Ignore
+    @Test
+    fun specialCharacters() {
+        val gen = makeGenerator("@\\n @\\\\ @\\SPACE @\\e @\\u014E @\\GREATER-THAN_OR_EQUIVALENT_TO")
+        assertTokenIsCharacter('\n'.code, gen.nextToken())
+        assertTokenIsCharacter('\\'.code, gen.nextToken())
+        assertTokenIsCharacter(' '.code, gen.nextToken())
+        assertTokenIsCharacter(27, gen.nextToken())
+        assertTokenIsCharacter(0x014e, gen.nextToken())
+        assertTokenIsCharacter(0x2273, gen.nextToken())
+        assertSame(EndOfFile, gen.nextToken())
+    }
+
+    @Test
+    fun specialCharactersNoUnicodeNames() {
+        val gen = makeGenerator("@\\n @\\\\ @\\e @\\u014E")
+        assertTokenIsCharacter('\n'.code, gen.nextToken())
+        assertTokenIsCharacter('\\'.code, gen.nextToken())
+        assertTokenIsCharacter(27, gen.nextToken())
+        assertTokenIsCharacter(0x014e, gen.nextToken())
+        assertSame(EndOfFile, gen.nextToken())
+    }
+
+    @Test
+    fun unicodeNames() {
+        if (backendSupportsUnicodeNames) {
+            val gen = makeGenerator("@\\SPACE @\\GREATER-THAN_OR_EQUIVALENT_TO @\\MATHEMATICAL_BOLD_SMALL_E")
+            assertTokenIsCharacter(' '.code, gen.nextToken())
+            assertTokenIsCharacter(0x2273, gen.nextToken())
+            assertTokenIsCharacter(0x1D41E, gen.nextToken())
+            assertSame(EndOfFile, gen.nextToken())
+        }
+    }
+
+    @Test
+    fun specialCharactersIllegalSyntax0() {
+        assertFailsWith<ParseException> {
+            makeGenerator("@\\q").nextToken()
+        }
+    }
+
+    @Test
+    fun specialCharactersIllegalSyntax1() {
+        assertFailsWith<ParseException> {
+            makeGenerator("@\\SOME_TEXT").nextToken()
+        }
+    }
+
+    @Test
+    fun specialCharactersIllegalSyntax2() {
+        assertFailsWith<ParseException> {
+            val aa = makeGenerator("@\\u12ab17").nextToken()
+            println(aa)
+        }
+    }
+
+    @Test
+    fun specialCharactersIllegalSyntax3() {
+        assertFailsWith<ParseException> {
+            makeGenerator("@\\u").nextToken()
+        }
+    }
+
+    @Test
+    fun specialCharactersIllegalSyntax4() {
+        assertFailsWith<ParseException> {
+            makeGenerator("@").nextToken()
+        }
+    }
+
+    @Test
+    fun specialCharactersIllegalSyntax5() {
+        assertFailsWith<ParseException> {
+            makeGenerator("@\\").nextToken()
+        }
+    }
+
     @Test
     fun testSymbolsInStrings() {
         val gen = makeGenerator("\"a\"  \"foo@bar\"  ")

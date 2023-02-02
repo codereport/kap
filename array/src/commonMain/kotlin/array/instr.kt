@@ -8,6 +8,7 @@ interface LvalueReader {
 
 abstract class Instruction(val pos: Position) {
     abstract fun evalWithContext(context: RuntimeContext): APLValue
+    abstract fun children(): List<Instruction>
     open fun deriveLvalueReader(): LvalueReader? = null
 }
 
@@ -15,6 +16,8 @@ class DummyInstr(pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
         throw IllegalStateException("Attempt to call dummy instruction")
     }
+
+    override fun children(): List<Instruction> = emptyList()
 }
 
 class RootEnvironmentInstruction(val environment: Environment, val instr: Instruction, pos: Position) : Instruction(pos) {
@@ -22,11 +25,14 @@ class RootEnvironmentInstruction(val environment: Environment, val instr: Instru
         throw IllegalStateException("Root environment called with context")
     }
 
+    override fun children() = listOf(instr)
+
     fun evalWithNewContext(engine: Engine, extraBindings: List<Pair<EnvironmentBinding, APLValue>>?): APLValue {
-        val context = RuntimeContext(engine, environment, engine.rootContext)
-        extraBindings?.forEach { (binding, value) ->
-            context.setVar(binding, value)
-        }
+        assertx(extraBindings.isNullOrEmpty()) { "Extra bindings not supported yet" }
+        val context = RuntimeContext(engine)
+//        extraBindings?.forEach { (binding, value) ->
+//            context.setVar(binding, value)
+//        }
         return instr.evalWithContext(context)
     }
 }
@@ -39,6 +45,8 @@ class InstructionList(val instructions: List<Instruction>) : Instruction(compute
         }
         return instructions.last().evalWithContext(context)
     }
+
+    override fun children() = instructions
 
     companion object {
         private fun computePos(l: List<Instruction>): Position {
@@ -59,16 +67,20 @@ class ParsedAPLList(val instructions: List<Instruction>) : Instruction(instructi
         }
         return APLList(resultList)
     }
+
+    override fun children() = instructions
 }
 
 class FunctionCall1Arg(
     val fn: APLFunction,
     val rightArgs: Instruction,
-    val axis: Instruction?,
     pos: Position
 ) : Instruction(pos) {
-    override fun evalWithContext(context: RuntimeContext) =
-        fn.eval1Arg(context, rightArgs.evalWithContext(context), axis?.evalWithContext(context))
+    override fun evalWithContext(context: RuntimeContext): APLValue {
+        return fn.evalArgsAndCall1Arg(context, rightArgs)
+    }
+
+    override fun children() = listOf(rightArgs)
 
     override fun toString() = "FunctionCall1Arg(fn=${fn}, rightArgs=${rightArgs})"
 }
@@ -77,15 +89,13 @@ class FunctionCall2Arg(
     val fn: APLFunction,
     val leftArgs: Instruction,
     val rightArgs: Instruction,
-    val axis: Instruction?,
     pos: Position
 ) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
-        val rightValue = rightArgs.evalWithContext(context)
-        val axisValue = axis?.evalWithContext(context)
-        val leftValue = leftArgs.evalWithContext(context)
-        return fn.eval2Arg(context, leftValue, rightValue, axisValue)
+        return fn.evalArgsAndCall2Arg(context, leftArgs, rightArgs)
     }
+
+    override fun children() = listOf(leftArgs, rightArgs)
 
     override fun toString() = "FunctionCall2Arg(fn=${fn}, leftArgs=${leftArgs}, rightArgs=${rightArgs})"
 }
@@ -115,15 +125,17 @@ class DynamicFunctionDescriptor(val instr: Instruction) : APLFunctionDescriptor 
     }
 }
 
-class VariableRef(val name: Symbol, val binding: EnvironmentBinding, pos: Position) : Instruction(pos) {
+class VariableRef(val name: Symbol, val storageRef: StackStorageRef, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
-        return context.getVar(binding) ?: throwAPLException(VariableNotAssigned(binding.name, pos))
+        return currentStack().findStorage(storageRef).value ?: throwAPLException(VariableNotAssigned(storageRef.name, pos))
     }
+
+    override fun children(): List<Instruction> = emptyList()
 
     override fun deriveLvalueReader(): LvalueReader {
         return object : LvalueReader {
             override fun makeInstruction(rightArgs: Instruction, pos: Position): Instruction {
-                return AssignmentInstruction(arrayOf(binding), rightArgs, pos)
+                return AssignmentInstruction(arrayOf(storageRef), rightArgs, pos)
             }
         }
     }
@@ -141,13 +153,15 @@ class Literal1DArray private constructor(val values: List<Instruction>, pos: Pos
         return APLArrayImpl.make(dimensionsOfSize(size)) { result[it]!! }
     }
 
+    override fun children() = values
+
     override fun deriveLvalueReader(): LvalueReader {
         if (values.any { instr -> instr !is VariableRef }) {
             throw IncompatibleTypeParseException("Destructuring variable list must only contain variable names", pos)
         }
         return object : LvalueReader {
             override fun makeInstruction(rightArgs: Instruction, pos: Position): Instruction {
-                return AssignmentInstruction(values.map { instr -> (instr as VariableRef).binding }.toTypedArray(), rightArgs, pos)
+                return AssignmentInstruction(values.map { instr -> (instr as VariableRef).storageRef }.toTypedArray(), rightArgs, pos)
             }
         }
     }
@@ -202,6 +216,7 @@ class LiteralInteger(value: Long, pos: Position) : Instruction(pos) {
     private val valueInt = APLLong(value)
 
     override fun evalWithContext(context: RuntimeContext) = valueInt
+    override fun children(): List<Instruction> = emptyList()
     override fun toString() = "LiteralInteger[value=$valueInt]"
     val value get() = valueInt.value
 }
@@ -210,6 +225,7 @@ class LiteralDouble(value: Double, pos: Position) : Instruction(pos) {
     private val valueInt = APLDouble(value)
 
     override fun evalWithContext(context: RuntimeContext) = valueInt
+    override fun children(): List<Instruction> = emptyList()
     override fun toString() = "LiteralDouble[value=$valueInt]"
     val value get() = valueInt.value
 }
@@ -218,6 +234,7 @@ class LiteralComplex(value: Complex, pos: Position) : Instruction(pos) {
     private val valueInt = value.makeAPLNumber()
 
     override fun evalWithContext(context: RuntimeContext) = valueInt
+    override fun children(): List<Instruction> = emptyList()
     override fun toString() = "LiteralComplex[value=$valueInt]"
     val value get() = valueInt.asComplex()
 }
@@ -226,35 +243,42 @@ class LiteralCharacter(value: Int, pos: Position) : Instruction(pos) {
     val valueInt = APLChar(value)
 
     override fun evalWithContext(context: RuntimeContext) = valueInt
+    override fun children(): List<Instruction> = emptyList()
     override fun toString() = "LiteralCharacter[value=$valueInt]"
 }
 
 class LiteralSymbol(name: Symbol, pos: Position) : Instruction(pos) {
     private val value = APLSymbol(name)
     override fun evalWithContext(context: RuntimeContext): APLValue = value
+    override fun children(): List<Instruction> = emptyList()
 }
 
 class LiteralAPLNullValue(pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext) = APLNullValue.APL_NULL_INSTANCE
+    override fun children(): List<Instruction> = emptyList()
 }
 
 class EmptyValueMarker(pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext) = APLEmpty()
+    override fun children(): List<Instruction> = emptyList()
 }
 
 class LiteralStringValue(val s: String, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext) = APLString.make(s)
+    override fun children(): List<Instruction> = emptyList()
 }
 
 class LiteralLongArray(val value: LongArray, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue = APLArrayLong(dimensionsOfSize(value.size), value)
+    override fun children(): List<Instruction> = emptyList()
 }
 
 class LiteralDoubleArray(val value: DoubleArray, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue = APLArrayDouble(dimensionsOfSize(value.size), value)
+    override fun children(): List<Instruction> = emptyList()
 }
 
-class AssignmentInstruction(val variableList: Array<EnvironmentBinding>, val instr: Instruction, pos: Position) : Instruction(pos) {
+class AssignmentInstruction(val variableList: Array<StackStorageRef>, val instr: Instruction, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
         val res = instr.evalWithContext(context)
         val v = res.collapse()
@@ -273,28 +297,33 @@ class AssignmentInstruction(val variableList: Array<EnvironmentBinding>, val ins
         }
         return v
     }
+
+    override fun children() = listOf(instr)
 }
 
 class UserFunction(
-    private val name: Symbol,
-    private var leftFnArgs: List<EnvironmentBinding>,
-    private var rightFnArgs: List<EnvironmentBinding>,
+    val name: Symbol,
+    val leftFnArgs: List<EnvironmentBinding>,
+    val rightFnArgs: List<EnvironmentBinding>,
     var instr: Instruction,
-    private var env: Environment
+    val env: Environment
 ) : APLFunctionDescriptor {
     inner class UserFunctionImpl(pos: Position) : APLFunction(pos) {
+        private val leftStorageRefs = leftFnArgs.map(::StackStorageRef)
+        private val rightStorageRefs = rightFnArgs.map(::StackStorageRef)
+
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
-                inner.assignArgs(rightFnArgs, a, pos)
-                instr.evalWithContext(inner)
+            return withLinkedContext(env, name.nameWithNamespace, pos) {
+                context.assignArgs(rightStorageRefs, a, pos)
+                instr.evalWithContext(context)
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            return context.withLinkedContext(env, name.nameWithNamespace(), pos) { inner ->
-                inner.assignArgs(leftFnArgs, a, pos)
-                inner.assignArgs(rightFnArgs, b, pos)
-                instr.evalWithContext(inner)
+            return withLinkedContext(env, name.nameWithNamespace, pos) {
+                context.assignArgs(leftStorageRefs, a, pos)
+                context.assignArgs(rightStorageRefs, b, pos)
+                instr.evalWithContext(context)
             }
         }
     }
@@ -302,8 +331,23 @@ class UserFunction(
     override fun make(pos: Position) = UserFunctionImpl(pos)
 }
 
-sealed class FunctionCallChain(pos: Position) : APLFunction(pos) {
-    class Chain2(pos: Position, val fn0: APLFunction, val fn1: APLFunction, val inFunctionChainContext: Boolean) : FunctionCallChain(pos) {
+class EvalLambdaFnx(val fn: APLFunction, pos: Position, val relatedInstructions: List<Instruction> = emptyList()) : Instruction(pos) {
+    override fun evalWithContext(context: RuntimeContext): APLValue {
+        relatedInstructions.asReversed().forEach { instr ->
+            instr.evalWithContext(context)
+        }
+        return LambdaValue(fn, currentStack().currentFrame())
+    }
+
+    override fun children() = relatedInstructions
+}
+
+sealed class FunctionCallChain(pos: Position, fns: List<APLFunction>) : APLFunction(pos, fns) {
+    class Chain2(pos: Position, fn0: APLFunction, fn1: APLFunction) :
+            FunctionCallChain(pos, listOf(fn0, fn1)) {
+        val fn0 get() = fns[0]
+        val fn1 get() = fns[1]
+
         override val optimisationFlags = computeOptimisationFlags()
 
         private fun computeOptimisationFlags(): OptimisationFlags {
@@ -328,14 +372,23 @@ sealed class FunctionCallChain(pos: Position) : APLFunction(pos) {
             return fn1.evalInverse1Arg(context, res, null)
         }
 
-        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue) =
+            inversibleStructuralUnder1Arg(this, baseFn, context, a)
+
+        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             if (axis != null) throw AxisNotSupported(pos)
             val res = fn0.evalInverse1Arg(context, b, null)
-            return fn1.evalInverse2ArgA(context, a, res, null)
+            return fn1.evalInverse2ArgB(context, a, res, null)
         }
+
+        override fun copy(fns: List<APLFunction>) = Chain2(pos, fns[0], fns[1])
     }
 
-    class Chain3(pos: Position, val fn0: APLFunction, val fn1: APLFunction, val fn2: APLFunction) : FunctionCallChain(pos) {
+    class Chain3(pos: Position, fn0: APLFunction, fn1: APLFunction, fn2: APLFunction) : FunctionCallChain(pos, listOf(fn0, fn1, fn2)) {
+        val fn0 get() = fns[0]
+        val fn1 get() = fns[1]
+        val fn2 get() = fns[2]
+
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             if (axis != null) throw AxisNotSupported(pos)
             val right = fn2.eval1Arg(context, a, null)
@@ -349,14 +402,8 @@ sealed class FunctionCallChain(pos: Position) : APLFunction(pos) {
             val left = fn0.eval2Arg(context, a, b, null)
             return fn1.eval2Arg(context, left, right, null)
         }
+
+        override fun copy(fns: List<APLFunction>) = Chain3(pos, fns[0], fns[1], fns[2])
     }
 
-    companion object {
-        fun make(pos: Position, fn0: APLFunction, fn1: APLFunction, functionChainContext: Boolean): FunctionCallChain {
-            return when {
-                fn1 is Chain2 && fn1.inFunctionChainContext -> Chain3(pos, fn0, fn1.fn0, fn1.fn1)
-                else -> Chain2(pos, fn0, fn1, functionChainContext)
-            }
-        }
-    }
 }

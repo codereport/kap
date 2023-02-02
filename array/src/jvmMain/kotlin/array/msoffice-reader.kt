@@ -64,6 +64,7 @@ fun cellToAPLValue(cell: Cell, evaluator: FormulaEvaluator): APLValue {
         CellType.BLANK -> APLLONG_0
         CellType.NUMERIC -> APLDouble(cell.numericCellValue)
         CellType.STRING -> APLString.make(cell.stringCellValue)
+        CellType.ERROR -> APLString.make("ERROR:${FormulaError.forInt(cell.errorCellValue).string}")
         else -> throw IllegalStateException("Unknown cell type: ${cell.cellType}")
     }
 }
@@ -71,7 +72,7 @@ fun cellToAPLValue(cell: Cell, evaluator: FormulaEvaluator): APLValue {
 fun parseEvaluatedCell(cell: Cell, evaluator: FormulaEvaluator): APLValue {
     val v = evaluator.evaluate(cell)
     return when (cell.cellType) {
-        CellType.FORMULA -> throw IllegalStateException("The result of an evaluation should not be a formula")
+        CellType.FORMULA -> APLString.make("FORMULA:${v.stringValue}")
         CellType.BOOLEAN -> (if (v.booleanValue) 1 else 0).makeAPLNumber()
         CellType.BLANK -> APLLONG_0
         CellType.NUMERIC -> v.numberValue.makeAPLNumber()

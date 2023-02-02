@@ -5,7 +5,7 @@ pipeline:
     image: ubuntu:latest
     pull: true
     commands: |
-      apt-get update && apt-get install -y openjdk-17-jdk libicu-dev libcurl4-openssl-dev libjansson-dev
+      apt-get update && apt-get install -y openjdk-17-jdk libicu-dev libcurl4-openssl-dev libjansson-dev libgmp-dev
       ./gradlew gui:build
       ./gradlew text-client:build
       ./gradlew client-java:build

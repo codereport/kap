@@ -38,11 +38,13 @@ class APLLong(val value: Long) : APLNumber() {
         FormatStyle.READABLE -> if (value < 0) "¯" + (-value).toString() else value.toString()
     }
 
-    override fun compareEquals(reference: APLValue) = when (reference) {
-        is APLLong -> value == reference.value
-        is APLDouble -> value.toDouble() == reference.value
-        is APLComplex -> reference.value.imaginary == 0.0 && value.toDouble() == reference.value.imaginary
-        else -> false
+    override fun compareEquals(reference: APLValue): Boolean {
+        return when (val v = reference.unwrapDeferredValue()) {
+            is APLLong -> value == v.value
+            is APLDouble -> value.toDouble() == v.value
+            is APLComplex -> v.value.imaginary == 0.0 && value.toDouble() == v.value.imaginary
+            else -> false
+        }
     }
 
     override fun compare(reference: APLValue, pos: Position?) = when (reference) {
@@ -80,11 +82,13 @@ class APLDouble(val value: Double) : APLNumber() {
         FormatStyle.READABLE -> if (value < 0) "¯" + (-value).toString() else value.toString()
     }
 
-    override fun compareEquals(reference: APLValue) = when (reference) {
-        is APLLong -> value == reference.value.toDouble()
-        is APLDouble -> value == reference.value
-        is APLComplex -> reference.value.imaginary == 0.0 && value == reference.value.real
-        else -> false
+    override fun compareEquals(reference: APLValue): Boolean {
+        return when (val v = reference.unwrapDeferredValue()) {
+            is APLLong -> value == v.value.toDouble()
+            is APLDouble -> value == v.value
+            is APLComplex -> v.value.imaginary == 0.0 && value == v.value.real
+            else -> false
+        }
     }
 
     override fun compare(reference: APLValue, pos: Position?) = when (reference) {
@@ -118,7 +122,7 @@ class APLComplex(val value: Complex) : APLNumber() {
         return value.real.toLong()
     }
 
-    override fun compareEquals(reference: APLValue) = reference is APLComplex && value == reference.value
+    override fun compareEquals(reference: APLValue) = reference.unwrapDeferredValue().let { v -> v is APLComplex && value == v.value }
 
     override fun asComplex() = value
     override fun isComplex() = value.imaginary != 0.0

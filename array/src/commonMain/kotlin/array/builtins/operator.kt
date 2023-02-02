@@ -81,14 +81,18 @@ the monadic one (with Dyalog's ↑ meaning))
 
 class RankOperator : APLOperatorValueRightArg {
     override fun combineFunction(fn: APLFunction, instr: Instruction, opPos: Position): APLFunction {
-        return object : APLFunction(opPos) {
+        return object : APLFunction(opPos), SaveStackCapable by SaveStackSupport() {
+            init {
+                computeCapturedEnvs(fn)
+            }
+
             override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
                 val aReduced = a.collapseFirstLevel()
                 val aDimensions = aReduced.dimensions
                 val index = computeRankFromOpArg(context)
                 val k = max(0, if (index < 0) aDimensions.size + index else index)
                 val enclosedResult = AxisMultiDimensionEnclosedValue(aReduced, k)
-                val applyRes = ForEachResult1Arg(context, fn, enclosedResult, null, pos)
+                val applyRes = ForEachResult1Arg(context, fn, enclosedResult, null, pos, savedStack(context))
                 return DiscloseAPLFunction.discloseValue(applyRes)
             }
 
@@ -161,7 +165,14 @@ class RankOperator : APLOperatorValueRightArg {
                 val k1 = min(max(0, if (index1 < 0) bDimensions.size + index1 else index1), bDimensions.size)
                 val enclosedResult1 = AxisMultiDimensionEnclosedValue(bReduced, k1)
 
-                val applyRes = ForEachFunctionDescriptor.compute2Arg(context, fn, enclosedResult0, enclosedResult1, null, pos)
+                val applyRes = ForEachFunctionDescriptor.compute2Arg(
+                    context,
+                    fn,
+                    enclosedResult0,
+                    enclosedResult1,
+                    null,
+                    pos,
+                    savedStack(context))
                 return DiscloseAPLFunction.discloseValue(applyRes)
             }
 
@@ -169,8 +180,8 @@ class RankOperator : APLOperatorValueRightArg {
     }
 }
 
-class ComposeFunctionDescriptor(val fn0: APLFunction, val fn1: APLFunction) : APLFunctionDescriptor {
-    inner class ComposeFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+class ComposeFunctionDescriptor(val fn0Inner: APLFunction, val fn1Inner: APLFunction) : APLFunctionDescriptor {
+    class ComposeFunctionImpl(pos: Position, fn0: APLFunction, fn1: APLFunction) : NoAxisAPLFunction(pos, listOf(fn0, fn1)) {
         override val optimisationFlags = computeOptimisationFlags()
 
         private fun computeOptimisationFlags(): OptimisationFlags {
@@ -214,102 +225,114 @@ class ComposeFunctionDescriptor(val fn0: APLFunction, val fn1: APLFunction) : AP
             return fn0.eval2ArgDoubleDouble(context, a, res, null)
         }
 
-        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            val res = fn0.evalInverse2ArgA(context, a, b, null)
+        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            val res = fn0.evalInverse2ArgB(context, a, b, null)
             return fn1.evalInverse1Arg(context, res, null)
         }
 
-        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             val res = fn1.eval1Arg(context, b, null)
-            return fn0.evalInverse2ArgB(context, a, res, null)
+            return fn0.evalInverse2ArgA(context, a, res, null)
         }
 
-        fun fn1() = fn0
-        fun fn2() = fn1
+        override fun copy(fns: List<APLFunction>) = ComposeFunctionImpl(pos, fns[0], fns[1])
+
+        val fn0 get() = fns[0]
+        val fn1 get() = fns[1]
 
         override val name1Arg = "compose [${fn0.name1Arg}, ${fn1.name1Arg}]"
         override val name2Arg = "compose [${fn0.name2Arg}, ${fn1.name1Arg}]"
     }
 
-    override fun make(pos: Position) = ComposeFunctionImpl(pos)
+    override fun make(pos: Position) = ComposeFunctionImpl(pos, fn0Inner, fn1Inner)
 }
 
 class ComposeOp : APLOperatorTwoArg {
-    override fun combineFunction(fn1: APLFunction, fn2: APLFunction, operatorAxis: Instruction?, opPos: Position): APLFunctionDescriptor {
-        if (operatorAxis != null) {
-            throw AxisNotSupported(opPos)
-        }
-        return ComposeFunctionDescriptor(fn1, fn2)
-    }
+    override fun combineFunction(fn0: APLFunction, fn1: APLFunction, opPos: Position) = ComposeFunctionDescriptor(fn0, fn1)
 }
 
-class ReverseComposeFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) : APLFunctionDescriptor {
-    inner class ReverseComposeFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+class ReverseComposeFunctionDescriptor(val fn0Inner: APLFunction, val fn1Inner: APLFunction) : APLFunctionDescriptor {
+    class ReverseComposeFunctionImpl(pos: Position, fn0: APLFunction, fn1: APLFunction) : NoAxisAPLFunction(pos, listOf(fn0, fn1)) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            val res = fn1.eval1Arg(context, a, null)
-            return fn2.eval2Arg(context, res, a, null)
+            val res = fn0.eval1Arg(context, a, null)
+            return fn1.eval2Arg(context, res, a, null)
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            val res = fn1.eval1Arg(context, a, null)
-            return fn2.eval2Arg(context, res, b, null)
-        }
-
-        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            val res = fn1.eval1Arg(context, a, null)
-            return fn2.evalInverse2ArgA(context, res, b, null)
+            val res = fn0.eval1Arg(context, a, null)
+            return fn1.eval2Arg(context, res, b, null)
         }
 
         override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            val res = fn2.evalInverse2ArgB(context, a, b, null)
-            return fn1.evalInverse1Arg(context, res, null)
+            val res = fn0.eval1Arg(context, a, null)
+            return fn1.evalInverse2ArgB(context, res, b, null)
         }
 
-        fun fn1() = fn1
-        fun fn2() = fn2
+        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            val res = fn1.evalInverse2ArgA(context, a, b, null)
+            return fn0.evalInverse1Arg(context, res, null)
+        }
+
+        override fun copy(fns: List<APLFunction>): ReverseComposeFunctionImpl {
+            return ReverseComposeFunctionImpl(pos, fns[0], fns[1])
+        }
+
+        val fn0 get() = fns[0]
+        val fn1 get() = fns[1]
     }
 
-    override fun make(pos: Position) = ReverseComposeFunctionImpl(pos)
+    override fun make(pos: Position) = ReverseComposeFunctionImpl(pos, fn0Inner, fn1Inner)
 }
 
 class ReverseComposeOp : APLOperatorTwoArg {
-    override fun combineFunction(fn1: APLFunction, fn2: APLFunction, operatorAxis: Instruction?, opPos: Position): APLFunctionDescriptor {
-        if (operatorAxis != null) {
-            throw AxisNotSupported(opPos)
-        }
-        return ReverseComposeFunctionDescriptor(fn1, fn2)
-    }
+    override fun combineFunction(fn0: APLFunction, fn1: APLFunction, opPos: Position) = ReverseComposeFunctionDescriptor(fn0, fn1)
 }
 
-class OverDerivedFunctionDescriptor(val fn1: APLFunction, val fn2: APLFunction) : APLFunctionDescriptor {
-    inner class OverDerivedFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+class OverDerivedFunctionDescriptor(val fn0Inner: APLFunction, val fn1Inner: APLFunction) : APLFunctionDescriptor {
+    class OverDerivedFunctionImpl(pos: Position, fn0: APLFunction, fn1: APLFunction) : NoAxisAPLFunction(pos, listOf(fn0, fn1)) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            val result0 = fn2.eval1Arg(context, a, null)
-            return fn1.eval1Arg(context, result0, null)
+            val result0 = fn1.eval1Arg(context, a, null)
+            return fn0.eval1Arg(context, result0, null)
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            val result0 = fn2.eval1Arg(context, b, null)
-            val result1 = fn2.eval1Arg(context, a, null)
-            return fn1.eval2Arg(context, result1, result0, null)
+            val result0 = fn1.eval1Arg(context, b, null)
+            val result1 = fn1.eval1Arg(context, a, null)
+            return fn0.eval2Arg(context, result1, result0, null)
         }
 
-        fun fn1() = fn1
-        fun fn2() = fn2
+        override fun copy(fns: List<APLFunction>) = OverDerivedFunctionImpl(pos, fns[0], fns[1])
 
-        override val name1Arg = "over [${fn1.name1Arg}, ${fn2.name1Arg}]"
-        override val name2Arg = "over [${fn1.name2Arg}, ${fn2.name1Arg}]"
+        val fn0 get() = fns[0]
+        val fn1 get() = fns[1]
+
+        override val name1Arg = "over [${fn0.name1Arg}, ${fn1.name1Arg}]"
+        override val name2Arg = "over [${fn0.name2Arg}, ${fn1.name1Arg}]"
     }
 
-    override fun make(pos: Position) = OverDerivedFunctionImpl(pos)
+    override fun make(pos: Position) = OverDerivedFunctionImpl(pos, fn0Inner, fn1Inner)
 }
 
-
 class OverOp : APLOperatorTwoArg {
-    override fun combineFunction(fn1: APLFunction, fn2: APLFunction, operatorAxis: Instruction?, opPos: Position): APLFunctionDescriptor {
-        if (operatorAxis != null) {
-            throw AxisNotSupported(opPos)
+    override fun combineFunction(fn0: APLFunction, fn1: APLFunction, opPos: Position) = OverDerivedFunctionDescriptor(fn0, fn1)
+}
+
+class StructuralUnderDerivedFunction(val baseFn: APLFunction, val wrapperFn: APLFunction) : APLFunctionDescriptor {
+    inner class StructuralUnderDerivedFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            return wrapperFn.evalWithStructuralUnder1Arg(baseFn, context, a)
         }
-        return OverDerivedFunctionDescriptor(fn1, fn2)
+
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            return wrapperFn.evalWithStructuralUnder2Arg(baseFn, context, a, b)
+        }
     }
+
+    override fun make(pos: Position): APLFunction {
+        return StructuralUnderDerivedFunctionImpl(pos)
+    }
+}
+
+class StructuralUnderOp : APLOperatorTwoArg {
+    override fun combineFunction(fn0: APLFunction, fn1: APLFunction, opPos: Position) = StructuralUnderDerivedFunction(fn0, fn1)
 }

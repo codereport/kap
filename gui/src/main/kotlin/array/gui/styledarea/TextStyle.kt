@@ -8,6 +8,7 @@ class TextStyle(val type: Type = Type.DEFAULT, val promptTag: Boolean = false, @
     @Suppress("UNUSED_PARAMETER")
     fun styleContent(content: TextExt, renderContext: ClientRenderContext) {
         val css = when (type) {
+            Type.LOG_INPUT -> "editcontent-loginput"
             Type.ERROR -> "editcontent-error"
             Type.PROMPT -> "editcontent-prompt"
             Type.OUTPUT -> "editcontent-output"

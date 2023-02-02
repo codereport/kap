@@ -9,8 +9,8 @@
   b ← ⊃ {⊃ (↑" ") stringToNumbers¨ ⍵}¨ v ⊂⍨ (⊂⍬) ≢¨ v←2↓filecontent
 
   ⍝ Compute the time at which each cell is picked, 0 means that the cell was not picked
-  indexed ← (1+⍳≢num) ×⌺ (⍴b)⍴1
-  res ← +⌿ indexed × num=⌺b
+  indexed ← (1+⍳≢num) ×⌻ (⍴b)⍴1
+  res ← +⌿ indexed × num=⌻b
 
   highest ← ⌊/ (⌊/⌈/[2] res) ,[0.5] ⌊/⌈/[1] res
   winning ← b[indexHigh←↑⍋highest;;]
@@ -28,8 +28,8 @@
   b ← ⊃ {⊃ (↑" ") stringToNumbers¨ ⍵}¨ v ⊂⍨ (⊂⍬) ≢¨ v←2↓filecontent
 
   ⍝ Compute the time at which each cell is picked, 0 means that the cell was not picked
-  indexed ← (1+⍳≢num) ×⌺ (⍴b)⍴1
-  res ← +⌿ indexed × num=⌺b
+  indexed ← (1+⍳≢num) ×⌻ (⍴b)⍴1
+  res ← +⌿ indexed × num=⌻b
 
   highest ← ⌊/ (⌊/⌈/[2] res) ,[0.5] ⌊/⌈/[1] res
   winning ← b[indexHigh←↑⍒highest;;]

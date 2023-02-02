@@ -27,7 +27,7 @@ class OperatorsTest : APLTest() {
 
     @Test
     fun multiOperators() {
-        val result = parseAPLExpression("+⌺⍨1 2 3")
+        val result = parseAPLExpression("+⌻⍨1 2 3")
         assertDimension(dimensionsOfSize(3, 3), result)
         assertArrayContent(arrayOf(2, 3, 4, 3, 4, 5, 4, 5, 6), result)
     }
@@ -89,7 +89,7 @@ class OperatorsTest : APLTest() {
 
         val engine = Engine()
         engine.registerOperator(engine.currentNamespace.internAndExport("foo"), FooOperator())
-        engine.parseAndEval(StringSourceLocation("1 (+foo 2) 3"), newContext = false).let { result ->
+        engine.parseAndEval(StringSourceLocation("1 (+foo 2) 3")).let { result ->
             assertSimpleNumber(9, result)
         }
     }

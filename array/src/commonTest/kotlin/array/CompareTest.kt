@@ -27,6 +27,26 @@ class CompareTest : APLTest() {
     }
 
     @Test
+    fun testIdenticalLazyValueLong() {
+        assertSimpleNumber(1, parseAPLExpression("0≡0⌷0 1"))
+    }
+
+    @Test
+    fun testIdenticalLazyValueDouble() {
+        assertSimpleNumber(1, parseAPLExpression("0.0≡0⌷0.0 1.0"))
+    }
+
+    @Test
+    fun testIdenticalLazyValueComplex() {
+        assertSimpleNumber(1, parseAPLExpression("3J1≡0⌷3J1 4J1"))
+    }
+
+    @Test
+    fun testIdenticalLazyValueChar() {
+        assertSimpleNumber(1, parseAPLExpression("@a≡0⌷@a @b"))
+    }
+
+    @Test
     fun testNotIdentical() {
         assertSimpleNumber(0, parseAPLExpression("10≢10"))
         assertSimpleNumber(1, parseAPLExpression("10≢100"))
@@ -39,6 +59,26 @@ class CompareTest : APLTest() {
         assertSimpleNumber(0, parseAPLExpression("'foo ≢ 'foo"))
         assertSimpleNumber(1, parseAPLExpression("@a ≢ @b"))
         assertSimpleNumber(0, parseAPLExpression("(1;2;3) ≢ (1;2;3)"))
+    }
+
+    @Test
+    fun testNotIdenticalLazyValueLong() {
+        assertSimpleNumber(0, parseAPLExpression("0≢0⌷0 1"))
+    }
+
+    @Test
+    fun testNotIdenticalLazyValueDouble() {
+        assertSimpleNumber(0, parseAPLExpression("0.0≢0⌷0.0 1.0"))
+    }
+
+    @Test
+    fun testNotIdenticalLazyValueComplex() {
+        assertSimpleNumber(0, parseAPLExpression("3J1≢0⌷3J1 4J1"))
+    }
+
+    @Test
+    fun testNotIdenticalLazyValueChar() {
+        assertSimpleNumber(0, parseAPLExpression("@a≢0⌷@a @b"))
     }
 
     @Test

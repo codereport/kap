@@ -1,5 +1,5 @@
 package array.builtins
-//≠∵⌺⍨ ⍳30
+//≠∵⌻⍨ ⍳30
 import array.*
 
 abstract class BitwiseCombineAPLFunction(pos: Position) : MathCombineAPLFunction(pos) {
@@ -17,12 +17,7 @@ abstract class BitwiseCombineAPLFunction(pos: Position) : MathCombineAPLFunction
 }
 
 class BitwiseOp : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, operatorAxis: Instruction?, pos: Position): APLFunctionDescriptor {
-        if (operatorAxis != null) {
-            throw AxisNotSupported(pos)
-        }
-        return fn.deriveBitwise() ?: throw BitwiseNotSupported(fn.pos)
-    }
+    override fun combineFunction(fn: APLFunction, pos: Position) = fn.deriveBitwise() ?: throw BitwiseNotSupported(fn.pos)
 }
 
 class BitwiseAndFunction : APLFunctionDescriptor {

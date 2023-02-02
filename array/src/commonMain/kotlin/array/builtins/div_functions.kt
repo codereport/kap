@@ -69,7 +69,7 @@ class DeferredAPLValue2Arg(val fn: APLFunction, val context: RuntimeContext, val
 }
 
 class DeferAPLOperator : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, operatorAxis: Instruction?, pos: Position): APLFunctionDescriptor {
+    override fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor {
         return DeferAPLFunction(fn)
     }
 
@@ -139,20 +139,21 @@ class UnwindProtectAPLFunction : APLFunctionDescriptor {
 }
 
 class AtLeaveScopeOperator : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, operatorAxis: Instruction?, pos: Position): APLFunctionDescriptor {
-        if (operatorAxis != null) {
-            throw OperatorAxisNotSupported(pos)
-        }
-        return AtLeaveScopeFunctionDescriptor(fn)
-    }
+    override fun combineFunction(fn: APLFunction, pos: Position) = AtLeaveScopeFunctionDescriptor(fn)
 
     class AtLeaveScopeFunctionDescriptor(val fn1Descriptor: APLFunction) : APLFunctionDescriptor {
         override fun make(pos: Position): APLFunction {
             val fn = fn1Descriptor
-            return object : APLFunction(pos) {
+            return object : APLFunction(pos), SaveStackCapable by SaveStackSupport() {
+                init {
+                    computeCapturedEnvs(fn)
+                }
+
                 override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-                    context.pushReleaseCallback {
-                        fn.eval1Arg(context, a, null)
+                    currentStack().currentFrame().pushReleaseCallback {
+                        withPossibleSavedStack(savedStack(context)) {
+                            fn.eval1Arg(context, a, null)
+                        }
                     }
                     return a
                 }
@@ -177,12 +178,7 @@ class ThrowFunction : APLFunctionDescriptor {
 }
 
 class CatchOperator : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, operatorAxis: Instruction?, pos: Position): APLFunctionDescriptor {
-        if (operatorAxis != null) {
-            throw OperatorAxisNotSupported(pos)
-        }
-        return CatchFunctionDescriptor(fn)
-    }
+    override fun combineFunction(fn: APLFunction, pos: Position) = CatchFunctionDescriptor(fn)
 
     class CatchFunctionDescriptor(
         val fn1Descriptor: APLFunction

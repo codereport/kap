@@ -30,5 +30,5 @@
 ⍝ to the found value which gives us the result.
 
 ∇ solveDay5part2 (file) {
-    {1+⍵[¯2 ⍳⍨ 2-/⍵]} (⊂∘⍋⌷⊢) {2⊥⍵∊"BR"}¨ io:read file
+    {1+⍵[¯2 ⍳⍨ 2-/⍵]} ⍋⍛⊇ {2⊥⍵∊"BR"}¨ io:read file
 }

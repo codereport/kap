@@ -37,7 +37,7 @@ object IotaArrayImpls {
         }
 
         override fun valueAt(p: Int): APLValue {
-            val index = Dimensions.positionFromIndexWithMultipliers(p, multipliers)
+            val index = multipliers.positionFromIndex(p)
             return APLArrayLong(dimensionsOfSize(indexes.size), LongArray(index.size) { i -> index[i].toLong() })
         }
     }
@@ -648,7 +648,8 @@ class ConcatenateAPLFunctionFirstAxis : APLFunctionDescriptor {
 
         override fun defaultAxis(a: APLValue, b: APLValue) = 0
 
-        override val name1Arg get() = "concatenate first axis"
+        override val name1Arg get() = "table"
+        override val name2Arg get() = "concatenate first axis"
     }
 
     override fun make(pos: Position) = ConcatenateAPLFunctionFirstAxisImpl(pos)
@@ -672,7 +673,8 @@ class ConcatenateAPLFunctionLastAxis : APLFunctionDescriptor {
 
         override fun defaultAxis(a: APLValue, b: APLValue) = max(a.rank, b.rank) - 1
 
-        override val name1Arg get() = "concatenate last axis"
+        override val name1Arg get() = "ravel"
+        override val name2Arg get() = "concatenate last axis"
     }
 
     override fun make(pos: Position) = ConcatenateAPLFunctionLastAxisImpl(pos)
@@ -763,7 +765,7 @@ class AccessFromIndexAPLFunction : APLFunctionDescriptor {
 }
 
 class TakeArrayValue(val selection: IntArray, val source: APLValue, val pos: Position? = null) : APLArray() {
-    override val dimensions = Dimensions(selection.map { v -> v.absoluteValue }.toIntArray())
+    override val dimensions = Dimensions(selection.map(Int::absoluteValue).toIntArray())
     private val multipliers = dimensions.multipliers()
     private val sourceDimensions = source.dimensions
     private val sourceMultipliers = sourceDimensions.multipliers()
@@ -782,7 +784,7 @@ class TakeArrayValue(val selection: IntArray, val source: APLValue, val pos: Pos
     }
 
     override fun valueAt(p: Int): APLValue {
-        val coords = Dimensions.positionFromIndexWithMultipliers(p, multipliers)
+        val coords = multipliers.positionFromIndex(p)
         val adjusted = IntArray(coords.size) { i ->
             val d = selection[i]
             val v = coords[i]
@@ -793,6 +795,100 @@ class TakeArrayValue(val selection: IntArray, val source: APLValue, val pos: Pos
             }
         }
         return sourceOrDefaultWithPosition(adjusted)
+    }
+
+    fun replaceForUnder(replacement: APLValue): APLValue {
+        val offset = IntArray(dimensions.size) { i ->
+            val selectionValue = selection[i]
+            if (selectionValue >= 0) {
+                0
+            } else {
+                sourceDimensions[i] + selectionValue
+            }
+        }
+        return OverlayReplacementValue(source, dimensions, replacement, offset, pos)
+    }
+}
+
+class OverlayReplacementValue(
+    val src: APLValue,
+    val srcReplacementDimensions: Dimensions,
+    val replacement: APLValue,
+    val offset: IntArray,
+    pos: Position?
+) : APLArray() {
+    private val srcDimensions = src.dimensions
+    private val replacementDimensions = replacement.dimensions
+
+    override val dimensions = Dimensions(IntArray(srcReplacementDimensions.size) { i ->
+        srcDimensions[i] - srcReplacementDimensions[i] + replacementDimensions[i]
+    })
+
+    private val srcMultipliers = srcDimensions.multipliers()
+    private val multipliers = dimensions.multipliers()
+
+    init {
+        if (dimensions.size != offset.size) {
+            throw IllegalStateException("offset size does not match src dimensions")
+        }
+        if (dimensions.size != replacementDimensions.size) {
+            throwAPLException(InvalidDimensionsException("replacement array rank mismatch", pos))
+        }
+
+        // After the below loop, resizableDimension will have the following value:
+        //   positive integer: The dimension that can be resized
+        //   null: All dimensions can be resized
+        //   -1: No dimensions can be resized
+        var resizableDimension: Int? = null
+        repeat(dimensions.size) { i ->
+            // If all but a single dimension extends over the entire range, then that dimension can be resized
+            if (replacementDimensions[i] != srcDimensions[i]) {
+                if (resizableDimension == null) {
+                    resizableDimension = i
+                } else {
+                    resizableDimension = -1
+                }
+            }
+        }
+        repeat(dimensions.size) { i ->
+            if (resizableDimension != null) {
+                if (srcReplacementDimensions[i] != replacementDimensions[i] && i != resizableDimension) {
+                    throwAPLException(InvalidDimensionsException("cannot resize axis: ${i}", pos))
+                }
+            }
+            if (dimensions[i] < offset[i] + replacementDimensions[i]) {
+                throwAPLException(InvalidDimensionsException("replacement array size overflows at index ${i}", pos))
+            }
+        }
+    }
+
+    override fun valueAt(p: Int): APLValue {
+        val posArray = multipliers.positionFromIndex(p)
+        return if (isWithinReplacement(posArray)) {
+            val newPosArray = IntArray(posArray.size) { i -> posArray[i] - offset[i] }
+            replacement.valueAt(replacementDimensions.indexFromPosition(newPosArray))
+        } else {
+            val newPosArray = IntArray(posArray.size) { i ->
+                val posOnAxis = posArray[i]
+                if (posOnAxis < offset[i]) {
+                    posOnAxis
+                } else {
+                    posOnAxis - replacementDimensions[i] + srcReplacementDimensions[i]
+                }
+            }
+            src.valueAt(srcDimensions.indexFromPosition(newPosArray, srcMultipliers))
+        }
+    }
+
+    private fun isWithinReplacement(posArray: IntArray): Boolean {
+        repeat(dimensions.size) { i ->
+            val p = posArray[i]
+            val offsetValue = offset[i]
+            if (p < offsetValue || p >= replacementDimensions[i] + offsetValue) {
+                return false
+            }
+        }
+        return true
     }
 }
 
@@ -829,6 +925,15 @@ class TakeAPLFunction : APLFunctionDescriptor {
             return TakeArrayValue(selection, b, pos)
         }
 
+        override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            val underValue = eval2Arg(context, a, b)
+            if (underValue !is TakeArrayValue) {
+                throw IllegalStateException("Result is not of the correct type. Type = ${underValue::class}")
+            }
+            val updated = baseFn.eval1Arg(context, underValue, null)
+            return underValue.replaceForUnder(updated)
+        }
+
         override val name1Arg get() = "take"
         override val name2Arg get() = "take"
     }
@@ -836,9 +941,9 @@ class TakeAPLFunction : APLFunctionDescriptor {
     override fun make(pos: Position) = TakeAPLFunctionImpl(pos)
 }
 
-class DropArrayValue(val selection: IntArray, val source: APLValue) : APLArray() {
+class DropArrayValue(val selection: IntArray, val source: APLValue, val pos: Position) : APLArray() {
     private val sourceDimensions = source.dimensions
-    override val dimensions = Dimensions(selection.mapIndexed { index, v -> sourceDimensions[index] - v.absoluteValue }.toIntArray())
+    override val dimensions = Dimensions(selection.mapIndexed { index, v -> max(0, sourceDimensions[index] - v.absoluteValue) }.toIntArray())
 
     override fun valueAt(p: Int): APLValue {
         val coords = dimensions.positionFromIndex(p)
@@ -853,9 +958,21 @@ class DropArrayValue(val selection: IntArray, val source: APLValue) : APLArray()
         }
         return source.valueAt(sourceDimensions.indexFromPosition(adjusted))
     }
+
+    fun replaceForUnder(replacement: APLValue): APLValue {
+        val offset = IntArray(dimensions.size) { i ->
+            val selectionValue = selection[i]
+            if (selectionValue >= 0) {
+                selectionValue
+            } else {
+                0
+            }
+        }
+        return OverlayReplacementValue(source, dimensions, replacement, offset, pos)
+    }
 }
 
-class DropResultValueOneArg(val a: APLValue, pos: Position) : APLArray() {
+class DropResultValueOneArg(val a: APLValue, val pos: Position) : APLArray() {
     override val dimensions: Dimensions
 
     init {
@@ -867,6 +984,13 @@ class DropResultValueOneArg(val a: APLValue, pos: Position) : APLArray() {
     }
 
     override fun valueAt(p: Int) = a.valueAt(p + 1)
+
+    fun replaceForUnder(updated: APLValue): APLValue {
+        if (updated.dimensions.size != 1) {
+            throwAPLException(APLIllegalArgumentException("Result of under function must be a 1-dimensional array", pos))
+        }
+        return Concatenated1DArrays(APLArrayImpl(dimensionsOfSize(1), arrayOf(a.valueAt(0))), updated)
+    }
 }
 
 class DropAPLFunction : APLFunctionDescriptor {
@@ -892,7 +1016,25 @@ class DropAPLFunction : APLFunctionDescriptor {
                     0
                 }
             }
-            return DropArrayValue(axisArray, b)
+            return DropArrayValue(axisArray, b, pos)
+        }
+
+        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue): APLValue {
+            val underValue = eval1Arg(context, a)
+            if (underValue !is DropResultValueOneArg) {
+                throw IllegalStateException("Result is not of the correct type. Type = ${underValue::class}")
+            }
+            val updated = baseFn.eval1Arg(context, underValue, null)
+            return underValue.replaceForUnder(updated)
+        }
+
+        override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            val underValue = eval2Arg(context, a, b)
+            if (underValue !is DropArrayValue) {
+                throw IllegalStateException("Result is not of the correct type. Type = ${underValue::class}")
+            }
+            val updated = baseFn.eval1Arg(context, underValue, null)
+            return underValue.replaceForUnder(updated)
         }
 
         override val name1Arg get() = "drop"
@@ -1001,7 +1143,7 @@ class RotatedAPLValue private constructor(val source: APLValue, val axis: Int, v
 class MultiRotationRotatedAPLValue(
     val source: APLValue,
     val axis: Int,
-    val selectionMultipliers: IntArray,
+    val selectionMultipliers: Dimensions.DimensionMultipliers,
     val selection: IntArray
 ) : APLArray() {
     override val dimensions = source.dimensions
@@ -1010,7 +1152,7 @@ class MultiRotationRotatedAPLValue(
     private val sourceMultipliers = dimensions.multipliers()
 
     override fun valueAt(p: Int): APLValue {
-        val coords = Dimensions.positionFromIndexWithMultipliers(p, sourceMultipliers)
+        val coords = sourceMultipliers.positionFromIndex(p)
         var curr = 0
         repeat(selectionMultipliers.size) { i ->
             val dimensionIndex = coords[if (i < axis) i else i + 1]
@@ -1106,9 +1248,11 @@ abstract class RotateFunction(pos: Position) : APLFunction(pos) {
         }
     }
 
-    override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-        return eval1Arg(context, a, axis)
-    }
+    override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?) =
+        eval1Arg(context, a, axis)
+
+    override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue) =
+        inversibleStructuralUnder1Arg(this, baseFn, context, a)
 
     abstract fun defaultAxis(value: APLValue): Int
 }
@@ -1135,7 +1279,7 @@ class RotateVertFunction : APLFunctionDescriptor {
 
 class TransposedAPLValue(val transposeAxis: IntArray, val b: APLValue, pos: Position) : APLArray() {
     override val dimensions: Dimensions
-    private val multipliers: IntArray
+    private val multipliers: Dimensions.DimensionMultipliers
     private val bDimensions: Dimensions
     override val specialisedType get() = b.specialisedType
 
@@ -1225,8 +1369,14 @@ class TransposeFunction : APLFunctionDescriptor {
         }
 
         override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+            if (axis != null) {
+                throw AxisNotSupported(pos)
+            }
             return eval1Arg(context, a, axis)
         }
+
+        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue) =
+            inversibleStructuralUnder1Arg(this, baseFn, context, a)
 
         override val name1Arg get() = "transpose"
         override val name2Arg get() = "transpose"
@@ -1333,8 +1483,8 @@ object MemberResultValueImpls {
     ) : MemberResultValue(context, a, b, pos) {
         override fun findInArray(target: APLValue): Long {
             val targetNum = target.ensureNumberOrNull() ?: return 0
-            when {
-                targetNum is APLLong -> {
+            when (targetNum) {
+                is APLLong -> {
                     val targetLong = targetNum.asLong(pos)
                     repeat(b.size) { i ->
                         if (b.valueAtLong(i, pos) == targetLong) {
@@ -1342,7 +1492,7 @@ object MemberResultValueImpls {
                         }
                     }
                 }
-                targetNum is APLDouble -> {
+                is APLDouble -> {
                     val targetDouble = targetNum.asDouble(pos)
                     repeat(b.size) { i ->
                         if (b.valueAtLong(i, pos).toDouble() == targetDouble) {
@@ -1606,7 +1756,7 @@ class WhereAPLFunction : APLFunctionDescriptor {
                         val index = if (aDimensions.size == 1) {
                             i.makeAPLNumber()
                         } else {
-                            val positionIndex = Dimensions.positionFromIndexWithMultipliers(i, multipliers)
+                            val positionIndex = multipliers.positionFromIndex(i)
                             val valueArray = Array<APLValue>(positionIndex.size) { v -> positionIndex[v].makeAPLNumber() }
                             APLArrayImpl(dimensionsOfSize(valueArray.size), valueArray)
                         }

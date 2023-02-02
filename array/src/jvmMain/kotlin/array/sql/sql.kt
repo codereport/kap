@@ -167,7 +167,10 @@ private fun updatePreparedStatementCol(statement: PreparedStatement, index: Int,
             if (stringValue != null) {
                 statement.setString(index, stringValue)
             } else {
-                throwAPLException(SQLAPLException("Value cannot be used in an SQL prepared statement: ${value.formatted(FormatStyle.PLAIN)}", pos))
+                throwAPLException(
+                    SQLAPLException(
+                        "Value cannot be used in an SQL prepared statement: ${value.formatted(FormatStyle.PLAIN)}",
+                        pos))
             }
         }
     }

@@ -18,7 +18,7 @@ class SQLTest : APLTest() {
         val result = parseAPLExpression(
             """
             |c ← sql:connect "jdbc:sqlite::memory:"
-            |c sql:update "create table foo (a int primary key, b varchar(10))"
+            |c sql:update "create table foo (a int primary key, b varchar(20))"
             |c sql:update "insert into foo values (1,'foo')"
             |c sql:update "insert into foo values (2,'testing')"
             |c sql:update "insert into foo values (3,'xx')"
@@ -40,7 +40,7 @@ class SQLTest : APLTest() {
         val result = parseAPLExpression(
             """
             |c ← sql:connect "jdbc:sqlite::memory:"
-            |c sql:update "create table foo (a int primary key, b varchar(10))"
+            |c sql:update "create table foo (a int primary key, b varchar(20))"
             |statement ← c sql:prepare "insert into foo values (?, ?)"
             |statement sql:updatePrepared 1 "foo"
             |statement sql:updatePrepared 2 "bar"
@@ -64,7 +64,7 @@ class SQLTest : APLTest() {
         val result = parseAPLExpression(
             """
             |c ← sql:connect "jdbc:sqlite::memory:"
-            |c sql:update "create table foo (a int primary key, b varchar(10))"
+            |c sql:update "create table foo (a int primary key, b varchar(20))"
             |statement ← c sql:prepare "insert into foo values (?, ?)"
             |statement sql:updatePrepared 3 2 ⍴ 1 "foo" 2 "bar" 3 "test message"
             |result ← c sql:query "select * from foo order by a"
@@ -86,7 +86,7 @@ class SQLTest : APLTest() {
         val result = parseAPLExpression(
             """
             |c ← sql:connect "jdbc:sqlite::memory:"
-            |c sql:update "create table foo (a int primary key, b varchar(10))"
+            |c sql:update "create table foo (a int primary key, b varchar(20))"
             |c sql:update "insert into foo values (1,'foo')"
             |c sql:update "insert into foo values (2,'testing')"
             |c sql:update "insert into foo values (3,'xx')"
@@ -124,7 +124,7 @@ class SQLTest : APLTest() {
             parseAPLExpression(
                 """
                 |c ← sql:connect "jdbc:sqlite::memory:"
-                |c sql:update "create table foo (a int primary key, b varchar(10))"
+                |c sql:update "create table foo (a int primary key, b varchar(20))"
                 |c sql:update "insert into foo values (1,'foo')"
                 |c sql:update "insert into foo values (2,'testing')"
                 |c sql:update "insert into foo values (3,'xx')"

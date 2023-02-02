@@ -1,7 +1,6 @@
 package array
 
 import array.complex.Complex
-import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
@@ -98,6 +97,19 @@ class NumbersTest : APLTest() {
         assertComplexWithRange(Pair(-0.0000001, 0.0000001), Pair(1.732050807, 1.732050809), parseAPLExpression("¯3⋆0.5"))
         assertComplexWithRange(Pair(0.01342669136, 0.01342669138), Pair(0.04132310697, 0.04132310699), parseAPLExpression("¯7.1*¯1.6"))
         assertSimpleDouble(-27.0, parseAPLExpression("¯3⋆3"))
+    }
+
+    @Test
+    fun testExponentialWithComplex() {
+        parseAPLExpression("1J1 ¯2J9 1J¯9 ¯2J¯2*3").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearComplex(Complex(-2.0, 2.0)),
+                    NearComplex(Complex(478.0, -621.0)),
+                    NearComplex(Complex(-242.0, 702.0)),
+                    NearComplex(Complex(16.0, -16.0))),
+                result)
+        }
     }
 
     @Test
@@ -214,7 +226,6 @@ class NumbersTest : APLTest() {
         }
     }
 
-    @Ignore
     @Test
     fun positiveIntegerBinomial() {
         parseAPLExpression("10!32").let { result ->
@@ -222,7 +233,6 @@ class NumbersTest : APLTest() {
         }
     }
 
-    @Ignore
     @Test
     fun positiveDoubleBinominal() {
         parseAPLExpression("10.2!32.2").let { result ->
@@ -230,4 +240,168 @@ class NumbersTest : APLTest() {
         }
     }
 
+    @Test
+    fun complexBinomial() {
+        parseAPLExpression("0 2 2J2 3J¯3 ¯3J10.1 ¯3J¯4 ∘.! 0 3 8.1J1 ¯3.4J4 10J¯3 ¯2J¯8").let { result ->
+            assertDimension(dimensionsOfSize(6, 6), result)
+            assertArrayContent(
+                arrayOf(
+                    NearComplex(Complex(1.0, 0.0)),
+                    NearComplex(Complex(1.0, 0.0)),
+                    NearComplex(Complex(1.0, 0.0)),
+                    NearComplex(Complex(1.0, 0.0)),
+                    NearComplex(Complex(1.0, 0.0)),
+                    NearComplex(Complex(1.0, 0.0)),
+                    NearComplex(Complex(0.0, 0.0)),
+                    NearComplex(Complex(3.0, 0.0)),
+                    NearComplex(Complex(28.255, 7.6)),
+                    NearComplex(Complex(-0.52, -15.6)),
+                    NearComplex(Complex(40.5, -28.5)),
+                    NearComplex(Complex(-29.0, 20.0)),
+                    NearComplex(Complex(21.30646169, 21.30646169)),
+                    NearComplex(Complex(12.78387701, -12.78387701)),
+                    NearComplex(Complex(-26.45504396, 54.29773874)),
+                    NearComplex(Complex(0.1771815219, -0.02202208026)),
+                    NearComplex(Complex(-67.13452858, 236.1405125)),
+                    NearComplex(Complex(1166.024365, -3346.794191)),
+                    NearComplex(Complex(-328.6986648, 328.6986648)),
+                    NearComplex(Complex(-80.91044057, 10.11380507)),
+                    NearComplex(Complex(374.3589127, -543.1323969)),
+                    NearComplex(Complex(40407.45676, -142258.8772)),
+                    NearComplex(Complex(-248.375, -29.23214286)),
+                    NearComplex(Complex(-0.02446697456, -0.4780505611)),
+                    NearComplex(Complex(-8.729323264E11, 2.592868296E11), -7, -7),
+                    NearComplex(Complex(3783271107.0, -344239831.5), -5, -5),
+                    NearComplex(Complex(-21687822.9, -12528639.47), -3, -3),
+                    NearComplex(Complex(-19219016.06, -335408971.5), -3, -3),
+                    NearComplex(Complex(77075910.62, 74882120.92), -3, -3),
+                    NearComplex(Complex(-3.870615137E12, 2.375705362E12), -8, -8),
+                    NearComplex(Complex(-7302.062228, -5476.546671)),
+                    NearComplex(Complex(-34.67794562, 206.7833053)),
+                    NearComplex(Complex(14.54486452, -14.78546549)),
+                    NearComplex(Complex(-48737.12032, 8780.542527)),
+                    NearComplex(Complex(3.029684439, -0.7536373119)),
+                    NearComplex(Complex(0.06167254732, 0.04814395987))
+                ), result)
+        }
+    }
+
+    @Test
+    fun squareRootInt() {
+        parseAPLExpression("√4 2 10 1 0").let { result ->
+            assert1DArray(
+                arrayOf(NearDouble(2.0), NearDouble(1.414213562), NearDouble(3.16227766), NearDouble(1.0), NearDouble(0.0)),
+                result)
+        }
+    }
+
+    @Test
+    fun squareRootIntNegative() {
+        parseAPLExpression("√¯1 ¯2 ¯5 ¯123459").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearComplex(Complex(0.0, 1.0)),
+                    NearComplex(Complex(0.0, 1.414213562)),
+                    NearComplex(Complex(0.0, 2.236067977)),
+                    NearComplex(Complex(0.0, 351.3673292))),
+                result)
+        }
+    }
+
+    @Test
+    fun squareRootIntNegativeBase3() {
+        parseAPLExpression("3√¯1 ¯2 ¯5 ¯123459").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearComplex(Complex(0.5, 0.8660254038)),
+                    NearComplex(Complex(0.6299605249, 1.091123636)),
+                    NearComplex(Complex(0.8549879733, 1.48088261)),
+                    NearComplex(Complex(24.89684159, 43.12259457))),
+                result)
+        }
+    }
+
+    @Test
+    fun squareRootDouble() {
+        parseAPLExpression("√1.7 0.1 12345.9 9.7 9876.1234 1.987654321").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearDouble(1.303840481),
+                    NearDouble(0.316227766),
+                    NearDouble(111.1121056),
+                    NearDouble(3.1144823),
+                    NearDouble(99.37868685),
+                    NearDouble(1.409841949)),
+                result)
+        }
+    }
+
+    @Test
+    fun squareRootExplicitBase() {
+        parseAPLExpression("2√1.7 0.1 12345.9 9.7 9876.1234 1.987654321").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearDouble(1.303840481),
+                    NearDouble(0.316227766),
+                    NearDouble(111.1121056),
+                    NearDouble(3.1144823),
+                    NearDouble(99.37868685),
+                    NearDouble(1.409841949)),
+                result)
+        }
+    }
+
+    @Test
+    fun squareRootDoubleNegative() {
+        parseAPLExpression("√¯1.7 ¯10000.2 ¯0.001 ¯9.5").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearComplex(Complex(0.0, 1.303840481)),
+                    NearComplex(Complex(0.0, 100.001)),
+                    NearComplex(Complex(0.0, 0.0316227766)),
+                    NearComplex(Complex(0.0, 3.082207001))),
+                result)
+        }
+    }
+
+    @Test
+    fun squareRootDoubleNegativeExplicitBase() {
+        parseAPLExpression("2√¯1.7 ¯10000.2 ¯0.001 ¯9.5").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearComplex(Complex(0.0, 1.303840481)),
+                    NearComplex(Complex(0.0, 100.001)),
+                    NearComplex(Complex(0.0, 0.0316227766)),
+                    NearComplex(Complex(0.0, 3.082207001))),
+                result)
+        }
+    }
+
+    @Test
+    fun squareRootNegativeIntegerComplexBase() {
+        parseAPLExpression("2J1√¯1 ¯2 ¯5 ¯123459").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearComplex(Complex(0.5792387863, 1.782713677)),
+                    NearComplex(Complex(1.082032803, 2.224120703)),
+                    NearComplex(Complex(2.119650817, 2.870532607)),
+                    NearComplex(Complex(94.65947366, -180.6312599))),
+                result)
+        }
+    }
+
+    @Test
+    fun squareRootDoubleComplexBase() {
+        parseAPLExpression("1J1√1.7 0.1 12345.9 9.7 9876.1234 1.987654321").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearComplex(Complex(1.258219338, -0.3418831619)),
+                    NearComplex(Complex(0.1288018808, 0.2888080254)),
+                    NearComplex(Complex(-0.2054827018, 111.1119155)),
+                    NearComplex(Complex(1.311722151, -2.824780522)),
+                    NearComplex(Complex(-11.25047118, 98.73981111)),
+                    NearComplex(Complex(1.327491996, -0.4747834466))),
+                result)
+        }
+    }
 }

@@ -1,6 +1,7 @@
 package array
 
-import kotlin.test.*
+import kotlin.test.Ignore
+import kotlin.test.Test
 
 class ScopeTest : APLTest() {
     @Test
@@ -9,7 +10,7 @@ class ScopeTest : APLTest() {
             |use("test-data/include-test/include-test0.kap")
             |a
         """.trimMargin()
-        assertSimpleNumber(1, parseAPLExpression(src, newContext = false))
+        assertSimpleNumber(1, parseAPLExpression(src))
     }
 
 
@@ -19,7 +20,7 @@ class ScopeTest : APLTest() {
             |use("test-data/include-test/include-test1.kap")
             |a0 a1
         """.trimMargin()
-        parseAPLExpression(src, newContext = false).let { result ->
+        parseAPLExpression(src).let { result ->
             assert1DArray(arrayOf(100, 101), result)
         }
     }
@@ -28,7 +29,7 @@ class ScopeTest : APLTest() {
     @Test
     fun includeSeparateParseCalls() {
         val engine = Engine()
-        engine.parseAndEval(StringSourceLocation("use(\"test-data/include-test/include-test0.kap\")"), newContext = false).let { result ->
+        engine.parseAndEval(StringSourceLocation("use(\"test-data/include-test/include-test0.kap\")")).let { result ->
             assertSimpleNumber(1, result)
         }
         engine.parseAndEval(StringSourceLocation("a")).let { result ->

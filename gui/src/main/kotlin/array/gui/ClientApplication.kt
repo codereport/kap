@@ -20,10 +20,4 @@ class ClientApplication : Application() {
         client!!.stopRequest()
         super.stop()
     }
-
-    companion object {
-        fun main(args: Array<String>) {
-            launch(ClientApplication::class.java, *args)
-        }
-    }
 }

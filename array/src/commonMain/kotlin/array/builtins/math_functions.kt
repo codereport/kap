@@ -110,7 +110,7 @@ class DoubleArraySum2Args(
         dimensions = a0.dimensions
     }
 
-    override fun valueAt(p: Int) = valueAtLong(p, pos).makeAPLNumber()
+    override fun valueAt(p: Int) = valueAtDouble(p, pos).makeAPLNumber()
 
     override fun valueAtDouble(p: Int, pos: Position?): Double {
         return fn.combine2ArgDouble(a0.valueAtDouble(p, pos), b0.valueAtDouble(p, pos))
@@ -300,13 +300,15 @@ class AddAPLFunction : APLFunctionDescriptor {
         override fun deriveBitwise() = BitwiseXorFunction()
 
         override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?) = eval1Arg(context, a, axis)
+        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue) =
+            inversibleStructuralUnder1Arg(this, baseFn, context, a)
 
         private val subFn by lazy { SubAPLFunction().make(pos) }
-        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             return subFn.eval2Arg(context, b, a, axis)
         }
 
-        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             return subFn.eval2Arg(context, a, b, null)
         }
 
@@ -350,18 +352,18 @@ class SubAPLFunction : APLFunctionDescriptor {
         override fun combine2ArgLong(a: Long, b: Long) = a - b
         override fun combine2ArgDouble(a: Double, b: Double) = a - b
 
-        override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            return eval1Arg(context, a, axis)
-        }
+        override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?) =
+            eval1Arg(context, a, axis)
 
-        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            return eval2Arg(context, a, b, axis)
-        }
+        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue) =
+            inversibleStructuralUnder1Arg(this, baseFn, context, a)
+
+        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?) =
+            eval2Arg(context, a, b, axis)
 
         private val addFn by lazy { AddAPLFunction().make(pos) }
-        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            return addFn.eval2Arg(context, a, b, axis)
-        }
+        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?) =
+            addFn.eval2Arg(context, a, b, axis)
 
         override fun identityValue() = APLLONG_0
         override fun deriveBitwise() = BitwiseXorFunction()
@@ -411,11 +413,11 @@ class MulAPLFunction : APLFunctionDescriptor {
         override fun combine2ArgDouble(a: Double, b: Double) = a * b
 
         private val divFn by lazy { DivAPLFunction().make(pos) }
-        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             return divFn.eval2Arg(context, b, a, axis)
         }
 
-        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             return divFn.eval2Arg(context, a, b, axis)
         }
 
@@ -458,18 +460,16 @@ class DivAPLFunction : APLFunctionDescriptor {
         override fun combine1ArgDouble(a: Double) = 1.0 / a
         override fun combine2ArgDouble(a: Double, b: Double) = a / b
 
-        override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            return eval1Arg(context, a, axis)
-        }
+        override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?) = eval1Arg(context, a, axis)
+        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue) =
+            inversibleStructuralUnder1Arg(this, baseFn, context, a)
 
         private val mulFn by lazy { MulAPLFunction().make(pos) }
-        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            return eval2Arg(context, a, b, axis)
-        }
+        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?) =
+            eval2Arg(context, a, b, axis)
 
-        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            return mulFn.eval2Arg(context, b, a, axis)
-        }
+        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?) =
+            mulFn.eval2Arg(context, b, a, axis)
 
         override fun identityValue() = APLLONG_1
 
@@ -614,13 +614,14 @@ class PowerAPLFunction : APLFunctionDescriptor {
         }
 
         private val logFn by lazy { LogAPLFunction().make(pos) }
-        override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            return logFn.eval1Arg(context, a, axis)
-        }
+        override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?) =
+            logFn.eval1Arg(context, a, axis)
 
-        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            return logFn.eval2Arg(context, a, b, axis)
-        }
+        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue) =
+            inversibleStructuralUnder1Arg(this, baseFn, context, a)
+
+        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?) =
+            logFn.eval2Arg(context, a, b, axis)
 
         override fun identityValue() = APLLONG_1
 
@@ -755,13 +756,14 @@ class LogAPLFunction : APLFunctionDescriptor {
         }
 
         private val powerFn by lazy { PowerAPLFunction().make(pos) }
-        override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            return powerFn.eval1Arg(context, a, axis)
-        }
+        override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?) =
+            powerFn.eval1Arg(context, a, axis)
 
-        override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            return powerFn.eval2Arg(context, a, b, axis)
-        }
+        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue) =
+            inversibleStructuralUnder1Arg(this, baseFn, context, a)
+
+        override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?) =
+            powerFn.eval2Arg(context, a, b, axis)
 
         override val name1Arg get() = "natural log"
         override val name2Arg get() = "log"
@@ -838,10 +840,55 @@ class AtanAPLFunction : APLFunctionDescriptor {
     override fun make(pos: Position) = AtanAPLFunctionImpl(pos)
 }
 
+class SqrtAPLFunction : APLFunctionDescriptor {
+    class SqrtAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+        override fun numberCombine1Arg(a: APLNumber): APLValue {
+            return singleArgNumericRelationOperation(
+                pos,
+                a,
+                { x -> if (x < 0) x.toDouble().pow(COMPLEX_HALF).makeAPLNumber() else sqrt(x.toDouble()).makeAPLNumber() },
+                { x -> if (x < 0) x.pow(COMPLEX_HALF).makeAPLNumber() else sqrt(x).makeAPLNumber() },
+                { x -> x.pow(COMPLEX_HALF).makeAPLNumber() })
+        }
+
+        override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
+            return numericRelationOperation(
+                pos,
+                a,
+                b,
+                { x, y ->
+                    if (y < 0) {
+                        y.toDouble().pow(x.toDouble().toComplex().reciprocal()).makeAPLNumber()
+                    } else {
+                        y.toDouble().pow(1.0 / x.toDouble()).makeAPLNumber()
+                    }
+                },
+                { x, y ->
+                    if (y < 0) {
+                        y.pow(x.toComplex().reciprocal()).makeAPLNumber()
+                    } else {
+                        y.pow(1.0 / x).makeAPLNumber()
+                    }
+                },
+                { x, y -> y.pow(1.0 / x).makeAPLNumber() })
+        }
+
+        override val name1Arg get() = "square root"
+        override val name2Arg get() = "nth root"
+
+        companion object {
+            val COMPLEX_HALF = 0.5.toComplex()
+        }
+    }
+
+    override fun make(pos: Position) = SqrtAPLFunctionImpl(pos)
+}
+
 class AndAPLFunction : APLFunctionDescriptor {
     class AndAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
-            return numericRelationOperation(pos,
+            return numericRelationOperation(
+                pos,
                 a,
                 b,
                 { x, y -> opLong(x, y).makeAPLNumber() },
@@ -1083,9 +1130,33 @@ class BinomialAPLFunction : APLFunctionDescriptor {
                 pos,
                 a,
                 b,
-                { x, y -> doubleBinomial(x.toDouble(), y.toDouble()).makeAPLNumber() },
-                { x, y -> doubleBinomial(x, y).makeAPLNumber() },
+                { x, y ->
+                    if (x >= 0 && x <= Int.MAX_VALUE && y >= 0 && y <= Int.MAX_VALUE && y >= x) {
+                        longBinomial(y.toInt(), x.toInt()).makeAPLNumber()
+                    } else {
+                        doubleBinomialWithException(x.toDouble(), y.toDouble(), pos).makeAPLNumber()
+                    }
+                },
+                { x, y -> doubleBinomialWithException(x, y, pos).makeAPLNumber() },
                 { x, y -> complexBinomial(x, y).makeAPLNumber() })
+        }
+
+        private fun doubleBinomialWithException(a: Double, b: Double, pos: Position): Double {
+            fun nearInt(n: Double) = n.rem(1) == 0.0
+
+            try {
+                val row = (if (a < 0) 4 else 0) or (if (b < 0) 2 else 0) or (if (b < a) 1 else 0)
+                val caseTable = arrayOf(1, 0, -1, 1, 0, -1, 1, 0)
+                val e = caseTable[row]
+                return when {
+                    e == 0 -> 0.0
+                    e != 1 -> throw IllegalStateException("caseTable value is -1. ${a}, ${b}, ${row}, ${e}")
+                    !nearInt(a) || !nearInt(b) -> doubleBinomial(a, b)
+                    else -> doubleBinomial(a, b)
+                }
+            } catch (e: IllegalArgumentException) {
+                throw APLIncompatibleDomainsException("Binomial: invalid arguments: ${a},${b}", pos, e)
+            }
         }
 
         override val name1Arg get() = "gamma"

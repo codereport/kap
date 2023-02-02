@@ -126,4 +126,14 @@ class AssignmentTest : APLTest() {
             parseAPLExpression("(a 1) ← 1 2")
         }
     }
+
+    @Test
+    fun assignmentWithAddition0() {
+        assertSimpleNumber(12, parseAPLExpression("(b←2) + 10"))
+    }
+
+    @Test
+    fun assignmentWithAddition1() {
+        assert1DArray(arrayOf(2, 12), parseAPLExpression("b ((b←2) + 10)"))
+    }
 }

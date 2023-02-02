@@ -72,11 +72,16 @@ abstract class FunctionSyntaxRule(private val variable: EnvironmentBinding) : Sy
         if (token != startToken()) {
             throw UnexpectedToken(token, pos)
         }
-        val fnDefinition = parser.parseFnDefinition(pos, endToken = endToken(), allocateEnvironment = allocateEnvironment())
+        val fnDefinition = if (allocateEnvironment()) {
+            parser.parseFnDefinitionNewEnvironment(endToken = endToken(), name = "function syntax rule")
+        } else {
+            parser.parseFnDefinitionSameEnvironment(endToken = endToken())
+        }
+        parser.currentEnvironment().markCanEscape()
         syntaxRuleBindings.add(
             SyntaxRuleVariableBinding(
                 variable,
-                APLParser.EvalLambdaFnx(fnDefinition.make(pos), pos)))
+                EvalLambdaFnx(fnDefinition.make(pos), pos)))
     }
 
     abstract fun startToken(): Token
@@ -140,6 +145,8 @@ class MultiResultInstr(val instructionList: List<Instruction>, pos: Position) : 
         }
         return APLArrayImpl(dimensionsOfSize(valueList.size), valueList)
     }
+
+    override fun children() = instructionList
 }
 
 class RepeatSyntaxRule(val name: EnvironmentBinding, val customSyntax: CustomSyntax) : SyntaxRule {
@@ -164,7 +171,7 @@ private fun processPair(parser: APLParser, curr: MutableList<SyntaxRule>, token:
 
     fun ensureKeyword(symbol: Symbol) {
         if (symbol.namespace !== tokeniser.engine.keywordNamespace) {
-            throw ParseException("Tag is not a keyword: ${symbol.nameWithNamespace()}", pos)
+            throw ParseException("Tag is not a keyword: ${symbol.nameWithNamespace}", pos)
         }
     }
 
@@ -187,7 +194,7 @@ private fun processPair(parser: APLParser, curr: MutableList<SyntaxRule>, token:
                 parser.currentEnvironment().bindLocal(tokeniser.nextTokenWithType())))
         "optional" -> curr.add(processOptional(parser))
         "repeat" -> curr.add(processRepeat(parser))
-        else -> throw ParseException("Unexpected tag: ${token.nameWithNamespace()}")
+        else -> throw ParseException("Unexpected tag: ${token.nameWithNamespace}")
     }
 }
 
@@ -224,7 +231,7 @@ private fun processRepeat(parser: APLParser): SyntaxRule {
 }
 
 fun processDefsyntaxSub(parser: APLParser, pos: Position) {
-    parser.withEnvironment {
+    parser.withEnvironment("defsyntaxsub") {
         val tokeniser = parser.tokeniser
         val name = tokeniser.nextTokenWithType<Symbol>()
         val rulesList = processPairs(parser)
@@ -235,7 +242,7 @@ fun processDefsyntaxSub(parser: APLParser, pos: Position) {
 }
 
 fun processDefsyntax(parser: APLParser, pos: Position): Instruction {
-    parser.withEnvironment {
+    parser.withEnvironment("defsyntax") {
         val tokeniser = parser.tokeniser
         val triggerSymbol = tokeniser.nextTokenWithType<Symbol>()
         val rulesList = processPairs(parser)
@@ -256,17 +263,22 @@ class CallWithVarInstruction(
     val name: String,
     val instr: Instruction,
     val env: Environment,
-    val bindings: List<Pair<EnvironmentBinding, Instruction>>,
+    bindings: List<Pair<EnvironmentBinding, Instruction>>,
     pos: Position
 ) : Instruction(pos) {
+    private val refs = bindings.map { (b, instr) -> Pair(StackStorageRef(b), instr) }
+
     override fun evalWithContext(context: RuntimeContext): APLValue {
-        return context.withLinkedContext(env, name, pos) { newContext ->
-            bindings.forEach { (envBinding, instr) ->
-                newContext.setVar(envBinding, instr.evalWithContext(context))
+        val results = refs.map { (envBinding, instr) -> Pair(envBinding, instr.evalWithContext(context)) }
+        return withLinkedContext(env, name, pos) {
+            results.forEach { (envBinding, result) ->
+                context.setVar(envBinding, result)
             }
-            instr.evalWithContext(newContext)
+            instr.evalWithContext(context)
         }
     }
+
+    override fun children() = listOf(instr)
 }
 
 fun processCustomSyntax(parser: APLParser, customSyntax: CustomSyntax): Instruction {
@@ -276,7 +288,7 @@ fun processCustomSyntax(parser: APLParser, customSyntax: CustomSyntax): Instruct
     }
     val envBindings = bindings.map { b -> Pair(b.name, b.value) }
     return CallWithVarInstruction(
-        "CustomSyntax: ${customSyntax.name.nameWithNamespace()}",
+        "CustomSyntax: ${customSyntax.name.nameWithNamespace}",
         customSyntax.instr,
         customSyntax.environment,
         envBindings,

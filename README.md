@@ -84,7 +84,7 @@ Anyone interested in learning more can ask questions on the Matrix channel.
 
 ## Contributions
 
-The main repository for this project is available from Github: https://github.com/lokedhs/array
+The main repository for this project is available from Github: https://codeberg.org/loke/array
 
 For discussions about this project, feel free to join
 the [Matrix channel](https://matrix.to/#/#kap:dhsdevelopments.com):

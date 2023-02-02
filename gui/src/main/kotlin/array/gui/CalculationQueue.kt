@@ -21,17 +21,19 @@ class CalculationQueue(val engine: Engine) {
 
     private fun computeLoop() {
         try {
-            while (!Thread.interrupted()) {
-                val job = queue.take()
-                synchronized(lock) {
-                    engine.clearInterrupted()
-                    currentJob = job
+            engine.withThreadLocalAssigned {
+                while (!Thread.interrupted()) {
+                    val job = queue.take()
+                    synchronized(lock) {
+                        engine.clearInterrupted()
+                        currentJob = job
+                    }
+                    job.request.processRequest()
+                    synchronized(lock) {
+                        currentJob = null
+                    }
+                    fireTaskCompletedHandlers()
                 }
-                job.request.processRequest()
-                synchronized(lock) {
-                    currentJob = null
-                }
-                fireTaskCompletedHandlers()
             }
         } catch (e: InterruptedException) {
             println("Closing calculation queue")
@@ -63,7 +65,6 @@ class CalculationQueue(val engine: Engine) {
 
     private inner class EvalAPLRequest(
         val source: SourceLocation,
-        val linkNewContext: Boolean,
         val variableBindings: List<Pair<Pair<String, String>, APLValue>>?,
         val callback: (Either<APLValue, Exception>) -> Unit
     ) : Request {
@@ -72,9 +73,7 @@ class CalculationQueue(val engine: Engine) {
                 val resolvedSymbols = variableBindings?.map { (k, v) ->
                     engine.internSymbol(k.second, engine.makeNamespace(k.first)) to v
                 }?.toMap()
-                val result = engine.withThreadLocalAssigned {
-                    engine.parseAndEval(source, newContext = linkNewContext, extraBindings = resolvedSymbols).collapse()
-                }
+                val result = engine.parseAndEval(source, extraBindings = resolvedSymbols, allocateThreadLocals = false).collapse()
                 Either.Left(result)
             } catch (e: InterruptedException) {
                 throw e
@@ -94,9 +93,10 @@ class CalculationQueue(val engine: Engine) {
             val result = if (sym == null) {
                 null
             } else {
-                engine.rootContext.environment.findBinding(sym)?.let { binding ->
-                    engine.rootContext.getVar(binding)?.collapse()
-                }
+                TODO("Need to fix")
+//                engine.rootContext.environment.findBinding(sym)?.let { binding ->
+//                    engine.rootContext.getVar(binding)?.collapse()
+//                }
             }
             callback(result)
         }
@@ -104,11 +104,12 @@ class CalculationQueue(val engine: Engine) {
 
     private inner class WriteVariableRequest(val name: String, val value: APLValue, val callback: (Exception?) -> Unit) : Request {
         override fun processRequest() {
-            val sym = engine.currentNamespace.internSymbol(name)
-            val binding = engine.rootContext.environment.findBinding(sym) ?: engine.rootContext.environment.bindLocal(sym)
-            engine.rootContext.reinitRootBindings()
-            engine.rootContext.setVar(binding, value)
-            callback(null)
+            TODO("need to fix")
+//            val sym = engine.currentNamespace.internSymbol(name)
+//            val binding = engine.rootContext.environment.findBinding(sym) ?: engine.rootContext.environment.bindLocal(sym)
+//            engine.rootContext.reinitRootBindings()
+//            engine.rootContext.setVar(binding, value)
+//            callback(null)
         }
     }
 
@@ -132,7 +133,7 @@ class CalculationQueue(val engine: Engine) {
         variableBindings: List<Pair<Pair<String, String>, APLValue>>? = null,
         fn: (Either<APLValue, Exception>) -> Unit
     ): JobId {
-        return pushJobToQueue(EvalAPLRequest(source, linkNewContext, variableBindings, fn))
+        return pushJobToQueue(EvalAPLRequest(source, variableBindings, fn))
     }
 
     fun pushReadVariableRequest(name: String, callback: (APLValue?) -> Unit): JobId {

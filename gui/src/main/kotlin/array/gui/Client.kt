@@ -11,6 +11,7 @@ import array.gui.styledarea.TextStyle
 import array.gui.viewer.StructureViewer
 import array.keyboard.ExtendedCharsKeyboardInput
 import com.panemu.tiwulfx.control.dock.DetachableTab
+import javafx.application.Application.launch
 import javafx.application.Platform
 import javafx.event.EventHandler
 import javafx.geometry.Insets
@@ -52,13 +53,14 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
     private val stackTraceWindow: StackTrace
 
     init {
+        java.lang.Long.numberOfLeadingZeros(1)
         settings = loadSettings()
 
         engine = Engine()
         engine.addLibrarySearchPath("../array/standard-lib")
         extraPaths?.forEach(engine::addLibrarySearchPath)
         initModules()
-        engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"), false)
+        engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
 
         engine.standardOutput = SendToMainCharacterOutput()
         calculationQueue = CalculationQueue(engine)
@@ -161,10 +163,10 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
                     onAction = EventHandler { keyboardHelpWindow.show() }
                 })
                 items.add(MenuItem("Array Editor").apply {
-                    onAction = EventHandler { ArrayEditor.open(this@Client) }
+                    onAction = EventHandler { Platform.runLater{ ArrayEditor.open(this@Client) } }
                 })
                 items.add(MenuItem("Structure Viewer").apply {
-                    onAction = EventHandler { StructureViewer.open(this@Client) }
+                    onAction = EventHandler { Platform.runLater { StructureViewer.open(this@Client) } }
                 })
             }
             menus.add(windowMenu)
@@ -294,7 +296,7 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
     }
 
     // Suppress here because of this issue https://youtrack.jetbrains.com/issue/KTIJ-20744
-    @Suppress("KotlinConstantConditions", "USELESS_IS_CHECK")
+    @Suppress("USELESS_IS_CHECK")
     private fun displayResult(result: Either<APLValue, Exception>) {
         when (result) {
             is Either.Left -> resultList.addResult(result.value)
@@ -388,7 +390,7 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
-            ClientApplication.main(args)
+            launch(ClientApplication::class.java, *args)
         }
     }
 }

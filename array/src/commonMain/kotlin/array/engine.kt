@@ -54,170 +54,117 @@ value class OptimisationFlags(val flags: Int) {
     }
 }
 
-abstract class APLFunction(val pos: Position) {
-    open fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue =
-        throwAPLException(Unimplemented1ArgException(pos))
-
-    open fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue =
-        throwAPLException(Unimplemented2ArgException(pos))
-
-    open fun identityValue(): APLValue =
-        throwAPLException(APLIncompatibleDomainsException("Function does not have an identity value", pos))
-
-    open fun deriveBitwise(): APLFunctionDescriptor? = null
-
-    open val optimisationFlags get() = OptimisationFlags(0)
-
-    open fun eval1ArgLong(context: RuntimeContext, a: Long, axis: APLValue?): Long =
-        throw IllegalStateException("Illegal call to specialised function: ${this::class.simpleName}")
-
-    open fun eval1ArgDouble(context: RuntimeContext, a: Double, axis: APLValue?): Double =
-        throw IllegalStateException("Illegal call to specialised function: ${this::class.simpleName}")
-
-    open fun eval2ArgLongLong(context: RuntimeContext, a: Long, b: Long, axis: APLValue?): Long =
-        throw IllegalStateException("Illegal call to specialised function: ${this::class.simpleName}")
-
-    open fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?): Double =
-        throw IllegalStateException("Illegal call to specialised function: ${this::class.simpleName}")
-
-    open fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue =
-        throwAPLException(InverseNotAvailable(pos))
-
-    open fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue =
-        throwAPLException(InverseNotAvailable(pos))
-
-    open fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue =
-        throwAPLException(InverseNotAvailable(pos))
-
-    open val name1Arg: String = this::class.simpleName ?: "unnamed"
-    open val name2Arg: String = this::class.simpleName ?: "unnamed"
-}
-
-abstract class NoAxisAPLFunction(pos: Position) : APLFunction(pos) {
-    override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-        if (axis != null) {
-            throwAPLException(AxisNotSupported(pos))
-        }
-        return eval1Arg(context, a)
-    }
-
-    open fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue =
-        throwAPLException(Unimplemented1ArgException(pos))
-
-    override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-        if (axis != null) {
-            throwAPLException(AxisNotSupported(pos))
-        }
-        return eval2Arg(context, a, b)
-    }
-
-    open fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue =
-        throwAPLException(Unimplemented2ArgException(pos))
-}
-
-abstract class DelegatedAPLFunctionImpl(pos: Position) : APLFunction(pos) {
-    override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?) =
-        innerImpl().eval1Arg(context, a, axis)
-
-    override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?) =
-        innerImpl().eval2Arg(context, a, b, axis)
-
-    override fun identityValue() = innerImpl().identityValue()
-    override fun deriveBitwise() = innerImpl().deriveBitwise()
-    override val optimisationFlags: OptimisationFlags get() = innerImpl().optimisationFlags
-
-    override fun eval1ArgLong(context: RuntimeContext, a: Long, axis: APLValue?) =
-        innerImpl().eval1ArgLong(context, a, axis)
-
-    override fun eval1ArgDouble(context: RuntimeContext, a: Double, axis: APLValue?) =
-        innerImpl().eval1ArgDouble(context, a, axis)
-
-    override fun eval2ArgLongLong(context: RuntimeContext, a: Long, b: Long, axis: APLValue?) =
-        innerImpl().eval2ArgLongLong(context, a, b, axis)
-
-    override fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?) =
-        innerImpl().eval2ArgDoubleDouble(context, a, b, axis)
-
-    override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue =
-        innerImpl().evalInverse1Arg(context, a, axis)
-
-    override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue =
-        innerImpl().evalInverse2ArgA(context, a, b, axis)
-
-    override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue =
-        innerImpl().evalInverse2ArgB(context, a, b, axis)
-
-    @Suppress("LeakingThis")
-    override val name1Arg = innerImpl().name1Arg
-    @Suppress("LeakingThis")
-    override val name2Arg = innerImpl().name2Arg
-
-    abstract fun innerImpl(): APLFunction
-}
-
-/**
- * A function that is declared directly in a { ... } expression.
- */
-class DeclaredFunction(
-    val name: String,
-    val instruction: Instruction,
-    val leftArgName: EnvironmentBinding,
-    val rightArgName: EnvironmentBinding,
-    val env: Environment
-) : APLFunctionDescriptor {
-    inner class DeclaredFunctionImpl(pos: Position) : APLFunction(pos) {
-        override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            return context.withLinkedContext(env, "declaredFunction1arg(${name})", pos) { localContext ->
-                localContext.setVar(rightArgName, a)
-                instruction.evalWithContext(localContext)
-            }
-        }
-
-        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            return context.withLinkedContext(env, "declaredFunction2arg(${name})", pos) { localContext ->
-                localContext.setVar(leftArgName, a)
-                localContext.setVar(rightArgName, b)
-                instruction.evalWithContext(localContext)
-            }
-        }
-
-        override val name1Arg: String get() = name
-        override val name2Arg: String get() = name
-    }
-
-    override fun make(pos: Position) = DeclaredFunctionImpl(pos)
-}
-
-/**
- * A special declared function which ignores its arguments. Its primary use is inside defsyntax rules
- * where the functions are only used to provide code structure and not directly called by the user.
- */
-class DeclaredNonBoundFunction(val instruction: Instruction) : APLFunctionDescriptor {
-    inner class DeclaredNonBoundFunctionImpl(pos: Position) : APLFunction(pos) {
-        override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            return instruction.evalWithContext(context)
-        }
-
-        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            return instruction.evalWithContext(context)
-        }
-    }
-
-    override fun make(pos: Position) = DeclaredNonBoundFunctionImpl(pos)
-}
-
 private const val CORE_NAMESPACE_NAME = "kap"
 private const val KEYWORD_NAMESPACE_NAME = "keyword"
 private const val DEFAULT_NAMESPACE_NAME = "default"
 private const val ANONYMOUS_SYMBOL_NAMESPACE_NAME = "anonymous"
 
-class ThreadLocalCallStack(val engine: Engine) {
-    val callStack = ArrayList<CallStackElement>()
+class StorageStack private constructor() {
+    val stack = ArrayList<StorageStackFrame>()
+
+    constructor(env: Environment) : this() {
+        stack.add(StorageStackFrame(env, "root", null))
+    }
+
+    private constructor(prevStack: List<StorageStackFrame>) : this() {
+        stack.addAll(prevStack)
+    }
+
+    fun copy() = StorageStack(stack)
+
+    @OptIn(ExperimentalContracts::class)
+    inline fun <T> withStackFrame(environment: Environment, name: String, pos: Position, fn: (StorageStackFrame) -> T): T {
+        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+        val frame = StorageStackFrame(environment, name, pos)
+        stack.add(frame)
+        try {
+            return fn(frame)
+        } finally {
+            val removed = stack.removeLast()
+            assertx(removed === frame) { "Removed frame does not match inserted frame" }
+            frame.fireReleaseCallbacks()
+        }
+    }
+
+    fun findStorage(storageRef: StackStorageRef): VariableHolder {
+        val frame = stack[stack.size - storageRef.frameIndex - 1]
+        return frame.storageList[storageRef.storageOffset]
+    }
+
+    fun currentFrame() = stack.last()
+
+    inner class StorageStackFrame(val environment: Environment, val name: String, val pos: Position?) {
+        var storageList: Array<VariableHolder>
+        private var releaseCallbacks: MutableList<() -> Unit>? = null
+
+        init {
+            val localStorageSize = environment.storageList.size
+            val externalStoageList = environment.externalStorageList
+            val externalStorageSize = externalStoageList.size
+            storageList = Array(localStorageSize + externalStorageSize) { i ->
+                if (i < localStorageSize) {
+                    VariableHolder()
+                } else {
+                    val ref = externalStoageList[i - localStorageSize]
+                    // We don't subtract 1 from stackIndex here because at this point the element has not been added to the stack yet
+                    val stackIndex = stack.size - ref.frameIndex
+                    val frame = stack[stackIndex]
+                    frame.storageList[ref.storageOffset]
+                }
+            }
+        }
+
+        fun pushReleaseCallback(callback: () -> Unit) {
+            val list = releaseCallbacks
+            if (list == null) {
+                val updated = ArrayList<() -> Unit>()
+                updated.add(callback)
+                releaseCallbacks = updated
+            } else {
+                list.add(callback)
+            }
+        }
+
+        fun fireReleaseCallbacks() {
+            val list = releaseCallbacks
+            if (list != null) {
+                list.asReversed().forEach { fn ->
+                    fn()
+                }
+            }
+        }
+
+        fun makeStackFrameDescription(): StackFrameDescription {
+            return StackFrameDescription("name:${name}, envName:${environment.name}", pos)
+        }
+    }
+
+    data class StackFrameDescription(val name: String, val pos: Position?)
 }
 
-data class CallStackElement(val name: String, val pos: Position?)
+@OptIn(ExperimentalContracts::class)
+inline fun <T> withPossibleSavedStack(frame: StorageStack.StorageStackFrame?, fn: () -> T): T {
+    contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+    return if (frame == null) {
+        fn()
+    } else {
+        withSavedStackFrame(frame) {
+            fn()
+        }
+    }
+}
 
-val threadLocalCallstackRef = makeMPThreadLocal<ThreadLocalCallStack>()
+@OptIn(ExperimentalContracts::class)
+inline fun <T> withSavedStackFrame(frame: StorageStack.StorageStackFrame, fn: () -> T): T {
+    contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+    currentStack().stack.add(frame)
+    try {
+        return fn()
+    } finally {
+        val removed = currentStack().stack.removeLast()
+        assertx(removed === frame) { "Removed frame does not match inserted frame" }
+    }
+}
 
 /**
  * A handler that is registered by [Engine.registerClosableHandler] which is responsible for implementing
@@ -229,6 +176,22 @@ interface ClosableHandler<T : APLValue> {
      */
     fun close(value: T)
 }
+
+val threadLocalStorageStackRef = makeMPThreadLocal<StorageStack>()
+
+@OptIn(ExperimentalContracts::class)
+inline fun <T> withThreadLocalsUnassigned(fn: () -> T): T {
+    contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+    val oldStack = threadLocalStorageStackRef.value
+    threadLocalStorageStackRef.value = null
+    try {
+        return fn()
+    } finally {
+        threadLocalStorageStackRef.value = oldStack
+    }
+}
+
+fun currentStack() = threadLocalStorageStackRef.value ?: throw IllegalStateException("Storage stack is not bound")
 
 class Engine(numComputeEngines: Int? = null) {
     private val functions = HashMap<Symbol, APLFunctionDescriptor>()
@@ -242,7 +205,7 @@ class Engine(numComputeEngines: Int? = null) {
     private val modules = ArrayList<KapModule>()
     private val exportedSingleCharFunctions = HashSet<String>()
 
-    val rootContext = RuntimeContext(this, Environment())
+    val rootEnvironment = Environment("root", null)
     var standardOutput: CharacterOutput = NullCharacterOutput()
     var standardInput: CharacterProvider = NullCharacterProvider()
 
@@ -370,6 +333,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("asin", AsinAPLFunction(), "math")
         registerNativeFunction("acos", AcosAPLFunction(), "math")
         registerNativeFunction("atan", AtanAPLFunction(), "math")
+        registerNativeFunction("√", SqrtAPLFunction())
 
         // metafunctions
         registerNativeFunction("typeof", TypeofFunction())
@@ -380,7 +344,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeOperator("¨", ForEachOp())
         registerNativeOperator("/", ReduceOpLastAxis())
         registerNativeOperator("⌿", ReduceOpFirstAxis())
-        registerNativeOperator("⌺", OuterJoinOp())
+        registerNativeOperator("⌻", OuterJoinOp())
         registerNativeOperator(".", OuterInnerJoinOp())
         registerNativeOperator("⍨", CommuteOp())
         registerNativeOperator("⍣", PowerAPLOperator())
@@ -395,6 +359,8 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeOperator("⍛", ReverseComposeOp())
         registerNativeOperator("inverse", InverseFnOp())
         registerNativeOperator("˝", InverseFnOp())
+        registerNativeOperator("under", StructuralUnderOp())
+        registerNativeOperator("⍢", StructuralUnderOp())
 
         // function aliases                             
         functionAliases[coreNamespace.internAndExport("*")] = coreNamespace.internAndExport("⋆")
@@ -495,6 +461,8 @@ class Engine(numComputeEngines: Int? = null) {
     fun getFunction(name: Symbol) = functions[resolveAlias(name)]
     fun getOperator(name: Symbol) = operators[resolveAlias(name)]
 
+    fun createAnonymousSymbol() = Symbol("<anonymous>", anonymousSymbolNamespace)
+
     fun parse(source: SourceLocation): Instruction {
         TokenGenerator(this, source).use { tokeniser ->
             exportedSingleCharFunctions.forEach { token ->
@@ -505,50 +473,40 @@ class Engine(numComputeEngines: Int? = null) {
         }
     }
 
-    private fun parseAndEvalNewContext(source: SourceLocation, extraBindings: Map<Symbol, APLValue>? = null): APLValue {
-        withThreadLocalAssigned {
-            TokenGenerator(this, source).use { tokeniser ->
-                exportedSingleCharFunctions.forEach { token ->
-                    tokeniser.registerSingleCharFunction(token)
-                }
-                val parser = APLParser(tokeniser)
-                withSavedNamespace {
-                    val (newInstr, mapped) = parser.withEnvironment { env ->
-                        val mapped = extraBindings?.map { e ->
-                            Pair(env.bindLocal(e.key), e.value)
-                        }
-                        val instr = parser.parseValueToplevel(EndOfFile)
-                        val newInstr = RootEnvironmentInstruction(parser.currentEnvironment(), instr, instr.pos)
-                        Pair(newInstr, mapped)
-                    }
-                    return newInstr.evalWithNewContext(this, mapped)
-                }
-            }
+    fun parseAndEval(
+        source: SourceLocation,
+        extraBindings: Map<Symbol, APLValue>? = null,
+        allocateThreadLocals: Boolean = true,
+        collapseResult: Boolean = true)
+            : APLValue {
+        if (extraBindings != null) {
+            throw IllegalArgumentException("extra bindings is not supported at the moment")
         }
-    }
+        TokenGenerator(this, source).use { tokeniser ->
+            exportedSingleCharFunctions.forEach { token ->
+                tokeniser.registerSingleCharFunction(token)
+            }
+            val parser = APLParser(tokeniser)
+            val instr = parser.parseValueToplevel(EndOfFile)
+            rootEnvironment.escapeAnalysis()
 
-    private fun parseAndEvalNoContext(source: SourceLocation): APLValue {
-        withThreadLocalAssigned {
-            TokenGenerator(this, source).use { tokeniser ->
-                exportedSingleCharFunctions.forEach { token ->
-                    tokeniser.registerSingleCharFunction(token)
+            fun evalInstrs(): APLValue {
+                val result = instr.evalWithContext(RuntimeContext(this))
+                return if (collapseResult) {
+                    result.collapse()
+                } else {
+                    result
                 }
-                val parser = APLParser(tokeniser)
-                val instr = parser.parseValueToplevel(EndOfFile)
-                rootContext.reinitRootBindings()
-                return instr.evalWithContext(rootContext)
             }
-        }
-    }
 
-    fun parseAndEval(source: SourceLocation, newContext: Boolean = true, extraBindings: Map<Symbol, APLValue>? = null): APLValue {
-        return if (newContext) {
-            parseAndEvalNewContext(source, extraBindings)
-        } else {
-            if (extraBindings != null) {
-                throw IllegalArgumentException("newContext is required when specifying bindings")
+            return if (allocateThreadLocals) {
+                withThreadLocalAssigned {
+                    evalInstrs()
+                }
+            } else {
+                recomputeRootFrame()
+                evalInstrs()
             }
-            parseAndEvalNoContext(source)
         }
     }
 
@@ -594,34 +552,36 @@ class Engine(numComputeEngines: Int? = null) {
     }
 
     @OptIn(ExperimentalContracts::class)
-    inline fun <T> withCallStackElement(name: String, pos: Position, fn: (CallStackElement) -> T): T {
-        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
-        checkInterrupted(pos)
-        val threadLocalCallStack = threadLocalCallstackRef.value
-        assertx(threadLocalCallStack != null) { "threadLocalCallStack is null" }
-        val callStack = threadLocalCallStack.callStack
-        if (callStack.size >= 100) {
-            throwAPLException(APLEvalException("Stack overflow", pos))
-        }
-        val callStackElement = CallStackElement(name, pos)
-        callStack.add(callStackElement)
-        val prevSize = callStack.size
-        try {
-            return fn(callStackElement)
-        } finally {
-            assertx(prevSize == callStack.size) { "previous size is not the same as the callstack size" }
-            val removedElement = callStack.removeLast()
-            assertx(removedElement === callStackElement)
-        }
-    }
-
     inline fun <T> withThreadLocalAssigned(fn: () -> T): T {
-        val oldThreadLocal = threadLocalCallstackRef.value
-        threadLocalCallstackRef.value = ThreadLocalCallStack(this)
+        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+        val oldStack = threadLocalStorageStackRef.value
+        assertx(oldStack == null) { "Overriding old stack" }
+        threadLocalStorageStackRef.value = StorageStack(rootEnvironment)
         try {
             return fn()
         } finally {
-            threadLocalCallstackRef.value = oldThreadLocal
+            threadLocalStorageStackRef.value = oldStack
+        }
+    }
+
+    /**
+     * Resizes the root frame to accommodate new variable assignments
+     */
+    fun recomputeRootFrame() {
+        if (currentStack().stack.size != 1) {
+            throw IllegalStateException("Attempt to recompute the root frame without an empty stack")
+        }
+        val frame = currentStack().stack[0]
+        if (rootEnvironment.externalStorageList.isNotEmpty()) {
+            throw IllegalStateException("External storage list for the root environment is not empty")
+        }
+        val oldStorageList = frame.storageList
+        frame.storageList = Array(rootEnvironment.storageList.size) { i ->
+            if (i < oldStorageList.size) {
+                frame.storageList[i]
+            } else {
+                VariableHolder()
+            }
         }
     }
 
@@ -671,9 +631,9 @@ class CloseAPLFunction : APLFunctionDescriptor {
 }
 
 fun throwAPLException(ex: APLEvalException): Nothing {
-    val threadLocalCallStack = threadLocalCallstackRef.value
-    if (threadLocalCallStack != null) {
-        ex.callStack = threadLocalCallStack.callStack.map { e -> e.copy() }
+    val stack = threadLocalStorageStackRef.value
+    if (stack != null) {
+        ex.callStack = stack.stack.map(StorageStack.StorageStackFrame::makeStackFrameDescription)
     }
     throw ex
 }
@@ -684,92 +644,37 @@ class VariableHolder {
     var value: APLValue? = null
 }
 
-class RuntimeContext(val engine: Engine, val environment: Environment, val parent: RuntimeContext? = null) {
-    private val localVariables = HashMap<EnvironmentBinding, VariableHolder>()
-    private var releaseCallbacks: MutableList<() -> Unit>? = null
-
-    init {
-        initBindings()
+@OptIn(ExperimentalContracts::class)
+inline fun <T> withLinkedContext(env: Environment, name: String, pos: Position, fn: () -> T): T {
+    contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+    currentStack().withStackFrame(env, name, pos) {
+        return fn()
     }
+}
 
-    fun pushReleaseCallback(callback: () -> Unit) {
-        val list = releaseCallbacks
-        if (list == null) {
-            val updated = ArrayList<() -> Unit>()
-            updated.add(callback)
-            releaseCallbacks = updated
-        } else {
-            list.add(callback)
-        }
-    }
-
-    fun fireReleaseCallbacks() {
-        val list = releaseCallbacks
-        if (list != null) {
-            list.asReversed().forEach { fn ->
-                fn()
-            }
-        }
-    }
-
-    private fun initBindings() {
-        environment.localBindings().forEach { b ->
-            val holder = if (b.environment === environment) {
-                VariableHolder()
-            } else {
-                fun recurse(c: RuntimeContext?): VariableHolder {
-                    if (c == null) {
-                        throw IllegalStateException("Can't find binding in parents")
-                    }
-                    return c.localVariables[b] ?: recurse(c.parent)
-                }
-                recurse(parent)
-            }
-            localVariables[b] = holder
-        }
-    }
-
-    fun reinitRootBindings() {
-        environment.localBindings().forEach { b ->
-            if (localVariables[b] == null) {
-                localVariables[b] = VariableHolder()
-            }
-        }
-    }
-
+class RuntimeContext(val engine: Engine) {
     fun isLocallyBound(sym: Symbol): Boolean {
-        // TODO: This hack is needed for the KAP function isLocallyBound to work. A better strategy is needed.
-        val holder = localVariables.entries.find { it.key.name === sym } ?: return false
-        return holder.value.value != null
-    }
-
-    fun findVariables() = localVariables.map { (k, v) -> k.name to v.value }.toList()
-
-    private fun findOrThrow(name: EnvironmentBinding): VariableHolder {
-        return localVariables[name]
-            ?: throw IllegalStateException("Attempt to set the value of a nonexistent binding: ${name}")
-    }
-
-    fun setVar(name: EnvironmentBinding, value: APLValue) {
-        this.findOrThrow(name).value = value
-    }
-
-    fun getVar(binding: EnvironmentBinding): APLValue? = findOrThrow(binding).value
-
-    @OptIn(ExperimentalContracts::class)
-    inline fun <T> withLinkedContext(env: Environment, name: String, pos: Position, fn: (RuntimeContext) -> T): T {
-        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
-        val newContext = RuntimeContext(engine, env, this)
-        return withCallStackElement(name, pos) {
-            try {
-                fn(newContext)
-            } finally {
-                newContext.fireReleaseCallbacks()
-            }
+        val b = currentStack().currentFrame().environment.findBinding(sym)
+        return if (b == null) {
+            false
+        } else {
+            val storage = currentStack().findStorage(StackStorageRef(b))
+            storage.value != null
         }
     }
 
-    fun assignArgs(args: List<EnvironmentBinding>, a: APLValue, pos: Position? = null) {
+    fun setVar(storageRef: StackStorageRef, value: APLValue) {
+        val stack = currentStack()
+        val holder = stack.findStorage(storageRef)
+        holder.value = value
+    }
+
+    fun getVar(storageRef: StackStorageRef): APLValue? {
+        val holder = currentStack().findStorage(storageRef)
+        return holder.value
+    }
+
+    fun assignArgs(args: List<StackStorageRef>, a: APLValue, pos: Position? = null) {
         fun checkLength(expectedLength: Int, actualLength: Int) {
             if (expectedLength != actualLength) {
                 throwAPLException(IllegalArgumentNumException(expectedLength, actualLength, pos))
@@ -786,12 +691,6 @@ class RuntimeContext(val engine: Engine, val environment: Environment, val paren
             checkLength(args.size, 1)
             setVar(args[0], v)
         }
-    }
-
-    @OptIn(ExperimentalContracts::class)
-    inline fun <T> withCallStackElement(name: String, pos: Position, fn: (CallStackElement) -> T): T {
-        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
-        return engine.withCallStackElement(name, pos, fn)
     }
 }
 

@@ -36,6 +36,31 @@ class GammaTest {
         NearComplex(Complex(-0.6141502978, -0.6878060058), 4, 4).assertNear(complexGamma(Complex(5.0, 6.0)))
     }
 
+    @Test
+    fun testNumberOfLeadingZeroesInt() {
+        assertEquals(32, countLeadingZeroes(0))
+        assertEquals(31, countLeadingZeroes(1))
+        assertEquals(0, countLeadingZeroes(-1))
+        assertEquals(0, countLeadingZeroes(-10))
+        assertEquals(0, countLeadingZeroes(-2000000))
+        assertEquals(30, countLeadingZeroes(2))
+        assertEquals(30, countLeadingZeroes(3))
+        assertEquals(1, countLeadingZeroes(0x7FFF0000))
+        assertEquals(2, countLeadingZeroes(0x3FFF0000))
+        assertEquals(3, countLeadingZeroes(0x1FFF0000))
+        assertEquals(8, countLeadingZeroes(0x00FF0000))
+        assertEquals(16, countLeadingZeroes(0x0000FF00))
+    }
+
+    @Test
+    fun testNumberOfLeadingZeroesLong() {
+        assertEquals(64, countLeadingZeroes(0L))
+        assertEquals(63, countLeadingZeroes(1L))
+        assertEquals(0, countLeadingZeroes(-1L))
+        assertEquals(0, countLeadingZeroes(-12345678901234L))
+        assertEquals(1, countLeadingZeroes(0x7FFFFF0000000000))
+    }
+
     private fun assertRangeVal(expected: Pair<Double, Double>, result: Double) {
         assertTrue(expected.first <= result && expected.second >= result, "Expected: ${expected}, result: ${result}")
     }

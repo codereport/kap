@@ -808,7 +808,7 @@ class APLChar(val value: Int) : APLSingleValue() {
 
     override fun formattedAsCodeRequiresParens() = false
 
-    override fun compareEquals(reference: APLValue) = reference is APLChar && value == reference.value
+    override fun compareEquals(reference: APLValue) = reference.unwrapDeferredValue().let { v -> v is APLChar && value == v.value }
 
     override fun compare(reference: APLValue, pos: Position?): Int {
         return if (reference is APLChar) {
@@ -893,8 +893,9 @@ class APLSymbol(val value: Symbol) : APLSingleValue() {
  * @param fn the function that is wrapped by the closure
  * @param previousContext the context to use when calling the function
  */
-class LambdaValue(private val fn: APLFunction, private val previousContext: RuntimeContext) : APLSingleValue() {
+class LambdaValue(private val fn: APLFunction, private val savedFrame: StorageStack.StorageStackFrame) : APLSingleValue() {
     override val aplValueType: APLValueType get() = APLValueType.LAMBDA_FN
+
     override fun formatted(style: FormatStyle) =
         when (style) {
             FormatStyle.PLAIN -> "function"
@@ -909,11 +910,15 @@ class LambdaValue(private val fn: APLFunction, private val previousContext: Runt
     fun makeClosure(): APLFunction {
         return object : APLFunction(fn.pos) {
             override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-                return fn.eval1Arg(previousContext, a, axis)
+                withSavedStackFrame(savedFrame) {
+                    return fn.eval1Arg(context, a, axis)
+                }
             }
 
             override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-                return fn.eval2Arg(previousContext, a, b, axis)
+                withSavedStackFrame(savedFrame) {
+                    return fn.eval2Arg(context, a, b, axis)
+                }
             }
 
             override fun identityValue() = fn.identityValue()

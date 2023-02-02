@@ -23,6 +23,10 @@
     -fx-fill: #b04040;
 }
 
+.editcontent-loginput {
+    -fx-fill: #006800;
+}
+
 .kapresult {
     -fx-font-size: 14pt;
 }

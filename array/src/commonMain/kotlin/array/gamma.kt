@@ -1,8 +1,12 @@
+@file:Suppress("FloatingPointLiteralPrecision", "unused")
+
 package array
 
+import array.builtins.integerGcd
 import array.complex.*
 import kotlin.jvm.Strictfp
 import kotlin.math.*
+
 
 private data class DoubleSet(val a: Double, val b: Double)
 
@@ -358,6 +362,7 @@ private val complexp4 = Complex(-1.231739572450155, 0.0)
 private val complexp5 = Complex(1.208650973866179E-3, 0.0)
 private val complexp6 = Complex(-5.395239384953E-6, 0.0)
 
+@Suppress("UnnecessaryVariable")
 @Strictfp
 fun complexGamma(a: Complex): Complex {
     val x = a.real
@@ -379,6 +384,7 @@ fun complexGamma(a: Complex): Complex {
     return res
 }
 
+@Suppress("ReplaceWithOperatorAssignment")
 @Strictfp
 private fun largeGamma(xInput: Double): DoubleSet {
     var x = xInput
@@ -475,6 +481,7 @@ private fun smallerGamma(xInput: Double): Double {
     return d + ra / x
 }
 
+@Suppress("ReplaceWithOperatorAssignment", "LiftReturnOrAssignment")
 @Strictfp
 private fun negGamma(x: Double): Double {
     var sgn = 1
@@ -530,6 +537,7 @@ private fun negGamma(x: Double): Double {
     return PI / (y * z)
 }
 
+@Suppress("ReplaceWithOperatorAssignment")
 @Strictfp
 private fun ratfunGamma(z: Double, c: Double): DoubleSet {
     var q = Q0 + z * (Q1 + z * (Q2 + z * (Q3 + z * (Q4 + z * (Q5 + z * (Q6 + z * (Q7 + z * Q8)))))))
@@ -618,6 +626,7 @@ private fun copysign(x: Double, y: Double): Double {
 @Strictfp
 private fun scalb(x: Double, exp: Double) = x * 2.0.pow(exp)
 
+@Suppress("LocalVariableName")
 @Strictfp
 private fun logD(x: Double): DoubleSet {
     var m = logB(x).toInt()
@@ -681,28 +690,289 @@ private fun logB(x: Double): Double {
 }
 
 fun doubleBinomial(a: Double, b: Double): Double {
-    val row = (if (a < 0) 4 else 0) or (if (b < 0) 2 else 0) or (if (b < a) 1 else 0)
-    val isNeg = when (row) {
-        0 -> true
-        1 -> false
-        3 -> true
-        4 -> false
-        6 -> true
-        7 -> false
-        else -> throw APLEvalException("Invalid binomial arguments")
-    }
+    fun nearInt(n: Double) = n.rem(1) == 0.0
+    fun throwInvalidArgument(): Nothing = throw IllegalArgumentException()
 
-    if (!isNeg) {
-        return 0.0
-    }
-
-    val r1a = a + 1.0
-    val r1b = b + 1.0
+    val r1a = 1 + a
+    val r1b = 1 + b
     val r1ba = r1b - a
-    // TODO: Check for illegal values (v < 0 && integer) foreach r1a, r1b, r1ba
-    TODO("doubleBinomial not implemented")
+    if (r1a < 0 && nearInt(r1a) ||
+        r1b < 0 && nearInt(r1b) ||
+        r1ba < 0 && nearInt(r1ba)
+    ) {
+        throwInvalidArgument()
+    }
+
+    val gammaR1B = doubleGamma(r1b)
+    if (!gammaR1B.isFinite()) throwInvalidArgument()
+
+    val gammaR1A = doubleGamma(r1a)
+    if (!gammaR1A.isFinite()) throwInvalidArgument()
+
+    val gammaR1BA = doubleGamma(r1ba)
+    if (!gammaR1BA.isFinite()) throwInvalidArgument()
+
+    return (gammaR1B / gammaR1A) / gammaR1BA
 }
 
 fun complexBinomial(a: Complex, b: Complex): Complex {
-    TODO("Complex binomial not implemented")
+    val ra = a.real
+    val rb = b.real
+    val rba = rb - ra
+    val ia = a.imaginary
+    val ib = b.imaginary
+    val iba = ib - ia
+    val gamma1a = complexGamma(Complex(ra + 1.0, ia))
+    val gamma1b = complexGamma(Complex(rb + 1.0, ib))
+    val gamma1ba = complexGamma(Complex(rba + 1.0, iba))
+    return gamma1b / (gamma1a * gamma1ba)
+}
+
+fun countLeadingZeroes(v: Int): Int {
+    var n = 32
+    var x = v
+    var y = x shr 16
+    if (y != 0) {
+        n -= 16
+        x = y
+    }
+    y = x shr 8
+    if (y != 0) {
+        n -= 8
+        x = y
+    }
+    y = x shr 4
+    if (y != 0) {
+        n -= 4
+        x = y
+    }
+    y = x shr 2
+    if (y != 0) {
+        n -= 2
+        x = y
+    }
+    y = x shr 1
+    return if (y != 0) n - 2 else n - x
+}
+
+fun countLeadingZeroes(v: Long): Int {
+    return if (v and (0xFFFFFFFFL shl 32) == 0L) {
+        countLeadingZeroes(v.toInt()).let { res -> if (res == 0) 0 else res + 32 }
+    } else {
+        countLeadingZeroes((v ushr 32).toInt())
+    }
+}
+
+private val factorials = longArrayOf(
+    1L,
+    1L,
+    1L * 2,
+    1L * 2 * 3,
+    1L * 2 * 3 * 4,
+    1L * 2 * 3 * 4 * 5,
+    1L * 2 * 3 * 4 * 5 * 6,
+    1L * 2 * 3 * 4 * 5 * 6 * 7,
+    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8,
+    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9,
+    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10,
+    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11,
+    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12,
+    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13,
+    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14,
+    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15,
+    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16,
+    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17,
+    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18,
+    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18 * 19,
+    1L * 2 * 3 * 4 * 5 * 6 * 7 * 8 * 9 * 10 * 11 * 12 * 13 * 14 * 15 * 16 * 17 * 18 * 19 * 20)
+
+private val biggestBinomials = intArrayOf(
+    Int.MAX_VALUE, Int.MAX_VALUE, Int.MAX_VALUE,
+    3810779,
+    121977,
+    16175,
+    4337,
+    1733,
+    887,
+    534,
+    361,
+    265,
+    206,
+    169,
+    143,
+    125,
+    111,
+    101,
+    94,
+    88,
+    83,
+    79,
+    76,
+    74,
+    72,
+    70,
+    69,
+    68,
+    67,
+    67,
+    66,
+    66,
+    66,
+    66)
+
+private val biggestSimpleBinomials: IntArray = intArrayOf(
+    Int.MAX_VALUE, Int.MAX_VALUE, Int.MAX_VALUE,
+    2642246,
+    86251,
+    11724,
+    3218,
+    1313,
+    684,
+    419,
+    287,
+    214,
+    169,
+    139,
+    119,
+    105,
+    95,
+    87,
+    81,
+    76,
+    73,
+    70,
+    68,
+    66,
+    64,
+    63,
+    62,
+    62,
+    61,
+    61,
+    61)
+
+fun longBinomial(n: Int, k: Int): Long {
+    var n0 = n
+    var k0 = k
+
+    if (n < 0) {
+        throw IllegalArgumentException("n is negative")
+    }
+    if (k < 0) {
+        throw IllegalArgumentException("k is negative")
+    }
+    if (k > n) {
+        throw IllegalArgumentException("n must be less than or equal to k")
+    }
+
+    if (k0 > n0 shr 1) {
+        k0 = n0 - k0
+    }
+    return when (k0) {
+        0 -> 1
+        1 -> n0.toLong()
+        else -> if (n0 < factorials.size) {
+            factorials[n0] / (factorials[k0] * factorials[n0 - k0])
+        } else if (k0 >= biggestBinomials.size || n0 > biggestBinomials[k0]) {
+            Long.MAX_VALUE
+        } else if (k0 < biggestSimpleBinomials.size && n0 <= biggestSimpleBinomials[k0]) {
+            // guaranteed not to overflow
+            var result = n0--.toLong()
+            var i = 2
+            while (i <= k0) {
+                result *= n0.toLong()
+                result /= i.toLong()
+                n0--
+                i++
+            }
+            result
+        } else {
+            val nBits: Int = log2Rounding(n0.toLong(), RoundingMode.CEILING)
+            var result: Long = 1
+            var numerator = n0--.toLong()
+            var denominator: Long = 1
+            var numeratorBits = nBits
+            // This is an upper bound on log2(numerator, ceiling).
+
+            /*
+                  * We want to do this in long math for speed, but want to avoid overflow. We adapt the
+                  * technique previously used by BigIntegerMath: maintain separate numerator and
+                  * denominator accumulators, multiplying the fraction into result when near overflow.
+                  */
+            var i = 2
+            while (i <= k0) {
+                if (numeratorBits + nBits < LONG_BITS - 1) {
+                    // It's definitely safe to multiply into numerator and denominator.
+                    numerator *= n0.toLong()
+                    denominator *= i.toLong()
+                    numeratorBits += nBits
+                } else {
+                    // It might not be safe to multiply into numerator and denominator,
+                    // so multiply (numerator / denominator) into result.
+                    result = multiplyFraction(result, numerator, denominator)
+                    numerator = n0.toLong()
+                    denominator = i.toLong()
+                    numeratorBits = nBits
+                }
+                i++
+                n0--
+            }
+            multiplyFraction(result, numerator, denominator)
+        }
+    }
+}
+
+private enum class RoundingMode {
+    UNNECESSARY, DOWN, UP, FLOOR, CEILING, HALF_DOWN, HALF_UP, HALF_EVEN,
+}
+
+private const val LONG_BITS = 64
+
+private const val MAX_POWER_OF_SQRT2_UNSIGNED = -0x4afb0ccc06219b7cL
+
+private fun isPowerOfTwo(x: Long): Boolean {
+    return (x > 0) and (x and x - 1 == 0L)
+}
+
+private fun log2Rounding(x: Long, mode: RoundingMode): Int {
+    if (x < 0) {
+        throw IllegalArgumentException("x is negative")
+    }
+    return when (mode) {
+        RoundingMode.UNNECESSARY -> {
+            if (!isPowerOfTwo(x)) {
+                throw ArithmeticException("mode was UNNECESSARY, but rounding was necessary")
+            }
+            LONG_BITS - 1 - countLeadingZeroes(x)
+        }
+        RoundingMode.DOWN, RoundingMode.FLOOR -> LONG_BITS - 1 - countLeadingZeroes(x)
+        RoundingMode.UP, RoundingMode.CEILING -> LONG_BITS - countLeadingZeroes(x - 1)
+        RoundingMode.HALF_DOWN, RoundingMode.HALF_UP, RoundingMode.HALF_EVEN -> {
+            // Since sqrt(2) is irrational, log2(x) - logFloor cannot be exactly 0.5
+            val leadingZeros: Int = countLeadingZeroes(x)
+            val cmp: Long = MAX_POWER_OF_SQRT2_UNSIGNED ushr leadingZeros
+            // floor(2^(logFloor + 0.5))
+            val logFloor: Int = LONG_BITS - 1 - leadingZeros
+            logFloor + lessThanBranchFree(cmp, x)
+        }
+    }
+}
+
+private fun lessThanBranchFree(x: Long, y: Long): Int {
+    // Returns the sign bit of x - y.
+    return ((x - y).inv().inv() ushr LONG_BITS - 1).toInt()
+}
+
+private fun multiplyFraction(x: Long, numerator: Long, denominator: Long): Long {
+    var x0 = x
+    var denominator0 = denominator
+    if (x0 == 1L) {
+        return numerator / denominator0
+    }
+    val commonDivisor: Long = integerGcd(x0, denominator0)
+    x0 /= commonDivisor
+    denominator0 /= commonDivisor
+    // We know gcd(x, denominator) = 1, and x * numerator / denominator is exact,
+    // so denominator must be a divisor of numerator.
+    return x0 * (numerator / denominator0)
 }
