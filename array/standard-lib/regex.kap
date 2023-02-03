@@ -3,7 +3,7 @@ namespace("regex")
 ∇ (m) finderror (s) {
   result ← m regex:find s
   if (result ≡ ⍬) {
-    →"No match"
+    throw "No match"
   } else {
     result
   }

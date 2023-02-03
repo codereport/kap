@@ -313,7 +313,7 @@ class Engine(numComputeEngines: Int? = null) {
 
         // misc functions
         registerNativeFunction("sleep", SleepFunction(), "time")
-        registerNativeFunction("→", ThrowFunction())
+        registerNativeFunction("throw", ThrowFunction())
         registerNativeOperator("catch", CatchOperator())
         registerNativeFunction("labels", LabelsFunction())
         registerNativeFunction("timeMillis", TimeMillisFunction(), "time")

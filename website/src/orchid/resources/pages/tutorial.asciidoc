@@ -1048,16 +1048,16 @@ unwindProtect { mainCode } { unwind }
 
 === Throwing an exception
 
-Exceptions are thrown using `→`.
+Exceptions are thrown using `throw`.
 Exception have a type, represented by a symbol and some associated data.
 The following example throws an exception of type `:foo` with data `"test"`:
 
 [source,kap]
 ----
-:foo → "test"
+:foo throw "test"
 ----
 
-When called monadically, `→` will throw an execption of type `:error`.
+When called monadically, `throw` will throw an execption of type `:error`.
 
 === Catching exception
 

@@ -50,7 +50,7 @@ namespace("kap")
         ⌹ ⍪B
       } else {
         if ((2 ≠ rankB) ∨ (0∊≥/⍴B)) {
-          →"error"
+          throw "error"
         }
         (Q R) ← QR B
         (Rinv R) +.× +⍉Q

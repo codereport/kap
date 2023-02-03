@@ -31,7 +31,7 @@
         when {
             (unit≡"cm") {(vInt≥150) ∧ vInt≤193}
             (unit≡"in") {(vInt≥59) ∧ vInt≤76}
-            (1)         {→"Unexpected unit"}
+            (1)         {throw "Unexpected unit"}
         }
     }
 }

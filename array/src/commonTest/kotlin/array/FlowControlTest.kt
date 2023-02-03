@@ -261,7 +261,7 @@ class FlowControlTest : APLTest() {
      */
     @Test
     fun atLeaveTest1() {
-        val (result, out) = parseAPLExpressionWithOutput("{ { io:print 1+⍵ } atLeave 100 ◊ 'foo→1 } catch 1 2 ⍴ 'foo λ{50+⍺}")
+        val (result, out) = parseAPLExpressionWithOutput("{ { io:print 1+⍵ } atLeave 100 ◊ 'foo throw 1 } catch 1 2 ⍴ 'foo λ{50+⍺}")
         assertSimpleNumber(51, result)
         assertEquals("101", out)
     }

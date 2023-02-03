@@ -6,21 +6,21 @@ import kotlin.test.*
 class ExceptionsTest : APLTest() {
     @Test
     fun simpleException() {
-        parseAPLExpression("{'foo→1}catch 1 2 ⍴ 'foo λ{2+⍺}").let { result ->
+        parseAPLExpression("{'foo throw 1}catch 1 2 ⍴ 'foo λ{2+⍺}").let { result ->
             assertSimpleNumber(3, result)
         }
     }
 
     @Test
     fun exceptionHandlerTagCheck() {
-        parseAPLExpression2("{'foo→1}catch 1 2 ⍴ 'foo λ{⍵}").let { (result, engine) ->
+        parseAPLExpression2("{'foo throw 1}catch 1 2 ⍴ 'foo λ{⍵}").let { (result, engine) ->
             assertSymbolName(engine, "foo", result)
         }
     }
 
     @Test
     fun multipleTagHandlers() {
-        parseAPLExpression("{'foo→1}catch 4 2 ⍴ 'xyz λ{2+⍺} 'test123 λ{3+⍺} 'bar λ{4+⍺} 'foo λ{5+⍺}").let { result ->
+        parseAPLExpression("{'foo throw 1}catch 4 2 ⍴ 'xyz λ{2+⍺} 'test123 λ{3+⍺} 'bar λ{4+⍺} 'foo λ{5+⍺}").let { result ->
             assertSimpleNumber(6, result)
         }
     }
@@ -28,14 +28,14 @@ class ExceptionsTest : APLTest() {
     @Test
     fun unmatchedTag() {
         assertFailsWith<TagCatch> {
-            parseAPLExpression("{'foo→1}catch 1 2 ⍴ 'bar λ{2+⍺}")
+            parseAPLExpression("{'foo throw 1}catch 1 2 ⍴ 'bar λ{2+⍺}")
         }
     }
 
     @Test
     fun throwWithoutTagHandler() {
         assertFailsWith<TagCatch> {
-            parseAPLExpression("1 + 'foo→2")
+            parseAPLExpression("1 + 'foo throw 2")
         }
     }
 
@@ -43,7 +43,7 @@ class ExceptionsTest : APLTest() {
     fun throwDefaultWithoutTagHandler() {
         val engine = Engine()
         try {
-            engine.parseAndEval(StringSourceLocation("→\"foo\""))
+            engine.parseAndEval(StringSourceLocation("throw \"foo\""))
             fail("An exception should have been thrown here")
         } catch (e: TagCatch) {
             val sym = e.tag.ensureSymbol().value
