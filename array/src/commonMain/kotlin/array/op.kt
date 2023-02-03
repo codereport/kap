@@ -12,7 +12,8 @@ interface APLOperatorOneArg : APLOperator {
         return combineFunction(currentFn, opPos).make(
             opPos.copy(
                 line = currentFn.pos.line,
-                col = currentFn.pos.col))
+                col = currentFn.pos.col)
+        )
     }
 
     fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor
@@ -75,7 +76,8 @@ interface APLOperatorTwoArg : APLOperator {
                 combinedFn.make(
                     opPos.copy(
                         endLine = pos.endLine,
-                        endCol = pos.endCol))
+                        endCol = pos.endCol)
+                )
             }
             is Either.Right -> {
                 val (symbol, pos) = res.value

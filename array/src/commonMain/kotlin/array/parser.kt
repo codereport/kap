@@ -75,7 +75,9 @@ class Environment(
     /** The parent environment, or null if this is the root environment */
     val parent: Environment?,
     /** If true, do not search parent environments when looking up bindings */
-    val closed: Boolean = false
+    val closed: Boolean = false,
+    /** If true, it is possible to return from a frame allocated using this environment */
+    val returnTarget: Boolean = false
 ) {
     /** The level of this environment relative to the root */
     val index: Int = if (parent == null) 0 else parent.index + 1
@@ -155,8 +157,8 @@ class APLParser(val tokeniser: TokenGenerator) {
 
     fun currentEnvironment() = environments.last()
 
-    fun pushEnvironment(name: String?, closed: Boolean = false): Environment {
-        val env = Environment(name ?: "<unnamed>", parent = currentEnvironment(), closed = closed)
+    fun pushEnvironment(name: String?, closed: Boolean = false, returnTarget: Boolean = false): Environment {
+        val env = Environment(name ?: "<unnamed>", parent = currentEnvironment(), closed = closed, returnTarget = returnTarget)
         environments.add(env)
         return env
     }
@@ -168,9 +170,9 @@ class APLParser(val tokeniser: TokenGenerator) {
     }
 
     @OptIn(ExperimentalContracts::class)
-    inline fun <T> withEnvironment(name: String? = null, closed: Boolean = false, fn: (Environment) -> T): T {
+    inline fun <T> withEnvironment(name: String? = null, closed: Boolean = false, returnTarget: Boolean = false, fn: (Environment) -> T): T {
         contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
-        val env = pushEnvironment(name, closed = closed)
+        val env = pushEnvironment(name, closed = closed, returnTarget = returnTarget)
         try {
             return fn(env)
         } finally {
@@ -499,7 +501,7 @@ class APLParser(val tokeniser: TokenGenerator) {
             when (nameSymbols.size) {
                 1 -> {
                     // Parse like a normal function definition
-                    val definedUserFunction = withEnvironment("function0: ${name.nameWithNamespace}", closed = true) { env ->
+                    val definedUserFunction = withEnvironment("function0: ${name.nameWithNamespace}", closed = true, returnTarget = true) { env ->
                         val leftFnBindings = leftArgs.map { sym -> env.bindLocal(sym) }
                         val rightFnBindings = rightArgs.map { sym -> env.bindLocal(sym) }
                         val inProcessUserFunction =
@@ -513,7 +515,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                 }
                 2 -> {
                     if (nameComponent.semicolonSeparated) throw ParseException("Invalid function name", pos)
-                    val op = withEnvironment("function1: ${name.nameWithNamespace}", closed = true) { env ->
+                    val op = withEnvironment("function1: ${name.nameWithNamespace}", closed = true, returnTarget = true) { env ->
                         val leftFnBindings = leftArgs.map { sym -> env.bindLocal(sym) }
                         val rightFnBindings = rightArgs.map { sym -> env.bindLocal(sym) }
                         val opBinding = env.bindLocal(nameSymbols[0])
@@ -524,7 +526,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                 }
                 3 -> {
                     if (nameComponent.semicolonSeparated) throw ParseException("Invalid function name", pos)
-                    val op = withEnvironment("function2: ${name.nameWithNamespace}", closed = true) { env ->
+                    val op = withEnvironment("function2: ${name.nameWithNamespace}", closed = true, returnTarget = true) { env ->
                         val leftFnBindings = leftArgs.map { sym -> env.bindLocal(sym) }
                         val rightFnBindings = rightArgs.map { sym -> env.bindLocal(sym) }
                         val leftOpBinding = env.bindLocal(nameSymbols[0])
@@ -807,9 +809,9 @@ class APLParser(val tokeniser: TokenGenerator) {
         }
     }
 
-    fun parseFnDefinitionNewEnvironment(endToken: Token = CloseFnDef, name: String = "declared function"): DeclaredFunction {
+    fun parseFnDefinitionNewEnvironment(endToken: Token = CloseFnDef, name: String = "declared function", returnTarget: Boolean = true): DeclaredFunction {
         val engine = tokeniser.engine
-        withEnvironment(name) { env ->
+        withEnvironment(name, returnTarget = returnTarget) { env ->
             val leftBinding = env.bindLocal(engine.internSymbol("⍺", engine.coreNamespace))
             val rightBinding = env.bindLocal(engine.internSymbol("⍵", engine.coreNamespace))
             val instruction = parseValueToplevel(endToken)

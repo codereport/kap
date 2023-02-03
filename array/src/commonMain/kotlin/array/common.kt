@@ -59,27 +59,27 @@ class AxisNotSupported(pos: Position) : APLEvalException("Function does not supp
 
 class APLIllegalArgumentException(message: String, pos: Position? = null) : APLEvalException(message, pos)
 class APLIncompatibleDomainsException(message: String, pos: Position? = null, cause: Throwable? = null) :
-    APLEvalException(message, pos, cause)
+        APLEvalException(message, pos, cause)
 
 class Unimplemented1ArgException(pos: Position? = null) : APLEvalException("Function cannot be called with one argument", pos)
 class Unimplemented2ArgException(pos: Position? = null) : APLEvalException("Function cannot be called with two arguments", pos)
 class IllegalArgumentNumException(expectedCount: Int, receivedCount: Int, pos: Position? = null) :
-    APLEvalException("Expected a list of ${expectedCount} values. Actual elements: ${receivedCount}", pos)
+        APLEvalException("Expected a list of ${expectedCount} values. Actual elements: ${receivedCount}", pos)
 
 class IntMagnitudeException(value: Long, pos: Position? = null) : APLEvalException("Value does not fit in an int: ${value}", pos)
 class InverseNotAvailable(pos: Position? = null) : APLEvalException("Function does not have an inverse", pos)
 
 class LeftAssigned2ArgException(pos: Position? = null) :
-    APLEvalException("Left assigned functions cannot be called with two arguments", pos)
+        APLEvalException("Left assigned functions cannot be called with two arguments", pos)
 
 class ArraySizeException(d: IntArray, pos: Position? = null) :
-    APLEvalException("Array too large. Requested size: [${d.joinToString(", ")}]", pos)
+        APLEvalException("Array too large. Requested size: [${d.joinToString(", ")}]", pos)
 
 class StructuralUnderNotSupported(pos: Position? = null) : APLEvalException("under not supported for function", pos)
 
 open class ParseException(message: String, pos: Position? = null) : APLGenericException(message, pos)
 class UnexpectedSymbol(ch: Int, pos: Position? = null) :
-    ParseException("Unexpected symbol: '${charToString(ch)}' (${ch.toString(16)})", pos)
+        ParseException("Unexpected symbol: '${charToString(ch)}' (${ch.toString(16)})", pos)
 
 class UnexpectedToken(token: Token, pos: Position? = null) : ParseException("Unexpected token: ${token.formatted()}", pos)
 class IncompatibleTypeParseException(message: String, pos: Position? = null) : ParseException(message, pos)
@@ -87,7 +87,7 @@ class IllegalNumberFormat(message: String, pos: Position? = null) : ParseExcepti
 class IllegalContextForFunction(pos: Position? = null) : ParseException("Illegal function call", pos)
 class OperatorAxisNotSupported(pos: Position) : ParseException("Operator does not support axis argument", pos)
 class SyntaxRuleMismatch(expectedSymbol: Symbol, foundSymbol: Symbol, pos: Position? = null) :
-    ParseException("In custom syntax rule: Expected: ${expectedSymbol.symbolName}. Found: ${foundSymbol.symbolName}", pos)
+        ParseException("In custom syntax rule: Expected: ${expectedSymbol.symbolName}. Found: ${foundSymbol.symbolName}", pos)
 
 class BitwiseNotSupported(pos: Position? = null) : ParseException("Function does not support bitwise operations", pos)
 class ParallelNotSupported(pos: Position? = null) : ParseException("Function does not support parallel", pos)
@@ -96,6 +96,8 @@ class IllegalDeclaration(message: String, pos: Position? = null) : ParseExceptio
 
 class InvalidFunctionRedefinition(name: Symbol, pos: Position? = null) :
         ParseException("Function cannot be redefined: ${name.nameWithNamespace}", pos)
+
+class ReturnValue(val value: APLValue) : Exception()
 
 @OptIn(ExperimentalContracts::class)
 inline fun unless(cond: Boolean, fn: () -> Unit) {

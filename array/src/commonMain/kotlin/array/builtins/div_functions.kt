@@ -336,3 +336,13 @@ class FromListFunction : APLFunctionDescriptor {
 
     override fun make(pos: Position) = FromListFunctionImpl(pos)
 }
+
+class ReturnFunction : APLFunctionDescriptor {
+    class ReturnFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            throw ReturnValue(a)
+        }
+    }
+
+    override fun make(pos: Position) = ReturnFunctionImpl(pos)
+}

@@ -72,18 +72,24 @@ class StorageStack private constructor() {
 
     fun copy() = StorageStack(stack)
 
-    @OptIn(ExperimentalContracts::class)
-    inline fun <T> withStackFrame(environment: Environment, name: String, pos: Position, fn: (StorageStackFrame) -> T): T {
-        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+    inline fun withStackFrame(environment: Environment, name: String, pos: Position, crossinline fn: (StorageStackFrame) -> APLValue): APLValue {
         val frame = StorageStackFrame(environment, name, pos)
         stack.add(frame)
+        var result: APLValue
         try {
-            return fn(frame)
+            result = fn(frame)
+        } catch (retValue: ReturnValue) {
+            if (environment.returnTarget) {
+                result = retValue.value
+            } else {
+                throw retValue
+            }
         } finally {
             val removed = stack.removeLast()
             assertx(removed === frame) { "Removed frame does not match inserted frame" }
             frame.fireReleaseCallbacks()
         }
+        return result
     }
 
     fun findStorage(storageRef: StackStorageRef): VariableHolder {
@@ -291,6 +297,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("%", CaseFunction())
         registerNativeFunction("⊆", PartitionedEncloseFunction())
         registerNativeFunction("cmp", CompareObjectsFunction())
+        registerNativeFunction("→", ReturnFunction())
 
         // hash tables
         registerNativeFunction("map", MapAPLFunction())
@@ -645,10 +652,10 @@ class VariableHolder {
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun <T> withLinkedContext(env: Environment, name: String, pos: Position, fn: () -> T): T {
+inline fun withLinkedContext(env: Environment, name: String, pos: Position, crossinline fn: () -> APLValue): APLValue {
     contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
-    currentStack().withStackFrame(env, name, pos) {
-        return fn()
+    return currentStack().withStackFrame(env, name, pos) {
+        fn()
     }
 }
 
