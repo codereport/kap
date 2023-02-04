@@ -125,4 +125,25 @@ class ReturnTest : APLTest() {
             assertEquals("4a3a3b", out)
         }
     }
+
+    @Test
+    fun capturedFrameWithCollapse() {
+        parseAPLExpression("{S ⇐ → ⋄ comp {(S⍣(81=×⍨⍵)) ⍵}¨⍳10} 0").let { result ->
+            assertSimpleNumber(9, result)
+        }
+    }
+
+    @Test
+    fun capturedFrameNoCollapse() {
+        assertFailsWith<ReturnValue> {
+            parseAPLExpression("{S ⇐ → ⋄ {(S⍣(81=×⍨⍵)) ⍵}¨⍳10} 0")
+        }
+    }
+
+    @Test
+    fun capturedFrameNoLazyEvaluation() {
+        parseAPLExpression("{ S ⇐ → ◊ 100 + { S ⍵+20 ◊ ⍵+1 } 10 } 0").let { result ->
+            assertSimpleNumber(30, result)
+        }
+    }
 }

@@ -49,7 +49,7 @@ fun parseFunctionForOperatorRightArg(parser: APLParser): Either<Pair<APLFunction
             }
         }
         is OpenFnDef -> {
-            makeFunctionResult(parser.parseFnDefinition(pos).make(FunctionInstantiation(pos, parser.currentEnvironment())))
+            makeFunctionResult(parser.parseFnDefinition().make(FunctionInstantiation(pos, parser.currentEnvironment())))
         }
         is OpenParen -> {
             val holder = parser.parseExprToplevel(CloseParen)

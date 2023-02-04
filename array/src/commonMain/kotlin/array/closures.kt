@@ -1,6 +1,6 @@
 package array
 
-fun Environment.rewriteForEscape() {
+private fun Environment.rewriteForEscape() {
     fun bindingsBeyondIndex(env: Environment, level: Int): List<EnvironmentBinding> {
         val l = env.localBindings().filter { b -> b.frameIndex > level }.toMutableList()
 //        val l = ArrayList<EnvironmentBinding>()
@@ -40,6 +40,18 @@ fun Environment.rewriteForEscape() {
         }
     }
 }
+
+//private fun Environment.checkEscapeReturns() {
+//    returnTargets.forEach { target ->
+//        var curr: Environment? = this
+//        while (curr != null && curr !== target.env) {
+//            if (curr.canEscape()) {
+//                throw ParseException("Cannot return across escaped stack frames", target.pos)
+//            }
+//            curr = curr.parent
+//        }
+//    }
+//}
 
 fun Environment.escapeAnalysis() {
     fun recurse(env: Environment) {

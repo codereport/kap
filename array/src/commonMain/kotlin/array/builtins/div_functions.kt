@@ -338,14 +338,14 @@ class FromListFunction : APLFunctionDescriptor {
 }
 
 class ReturnFunction : APLFunctionDescriptor {
-    class ReturnFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+    class ReturnFunctionImpl(pos: FunctionInstantiation, val returnEnvironment: Environment) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            throw ReturnValue(a)
+            throw ReturnValue(a, returnEnvironment, pos)
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             if (a.asBoolean(pos)) {
-                throw ReturnValue(b)
+                throw ReturnValue(b, returnEnvironment, pos)
             } else {
                 return b
             }
@@ -353,20 +353,19 @@ class ReturnFunction : APLFunctionDescriptor {
     }
 
     override fun make(instantiation: FunctionInstantiation): ReturnFunctionImpl {
-        if (!isValidReturnPoint(instantiation.env)) {
-            throw ParseException("Call to return without a function call", instantiation.pos)
-        }
-        return ReturnFunctionImpl(instantiation)
+        val returnEnvironment = findReturnEnvironment(instantiation.env) ?: throw ParseException("Call to return without a function call", instantiation.pos)
+        instantiation.env.returnTargets.add(instantiation)
+        return ReturnFunctionImpl(instantiation, returnEnvironment)
     }
 
-    private fun isValidReturnPoint(env: Environment): Boolean {
+    private fun findReturnEnvironment(env: Environment): Environment? {
         var curr: Environment? = env
         while (curr != null) {
-            if (curr.returnTarget) {
-                return true
+            if (curr.isReturnTarget) {
+                return curr
             }
             curr = curr.parent
         }
-        return false
+        return null
     }
 }

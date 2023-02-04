@@ -97,7 +97,7 @@ class IllegalDeclaration(message: String, pos: Position? = null) : ParseExceptio
 class InvalidFunctionRedefinition(name: Symbol, pos: Position? = null) :
         ParseException("Function cannot be redefined: ${name.nameWithNamespace}", pos)
 
-class ReturnValue(val value: APLValue) : Exception()
+class ReturnValue(val value: APLValue, val returnEnvironment: Environment, pos: Position? = null) : APLEvalException("Target stack frame is not available", pos)
 
 @OptIn(ExperimentalContracts::class)
 inline fun unless(cond: Boolean, fn: () -> Unit) {

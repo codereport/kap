@@ -134,6 +134,13 @@ abstract class APLFunction(instantiation: FunctionInstantiation, val fns: List<A
     }
 }
 
+fun APLFunction.iterateFunctionTree(fn: (APLFunction) -> Unit) {
+    fn(this)
+    fns.forEach { childFn ->
+        childFn.iterateFunctionTree(fn)
+    }
+}
+
 abstract class NoAxisAPLFunction(pos: FunctionInstantiation, fns: List<APLFunction> = emptyList()) : APLFunction(pos, fns) {
     private fun checkAxisNotNull(axis: APLValue?) {
         if (axis != null) {

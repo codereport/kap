@@ -95,7 +95,7 @@ class StorageStack private constructor() {
         try {
             result = fn(frame)
         } catch (retValue: ReturnValue) {
-            if (environment.returnTarget) {
+            if (retValue.returnEnvironment === environment) {
                 result = retValue.value
             } else {
                 throw retValue

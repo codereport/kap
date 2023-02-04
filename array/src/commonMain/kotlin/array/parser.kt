@@ -77,7 +77,7 @@ class Environment(
     /** If true, do not search parent environments when looking up bindings */
     val closed: Boolean = false,
     /** If true, it is possible to return from a frame allocated using this environment */
-    val returnTarget: Boolean = false
+    val isReturnTarget: Boolean = false
 ) {
     /** The level of this environment relative to the root */
     val index: Int = if (parent == null) 0 else parent.index + 1
@@ -93,6 +93,9 @@ class Environment(
 
     /** If true, this environment can escape the dynamic scope of its parent */
     private var canEscape: Boolean = false
+
+    /** A list of destinations that code in this environment can return to */
+    val returnTargets = ArrayList<FunctionInstantiation>()
 
     val bindings = ArrayList<EnvironmentBinding>()
     private val localFunctions = HashMap<Symbol, APLFunctionDescriptor>()
@@ -158,7 +161,7 @@ class APLParser(val tokeniser: TokenGenerator) {
     fun currentEnvironment() = environments.last()
 
     fun pushEnvironment(name: String?, closed: Boolean = false, returnTarget: Boolean = false): Environment {
-        val env = Environment(name ?: "<unnamed>", parent = currentEnvironment(), closed = closed, returnTarget = returnTarget)
+        val env = Environment(name ?: "<unnamed>", parent = currentEnvironment(), closed = closed, isReturnTarget = returnTarget)
         environments.add(env)
         return env
     }
@@ -639,7 +642,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                         leftArgs)
                     is ParseResultHolder.EmptyParseResult -> throw ParseException("Empty expression", pos)
                 }
-                is OpenFnDef -> return processFn(parseFnDefinition(pos).make(FunctionInstantiation(pos, currentEnvironment())), leftArgs)
+                is OpenFnDef -> return processFn(parseFnDefinition().make(FunctionInstantiation(pos, currentEnvironment())), leftArgs)
                 is ParsedLong -> leftArgs.add(LiteralInteger(token.value, pos))
                 is ParsedDouble -> leftArgs.add(LiteralDouble(token.value, pos))
                 is ParsedComplex -> leftArgs.add(LiteralComplex(token.value, pos))
@@ -781,7 +784,7 @@ class APLParser(val tokeniser: TokenGenerator) {
         val (token, pos2) = tokeniser.nextTokenWithPosition()
         val fn = when (token) {
             is OpenFnDef -> {
-                parseFnDefinition(pos).make(FunctionInstantiation(pos, currentEnvironment()))
+                parseFnDefinition().make(FunctionInstantiation(pos, currentEnvironment()))
             }
             is Symbol -> {
                 val fnDefinition = lookupFunction(token) ?: throw ParseException("Symbol is not a valid function", pos)
@@ -801,7 +804,7 @@ class APLParser(val tokeniser: TokenGenerator) {
         return EvalLambdaFnx(closureFn, pos, relatedInstructions)
     }
 
-    fun parseFnDefinition(pos: Position, endToken: Token = CloseFnDef, allocateEnvironment: Boolean = true): APLFunctionDescriptor {
+    fun parseFnDefinition(endToken: Token = CloseFnDef, allocateEnvironment: Boolean = true): APLFunctionDescriptor {
         return if (allocateEnvironment) {
             parseFnDefinitionNewEnvironment(endToken)
         } else {
