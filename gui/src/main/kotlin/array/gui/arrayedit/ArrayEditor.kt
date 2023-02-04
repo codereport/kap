@@ -205,7 +205,7 @@ class ArrayEditor {
         val position = axisFieldsToPosition(table.content)
         val selectedValues = selection.computeSelectedValuesFromTable(table, position)
         val b = listOf(Pair("kap", "⍵") to selectedValues)
-        client.calculationQueue.pushRequest(StringSourceLocation(text), linkNewContext = true, variableBindings = b) { result ->
+        client.calculationQueue.pushRequest(StringSourceLocation(text), variableBindings = b) { result ->
             println("Got result: ${result}")
             Platform.runLater {
                 when (result) {

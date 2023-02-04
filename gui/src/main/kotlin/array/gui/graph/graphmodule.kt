@@ -4,7 +4,7 @@ import array.*
 import javafx.application.Platform
 
 class LineGraphFunction : APLFunctionDescriptor {
-    class LineGraphFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class LineGraphFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val data = GraphController.makeSeriesList(a, pos)
             Platform.runLater {

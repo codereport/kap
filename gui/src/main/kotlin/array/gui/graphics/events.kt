@@ -66,7 +66,7 @@ private fun parseAcceptedEventTypes(context: RuntimeContext, typesValue: APLValu
 }
 
 class ReadEventFunction : APLFunctionDescriptor {
-    class ReadEventFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class ReadEventFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val win = winFromValue(a, pos)
             val acceptedTypes = parseAcceptedEventTypes(context, b, pos)
@@ -87,7 +87,7 @@ class ReadEventFunction : APLFunctionDescriptor {
 }
 
 class ReadEventBlockingFunction : APLFunctionDescriptor {
-    class ReadEventBlockingFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class ReadEventBlockingFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val win = winFromValue(a, pos)
             val acceptedTypes = parseAcceptedEventTypes(context, b, pos)
@@ -107,7 +107,7 @@ class ReadEventBlockingFunction : APLFunctionDescriptor {
 }
 
 class EnableEventsFunction : APLFunctionDescriptor {
-    class EnableEventsFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class EnableEventsFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val win = winFromValue(a, pos)
             val acceptedTypes = parseAcceptedEventTypes(context, b, pos)
@@ -120,7 +120,7 @@ class EnableEventsFunction : APLFunctionDescriptor {
 }
 
 class DisableEventsFunction : APLFunctionDescriptor {
-    class DisableEventsFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class DisableEventsFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val win = winFromValue(a, pos)
             val acceptedTypes = parseAcceptedEventTypes(context, b, pos)

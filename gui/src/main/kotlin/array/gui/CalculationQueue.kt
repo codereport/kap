@@ -129,7 +129,6 @@ class CalculationQueue(val engine: Engine) {
 
     fun pushRequest(
         source: SourceLocation,
-        linkNewContext: Boolean,
         variableBindings: List<Pair<Pair<String, String>, APLValue>>? = null,
         fn: (Either<APLValue, Exception>) -> Unit
     ): JobId {

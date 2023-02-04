@@ -42,7 +42,7 @@ class GraphicWindowAPLValue(engine: Engine, width: Int, height: Int, settings: G
 }
 
 class MakeGraphicFunction : APLFunctionDescriptor {
-    class MakeGraphicFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class MakeGraphicFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             return makeWindow(a, context.engine, GraphicWindow.Settings())
         }
@@ -85,7 +85,7 @@ private fun arrayToKeywords(engine: Engine, a: APLValue, pos: Position, allowed:
 }
 
 class DrawGraphicFunction : APLFunctionDescriptor {
-    class DrawGraphicFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class DrawGraphicFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val v = a.unwrapDeferredValue()
             if (v !is GraphicWindowAPLValue) {
