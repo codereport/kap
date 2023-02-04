@@ -88,4 +88,39 @@ class ReturnTest : APLTest() {
             parseAPLExpression("→10")
         }
     }
+
+    @Test
+    fun returnFromNestedFunction() {
+        val src =
+            """
+            |∇ foo {
+            |    bar ⇐ { →⍵+100 ◊ ⍵+200 }
+            |    1 + bar ⍵
+            |}
+            |foo 4
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertSimpleNumber(105, result)
+        }
+    }
+
+    @Test
+    fun twoArgReturn() {
+        val src =
+            """
+            |∇ foo {
+            |    io:print ⍺
+            |    io:print "a"
+            |    ⍵ → 2
+            |    io:print ⍺
+            |    io:print "b"
+            |    1
+            |}
+            |(3 foo 0) (4 foo 1)
+            """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assert1DArray(arrayOf(1, 2), result)
+            assertEquals("4a3a3b", out)
+        }
+    }
 }

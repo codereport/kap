@@ -342,6 +342,14 @@ class ReturnFunction : APLFunctionDescriptor {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             throw ReturnValue(a)
         }
+
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            if (a.asBoolean(pos)) {
+                throw ReturnValue(b)
+            } else {
+                return b
+            }
+        }
     }
 
     override fun make(instantiation: FunctionInstantiation): ReturnFunctionImpl {
