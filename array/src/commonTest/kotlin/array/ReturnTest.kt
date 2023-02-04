@@ -94,13 +94,15 @@ class ReturnTest : APLTest() {
         val src =
             """
             |∇ foo {
-            |    bar ⇐ { →⍵+100 ◊ ⍵+200 }
-            |    1 + bar ⍵
+            |    {
+            |        bar ⇐ { →⍵+100 ◊ ⍵+200 }
+            |        1 + bar ⍵
+            |    } ⍵+2
             |}
-            |foo 4
+            |foo 3
             """.trimMargin()
         parseAPLExpression(src).let { result ->
-            assertSimpleNumber(105, result)
+            assertSimpleNumber(106, result)
         }
     }
 
