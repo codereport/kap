@@ -81,7 +81,7 @@ abstract class FunctionSyntaxRule(private val variable: EnvironmentBinding) : Sy
         syntaxRuleBindings.add(
             SyntaxRuleVariableBinding(
                 variable,
-                EvalLambdaFnx(fnDefinition.make(pos), pos)))
+                EvalLambdaFnx(fnDefinition.make(FunctionInstantiation(pos, parser.currentEnvironment())), pos)))
     }
 
     abstract fun startToken(): Token

@@ -20,23 +20,6 @@ class DummyInstr(pos: Position) : Instruction(pos) {
     override fun children(): List<Instruction> = emptyList()
 }
 
-class RootEnvironmentInstruction(val environment: Environment, val instr: Instruction, pos: Position) : Instruction(pos) {
-    override fun evalWithContext(context: RuntimeContext): APLValue {
-        throw IllegalStateException("Root environment called with context")
-    }
-
-    override fun children() = listOf(instr)
-
-    fun evalWithNewContext(engine: Engine, extraBindings: List<Pair<EnvironmentBinding, APLValue>>?): APLValue {
-        assertx(extraBindings.isNullOrEmpty()) { "Extra bindings not supported yet" }
-        val context = RuntimeContext(engine)
-//        extraBindings?.forEach { (binding, value) ->
-//            context.setVar(binding, value)
-//        }
-        return instr.evalWithContext(context)
-    }
-}
-
 class InstructionList(val instructions: List<Instruction>) : Instruction(computePos(instructions)) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
         for (i in 0 until instructions.size - 1) {
@@ -101,7 +84,7 @@ class FunctionCall2Arg(
 }
 
 class DynamicFunctionDescriptor(val instr: Instruction) : APLFunctionDescriptor {
-    inner class DynamicFunctionImpl(pos: Position) : APLFunction(pos) {
+    inner class DynamicFunctionImpl(pos: FunctionInstantiation) : APLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             return resolveFn(context).eval1Arg(context, a, axis)
         }
@@ -120,8 +103,8 @@ class DynamicFunctionDescriptor(val instr: Instruction) : APLFunctionDescriptor 
         }
     }
 
-    override fun make(pos: Position): APLFunction {
-        return DynamicFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation): APLFunction {
+        return DynamicFunctionImpl(instantiation)
     }
 }
 
@@ -308,7 +291,7 @@ class UserFunction(
     var instr: Instruction,
     val env: Environment
 ) : APLFunctionDescriptor {
-    inner class UserFunctionImpl(pos: Position) : APLFunction(pos) {
+    inner class UserFunctionImpl(pos: FunctionInstantiation) : APLFunction(pos) {
         private val leftStorageRefs = leftFnArgs.map(::StackStorageRef)
         private val rightStorageRefs = rightFnArgs.map(::StackStorageRef)
 
@@ -328,7 +311,7 @@ class UserFunction(
         }
     }
 
-    override fun make(pos: Position) = UserFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = UserFunctionImpl(instantiation)
 }
 
 class EvalLambdaFnx(val fn: APLFunction, pos: Position, val relatedInstructions: List<Instruction> = emptyList()) : Instruction(pos) {
@@ -342,8 +325,8 @@ class EvalLambdaFnx(val fn: APLFunction, pos: Position, val relatedInstructions:
     override fun children() = relatedInstructions
 }
 
-sealed class FunctionCallChain(pos: Position, fns: List<APLFunction>) : APLFunction(pos, fns) {
-    class Chain2(pos: Position, fn0: APLFunction, fn1: APLFunction) :
+sealed class FunctionCallChain(pos: FunctionInstantiation, fns: List<APLFunction>) : APLFunction(pos, fns) {
+    class Chain2(pos: FunctionInstantiation, fn0: APLFunction, fn1: APLFunction) :
             FunctionCallChain(pos, listOf(fn0, fn1)) {
         val fn0 get() = fns[0]
         val fn1 get() = fns[1]
@@ -381,10 +364,10 @@ sealed class FunctionCallChain(pos: Position, fns: List<APLFunction>) : APLFunct
             return fn1.evalInverse2ArgB(context, a, res, null)
         }
 
-        override fun copy(fns: List<APLFunction>) = Chain2(pos, fns[0], fns[1])
+        override fun copy(fns: List<APLFunction>) = Chain2(instantiation, fns[0], fns[1])
     }
 
-    class Chain3(pos: Position, fn0: APLFunction, fn1: APLFunction, fn2: APLFunction) : FunctionCallChain(pos, listOf(fn0, fn1, fn2)) {
+    class Chain3(pos: FunctionInstantiation, fn0: APLFunction, fn1: APLFunction, fn2: APLFunction) : FunctionCallChain(pos, listOf(fn0, fn1, fn2)) {
         val fn0 get() = fns[0]
         val fn1 get() = fns[1]
         val fn2 get() = fns[2]
@@ -403,7 +386,7 @@ sealed class FunctionCallChain(pos: Position, fns: List<APLFunction>) : APLFunct
             return fn1.eval2Arg(context, left, right, null)
         }
 
-        override fun copy(fns: List<APLFunction>) = Chain3(pos, fns[0], fns[1], fns[2])
+        override fun copy(fns: List<APLFunction>) = Chain3(instantiation, fns[0], fns[1], fns[2])
     }
 
 }

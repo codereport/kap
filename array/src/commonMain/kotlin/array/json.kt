@@ -131,7 +131,7 @@ private fun isPrintable(ch: Char): Boolean {
 }
 
 class ReadJsonAPLFunction : APLFunctionDescriptor {
-    class ReadJsonAPLFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class ReadJsonAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val filename = a.toStringValue(pos)
             val json = openInputCharFile(context.engine.resolvePathName(filename)).use { input ->
@@ -141,22 +141,22 @@ class ReadJsonAPLFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = ReadJsonAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = ReadJsonAPLFunctionImpl(instantiation)
 }
 
 class ReadStringJsonAPLFunction : APLFunctionDescriptor {
-    class ReadStringJsonAPLFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class ReadStringJsonAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val content = a.toStringValue(pos)
             return parseJsonToAPLWithExceptions(StringCharacterProvider(content), pos)
         }
     }
 
-    override fun make(pos: Position) = ReadStringJsonAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = ReadStringJsonAPLFunctionImpl(instantiation)
 }
 
 class WriteStringJsonAPLFunction : APLFunctionDescriptor {
-    class WriteStringJsonAPLFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class WriteStringJsonAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val out = StringBuilderOutput()
             parseAPLToJson(context.engine, a, out, pos)
@@ -164,7 +164,7 @@ class WriteStringJsonAPLFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = WriteStringJsonAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = WriteStringJsonAPLFunctionImpl(instantiation)
 }
 
 

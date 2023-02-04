@@ -10,8 +10,24 @@ import kotlin.jvm.JvmInline
 import kotlin.jvm.Volatile
 import kotlin.reflect.KClass
 
+/**
+ * Class that holds information about the context in which a function is materialised in the code.
+ * In short, an [APLFunctionDescriptor] describes a function itself. When a function call is
+ * expressed in code, the [APLFunctionDescriptor.make] function is called to create an instance
+ * of [APLFunction] which represents a particular invocation of the function at a particular
+ * place in the code. This place is represented by an instance of this class.
+ *
+ * @param pos The position in the code where the function was materialised
+ * @param env The environment where the function is called
+ */
+class FunctionInstantiation(val pos: Position, val env: Environment) {
+    inline fun updatePos(fn: (Position) -> Position): FunctionInstantiation {
+        return FunctionInstantiation(fn(pos), env)
+    }
+}
+
 interface APLFunctionDescriptor {
-    fun make(pos: Position): APLFunction
+    fun make(instantiation: FunctionInstantiation): APLFunction
 }
 
 @JvmInline
@@ -624,7 +640,7 @@ class Engine(numComputeEngines: Int? = null) {
 }
 
 class CloseAPLFunction : APLFunctionDescriptor {
-    class CloseAPLFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class CloseAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val value = a.collapseFirstLevel()
             context.engine.callClosableHandler(value, pos)
@@ -634,7 +650,7 @@ class CloseAPLFunction : APLFunctionDescriptor {
         override val name1Arg: String get() = "close"
     }
 
-    override fun make(pos: Position) = CloseAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = CloseAPLFunctionImpl(instantiation)
 }
 
 fun throwAPLException(ex: APLEvalException): Nothing {
@@ -674,11 +690,6 @@ class RuntimeContext(val engine: Engine) {
         val stack = currentStack()
         val holder = stack.findStorage(storageRef)
         holder.value = value
-    }
-
-    fun getVar(storageRef: StackStorageRef): APLValue? {
-        val holder = currentStack().findStorage(storageRef)
-        return holder.value
     }
 
     fun assignArgs(args: List<StackStorageRef>, a: APLValue, pos: Position? = null) {

@@ -584,13 +584,13 @@ class ComplexExpressionsTest : APLTest() {
     }
 
     class AbcOperator : APLOperatorOneArg {
-        override fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor {
+        override fun combineFunction(fn: APLFunction, pos: FunctionInstantiation): APLFunctionDescriptor {
             return AbcFunctionDescriptor(fn)
         }
     }
 
     class AbcFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
-        class AbcFunctionDescriptorImpl(fn: APLFunction, pos: Position) : APLFunction(pos, listOf(fn)) {
+        class AbcFunctionDescriptorImpl(fn: APLFunction, pos: FunctionInstantiation) : APLFunction(pos, listOf(fn)) {
             private val fn get() = fns[0]
 
             override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
@@ -606,15 +606,15 @@ class ComplexExpressionsTest : APLTest() {
             }
 
             override fun copy(fns: List<APLFunction>): APLFunction {
-                return AbcFunctionDescriptorImpl(fns[0], pos)
+                return AbcFunctionDescriptorImpl(fns[0], instantiation)
             }
         }
 
-        override fun make(pos: Position) = AbcFunctionDescriptorImpl(fn, pos)
+        override fun make(instantiation: FunctionInstantiation) = AbcFunctionDescriptorImpl(fn, instantiation)
     }
 
     class TestFunction : APLFunctionDescriptor {
-        class TestFunctionImpl(pos: Position) : APLFunction(pos) {
+        class TestFunctionImpl(pos: FunctionInstantiation) : APLFunction(pos) {
             override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
                 val aLong = a.ensureNumber(pos).asLong(pos)
                 val axisLong = if (axis == null) 0 else axis.ensureNumber(pos).asLong(pos)
@@ -629,6 +629,6 @@ class ComplexExpressionsTest : APLTest() {
             }
         }
 
-        override fun make(pos: Position) = TestFunctionImpl(pos)
+        override fun make(instantiation: FunctionInstantiation) = TestFunctionImpl(instantiation)
     }
 }

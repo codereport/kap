@@ -313,13 +313,13 @@ class APLParser(val tokeniser: TokenGenerator) {
                 }
             }
             is ParseResultHolder.FnParseResult -> {
-                fun baseFn() = Chain2(parsedFn.pos, parsedFn, holder.fn)
+                fun baseFn() = Chain2(parsedFn.instantiation, parsedFn, holder.fn)
                 when {
                     leftArgs.isEmpty() -> {
                         ParseResultHolder.FnParseResult(baseFn(), holder.lastToken)
                     }
                     holder.fn is LeftAssignedFunction || holder.fn is MergedLeftArgFunction -> {
-                        val left = LeftAssignedFunction(parsedFn, InstructionList(leftArgs), parsedFn.pos)
+                        val left = LeftAssignedFunction(parsedFn, InstructionList(leftArgs), parsedFn.instantiation)
                         val right = holder.fn
                         val mergedFn = MergedLeftArgFunction(left, right)
                         ParseResultHolder.FnParseResult(mergedFn, holder.lastToken)
@@ -343,7 +343,7 @@ class APLParser(val tokeniser: TokenGenerator) {
     ): ParseResultHolder.FnParseResult {
         val firstArgPos = leftArgs[0].pos
         val resultList = makeResultList(leftArgs) ?: throw IllegalStateException("Result list is null")
-        val fn = LeftAssignedFunction(baseFn, resultList, baseFn.pos.copy(line = firstArgPos.line, col = firstArgPos.col))
+        val fn = LeftAssignedFunction(baseFn, resultList, baseFn.instantiation.updatePos { it.copy(line = firstArgPos.line, col = firstArgPos.col) })
         return ParseResultHolder.FnParseResult(fn, lastToken)
     }
 
@@ -362,34 +362,34 @@ class APLParser(val tokeniser: TokenGenerator) {
     }
 
     class RelocalisedFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
-        class RelocalisedFunctionImpl(fn: APLFunction, pos: Position) : DelegatedAPLFunctionImpl(pos, listOf(fn)) {
+        class RelocalisedFunctionImpl(fn: APLFunction, pos: FunctionInstantiation) : DelegatedAPLFunctionImpl(pos, listOf(fn)) {
             override fun innerImpl() = fns[0]
-            override fun copy(fns: List<APLFunction>) = RelocalisedFunctionImpl(fns[0], pos)
+            override fun copy(fns: List<APLFunction>) = RelocalisedFunctionImpl(fns[0], instantiation)
         }
 
-        override fun make(pos: Position): APLFunction {
-            return RelocalisedFunctionImpl(fn, pos)
+        override fun make(instantiation: FunctionInstantiation): APLFunction {
+            return RelocalisedFunctionImpl(fn, instantiation)
         }
     }
 
     data class DefinedUserFunction(val fn: APLFunctionDescriptor, val name: Symbol, val pos: Position)
 
     class UpdateableFunction(var innerFnDescriptor: APLFunctionDescriptor) : APLFunctionDescriptor {
-        inner class UpdateableFunctionImpl(pos: Position) : DelegatedAPLFunctionImpl(pos) {
+        inner class UpdateableFunctionImpl(pos: FunctionInstantiation) : DelegatedAPLFunctionImpl(pos) {
             private var prevDescriptor: APLFunctionDescriptor = innerFnDescriptor
             private var inner: APLFunction = prevDescriptor.make(pos)
 
             override fun innerImpl(): APLFunction {
                 if (prevDescriptor !== innerFnDescriptor) {
-                    inner = innerFnDescriptor.make(pos)
+                    inner = innerFnDescriptor.make(instantiation)
                     prevDescriptor = innerFnDescriptor
                 }
                 return inner
             }
         }
 
-        override fun make(pos: Position): APLFunction {
-            return UpdateableFunctionImpl(pos)
+        override fun make(instantiation: FunctionInstantiation): APLFunction {
+            return UpdateableFunctionImpl(instantiation)
         }
 
         fun replaceFunctionDefinition(newFn: APLFunctionDescriptor) {
@@ -625,7 +625,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                         val fn = lookupFunction(token)
                         if (fn != null) {
                             return processFn(
-                                fn.make(pos.withCallerName(token.symbolName)),
+                                fn.make(FunctionInstantiation(pos.withCallerName(token.symbolName), currentEnvironment())),
                                 leftArgs)
                         } else {
                             leftArgs.add(makeVariableRef(token, pos))
@@ -639,7 +639,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                         leftArgs)
                     is ParseResultHolder.EmptyParseResult -> throw ParseException("Empty expression", pos)
                 }
-                is OpenFnDef -> return processFn(parseFnDefinition(pos).make(pos), leftArgs)
+                is OpenFnDef -> return processFn(parseFnDefinition(pos).make(FunctionInstantiation(pos, currentEnvironment())), leftArgs)
                 is ParsedLong -> leftArgs.add(LiteralInteger(token.value, pos))
                 is ParsedDouble -> leftArgs.add(LiteralDouble(token.value, pos))
                 is ParsedComplex -> leftArgs.add(LiteralComplex(token.value, pos))
@@ -650,7 +650,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                 is StringToken -> leftArgs.add(LiteralStringValue(token.value, pos))
                 is QuotePrefix -> leftArgs.add(LiteralSymbol(tokeniser.nextTokenWithType(), pos))
                 is LambdaToken -> leftArgs.add(processLambda(pos))
-                is ApplyToken -> return processFn(parseApplyDefinition().make(pos), leftArgs)
+                is ApplyToken -> return processFn(parseApplyDefinition().make(FunctionInstantiation(pos, currentEnvironment())), leftArgs)
                 is NamespaceToken -> processNamespace()
                 is ImportToken -> processImport()
                 is DefsyntaxSubToken -> processDefsyntaxSub(this, pos)
@@ -781,11 +781,11 @@ class APLParser(val tokeniser: TokenGenerator) {
         val (token, pos2) = tokeniser.nextTokenWithPosition()
         val fn = when (token) {
             is OpenFnDef -> {
-                parseFnDefinition(pos).make(pos)
+                parseFnDefinition(pos).make(FunctionInstantiation(pos, currentEnvironment()))
             }
             is Symbol -> {
                 val fnDefinition = lookupFunction(token) ?: throw ParseException("Symbol is not a valid function", pos)
-                fnDefinition.make(pos)
+                fnDefinition.make(FunctionInstantiation(pos, currentEnvironment()))
             }
             is OpenParen -> {
                 val holder = parseExprToplevel(CloseParen)
@@ -840,7 +840,9 @@ class APLParser(val tokeniser: TokenGenerator) {
                     currentFn = op.parseAndCombineFunctions(
                         this,
                         currentFn,
-                        fn.pos.copy(callerName = token.symbolName, endLine = currToken.pos.endLine, endCol = currToken.pos.endCol))
+                        FunctionInstantiation(
+                            fn.pos.copy(callerName = token.symbolName, endLine = currToken.pos.endLine, endCol = currToken.pos.endCol),
+                            currentEnvironment()))
                 }
                 is LeftForkToken -> {
                     val midExpr = parseExprToplevel(RightForkToken)
@@ -851,7 +853,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                         is Either.Left -> {
                             currentFn =
                                 FunctionCallChain.Chain3(
-                                    currToken.pos.expandToEnd(res.value.second),
+                                    FunctionInstantiation(currToken.pos.expandToEnd(res.value.second), currentEnvironment()),
                                     currentFn,
                                     midExpr.fn,
                                     res.value.first)

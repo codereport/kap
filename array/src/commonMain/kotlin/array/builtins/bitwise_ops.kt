@@ -2,7 +2,7 @@ package array.builtins
 //≠∵⌻⍨ ⍳30
 import array.*
 
-abstract class BitwiseCombineAPLFunction(pos: Position) : MathCombineAPLFunction(pos) {
+abstract class BitwiseCombineAPLFunction(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
     override val optimisationFlags get() = OptimisationFlags(OptimisationFlags.OPTIMISATION_FLAG_1ARG_LONG or OptimisationFlags.OPTIMISATION_FLAG_2ARG_LONG_LONG)
 
     override fun combine1Arg(a: APLSingleValue): APLValue = bitwiseCombine1Arg(a.ensureNumber(pos).asLong(pos)).makeAPLNumber()
@@ -17,66 +17,66 @@ abstract class BitwiseCombineAPLFunction(pos: Position) : MathCombineAPLFunction
 }
 
 class BitwiseOp : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, pos: Position) = fn.deriveBitwise() ?: throw BitwiseNotSupported(fn.pos)
+    override fun combineFunction(fn: APLFunction, pos: FunctionInstantiation) = fn.deriveBitwise() ?: throw BitwiseNotSupported(fn.pos)
 }
 
 class BitwiseAndFunction : APLFunctionDescriptor {
-    class BitwiseAndFunctionImpl(pos: Position) : BitwiseCombineAPLFunction(pos) {
+    class BitwiseAndFunctionImpl(pos: FunctionInstantiation) : BitwiseCombineAPLFunction(pos) {
         override fun bitwiseCombine2Arg(a: Long, b: Long) = a and b
         override val name2Arg get() = "bitwise and"
     }
 
-    override fun make(pos: Position) = BitwiseAndFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = BitwiseAndFunctionImpl(instantiation)
 }
 
 class BitwiseOrFunction : APLFunctionDescriptor {
-    class BitwiseOrFunctionImpl(pos: Position) : BitwiseCombineAPLFunction(pos) {
+    class BitwiseOrFunctionImpl(pos: FunctionInstantiation) : BitwiseCombineAPLFunction(pos) {
         override fun bitwiseCombine2Arg(a: Long, b: Long) = a or b
         override val name2Arg get() = "bitwise or"
     }
 
-    override fun make(pos: Position) = BitwiseOrFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = BitwiseOrFunctionImpl(instantiation)
 }
 
 class BitwiseXorFunction : APLFunctionDescriptor {
-    class BitwiseXorFunctionImpl(pos: Position) : BitwiseCombineAPLFunction(pos) {
+    class BitwiseXorFunctionImpl(pos: FunctionInstantiation) : BitwiseCombineAPLFunction(pos) {
         override fun bitwiseCombine2Arg(a: Long, b: Long) = a xor b
         override val name2Arg get() = "bitwise xor"
     }
 
-    override fun make(pos: Position) = BitwiseXorFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = BitwiseXorFunctionImpl(instantiation)
 }
 
 class BitwiseNotFunction : APLFunctionDescriptor {
-    class BitwiseNotFunctionImpl(pos: Position) : BitwiseCombineAPLFunction(pos) {
+    class BitwiseNotFunctionImpl(pos: FunctionInstantiation) : BitwiseCombineAPLFunction(pos) {
         override fun bitwiseCombine1Arg(a: Long) = a.inv()
         override val name2Arg get() = "bitwise not"
     }
 
-    override fun make(pos: Position) = BitwiseNotFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = BitwiseNotFunctionImpl(instantiation)
 }
 
 class BitwiseNandFunction : APLFunctionDescriptor {
-    class BitwiseNandFunctionImpl(pos: Position) : BitwiseCombineAPLFunction(pos) {
+    class BitwiseNandFunctionImpl(pos: FunctionInstantiation) : BitwiseCombineAPLFunction(pos) {
         override fun bitwiseCombine2Arg(a: Long, b: Long) = (a and b).inv()
         override val name2Arg get() = "bitwise nand"
     }
 
-    override fun make(pos: Position) = BitwiseNandFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = BitwiseNandFunctionImpl(instantiation)
 }
 
 class BitwiseNorFunction : APLFunctionDescriptor {
-    class BitwiseNorFunctionImpl(pos: Position) : BitwiseCombineAPLFunction(pos) {
+    class BitwiseNorFunctionImpl(pos: FunctionInstantiation) : BitwiseCombineAPLFunction(pos) {
         override fun bitwiseCombine2Arg(a: Long, b: Long) = (a or b).inv()
         override val name2Arg get() = "bitwise nor"
     }
 
-    override fun make(pos: Position) = BitwiseNorFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = BitwiseNorFunctionImpl(instantiation)
 }
 
 // TODO: Need to assign this to the appropriate parent function
 class BitwiseCountBitsFunction : APLFunctionDescriptor {
-    class BitwiseCountBitsFunctionImpl(pos: Position) : BitwiseCombineAPLFunction(pos) {
+    class BitwiseCountBitsFunctionImpl(pos: FunctionInstantiation) : BitwiseCombineAPLFunction(pos) {
         override fun bitwiseCombine1Arg(a: Long): Long {
             var total = 0L
             repeat(64) { i ->
@@ -90,5 +90,5 @@ class BitwiseCountBitsFunction : APLFunctionDescriptor {
         override val name1Arg get() = "bitwise count bits"
     }
 
-    override fun make(pos: Position) = BitwiseCountBitsFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = BitwiseCountBitsFunctionImpl(instantiation)
 }

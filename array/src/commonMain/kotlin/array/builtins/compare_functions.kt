@@ -5,7 +5,7 @@ import array.OptimisationFlags.Companion.OPTIMISATION_FLAG_2ARG_LONG_LONG
 import array.complex.Complex
 
 class EqualsAPLFunction : APLFunctionDescriptor {
-    class EqualsAPLFunctionImpl(pos: Position) : MathCombineAPLFunction(pos) {
+    class EqualsAPLFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
         override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
             return if ((a is APLChar && b !is APLChar) || a !is APLChar && b is APLChar) {
                 makeBoolean(false)
@@ -29,11 +29,11 @@ class EqualsAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "equals"
     }
 
-    override fun make(pos: Position) = EqualsAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = EqualsAPLFunctionImpl(instantiation)
 }
 
 class NotEqualsAPLFunction : APLFunctionDescriptor {
-    class NotEqualsAPLFunctionImpl(pos: Position) : MathCombineAPLFunction(pos) {
+    class NotEqualsAPLFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
         override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
             return if ((a is APLChar && b !is APLChar) || a !is APLChar && b is APLChar) {
                 makeBoolean(true)
@@ -56,11 +56,11 @@ class NotEqualsAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "not equals"
     }
 
-    override fun make(pos: Position) = NotEqualsAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = NotEqualsAPLFunctionImpl(instantiation)
 }
 
 class LessThanAPLFunction : APLFunctionDescriptor {
-    class LessThanAPLFunctionImpl(pos: Position) : MathCombineAPLFunction(pos) {
+    class LessThanAPLFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
         override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
             return numericRelationOperation(
                 pos,
@@ -93,11 +93,11 @@ class LessThanAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "less than"
     }
 
-    override fun make(pos: Position) = LessThanAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = LessThanAPLFunctionImpl(instantiation)
 }
 
 class GreaterThanAPLFunction : APLFunctionDescriptor {
-    class GreaterThanAPLFunctionImpl(pos: Position) : MathCombineAPLFunction(pos) {
+    class GreaterThanAPLFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
         override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
             return numericRelationOperation(
                 pos,
@@ -134,11 +134,11 @@ class GreaterThanAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "greater than"
     }
 
-    override fun make(pos: Position) = GreaterThanAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = GreaterThanAPLFunctionImpl(instantiation)
 }
 
 class LessThanEqualAPLFunction : APLFunctionDescriptor {
-    class LessThanEqualAPLFunctionImpl(pos: Position) : MathCombineAPLFunction(pos) {
+    class LessThanEqualAPLFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
         override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
             return numericRelationOperation(
                 pos,
@@ -155,11 +155,11 @@ class LessThanEqualAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "less than or equals"
     }
 
-    override fun make(pos: Position) = LessThanEqualAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = LessThanEqualAPLFunctionImpl(instantiation)
 }
 
 class GreaterThanEqualAPLFunction : APLFunctionDescriptor {
-    class GreaterThanEqualAPLFunctionImpl(pos: Position) : MathCombineAPLFunction(pos) {
+    class GreaterThanEqualAPLFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
         override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
             return numericRelationOperation(
                 pos,
@@ -176,7 +176,7 @@ class GreaterThanEqualAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "greater than or equals"
     }
 
-    override fun make(pos: Position) = GreaterThanEqualAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = GreaterThanEqualAPLFunctionImpl(instantiation)
 }
 
 fun makeBoolean(value: Boolean): APLValue {
@@ -230,11 +230,11 @@ inline fun singleArgNumericRelationOperation(
 }
 
 class CompareObjectsFunction : APLFunctionDescriptor {
-    class CompareObjectsFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class CompareObjectsFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             return a.compare(b).makeAPLNumber()
         }
     }
 
-    override fun make(pos: Position) = CompareObjectsFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = CompareObjectsFunctionImpl(instantiation)
 }

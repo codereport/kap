@@ -19,13 +19,13 @@ private class ToUnicodeValue(val value: APLValue) : APLArray() {
 }
 
 class MakeCodepoints : APLFunctionDescriptor {
-    class MakeCodepointsImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class MakeCodepointsImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             return toUnicodeCodepoint(a)
         }
     }
 
-    override fun make(pos: Position) = MakeCodepointsImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = MakeCodepointsImpl(instantiation)
 }
 
 private fun fromUnicodeCodepoint(value: APLValue): APLValue {
@@ -45,17 +45,17 @@ private class FromUnicodeValue(val value: APLValue) : APLArray() {
 }
 
 class MakeCharsFromCodepoints : APLFunctionDescriptor {
-    class MakeCharsFromCodepointsImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class MakeCharsFromCodepointsImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             return fromUnicodeCodepoint(a)
         }
     }
 
-    override fun make(pos: Position) = MakeCharsFromCodepointsImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = MakeCharsFromCodepointsImpl(instantiation)
 }
 
 class GraphemesFunction : APLFunctionDescriptor {
-    class GraphemesFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class GraphemesFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val graphemeList = a.toStringValue(pos).asGraphemeList()
             return APLArrayImpl(dimensionsOfSize(graphemeList.size), Array(graphemeList.size) { i ->
@@ -64,29 +64,29 @@ class GraphemesFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = GraphemesFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = GraphemesFunctionImpl(instantiation)
 }
 
 class ToLowerFunction : APLFunctionDescriptor {
-    class ToLowerFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class ToLowerFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val s = a.toStringValue(pos)
             return APLString(s.lowercase())
         }
     }
 
-    override fun make(pos: Position) = ToLowerFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = ToLowerFunctionImpl(instantiation)
 }
 
 class ToUpperFunction : APLFunctionDescriptor {
-    class ToUpperFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class ToUpperFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val s = a.toStringValue(pos)
             return APLString(s.uppercase())
         }
     }
 
-    override fun make(pos: Position) = ToUpperFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = ToUpperFunctionImpl(instantiation)
 }
 
 

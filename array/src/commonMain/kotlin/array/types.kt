@@ -891,7 +891,7 @@ class APLSymbol(val value: Symbol) : APLSingleValue() {
  * This class represents a closure. It wraps a function and a context to use when calling the closure.
  *
  * @param fn the function that is wrapped by the closure
- * @param previousContext the context to use when calling the function
+ * @param savedFrame the saved stack frame to use when calling the function
  */
 class LambdaValue(private val fn: APLFunction, private val savedFrame: StorageStack.StorageStackFrame) : APLSingleValue() {
     override val aplValueType: APLValueType get() = APLValueType.LAMBDA_FN
@@ -908,7 +908,7 @@ class LambdaValue(private val fn: APLFunction, private val savedFrame: StorageSt
     override fun makeKey() = APLValueKeyImpl(this, fn)
 
     fun makeClosure(): APLFunction {
-        return object : APLFunction(fn.pos) {
+        return object : APLFunction(fn.instantiation) {
             override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
                 withSavedStackFrame(savedFrame) {
                     return fn.eval1Arg(context, a, axis)

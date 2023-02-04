@@ -59,7 +59,7 @@ fun compareAPLArrays(a: APLValue, b: APLValue, pos: Position? = null): Int {
     return 0
 }
 
-abstract class GradeFunction(pos: Position) : NoAxisAPLFunction(pos) {
+abstract class GradeFunction(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
     override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
         val aDimensions = a.dimensions
 
@@ -102,19 +102,19 @@ abstract class GradeFunction(pos: Position) : NoAxisAPLFunction(pos) {
 }
 
 class GradeUpFunction : APLFunctionDescriptor {
-    class GradeUpFunctionImpl(pos: Position) : GradeFunction(pos) {
+    class GradeUpFunctionImpl(pos: FunctionInstantiation) : GradeFunction(pos) {
         override fun applyReverse(result: Int) = result
         override val name1Arg get() = "grade up"
     }
 
-    override fun make(pos: Position) = GradeUpFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = GradeUpFunctionImpl(instantiation)
 }
 
 class GradeDownFunction : APLFunctionDescriptor {
-    class GradeDownFunctionImpl(pos: Position) : GradeFunction(pos) {
+    class GradeDownFunctionImpl(pos: FunctionInstantiation) : GradeFunction(pos) {
         override fun applyReverse(result: Int) = -result
         override val name1Arg get() = "grade down"
     }
 
-    override fun make(pos: Position) = GradeDownFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = GradeDownFunctionImpl(instantiation)
 }

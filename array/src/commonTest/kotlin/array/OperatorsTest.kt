@@ -73,7 +73,7 @@ class OperatorsTest : APLTest() {
 
     @Test
     fun customOperatorWithNumberArgument() {
-        class FooCombinedFunction(val fn: APLFunction, val arg: Instruction, pos: Position) : APLFunction(pos) {
+        class FooCombinedFunction(val fn: APLFunction, val arg: Instruction, pos: FunctionInstantiation) : APLFunction(pos) {
             override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
                 val argValue = arg.evalWithContext(context)
                 val c = fn.eval2Arg(context, argValue, a, null)
@@ -82,7 +82,7 @@ class OperatorsTest : APLTest() {
         }
 
         class FooOperator : APLOperatorValueRightArg {
-            override fun combineFunction(fn: APLFunction, instr: Instruction, opPos: Position): APLFunction {
+            override fun combineFunction(fn: APLFunction, instr: Instruction, opPos: FunctionInstantiation): APLFunction {
                 return FooCombinedFunction(fn, instr, opPos)
             }
         }

@@ -60,7 +60,7 @@ class SaveStackSupport : SaveStackCapable {
 }
 
 class ForEachFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescriptor {
-    class ForEachFunctionImpl(pos: Position, fn: APLFunction)
+    class ForEachFunctionImpl(pos: FunctionInstantiation, fn: APLFunction)
         : APLFunction(pos, listOf(fn)), ParallelSupported, SaveStackCapable by SaveStackSupport() {
 
         init {
@@ -93,13 +93,13 @@ class ForEachFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescripto
             return ParallelCompressTaskList.make(res, numTasks, pos)
         }
 
-        override fun copy(fns: List<APLFunction>) = ForEachFunctionImpl(pos, fns[0])
+        override fun copy(fns: List<APLFunction>) = ForEachFunctionImpl(instantiation, fns[0])
 
         val fn = fns[0]
     }
 
-    override fun make(pos: Position): APLFunction {
-        return ForEachFunctionImpl(pos, fnInner)
+    override fun make(instantiation: FunctionInstantiation): APLFunction {
+        return ForEachFunctionImpl(instantiation, fnInner)
     }
 
     companion object {
@@ -131,5 +131,5 @@ class ForEachFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescripto
 }
 
 class ForEachOp : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, pos: Position) = ForEachFunctionDescriptor(fn)
+    override fun combineFunction(fn: APLFunction, pos: FunctionInstantiation) = ForEachFunctionDescriptor(fn)
 }

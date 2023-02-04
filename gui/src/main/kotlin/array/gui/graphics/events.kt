@@ -83,7 +83,7 @@ class ReadEventFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = ReadEventFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = ReadEventFunctionImpl(instantiation)
 }
 
 class ReadEventBlockingFunction : APLFunctionDescriptor {
@@ -103,7 +103,7 @@ class ReadEventBlockingFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = ReadEventBlockingFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = ReadEventBlockingFunctionImpl(instantiation)
 }
 
 class EnableEventsFunction : APLFunctionDescriptor {
@@ -116,7 +116,7 @@ class EnableEventsFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = EnableEventsFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = EnableEventsFunctionImpl(instantiation)
 }
 
 class DisableEventsFunction : APLFunctionDescriptor {
@@ -129,5 +129,5 @@ class DisableEventsFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = DisableEventsFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = DisableEventsFunctionImpl(instantiation)
 }

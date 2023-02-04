@@ -14,7 +14,7 @@ class LineGraphFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = LineGraphFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = LineGraphFunctionImpl(instantiation)
 }
 
 

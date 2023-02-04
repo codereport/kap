@@ -4,19 +4,20 @@ import array.builtins.SaveStackCapable
 import array.builtins.SaveStackSupport
 
 interface APLOperator {
-    fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction
+    fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: FunctionInstantiation): APLFunction
 }
 
 interface APLOperatorOneArg : APLOperator {
-    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction {
+    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: FunctionInstantiation): APLFunction {
         return combineFunction(currentFn, opPos).make(
-            opPos.copy(
-                line = currentFn.pos.line,
-                col = currentFn.pos.col)
+            FunctionInstantiation(
+                opPos.pos.copy(
+                    line = currentFn.pos.line,
+                    col = currentFn.pos.col), opPos.env)
         )
     }
 
-    fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor
+    fun combineFunction(fn: APLFunction, pos: FunctionInstantiation): APLFunctionDescriptor
 }
 
 /**
@@ -44,11 +45,11 @@ fun parseFunctionForOperatorRightArg(parser: APLParser): Either<Pair<APLFunction
                 parser.tokeniser.pushBackToken(tokenWithPos)
                 Either.Right(Pair(token, pos))
             } else {
-                makeFunctionResult(fn.make(pos.withCallerName(token.symbolName)))
+                makeFunctionResult(fn.make(FunctionInstantiation(pos.withCallerName(token.symbolName), parser.currentEnvironment())))
             }
         }
         is OpenFnDef -> {
-            makeFunctionResult(parser.parseFnDefinition(pos).make(pos))
+            makeFunctionResult(parser.parseFnDefinition(pos).make(FunctionInstantiation(pos, parser.currentEnvironment())))
         }
         is OpenParen -> {
             val holder = parser.parseExprToplevel(CloseParen)
@@ -58,7 +59,7 @@ fun parseFunctionForOperatorRightArg(parser: APLParser): Either<Pair<APLFunction
             makeFunctionResult(holder.fn)
         }
         is ApplyToken -> {
-            makeFunctionResult(parser.parseApplyDefinition().make(pos))
+            makeFunctionResult(parser.parseApplyDefinition().make(FunctionInstantiation(pos, parser.currentEnvironment())))
         }
         else -> {
             parser.tokeniser.pushBackToken(tokenWithPos)
@@ -68,16 +69,16 @@ fun parseFunctionForOperatorRightArg(parser: APLParser): Either<Pair<APLFunction
 }
 
 interface APLOperatorTwoArg : APLOperator {
-    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction {
+    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: FunctionInstantiation): APLFunction {
         return when (val res = parseFunctionForOperatorRightArg(aplParser)) {
             is Either.Left -> {
                 val (fn, pos) = res.value
                 val combinedFn = combineFunction(currentFn, fn, opPos)
                 combinedFn.make(
-                    opPos.copy(
-                        endLine = pos.endLine,
-                        endCol = pos.endCol)
-                )
+                    FunctionInstantiation(
+                        opPos.pos.copy(
+                            endLine = pos.endLine,
+                            endCol = pos.endCol), opPos.env))
             }
             is Either.Right -> {
                 val (symbol, pos) = res.value
@@ -86,11 +87,11 @@ interface APLOperatorTwoArg : APLOperator {
         }
     }
 
-    fun combineFunction(fn0: APLFunction, fn1: APLFunction, opPos: Position): APLFunctionDescriptor
+    fun combineFunction(fn0: APLFunction, fn1: APLFunction, opPos: FunctionInstantiation): APLFunctionDescriptor
 }
 
 interface APLOperatorValueRightArg : APLOperator {
-    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction {
+    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: FunctionInstantiation): APLFunction {
         val rightArg = aplParser.parseValue()
         if (rightArg !is ParseResultHolder.InstrParseResult) {
             throw ParseException("Right argument is not a value", rightArg.pos)
@@ -99,11 +100,11 @@ interface APLOperatorValueRightArg : APLOperator {
         return combineFunction(currentFn, rightArg.instr, opPos)
     }
 
-    fun combineFunction(fn: APLFunction, instr: Instruction, opPos: Position): APLFunction
+    fun combineFunction(fn: APLFunction, instr: Instruction, opPos: FunctionInstantiation): APLFunction
 }
 
 interface APLOperatorCombinedRightArg : APLOperator {
-    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction {
+    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: FunctionInstantiation): APLFunction {
         return when (val rightArg = aplParser.parseValue()) {
             is ParseResultHolder.InstrParseResult -> {
                 aplParser.tokeniser.pushBackToken(rightArg.lastToken)
@@ -119,8 +120,8 @@ interface APLOperatorCombinedRightArg : APLOperator {
         }
     }
 
-    fun combineFunctionAndExpr(fn: APLFunction, instr: Instruction, opPos: Position): APLFunctionDescriptor
-    fun combineFunctions(fn1: APLFunction, fn2: APLFunction, opPos: Position): APLFunctionDescriptor
+    fun combineFunctionAndExpr(fn: APLFunction, instr: Instruction, opPos: FunctionInstantiation): APLFunctionDescriptor
+    fun combineFunctions(fn1: APLFunction, fn2: APLFunction, opPos: FunctionInstantiation): APLFunctionDescriptor
 }
 
 class UserDefinedOperatorOneArg(
@@ -131,15 +132,15 @@ class UserDefinedOperatorOneArg(
     val instr: Instruction,
     val env: Environment
 ) : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor {
+    override fun combineFunction(fn: APLFunction, pos: FunctionInstantiation): APLFunctionDescriptor {
         return object : APLFunctionDescriptor {
-            override fun make(pos: Position): APLFunction {
-                return UserDefinedOperatorFn(fn, pos)
+            override fun make(instantiation: FunctionInstantiation): APLFunction {
+                return UserDefinedOperatorFn(fn, instantiation)
             }
         }
     }
 
-    inner class UserDefinedOperatorFn(val opFn: APLFunction, pos: Position) : NoAxisAPLFunction(pos) {
+    inner class UserDefinedOperatorFn(val opFn: APLFunction, pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         private val operatorRef = StackStorageRef(opBinding)
         private val leftArgsRef = leftArgs.map(::StackStorageRef)
         private val rightArgsRef = rightArgs.map(::StackStorageRef)
@@ -174,14 +175,14 @@ class UserDefinedOperatorTwoArg(
     val instr: Instruction,
     val env: Environment
 ) : APLOperator {
-    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: Position): APLFunction {
+    override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: FunctionInstantiation): APLFunction {
         return when (val res = parseFunctionForOperatorRightArg(aplParser)) {
             is Either.Left -> {
                 val (fn, pos) = res.value
                 FnCall(
                     currentFn,
                     fn,
-                    opPos.copy(endLine = pos.endLine, endCol = pos.endCol))
+                    FunctionInstantiation(opPos.pos.copy(endLine = pos.endLine, endCol = pos.endCol), opPos.env))
             }
             is Either.Right -> {
                 val valueArg = aplParser.parseValue()
@@ -189,13 +190,13 @@ class UserDefinedOperatorTwoArg(
                 when (valueArg) {
                     is ParseResultHolder.FnParseResult -> throw ParseException("Function not allowed", valueArg.pos)
                     is ParseResultHolder.InstrParseResult -> ValueCall(currentFn, valueArg.instr, opPos)
-                    is ParseResultHolder.EmptyParseResult -> throw ParseException("No right argument given", opPos)
+                    is ParseResultHolder.EmptyParseResult -> throw ParseException("No right argument given", opPos.pos)
                 }
             }
         }
     }
 
-    abstract inner class APLUserDefinedOperatorFunction(leftFn: APLFunction, extraFns: List<APLFunction>, pos: Position) :
+    abstract inner class APLUserDefinedOperatorFunction(leftFn: APLFunction, extraFns: List<APLFunction>, pos: FunctionInstantiation) :
             NoAxisAPLFunction(pos, listOf(leftFn) + extraFns), SaveStackCapable by SaveStackSupport() {
         private val leftOperatorRef = StackStorageRef(leftOpBinding)
         private val rightOperatorRef = StackStorageRef(rightOpBinding)
@@ -230,7 +231,7 @@ class UserDefinedOperatorTwoArg(
         private val leftFn = fns[0]
     }
 
-    inner class FnCall(leftFn: APLFunction, rightFn: APLFunction, pos: Position) :
+    inner class FnCall(leftFn: APLFunction, rightFn: APLFunction, pos: FunctionInstantiation) :
             APLUserDefinedOperatorFunction(leftFn, listOf(rightFn), pos) {
         init {
             computeCapturedEnvs(leftFn, rightFn)
@@ -240,7 +241,7 @@ class UserDefinedOperatorTwoArg(
         private val rightFn = fns[1]
     }
 
-    inner class ValueCall(leftFn: APLFunction, val argInstr: Instruction, pos: Position) :
+    inner class ValueCall(leftFn: APLFunction, val argInstr: Instruction, pos: FunctionInstantiation) :
             APLUserDefinedOperatorFunction(leftFn, emptyList(), pos) {
         init {
             computeCapturedEnvs(leftFn)
@@ -251,7 +252,7 @@ class UserDefinedOperatorTwoArg(
 }
 
 class InverseFnFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
-    inner class InverseFn(pos: Position) : APLFunction(pos) {
+    inner class InverseFn(pos: FunctionInstantiation) : APLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             return fn.evalInverse1Arg(context, a, axis)
         }
@@ -261,11 +262,11 @@ class InverseFnFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = InverseFn(pos)
+    override fun make(instantiation: FunctionInstantiation) = InverseFn(instantiation)
 }
 
 class InverseFnOp : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor {
+    override fun combineFunction(fn: APLFunction, pos: FunctionInstantiation): APLFunctionDescriptor {
         return InverseFnFunctionDescriptor(fn)
     }
 }

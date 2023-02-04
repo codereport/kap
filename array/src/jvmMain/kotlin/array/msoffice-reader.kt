@@ -118,7 +118,7 @@ fun fillInCell(cell: Cell, v: APLValue) {
 }
 
 class LoadExcelFileFunction : APLFunctionDescriptor {
-    class LoadExcelFileFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class LoadExcelFileFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val filename = a.toStringValue(pos)
             try {
@@ -134,11 +134,11 @@ class LoadExcelFileFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = LoadExcelFileFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = LoadExcelFileFunctionImpl(instantiation)
 }
 
 class SaveExcelFileFunction : APLFunctionDescriptor {
-    class SaveExcelFileFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class SaveExcelFileFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val fileName = a.toStringValue(pos)
             saveExcelFile(b, fileName)
@@ -146,7 +146,7 @@ class SaveExcelFileFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = SaveExcelFileFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = SaveExcelFileFunctionImpl(instantiation)
 }
 
 
