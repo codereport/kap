@@ -10,8 +10,24 @@ import kotlin.jvm.JvmInline
 import kotlin.jvm.Volatile
 import kotlin.reflect.KClass
 
+/**
+ * Class that holds information about the context in which a function is materialised in the code.
+ * In short, an [APLFunctionDescriptor] describes a function itself. When a function call is
+ * expressed in code, the [APLFunctionDescriptor.make] function is called to create an instance
+ * of [APLFunction] which represents a particular invocation of the function at a particular
+ * place in the code. This place is represented by an instance of this class.
+ *
+ * @param pos The position in the code where the function was materialised
+ * @param env The environment where the function is called
+ */
+class FunctionInstantiation(val pos: Position, val env: Environment) {
+    inline fun updatePos(fn: (Position) -> Position): FunctionInstantiation {
+        return FunctionInstantiation(fn(pos), env)
+    }
+}
+
 interface APLFunctionDescriptor {
-    fun make(pos: Position): APLFunction
+    fun make(instantiation: FunctionInstantiation): APLFunction
 }
 
 @JvmInline
@@ -72,18 +88,24 @@ class StorageStack private constructor() {
 
     fun copy() = StorageStack(stack)
 
-    @OptIn(ExperimentalContracts::class)
-    inline fun <T> withStackFrame(environment: Environment, name: String, pos: Position, fn: (StorageStackFrame) -> T): T {
-        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+    inline fun withStackFrame(environment: Environment, name: String, pos: Position, crossinline fn: (StorageStackFrame) -> APLValue): APLValue {
         val frame = StorageStackFrame(environment, name, pos)
         stack.add(frame)
+        var result: APLValue
         try {
-            return fn(frame)
+            result = fn(frame)
+        } catch (retValue: ReturnValue) {
+            if (environment.returnTarget) {
+                result = retValue.value
+            } else {
+                throw retValue
+            }
         } finally {
             val removed = stack.removeLast()
             assertx(removed === frame) { "Removed frame does not match inserted frame" }
             frame.fireReleaseCallbacks()
         }
+        return result
     }
 
     fun findStorage(storageRef: StackStorageRef): VariableHolder {
@@ -291,6 +313,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("%", CaseFunction())
         registerNativeFunction("⊆", PartitionedEncloseFunction())
         registerNativeFunction("cmp", CompareObjectsFunction())
+        registerNativeFunction("→", ReturnFunction())
 
         // hash tables
         registerNativeFunction("map", MapAPLFunction())
@@ -617,7 +640,7 @@ class Engine(numComputeEngines: Int? = null) {
 }
 
 class CloseAPLFunction : APLFunctionDescriptor {
-    class CloseAPLFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class CloseAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val value = a.collapseFirstLevel()
             context.engine.callClosableHandler(value, pos)
@@ -627,7 +650,7 @@ class CloseAPLFunction : APLFunctionDescriptor {
         override val name1Arg: String get() = "close"
     }
 
-    override fun make(pos: Position) = CloseAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = CloseAPLFunctionImpl(instantiation)
 }
 
 fun throwAPLException(ex: APLEvalException): Nothing {
@@ -645,10 +668,10 @@ class VariableHolder {
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun <T> withLinkedContext(env: Environment, name: String, pos: Position, fn: () -> T): T {
+inline fun withLinkedContext(env: Environment, name: String, pos: Position, crossinline fn: () -> APLValue): APLValue {
     contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
-    currentStack().withStackFrame(env, name, pos) {
-        return fn()
+    return currentStack().withStackFrame(env, name, pos) {
+        fn()
     }
 }
 
@@ -667,11 +690,6 @@ class RuntimeContext(val engine: Engine) {
         val stack = currentStack()
         val holder = stack.findStorage(storageRef)
         holder.value = value
-    }
-
-    fun getVar(storageRef: StackStorageRef): APLValue? {
-        val holder = currentStack().findStorage(storageRef)
-        return holder.value
     }
 
     fun assignArgs(args: List<StackStorageRef>, a: APLValue, pos: Position? = null) {

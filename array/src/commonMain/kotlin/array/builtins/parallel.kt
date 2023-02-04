@@ -125,16 +125,16 @@ class ParallelCompressTaskList(val value: APLValue, numTasks: Int, val pos: Posi
 }
 
 class ParallelOp : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor {
+    override fun combineFunction(fn: APLFunction, pos: FunctionInstantiation): APLFunctionDescriptor {
         if (fn !is ParallelSupported) {
-            throw ParallelNotSupported(pos)
+            throw ParallelNotSupported(pos.pos)
         }
         return ParallelHandler(fn)
     }
 }
 
 private class ParallelHandler(val derived: ParallelSupported, val numTasksWeightFactor: Double = 10.0) : APLFunctionDescriptor {
-    inner class ParallelHandlerImpl(pos: Position) : APLFunction(pos) {
+    inner class ParallelHandlerImpl(pos: FunctionInstantiation) : APLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             checkNotIsInComputeThread(context.engine)
             val parallelTaskList = derived.computeParallelTasks1Arg(context, computeNumEngines(context), a, axis)
@@ -177,5 +177,5 @@ private class ParallelHandler(val derived: ParallelSupported, val numTasksWeight
         }
     }
 
-    override fun make(pos: Position) = ParallelHandlerImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = ParallelHandlerImpl(instantiation)
 }

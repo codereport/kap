@@ -9,7 +9,11 @@ package array
  * @param pos The position where the function was defined.
  * @param fns A list of functions that is used to implement this function.
  */
-abstract class APLFunction(val pos: Position, val fns: List<APLFunction> = emptyList()) {
+abstract class APLFunction(instantiation: FunctionInstantiation, val fns: List<APLFunction> = emptyList()) {
+    val pos = instantiation.pos
+    val envx = instantiation.env
+    val instantiation get() = FunctionInstantiation(pos, envx)
+
     open fun evalArgsAndCall1Arg(context: RuntimeContext, rightArgs: Instruction): APLValue {
         val rightValue = rightArgs.evalWithContext(context)
         return eval1Arg(context, rightValue, null)
@@ -130,7 +134,7 @@ abstract class APLFunction(val pos: Position, val fns: List<APLFunction> = empty
     }
 }
 
-abstract class NoAxisAPLFunction(pos: Position, fns: List<APLFunction> = emptyList()) : APLFunction(pos, fns) {
+abstract class NoAxisAPLFunction(pos: FunctionInstantiation, fns: List<APLFunction> = emptyList()) : APLFunction(pos, fns) {
     private fun checkAxisNotNull(axis: APLValue?) {
         if (axis != null) {
             throwAPLException(AxisNotSupported(pos))
@@ -178,7 +182,7 @@ abstract class NoAxisAPLFunction(pos: Position, fns: List<APLFunction> = emptyLi
         throwAPLException(InverseNotAvailable(pos))
 }
 
-abstract class DelegatedAPLFunctionImpl(pos: Position, fns: List<APLFunction> = emptyList()) : APLFunction(pos, fns) {
+abstract class DelegatedAPLFunctionImpl(pos: FunctionInstantiation, fns: List<APLFunction> = emptyList()) : APLFunction(pos, fns) {
     override fun evalArgsAndCall1Arg(context: RuntimeContext, rightArgs: Instruction) =
         innerImpl().evalArgsAndCall1Arg(context, rightArgs)
 
@@ -246,7 +250,7 @@ class DeclaredFunction(
     val rightArgName: EnvironmentBinding,
     val env: Environment
 ) : APLFunctionDescriptor {
-    inner class DeclaredFunctionImpl(pos: Position) : APLFunction(pos) {
+    inner class DeclaredFunctionImpl(pos: FunctionInstantiation) : APLFunction(pos) {
         private val leftArgRef = StackStorageRef(leftArgName)
         private val rightArgRef = StackStorageRef(rightArgName)
 
@@ -271,7 +275,7 @@ class DeclaredFunction(
         override val name2Arg: String get() = name
     }
 
-    override fun make(pos: Position) = DeclaredFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = DeclaredFunctionImpl(instantiation)
 }
 
 /**
@@ -279,7 +283,7 @@ class DeclaredFunction(
  * where the functions are only used to provide code structure and not directly called by the user.
  */
 class DeclaredNonBoundFunction(val instruction: Instruction) : APLFunctionDescriptor {
-    inner class DeclaredNonBoundFunctionImpl(pos: Position) : APLFunction(pos) {
+    inner class DeclaredNonBoundFunctionImpl(pos: FunctionInstantiation) : APLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             return instruction.evalWithContext(context)
         }
@@ -289,10 +293,10 @@ class DeclaredNonBoundFunction(val instruction: Instruction) : APLFunctionDescri
         }
     }
 
-    override fun make(pos: Position) = DeclaredNonBoundFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = DeclaredNonBoundFunctionImpl(instantiation)
 }
 
-class LeftAssignedFunction(val underlying: APLFunction, val leftArgs: Instruction, pos: Position) : APLFunction(pos) {
+class LeftAssignedFunction(val underlying: APLFunction, val leftArgs: Instruction, pos: FunctionInstantiation) : APLFunction(pos) {
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
         val leftArg = leftArgs.evalWithContext(context)
         return underlying.eval2Arg(context, leftArg, a, axis)
@@ -331,13 +335,13 @@ class LeftAssignedFunction(val underlying: APLFunction, val leftArgs: Instructio
         val ref = StackStorageRef(binding)
         val list = mutableListOf<Instruction>(AssignmentInstruction(arrayOf(ref), leftArgs, pos))
         list.addAll(relatedInstrs)
-        return Pair(LeftAssignedFunction(innerFn, VariableRef(sym, ref, pos), pos), list)
+        return Pair(LeftAssignedFunction(innerFn, VariableRef(sym, ref, pos), FunctionInstantiation(pos, parser.currentEnvironment())), list)
     }
 
     override val name1Arg get() = underlying.name2Arg
 }
 
-class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction) : NoAxisAPLFunction(baseFn.pos, listOf(baseFn)) {
+class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction) : NoAxisAPLFunction(baseFn.instantiation, listOf(baseFn)) {
     private val baseFn get() = fns[0]
 
     override fun evalArgsAndCall1Arg(context: RuntimeContext, rightArgs: Instruction): APLValue {
@@ -384,7 +388,7 @@ class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction) 
     }
 }
 
-class AxisValAssignedFunctionAxisReader(baseFn: APLFunction, val axisReader: Instruction) : NoAxisAPLFunction(baseFn.pos, listOf(baseFn)) {
+class AxisValAssignedFunctionAxisReader(baseFn: APLFunction, val axisReader: Instruction) : NoAxisAPLFunction(baseFn.instantiation, listOf(baseFn)) {
     private val baseFn get() = fns[0]
 
     override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
@@ -408,7 +412,7 @@ class AxisValAssignedFunctionAxisReader(baseFn: APLFunction, val axisReader: Ins
     }
 }
 
-class MergedLeftArgFunction(fn0: APLFunction, fn1: APLFunction) : NoAxisAPLFunction(fn0.pos, listOf(fn0, fn1)) {
+class MergedLeftArgFunction(fn0: APLFunction, fn1: APLFunction) : NoAxisAPLFunction(fn0.instantiation, listOf(fn0, fn1)) {
     private val fn0 get() = fns[0]
     private val fn1 get() = fns[1]
 

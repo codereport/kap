@@ -18,7 +18,7 @@ class ExpandValue(override val dimensions: Dimensions, val axis: Int, val value:
     }
 }
 
-abstract class ExpandFunctionImpl(pos: Position) : APLFunction(pos) {
+abstract class ExpandFunctionImpl(pos: FunctionInstantiation) : APLFunction(pos) {
     abstract fun defaultAxis(dimensions: Dimensions): Int
 
     override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
@@ -67,21 +67,21 @@ abstract class ExpandFunctionImpl(pos: Position) : APLFunction(pos) {
 }
 
 class ExpandFirstAxisFunction : APLFunctionDescriptor {
-    class ExpandFirstAxisFunctionImpl(pos: Position) : ExpandFunctionImpl(pos) {
+    class ExpandFirstAxisFunctionImpl(pos: FunctionInstantiation) : ExpandFunctionImpl(pos) {
         override fun defaultAxis(dimensions: Dimensions) = 0
 
         override val name2Arg get() = "expand first axis"
     }
 
-    override fun make(pos: Position) = ExpandFirstAxisFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = ExpandFirstAxisFunctionImpl(instantiation)
 }
 
 class ExpandLastAxisFunction : APLFunctionDescriptor {
-    class ExpandLastAxisFunctionImpl(pos: Position) : ExpandFunctionImpl(pos) {
+    class ExpandLastAxisFunctionImpl(pos: FunctionInstantiation) : ExpandFunctionImpl(pos) {
         override fun defaultAxis(dimensions: Dimensions) = dimensions.lastAxis(pos)
 
         override val name2Arg get() = "expand last axis"
     }
 
-    override fun make(pos: Position) = ExpandLastAxisFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = ExpandLastAxisFunctionImpl(instantiation)
 }

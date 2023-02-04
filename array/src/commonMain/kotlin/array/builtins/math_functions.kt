@@ -149,7 +149,7 @@ class LongArraySum2ArgsRightScalar(
     }
 }
 
-abstract class MathCombineAPLFunction(pos: Position) : APLFunction(pos) {
+abstract class MathCombineAPLFunction(pos: FunctionInstantiation) : APLFunction(pos) {
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
         if (a is APLSingleValue) {
             return combine1Arg(a)
@@ -260,7 +260,7 @@ abstract class MathCombineAPLFunction(pos: Position) : APLFunction(pos) {
     override fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?) = combine2ArgDouble(a, b)
 }
 
-abstract class MathNumericCombineAPLFunction(pos: Position) : MathCombineAPLFunction(pos) {
+abstract class MathNumericCombineAPLFunction(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
     override fun combine1Arg(a: APLSingleValue): APLValue = numberCombine1Arg(a.ensureNumber(pos))
     override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue =
         numberCombine2Arg(a.ensureNumber(pos), b.ensureNumber(pos))
@@ -270,7 +270,7 @@ abstract class MathNumericCombineAPLFunction(pos: Position) : MathCombineAPLFunc
 }
 
 class AddAPLFunction : APLFunctionDescriptor {
-    class AddAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class AddAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -323,11 +323,11 @@ class AddAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "add"
     }
 
-    override fun make(pos: Position) = AddAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = AddAPLFunctionImpl(instantiation)
 }
 
 class SubAPLFunction : APLFunctionDescriptor {
-    class SubAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class SubAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -379,11 +379,11 @@ class SubAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "subtract"
     }
 
-    override fun make(pos: Position) = SubAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = SubAPLFunctionImpl(instantiation)
 }
 
 class MulAPLFunction : APLFunctionDescriptor {
-    class MulAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class MulAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -427,11 +427,11 @@ class MulAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "multiply"
     }
 
-    override fun make(pos: Position) = MulAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = MulAPLFunctionImpl(instantiation)
 }
 
 class DivAPLFunction : APLFunctionDescriptor {
-    class DivAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class DivAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -481,11 +481,11 @@ class DivAPLFunction : APLFunctionDescriptor {
             get() = "divide"
     }
 
-    override fun make(pos: Position) = DivAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = DivAPLFunctionImpl(instantiation)
 }
 
 class NotAPLFunction : APLFunctionDescriptor {
-    class NotAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class NotAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -542,13 +542,13 @@ class NotAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "without"
     }
 
-    override fun make(pos: Position): APLFunction {
-        return NotAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation): APLFunction {
+        return NotAPLFunctionImpl(instantiation)
     }
 }
 
 class ModAPLFunction : APLFunctionDescriptor {
-    class ModAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class ModAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -583,11 +583,11 @@ class ModAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "mod"
     }
 
-    override fun make(pos: Position) = ModAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = ModAPLFunctionImpl(instantiation)
 }
 
 class PowerAPLFunction : APLFunctionDescriptor {
-    class PowerAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class PowerAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -629,7 +629,7 @@ class PowerAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "pow"
     }
 
-    override fun make(pos: Position) = PowerAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = PowerAPLFunctionImpl(instantiation)
 }
 
 fun complexFloor(z: Complex): Complex {
@@ -657,7 +657,7 @@ fun complexMod(a: Complex, b: Complex): Complex {
 }
 
 class MinAPLFunction : APLFunctionDescriptor {
-    class MinAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class MinAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun combine1Arg(a: APLSingleValue): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -687,7 +687,7 @@ class MinAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "min"
     }
 
-    override fun make(pos: Position) = MinAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = MinAPLFunctionImpl(instantiation)
 }
 
 fun complexCeiling(value: Complex): Complex {
@@ -695,7 +695,7 @@ fun complexCeiling(value: Complex): Complex {
 }
 
 class MaxAPLFunction : APLFunctionDescriptor {
-    class MaxAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class MaxAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun combine1Arg(a: APLSingleValue): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -725,11 +725,11 @@ class MaxAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "max"
     }
 
-    override fun make(pos: Position) = MaxAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = MaxAPLFunctionImpl(instantiation)
 }
 
 class LogAPLFunction : APLFunctionDescriptor {
-    class LogAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class LogAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun combine1Arg(a: APLSingleValue): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -769,11 +769,11 @@ class LogAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "log"
     }
 
-    override fun make(pos: Position) = LogAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = LogAPLFunctionImpl(instantiation)
 }
 
 class SinAPLFunction : APLFunctionDescriptor {
-    class SinAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class SinAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -786,11 +786,11 @@ class SinAPLFunction : APLFunctionDescriptor {
         override val name1Arg get() = "sin"
     }
 
-    override fun make(pos: Position) = SinAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = SinAPLFunctionImpl(instantiation)
 }
 
 class CosAPLFunction : APLFunctionDescriptor {
-    class CosAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class CosAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -801,47 +801,47 @@ class CosAPLFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = CosAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = CosAPLFunctionImpl(instantiation)
 }
 
 class TanAPLFunction : APLFunctionDescriptor {
-    class TanAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class TanAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber) = APLDouble(tan(a.asDouble()))
         override val name1Arg get() = "tan"
     }
 
-    override fun make(pos: Position) = TanAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = TanAPLFunctionImpl(instantiation)
 }
 
 class AsinAPLFunction : APLFunctionDescriptor {
-    class AsinAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class AsinAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber) = APLDouble(asin(a.asDouble()))
         override val name1Arg get() = "asin"
     }
 
-    override fun make(pos: Position) = AsinAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = AsinAPLFunctionImpl(instantiation)
 }
 
 class AcosAPLFunction : APLFunctionDescriptor {
-    class AcosAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class AcosAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber) = APLDouble(acos(a.asDouble()))
         override val name1Arg get() = "acos"
     }
 
-    override fun make(pos: Position) = AcosAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = AcosAPLFunctionImpl(instantiation)
 }
 
 class AtanAPLFunction : APLFunctionDescriptor {
-    class AtanAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class AtanAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber) = APLDouble(atan(a.asDouble()))
         override val name1Arg get() = "atan"
     }
 
-    override fun make(pos: Position) = AtanAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = AtanAPLFunctionImpl(instantiation)
 }
 
 class SqrtAPLFunction : APLFunctionDescriptor {
-    class SqrtAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class SqrtAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -881,11 +881,11 @@ class SqrtAPLFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = SqrtAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = SqrtAPLFunctionImpl(instantiation)
 }
 
 class AndAPLFunction : APLFunctionDescriptor {
-    class AndAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class AndAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
             return numericRelationOperation(
                 pos,
@@ -919,11 +919,11 @@ class AndAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "and"
     }
 
-    override fun make(pos: Position) = AndAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = AndAPLFunctionImpl(instantiation)
 }
 
 class NandAPLFunction : APLFunctionDescriptor {
-    class NandAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class NandAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
             return numericRelationOperation(
                 pos,
@@ -967,11 +967,11 @@ class NandAPLFunction : APLFunctionDescriptor {
         override val name1Arg get() = "nand"
     }
 
-    override fun make(pos: Position) = NandAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = NandAPLFunctionImpl(instantiation)
 }
 
 class NorAPLFunction : APLFunctionDescriptor {
-    class NorAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class NorAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
             return numericRelationOperation(
                 pos,
@@ -1015,7 +1015,7 @@ class NorAPLFunction : APLFunctionDescriptor {
         override val name1Arg get() = "nor"
     }
 
-    override fun make(pos: Position) = NorAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = NorAPLFunctionImpl(instantiation)
 }
 
 fun integerGcd(m: Long, n: Long): Long {
@@ -1079,7 +1079,7 @@ fun complexGcd(a: Complex, b: Complex): Complex {
 }
 
 class OrAPLFunction : APLFunctionDescriptor {
-    class OrAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class OrAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
             return numericRelationOperation(pos,
                 a,
@@ -1113,11 +1113,11 @@ class OrAPLFunction : APLFunctionDescriptor {
         override val name1Arg get() = "or"
     }
 
-    override fun make(pos: Position) = OrAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = OrAPLFunctionImpl(instantiation)
 }
 
 class BinomialAPLFunction : APLFunctionDescriptor {
-    class BinomialAPLFunctionImpl(pos: Position) : MathNumericCombineAPLFunction(pos) {
+    class BinomialAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber): APLValue {
             return singleArgNumericRelationOperation(pos, a,
                 { x -> doubleGamma((x + 1).toDouble()).makeAPLNumber() },
@@ -1163,5 +1163,5 @@ class BinomialAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "binomial"
     }
 
-    override fun make(pos: Position) = BinomialAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = BinomialAPLFunctionImpl(instantiation)
 }

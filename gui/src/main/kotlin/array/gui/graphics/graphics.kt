@@ -63,7 +63,7 @@ class MakeGraphicFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = MakeGraphicFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = MakeGraphicFunctionImpl(instantiation)
 }
 
 private fun arrayToKeywords(engine: Engine, a: APLValue, pos: Position, allowed: List<String>): Set<String> {
@@ -111,7 +111,7 @@ class DrawGraphicFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = DrawGraphicFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = DrawGraphicFunctionImpl(instantiation)
 }
 
 typealias EventType = KClass<out KapWindowEvent>

@@ -110,7 +110,7 @@ class PartitionedValue(val b: APLValue, val axis: Int, val partitionIndexes: Lis
 }
 
 class EncloseAPLFunction : APLFunctionDescriptor {
-    class EncloseAPLFunctionImpl(pos: Position) : APLFunction(pos) {
+    class EncloseAPLFunctionImpl(pos: FunctionInstantiation) : APLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             val v = a.unwrapDeferredValue()
             return if (axis == null) {
@@ -217,7 +217,7 @@ class EncloseAPLFunction : APLFunctionDescriptor {
         override val name1Arg get() = "enclose"
     }
 
-    override fun make(pos: Position) = EncloseAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = EncloseAPLFunctionImpl(instantiation)
 }
 
 class DisclosedArrayValue(value: APLValue) : APLArray() {
@@ -312,7 +312,7 @@ class DisclosedArrayValue(value: APLValue) : APLArray() {
 }
 
 class DiscloseAPLFunction : APLFunctionDescriptor {
-    class DiscloseAPLFunctionImpl(pos: Position) : APLFunction(pos) {
+    class DiscloseAPLFunctionImpl(pos: FunctionInstantiation) : APLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             val v = a.unwrapDeferredValue()
             return when {
@@ -404,7 +404,7 @@ class DiscloseAPLFunction : APLFunctionDescriptor {
         override val name2Arg get() = "pick"
     }
 
-    override fun make(pos: Position) = DiscloseAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = DiscloseAPLFunctionImpl(instantiation)
 
     companion object {
         fun discloseValue(value: APLValue): APLValue {
@@ -420,7 +420,7 @@ class DiscloseAPLFunction : APLFunctionDescriptor {
 }
 
 class PartitionedEncloseFunction : APLFunctionDescriptor {
-    class PartitionedEncloseFunctionImpl(pos: Position) : APLFunction(pos) {
+    class PartitionedEncloseFunctionImpl(pos: FunctionInstantiation) : APLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             val axisInt = computeAxis(b, axis, pos)
             val aDimensions = a.dimensions
@@ -466,7 +466,7 @@ class PartitionedEncloseFunction : APLFunctionDescriptor {
         override val name2Arg get() = "partitioned enclose"
     }
 
-    override fun make(pos: Position) = PartitionedEncloseFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = PartitionedEncloseFunctionImpl(instantiation)
 }
 
 private fun computeAxis(b: APLValue, axis: APLValue?, pos: Position? = null): Int {

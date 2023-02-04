@@ -16,7 +16,7 @@ private fun regexpFromValue(a: APLValue, pos: Position): Regex {
 }
 
 class RegexpMatchesFunction : APLFunctionDescriptor {
-    class RegexpMatchesFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class RegexpMatchesFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val matchString = b.toStringValue(pos)
             val regexp = regexpFromValue(a, pos)
@@ -26,11 +26,11 @@ class RegexpMatchesFunction : APLFunctionDescriptor {
         override val name2Arg get() = "match regexp"
     }
 
-    override fun make(pos: Position) = RegexpMatchesFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = RegexpMatchesFunctionImpl(instantiation)
 }
 
 class RegexpFindFunction : APLFunctionDescriptor {
-    class RegexpFindFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class RegexpFindFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val matchString = b.toStringValue(pos)
             val regexp = regexpFromValue(a, pos)
@@ -41,7 +41,7 @@ class RegexpFindFunction : APLFunctionDescriptor {
         override val name2Arg get() = "find regexp"
     }
 
-    override fun make(pos: Position) = RegexpFindFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = RegexpFindFunctionImpl(instantiation)
 }
 
 private fun makeAPLValueFromGroups(result: MatchResult, context: RuntimeContext): APLArrayImpl {
@@ -62,7 +62,7 @@ private fun makeAPLValueFromGroups(result: MatchResult, context: RuntimeContext)
 }
 
 class RegexpSplitFunction : APLFunctionDescriptor {
-    class RegexpSplitFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class RegexpSplitFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val matchString = b.toStringValue(pos)
             val regexp = regexpFromValue(a, pos)
@@ -73,7 +73,7 @@ class RegexpSplitFunction : APLFunctionDescriptor {
         override val name2Arg get() = "split regexp"
     }
 
-    override fun make(pos: Position) = RegexpSplitFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = RegexpSplitFunctionImpl(instantiation)
 }
 
 class RegexpMatcherValue(val matcher: Regex) : APLSingleValue() {
@@ -84,7 +84,7 @@ class RegexpMatcherValue(val matcher: Regex) : APLSingleValue() {
 }
 
 class CreateRegexpFunction : APLFunctionDescriptor {
-    class CreateRegexpFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class CreateRegexpFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             return RegexpMatcherValue(toRegexpWithException(a.toStringValue(pos), emptySet()))
         }
@@ -115,11 +115,11 @@ class CreateRegexpFunction : APLFunctionDescriptor {
         override val name1Arg get() = "create regexp"
     }
 
-    override fun make(pos: Position) = CreateRegexpFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = CreateRegexpFunctionImpl(instantiation)
 }
 
 class RegexpReplaceFunction : APLFunctionDescriptor {
-    class RegexpReplaceFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class RegexpReplaceFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val regexp = regexpFromValue(a, pos)
             val args = b.listify()
@@ -146,7 +146,7 @@ class RegexpReplaceFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = RegexpReplaceFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = RegexpReplaceFunctionImpl(instantiation)
 }
 
 class RegexpModule : KapModule {

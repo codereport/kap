@@ -151,7 +151,7 @@ class ReduceNWiseResultValue(
 }
 
 @Suppress("LeakingThis")
-abstract class ReduceFunctionImpl(val fn: APLFunction, pos: Position) : APLFunction(pos), SaveStackCapable by SaveStackSupport() {
+abstract class ReduceFunctionImpl(val fn: APLFunction, pos: FunctionInstantiation) : APLFunction(pos), SaveStackCapable by SaveStackSupport() {
     init {
         computeCapturedEnvs(fn)
     }
@@ -206,36 +206,36 @@ abstract class ReduceFunctionImpl(val fn: APLFunction, pos: Position) : APLFunct
     abstract fun defaultAxis(a: APLValue): Int
 }
 
-class ReduceFunctionImplLastAxis(fn: APLFunction, pos: Position) : ReduceFunctionImpl(fn, pos) {
+class ReduceFunctionImplLastAxis(fn: APLFunction, pos: FunctionInstantiation) : ReduceFunctionImpl(fn, pos) {
     override fun defaultAxis(a: APLValue) = a.dimensions.size - 1
     override val name1Arg = "reduce last axis [${fn.name2Arg}]"
 }
 
-class ReduceFunctionImplFirstAxis(fn: APLFunction, pos: Position) : ReduceFunctionImpl(fn, pos) {
+class ReduceFunctionImplFirstAxis(fn: APLFunction, pos: FunctionInstantiation) : ReduceFunctionImpl(fn, pos) {
     override fun defaultAxis(a: APLValue) = 0
     override val name1Arg = "reduce first axis [${fn.name2Arg}]"
 }
 
 class ReduceOpLastAxis : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor {
+    override fun combineFunction(fn: APLFunction, pos: FunctionInstantiation): APLFunctionDescriptor {
         return ReduceOpFunctionDescriptor(fn)
     }
 
     class ReduceOpFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
-        override fun make(pos: Position): APLFunction {
-            return ReduceFunctionImplLastAxis(fn, pos)
+        override fun make(instantiation: FunctionInstantiation): APLFunction {
+            return ReduceFunctionImplLastAxis(fn, instantiation)
         }
     }
 }
 
 class ReduceOpFirstAxis : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor {
+    override fun combineFunction(fn: APLFunction, pos: FunctionInstantiation): APLFunctionDescriptor {
         return ReduceOpFunctionDescriptor(fn)
     }
 
     class ReduceOpFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
-        override fun make(pos: Position): APLFunction {
-            return ReduceFunctionImplFirstAxis(fn, pos)
+        override fun make(instantiation: FunctionInstantiation): APLFunction {
+            return ReduceFunctionImplFirstAxis(fn, instantiation)
         }
     }
 }
@@ -279,7 +279,7 @@ class ScanResult1Arg(val context: RuntimeContext, val fn: APLFunction, val fnAxi
     }
 }
 
-abstract class ScanFunctionImpl(val fn: APLFunction, pos: Position) : APLFunction(pos) {
+abstract class ScanFunctionImpl(val fn: APLFunction, pos: FunctionInstantiation) : APLFunction(pos) {
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
         val axisParam = if (axis != null) axis.ensureNumber(pos).asInt(pos) else null
         return if (a.rank == 0) {
@@ -297,34 +297,34 @@ abstract class ScanFunctionImpl(val fn: APLFunction, pos: Position) : APLFunctio
     abstract fun defaultAxis(a: APLValue): Int
 }
 
-class ScanLastAxisFunctionImpl(fn: APLFunction, pos: Position) : ScanFunctionImpl(fn, pos) {
+class ScanLastAxisFunctionImpl(fn: APLFunction, pos: FunctionInstantiation) : ScanFunctionImpl(fn, pos) {
     override fun defaultAxis(a: APLValue) = a.dimensions.size - 1
 }
 
-class ScanFirstAxisFunctionImpl(fn: APLFunction, pos: Position) : ScanFunctionImpl(fn, pos) {
+class ScanFirstAxisFunctionImpl(fn: APLFunction, pos: FunctionInstantiation) : ScanFunctionImpl(fn, pos) {
     override fun defaultAxis(a: APLValue) = 0
 }
 
 class ScanLastAxisOp : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor {
+    override fun combineFunction(fn: APLFunction, pos: FunctionInstantiation): APLFunctionDescriptor {
         return ScanOpFunctionDescriptor(fn)
     }
 
     class ScanOpFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
-        override fun make(pos: Position): APLFunction {
-            return ScanLastAxisFunctionImpl(fn, pos)
+        override fun make(instantiation: FunctionInstantiation): APLFunction {
+            return ScanLastAxisFunctionImpl(fn, instantiation)
         }
     }
 }
 
 class ScanFirstAxisOp : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor {
+    override fun combineFunction(fn: APLFunction, pos: FunctionInstantiation): APLFunctionDescriptor {
         return ScanOpFunctionDescriptor(fn)
     }
 
     class ScanOpFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
-        override fun make(pos: Position): APLFunction {
-            return ScanFirstAxisFunctionImpl(fn, pos)
+        override fun make(instantiation: FunctionInstantiation): APLFunction {
+            return ScanFirstAxisFunctionImpl(fn, instantiation)
         }
     }
 }

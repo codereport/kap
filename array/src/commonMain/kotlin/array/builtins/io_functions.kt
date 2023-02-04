@@ -5,7 +5,7 @@ import array.csv.readCsv
 import array.csv.writeCsv
 
 class ReadFunction : APLFunctionDescriptor {
-    class ReadFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class ReadFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val file = a.toStringValue(pos)
             val result = ArrayList<APLValue>()
@@ -27,11 +27,11 @@ class ReadFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = ReadFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = ReadFunctionImpl(instantiation)
 }
 
 class PrintAPLFunction : APLFunctionDescriptor {
-    class PrintAPLFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class PrintAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             printValue(context, a, FormatStyle.PLAIN)
             return a
@@ -58,11 +58,11 @@ class PrintAPLFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = PrintAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = PrintAPLFunctionImpl(instantiation)
 }
 
 class WriteCsvFunction : APLFunctionDescriptor {
-    class WriteCsvFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class WriteCsvFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val fileName = a.toStringValue(pos)
             openOutputCharFile(fileName).use { dest ->
@@ -72,11 +72,11 @@ class WriteCsvFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = WriteCsvFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = WriteCsvFunctionImpl(instantiation)
 }
 
 class ReadCsvFunction : APLFunctionDescriptor {
-    class ReadCsvFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class ReadCsvFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             openInputCharFile(a.toStringValue(pos)).use { source ->
                 return readCsv(source)
@@ -84,11 +84,11 @@ class ReadCsvFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = ReadCsvFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = ReadCsvFunctionImpl(instantiation)
 }
 
 class ReadFileFunction : APLFunctionDescriptor {
-    class ReadFileFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class ReadFileFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             openInputCharFile(a.toStringValue(pos)).use { source ->
                 val buf = StringBuilder()
@@ -101,12 +101,12 @@ class ReadFileFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = ReadFileFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = ReadFileFunctionImpl(instantiation)
 }
 
 
 class LoadFunction : APLFunctionDescriptor {
-    class LoadFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class LoadFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val requestedFile = a.toStringValue(pos)
             val file = context.engine.resolveLibraryFile(requestedFile) ?: requestedFile
@@ -117,11 +117,11 @@ class LoadFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = LoadFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = LoadFunctionImpl(instantiation)
 }
 
 class HttpRequestFunction : APLFunctionDescriptor {
-    class HttpRequestFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class HttpRequestFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val url = a.toStringValue(pos)
             val result = httpRequest(url)
@@ -129,11 +129,11 @@ class HttpRequestFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = HttpRequestFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = HttpRequestFunctionImpl(instantiation)
 }
 
 class HttpPostFunction : APLFunctionDescriptor {
-    class HttpPostFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class HttpPostFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val args = a.listify()
             val url = args.listElement(0).toStringValue(pos)
@@ -164,11 +164,11 @@ class HttpPostFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = HttpPostFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = HttpPostFunctionImpl(instantiation)
 }
 
 class ReaddirFunction : APLFunctionDescriptor {
-    class ReaddirFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class ReaddirFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             return loadContent(context, a, emptyList())
         }
@@ -207,9 +207,8 @@ class ReaddirFunction : APLFunctionDescriptor {
         }
 
         private fun parseOutputTypes(context: RuntimeContext, value: APLValue): List<OutputType> {
-            val keywordToType = OutputType.values()
-                .map { outputType -> Pair(context.engine.internSymbol(outputType.selector, context.engine.keywordNamespace), outputType) }
-                .toMap()
+            val keywordToType =
+                OutputType.values().associateBy { outputType -> context.engine.internSymbol(outputType.selector, context.engine.keywordNamespace) }
 
             val result = ArrayList<OutputType>()
             val asArray = value.arrayify()
@@ -230,7 +229,7 @@ class ReaddirFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = ReaddirFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = ReaddirFunctionImpl(instantiation)
 
     private enum class OutputType(val selector: String) {
         SIZE("size"),

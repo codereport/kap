@@ -3,7 +3,7 @@ package array.builtins
 import array.*
 
 class MapAPLFunction : APLFunctionDescriptor {
-    class MapAPLFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class MapAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             ensureKeyValuesArray(a, pos)
             val content = ArrayList<Pair<APLValue.APLValueKey, APLValue>>()
@@ -16,7 +16,7 @@ class MapAPLFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = MapAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = MapAPLFunctionImpl(instantiation)
 }
 
 class MapLookupResult(val map: APLMap, val indexes: APLValue) : APLArray() {
@@ -34,7 +34,7 @@ class MapLookupResult(val map: APLMap, val indexes: APLValue) : APLArray() {
 }
 
 class MapGetAPLFunction : APLFunctionDescriptor {
-    class MapGetAPLFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class MapGetAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val map = ensureMap(a, pos)
             val bValue = b.unwrapDeferredValue()
@@ -46,7 +46,7 @@ class MapGetAPLFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = MapGetAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = MapGetAPLFunctionImpl(instantiation)
 }
 
 private fun ensureKeyValuesArray(a: APLValue, pos: Position) {
@@ -79,7 +79,7 @@ private fun ensureMap(a: APLValue, pos: Position): APLMap {
 }
 
 class MapPutAPLFunction : APLFunctionDescriptor {
-    class MapPutAPLFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class MapPutAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val map = ensureMap(a, pos)
             ensureKeyValuesArray(b, pos)
@@ -97,11 +97,11 @@ class MapPutAPLFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = MapPutAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = MapPutAPLFunctionImpl(instantiation)
 }
 
 class MapRemoveAPLFunction : APLFunctionDescriptor {
-    class MapRemoveAPLFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class MapRemoveAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val map = ensureMap(a, pos)
             val b1 = b.arrayify().collapse()
@@ -116,15 +116,15 @@ class MapRemoveAPLFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = MapRemoveAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = MapRemoveAPLFunctionImpl(instantiation)
 }
 
 class MapKeyValuesFunction : APLFunctionDescriptor {
-    class MapKeyValuesFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class MapKeyValuesFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             return a.ensureMap(pos).aplMapToArray()
         }
     }
 
-    override fun make(pos: Position) = MapKeyValuesFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = MapKeyValuesFunctionImpl(instantiation)
 }

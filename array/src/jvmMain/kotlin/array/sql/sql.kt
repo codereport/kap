@@ -19,8 +19,8 @@ private inline fun <T> withOpenTransaction(conn: Connection, fn: () -> T): T {
 }
 
 private inline fun <T> withSQLExceptions(pos: Position, fn: () -> T): T {
-    try {
-        return fn()
+    return try {
+        fn()
     } catch (e: SQLException) {
         throwAPLException(SQLAPLException("Exception from database engine: ${e.message}", pos, e))
     }
@@ -69,7 +69,7 @@ private fun ensurePreparedStatementValue(a: APLValue, pos: Position? = null): SQ
 }
 
 class SQLConnectFunction : APLFunctionDescriptor {
-    class SQLConnectFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class SQLConnectFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             return withSQLExceptions(pos) {
                 val connectionUrl = a.toStringValue(pos)
@@ -80,7 +80,7 @@ class SQLConnectFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = SQLConnectFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = SQLConnectFunctionImpl(instantiation)
 }
 
 private fun parseEntry(value: Any, colIndex: Int, pos: Position): APLValue {
@@ -108,7 +108,7 @@ private fun resultSetToValue(result: ResultSet, pos: Position): APLValue {
 }
 
 class SQLQueryFunction : APLFunctionDescriptor {
-    class SQLQueryFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class SQLQueryFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             withSQLConnection(a, pos) {
                 val query = b.toStringValue(pos)
@@ -124,11 +124,11 @@ class SQLQueryFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = SQLQueryFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = SQLQueryFunctionImpl(instantiation)
 }
 
 class SQLUpdateFunction : APLFunctionDescriptor {
-    class SQLUpdateFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class SQLUpdateFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             withSQLConnection(a, pos) { conn ->
                 val query = b.toStringValue(pos)
@@ -142,11 +142,11 @@ class SQLUpdateFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = SQLUpdateFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = SQLUpdateFunctionImpl(instantiation)
 }
 
 class SQLPrepareFunction : APLFunctionDescriptor {
-    class SQLPrepareFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class SQLPrepareFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             return withSQLConnection(a, pos) { conn ->
                 val statement = conn.prepareStatement(b.toStringValue(pos))
@@ -155,7 +155,7 @@ class SQLPrepareFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = SQLPrepareFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = SQLPrepareFunctionImpl(instantiation)
 }
 
 private fun updatePreparedStatementCol(statement: PreparedStatement, index: Int, value: APLValue, pos: Position) {
@@ -177,7 +177,7 @@ private fun updatePreparedStatementCol(statement: PreparedStatement, index: Int,
 }
 
 class SQLPreparedUpdateFunction : APLFunctionDescriptor {
-    class SQLPreparedUpdateFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class SQLPreparedUpdateFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             return withPreparedStatement(a, pos) { statement ->
                 withOpenTransaction(statement.connection) {
@@ -210,11 +210,11 @@ class SQLPreparedUpdateFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = SQLPreparedUpdateFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = SQLPreparedUpdateFunctionImpl(instantiation)
 }
 
 class SQLPreparedQueryFunction : APLFunctionDescriptor {
-    class SQLPreparedQueryFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class SQLPreparedQueryFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             withPreparedStatement(a, pos) { statement ->
                 withOpenTransaction(statement.connection) {
@@ -234,7 +234,7 @@ class SQLPreparedQueryFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = SQLPreparedQueryFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = SQLPreparedQueryFunctionImpl(instantiation)
 }
 
 class SQLModule : KapModule {

@@ -16,7 +16,7 @@ class EvaluationOrderTest : APLTest() {
     @Test
     fun functionCallEvaluationOrder() {
         class FooFunction : APLFunctionDescriptor {
-            inner class FooFunctionImpl(pos: Position) : APLFunction(pos) {
+            inner class FooFunctionImpl(pos: FunctionInstantiation) : APLFunction(pos) {
                 override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
                     return (a.ensureNumber(pos).asInt(pos) +
                             b.ensureNumber(pos).asInt(pos) +
@@ -24,7 +24,7 @@ class EvaluationOrderTest : APLTest() {
                 }
             }
 
-            override fun make(pos: Position) = FooFunctionImpl(pos)
+            override fun make(instantiation: FunctionInstantiation) = FooFunctionImpl(instantiation)
         }
 
         val engine = Engine()

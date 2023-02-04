@@ -3,7 +3,7 @@ package array.builtins
 import array.*
 
 class TypeofFunction : APLFunctionDescriptor {
-    class TypeofFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class TypeofFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val v = a.unwrapDeferredValue()
             return APLSymbol(context.engine.internSymbol(v.aplValueType.typeName, context.engine.coreNamespace))
@@ -12,11 +12,11 @@ class TypeofFunction : APLFunctionDescriptor {
         override val name1Arg get() = "typeof"
     }
 
-    override fun make(pos: Position) = TypeofFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = TypeofFunctionImpl(instantiation)
 }
 
 class IsLocallyBoundFunction : APLFunctionDescriptor {
-    class IsLocallyBoundFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class IsLocallyBoundFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val v = a.unwrapDeferredValue()
             return makeBoolean(context.isLocallyBound(v.ensureSymbol(pos).value))
@@ -25,11 +25,11 @@ class IsLocallyBoundFunction : APLFunctionDescriptor {
         override val name1Arg get() = "isLocallyBound"
     }
 
-    override fun make(pos: Position) = IsLocallyBoundFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = IsLocallyBoundFunctionImpl(instantiation)
 }
 
 class CompFunction : APLFunctionDescriptor {
-    class CompFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class CompFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             return a.collapse()
         }
@@ -37,8 +37,8 @@ class CompFunction : APLFunctionDescriptor {
         override val name1Arg get() = "comp"
     }
 
-    override fun make(pos: Position): APLFunction {
-        return CompFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation): APLFunction {
+        return CompFunctionImpl(instantiation)
     }
 }
 
@@ -69,13 +69,13 @@ class DeferredAPLValue2Arg(val fn: APLFunction, val context: RuntimeContext, val
 }
 
 class DeferAPLOperator : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor {
+    override fun combineFunction(fn: APLFunction, pos: FunctionInstantiation): APLFunctionDescriptor {
         return DeferAPLFunction(fn)
     }
 
     class DeferAPLFunction(val fn: APLFunction) : APLFunctionDescriptor {
-        override fun make(pos: Position): APLFunction {
-            return object : NoAxisAPLFunction(pos) {
+        override fun make(instantiation: FunctionInstantiation): APLFunction {
+            return object : NoAxisAPLFunction(instantiation) {
                 override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
                     return DeferredAPLValue1Arg(fn, context, a)
                 }
@@ -90,7 +90,7 @@ class DeferAPLOperator : APLOperatorOneArg {
 }
 
 class SleepFunction : APLFunctionDescriptor {
-    class SleepFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class SleepFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val sleepTimeSeconds = a.ensureNumber(pos).asDouble()
             sleepMillis((sleepTimeSeconds * 1000).toLong())
@@ -98,7 +98,7 @@ class SleepFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = SleepFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = SleepFunctionImpl(instantiation)
 }
 
 class TagCatch(
@@ -106,7 +106,7 @@ class TagCatch(
 ) : APLEvalException(description ?: data.formatted(FormatStyle.PLAIN), pos)
 
 class UnwindProtectAPLFunction : APLFunctionDescriptor {
-    class UnwindProtectAPLFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class UnwindProtectAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val aDimensions = a.dimensions
             if (aDimensions.size != 1 || aDimensions[0] != 2) {
@@ -135,16 +135,16 @@ class UnwindProtectAPLFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = UnwindProtectAPLFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = UnwindProtectAPLFunctionImpl(instantiation)
 }
 
 class AtLeaveScopeOperator : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, pos: Position) = AtLeaveScopeFunctionDescriptor(fn)
+    override fun combineFunction(fn: APLFunction, pos: FunctionInstantiation) = AtLeaveScopeFunctionDescriptor(fn)
 
     class AtLeaveScopeFunctionDescriptor(val fn1Descriptor: APLFunction) : APLFunctionDescriptor {
-        override fun make(pos: Position): APLFunction {
+        override fun make(instantiation: FunctionInstantiation): APLFunction {
             val fn = fn1Descriptor
-            return object : APLFunction(pos), SaveStackCapable by SaveStackSupport() {
+            return object : APLFunction(instantiation), SaveStackCapable by SaveStackSupport() {
                 init {
                     computeCapturedEnvs(fn)
                 }
@@ -163,7 +163,7 @@ class AtLeaveScopeOperator : APLOperatorOneArg {
 }
 
 class ThrowFunction : APLFunctionDescriptor {
-    class ThrowFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class ThrowFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val engine = context.engine
             throwAPLException(TagCatch(APLSymbol(engine.internSymbol("error", engine.coreNamespace)), a, null, pos))
@@ -174,19 +174,19 @@ class ThrowFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = ThrowFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = ThrowFunctionImpl(instantiation)
 }
 
 class CatchOperator : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, pos: Position) = CatchFunctionDescriptor(fn)
+    override fun combineFunction(fn: APLFunction, pos: FunctionInstantiation) = CatchFunctionDescriptor(fn)
 
     class CatchFunctionDescriptor(
         val fn1Descriptor: APLFunction
     ) : APLFunctionDescriptor {
 
-        override fun make(pos: Position): APLFunction {
+        override fun make(instantiation: FunctionInstantiation): APLFunction {
             val fn = fn1Descriptor
-            return object : NoAxisAPLFunction(pos) {
+            return object : NoAxisAPLFunction(instantiation) {
                 override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
                     val dimensions = a.dimensions
                     unless(dimensions.size == 2 && dimensions[1] == 2) {
@@ -221,7 +221,7 @@ class CatchOperator : APLOperatorOneArg {
 }
 
 class LabelsFunction : APLFunctionDescriptor {
-    class LabelsFunctionImpl(pos: Position) : APLFunction(pos) {
+    class LabelsFunctionImpl(pos: FunctionInstantiation) : APLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             if (!b.isScalar()) {
                 val bDimensions = b.dimensions
@@ -261,11 +261,11 @@ class LabelsFunction : APLFunctionDescriptor {
         override val name2Arg get() = "labels"
     }
 
-    override fun make(pos: Position) = LabelsFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = LabelsFunctionImpl(instantiation)
 }
 
 class TimeMillisFunction : APLFunctionDescriptor {
-    class TimeMillisFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class TimeMillisFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             unless(a.ensureNumber(pos).asInt(pos) == 0) {
                 throwAPLException(APLIllegalArgumentException("Argument to timeMillis must be 0", pos))
@@ -276,7 +276,7 @@ class TimeMillisFunction : APLFunctionDescriptor {
         override val name1Arg get() = "timeMillis"
     }
 
-    override fun make(pos: Position) = TimeMillisFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = TimeMillisFunctionImpl(instantiation)
 }
 
 class ForcedElementTypeArray(val inner: APLValue, val overrideType: ArrayMemberType) : DelegatedValue(inner) {
@@ -297,17 +297,17 @@ class ForcedElementTypeArray(val inner: APLValue, val overrideType: ArrayMemberT
 }
 
 class EnsureTypeFunction(val overrideType: ArrayMemberType) : APLFunctionDescriptor {
-    inner class EnsureTypeFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    inner class EnsureTypeFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             return ForcedElementTypeArray(a, overrideType)
         }
     }
 
-    override fun make(pos: Position) = EnsureTypeFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = EnsureTypeFunctionImpl(instantiation)
 }
 
 class ToListFunction : APLFunctionDescriptor {
-    class ToListFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class ToListFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val a0 = a.arrayify()
             if (a0.dimensions.size != 1) {
@@ -318,11 +318,11 @@ class ToListFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = ToListFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = ToListFunctionImpl(instantiation)
 }
 
 class FromListFunction : APLFunctionDescriptor {
-    class FromListFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+    class FromListFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val a0 = a.collapse()
             if (a0 !is APLList) {
@@ -334,5 +334,39 @@ class FromListFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position) = FromListFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation) = FromListFunctionImpl(instantiation)
+}
+
+class ReturnFunction : APLFunctionDescriptor {
+    class ReturnFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            throw ReturnValue(a)
+        }
+
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            if (a.asBoolean(pos)) {
+                throw ReturnValue(b)
+            } else {
+                return b
+            }
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation): ReturnFunctionImpl {
+        if (!isValidReturnPoint(instantiation.env)) {
+            throw ParseException("Call to return without a function call", instantiation.pos)
+        }
+        return ReturnFunctionImpl(instantiation)
+    }
+
+    private fun isValidReturnPoint(env: Environment): Boolean {
+        var curr: Environment? = env
+        while (curr != null) {
+            if (curr.returnTarget) {
+                return true
+            }
+            curr = curr.parent
+        }
+        return false
+    }
 }

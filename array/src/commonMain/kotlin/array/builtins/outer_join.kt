@@ -130,13 +130,13 @@ class InnerJoinResult(
 }
 
 class OuterJoinOp : APLOperatorOneArg {
-    override fun combineFunction(fn: APLFunction, pos: Position): APLFunctionDescriptor {
+    override fun combineFunction(fn: APLFunction, pos: FunctionInstantiation): APLFunctionDescriptor {
         return OuterInnerJoinOp.OuterJoinFunctionDescriptor(fn)
     }
 }
 
 class OuterInnerJoinOp : APLOperatorTwoArg {
-    override fun combineFunction(fn0: APLFunction, fn1: APLFunction, opPos: Position): APLFunctionDescriptor {
+    override fun combineFunction(fn0: APLFunction, fn1: APLFunction, opPos: FunctionInstantiation): APLFunctionDescriptor {
         return if (fn0 is NullFunction.NullFunctionImpl) {
             OuterJoinFunctionDescriptor(fn1)
         } else {
@@ -146,7 +146,7 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
 
 
     class OuterJoinFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescriptor {
-        class OuterJoinFunctionImpl(pos: Position, fn: APLFunction) : NoAxisAPLFunction(pos, listOf(fn)) {
+        class OuterJoinFunctionImpl(pos: FunctionInstantiation, fn: APLFunction) : NoAxisAPLFunction(pos, listOf(fn)) {
             override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
                 val sta = a.specialisedType
                 val stb = b.specialisedType
@@ -161,21 +161,21 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
                 }
             }
 
-            override fun copy(fns: List<APLFunction>) = OuterJoinFunctionImpl(pos, fns[0])
+            override fun copy(fns: List<APLFunction>) = OuterJoinFunctionImpl(instantiation, fns[0])
 
             val fn = fns[0]
 
             override val name2Arg get() = "outer product"
         }
 
-        override fun make(pos: Position): APLFunction {
-            return OuterJoinFunctionImpl(pos, fnInner)
+        override fun make(instantiation: FunctionInstantiation): APLFunction {
+            return OuterJoinFunctionImpl(instantiation, fnInner)
 
         }
     }
 
     class InnerJoinFunctionDescriptor(val fn0Inner: APLFunction, val fn1Inner: APLFunction) : APLFunctionDescriptor {
-        class InnerJoinFunctionImpl(pos: Position, fn0: APLFunction, fn1: APLFunction)
+        class InnerJoinFunctionImpl(pos: FunctionInstantiation, fn0: APLFunction, fn1: APLFunction)
             : NoAxisAPLFunction(pos, listOf(fn0, fn1)), SaveStackCapable by SaveStackSupport() {
 
             init {
@@ -213,7 +213,7 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
                 }
             }
 
-            override fun copy(fns: List<APLFunction>) = InnerJoinFunctionImpl(pos, fns[0], fns[1])
+            override fun copy(fns: List<APLFunction>) = InnerJoinFunctionImpl(instantiation, fns[0], fns[1])
 
             val fn0 = fns[0]
             val fn1 = fns[1]
@@ -221,14 +221,14 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
             override val name2Arg get() = "inner product"
         }
 
-        override fun make(pos: Position): APLFunction {
-            return InnerJoinFunctionImpl(pos, fn0Inner, fn1Inner)
+        override fun make(instantiation: FunctionInstantiation): APLFunction {
+            return InnerJoinFunctionImpl(instantiation, fn0Inner, fn1Inner)
         }
     }
 }
 
 class NullFunction : APLFunctionDescriptor {
-    class NullFunctionImpl(pos: Position) : APLFunction(pos) {
+    class NullFunctionImpl(pos: FunctionInstantiation) : APLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             throwAPLException(APLEvalException("null function cannot be called", pos))
         }
@@ -238,8 +238,8 @@ class NullFunction : APLFunctionDescriptor {
         }
     }
 
-    override fun make(pos: Position): APLFunction {
-        return NullFunctionImpl(pos)
+    override fun make(instantiation: FunctionInstantiation): APLFunction {
+        return NullFunctionImpl(instantiation)
     }
 
 }

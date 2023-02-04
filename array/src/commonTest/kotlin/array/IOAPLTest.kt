@@ -131,7 +131,7 @@ class IOAPLTest : APLTest() {
     }
 
     class ClosedFlagFunction : APLFunctionDescriptor {
-        class ClosedFlagFunctionImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        class ClosedFlagFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
             override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
                 val a0 = a.unwrapDeferredValue()
                 if (a0 !is ClosableTestValue) {
@@ -141,16 +141,16 @@ class IOAPLTest : APLTest() {
             }
         }
 
-        override fun make(pos: Position) = ClosedFlagFunctionImpl(pos)
+        override fun make(instantiation: FunctionInstantiation) = ClosedFlagFunctionImpl(instantiation)
     }
 
     class MakeClosable : APLFunctionDescriptor {
-        class MakeClosableImpl(pos: Position) : NoAxisAPLFunction(pos) {
+        class MakeClosableImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
             override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
                 return ClosableTestValue()
             }
         }
 
-        override fun make(pos: Position) = MakeClosableImpl(pos)
+        override fun make(instantiation: FunctionInstantiation) = MakeClosableImpl(instantiation)
     }
 }
