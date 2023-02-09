@@ -93,10 +93,10 @@ class CalculationQueue(val engine: Engine) {
             val result = if (sym == null) {
                 null
             } else {
-                TODO("Need to fix")
-//                engine.rootContext.environment.findBinding(sym)?.let { binding ->
-//                    engine.rootContext.getVar(binding)?.collapse()
-//                }
+                engine.rootEnvironment.findBinding(sym)?.let { binding ->
+                    val storage = currentStack().findStorage(StackStorageRef(binding))
+                    storage.value
+                }
             }
             callback(result)
         }
@@ -104,12 +104,16 @@ class CalculationQueue(val engine: Engine) {
 
     private inner class WriteVariableRequest(val name: String, val value: APLValue, val callback: (Exception?) -> Unit) : Request {
         override fun processRequest() {
-            TODO("need to fix")
-//            val sym = engine.currentNamespace.internSymbol(name)
-//            val binding = engine.rootContext.environment.findBinding(sym) ?: engine.rootContext.environment.bindLocal(sym)
-//            engine.rootContext.reinitRootBindings()
-//            engine.rootContext.setVar(binding, value)
-//            callback(null)
+            val sym = engine.currentNamespace.internSymbol(name)
+            val binding = engine.rootEnvironment.bindLocal(sym)
+            engine.recomputeRootFrame()
+            val stack = currentStack()
+            if (stack.stack.size != 1) {
+                throw IllegalStateException("Attempt tp write to a variable with active frames")
+            }
+            val storage = stack.findStorage(StackStorageRef(binding))
+            storage.value = value
+            callback(null)
         }
     }
 
