@@ -10,11 +10,11 @@ repositories {
 kotlin {
     jvm() {
         compilations.main.kotlinOptions {
-            jvmTarget = "11"
+            jvmTarget = "17"
             freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
         }
         compilations.test.kotlinOptions {
-            jvmTarget = "11"
+            jvmTarget = "17"
             freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
         }
     }

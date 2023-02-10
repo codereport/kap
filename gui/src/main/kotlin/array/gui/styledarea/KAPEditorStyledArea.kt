@@ -142,4 +142,27 @@ open class KAPEditorStyledArea<PS, SEG, S>(
         replaceSelection(s)
         showBottomParagraphAtTop()
     }
+
+    fun clearStyles() {
+        repeat(paragraphs.size) { i ->
+            setStyle(i, initialTextStyle)
+        }
+    }
+
+    fun setStyleForRange(startLine: Int, startCol: Int, endLine: Int, endCol: Int, textStyle: S) {
+        val numLines = endLine - startLine + 1
+        when {
+            numLines == 1 -> {
+                setStyle(startLine, startCol, endCol, textStyle)
+            }
+            numLines > 1 -> {
+                setStyle(startLine, startCol, paragraphs[startLine].length(), textStyle)
+                repeat(numLines - 2) { i ->
+                    val rowIndex = startLine + i + 1
+                    setStyle(rowIndex, 0, paragraphs[rowIndex].length(), textStyle)
+                }
+                setStyle(endLine, 0, endCol, textStyle)
+            }
+        }
+    }
 }

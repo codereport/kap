@@ -10,24 +10,21 @@ import org.fxmisc.richtext.model.TextOps
 import java.util.function.BiConsumer
 import java.util.function.Function
 
-class InputFieldStyledArea : KAPEditorStyledArea<InputFieldParStyle, String, InputFieldTextStyle>(
-    InputFieldParStyle(),
+class InputFieldStyledArea : KAPEditorStyledArea<ParStyle, String, TextStyle>(
+    ParStyle(),
     applyParagraphStyle,
-    InputFieldTextStyle(),
+    TextStyle(),
     segOps,
     nodeFactory
 ) {
     companion object {
-        val applyParagraphStyle = BiConsumer<TextFlow, InputFieldParStyle> { flow, parStyle -> }
-        val segOps: TextOps<String, InputFieldTextStyle> = SegmentOps.styledTextOps()
-        val nodeFactory = Function<StyledSegment<String, InputFieldTextStyle>, Node> { seg ->
-            val applyStyle = { a: TextExt, b: InputFieldTextStyle ->
+        val applyParagraphStyle = BiConsumer<TextFlow, ParStyle> { flow, parStyle -> }
+        val segOps: TextOps<String, TextStyle> = SegmentOps.styledTextOps()
+        val nodeFactory = Function<StyledSegment<String, TextStyle>, Node> { seg ->
+            val applyStyle = { a: TextExt, b: TextStyle ->
+                b.styleContent(a)
             }
             StyledTextArea.createStyledTextNode(seg.segment, seg.style, applyStyle)
         }
     }
 }
-
-
-class InputFieldParStyle
-class InputFieldTextStyle

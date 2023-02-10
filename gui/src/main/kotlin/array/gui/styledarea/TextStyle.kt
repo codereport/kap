@@ -1,12 +1,11 @@
 package array.gui.styledarea
 
-import array.gui.ClientRenderContext
 import javafx.scene.paint.Color
 import org.fxmisc.richtext.TextExt
 
 class TextStyle(val type: Type = Type.DEFAULT, val promptTag: Boolean = false, @Suppress("unused") val contentTag: Any? = null) {
     @Suppress("UNUSED_PARAMETER")
-    fun styleContent(content: TextExt, renderContext: ClientRenderContext) {
+    fun styleContent(content: TextExt) {
         val css = when (type) {
             Type.LOG_INPUT -> "editcontent-loginput"
             Type.ERROR -> "editcontent-error"
