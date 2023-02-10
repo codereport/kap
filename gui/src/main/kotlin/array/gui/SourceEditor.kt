@@ -75,7 +75,7 @@ class SourceEditor(val client: Client) {
         }
         val nodeFactory = Function<StyledSegment<String, TextStyle>, Node> { seg ->
             val applyStyle = { a: TextExt, b: TextStyle ->
-                b.styleContent(a, client.renderContext)
+                b.styleContent(a)
             }
             StyledTextArea.createStyledTextNode(seg.segment, seg.style, applyStyle)
         }

@@ -6,6 +6,7 @@
 <?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.*?>
+<?import array.gui.styledarea.InputFieldStyledArea?>
 <BorderPane fx:id="borderPane" prefHeight="400.0" prefWidth="600.0" stylesheets="@structure-viewer.css"
             xmlns="http://javafx.com/javafx/16" xmlns:fx="http://javafx.com/fxml/1"
             fx:controller="array.gui.viewer.StructureViewer">
@@ -17,11 +18,11 @@
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
                     </HBox.margin>
                 </Label>
-                <TextField fx:id="expressionField" onAction="#showClicked" HBox.hgrow="ALWAYS">
+                <InputFieldStyledArea fx:id="expressionField" HBox.hgrow="ALWAYS">
                     <HBox.margin>
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
                     </HBox.margin>
-                </TextField>
+                </InputFieldStyledArea>
                 <Button mnemonicParsing="false" onAction="#showClicked" text="Show">
                     <HBox.margin>
                         <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>

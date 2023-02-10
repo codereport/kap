@@ -26,7 +26,7 @@ class StringEditorContentEntry(val text: String) : EditorContent {
 
     override fun createNode(renderContext: ClientRenderContext, style: TextStyle): Node {
         val applyStyle = { a: TextExt, b: TextStyle ->
-            b.styleContent(a, renderContext)
+            b.styleContent(a)
         }
         return StyledTextArea.createStyledTextNode(text, style, applyStyle)
     }

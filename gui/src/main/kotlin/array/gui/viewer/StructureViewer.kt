@@ -5,7 +5,8 @@ import array.builtins.ComposeFunctionDescriptor
 import array.builtins.OverDerivedFunctionDescriptor
 import array.builtins.ReverseComposeFunctionDescriptor
 import array.gui.Client
-import array.keyboard.ExtendedCharsKeyboardInput
+import array.gui.styledarea.InputFieldStyledArea
+import array.gui.styledarea.TextStyle
 import javafx.event.ActionEvent
 import javafx.fxml.FXMLLoader
 import javafx.scene.Group
@@ -13,38 +14,38 @@ import javafx.scene.Node
 import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.control.Label
-import javafx.scene.control.TextField
-import javafx.scene.input.KeyEvent
+import javafx.scene.input.KeyCode
+import javafx.scene.input.KeyCombination
+import javafx.scene.input.MouseButton
+import javafx.scene.input.MouseEvent
 import javafx.scene.layout.BorderPane
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import javafx.scene.shape.Line
 import javafx.stage.Stage
+import org.fxmisc.wellbehaved.event.EventPattern
+import org.fxmisc.wellbehaved.event.InputMap
+import org.fxmisc.wellbehaved.event.Nodes
 import kotlin.math.max
 
 class StructureViewer {
     lateinit var graphContentPane: Pane
     lateinit var client: Client
-    lateinit var expressionField: TextField
+    lateinit var expressionField: InputFieldStyledArea
     lateinit var borderPane: BorderPane
 
-    private val keyboardInput = ExtendedCharsKeyboardInput()
-
     fun initialize() {
-        expressionField.addEventHandler(KeyEvent.KEY_TYPED) { event ->
-            if (event.isAltDown) {
-                val keyDescriptor = ExtendedCharsKeyboardInput.KeyDescriptor(event.character, event.isShiftDown)
-                val ch = keyboardInput.keymap[keyDescriptor]
-                if (ch != null) {
-                    expressionField.replaceSelection(ch)
-                    event.consume()
-                }
-            }
-        }
+        val returnMapping =
+            InputMap.consume(EventPattern.keyPressed(KeyCode.ENTER, KeyCombination.CONTROL_DOWN)) { displayExpressionFromInput() }
+        Nodes.addInputMap(expressionField, returnMapping)
     }
 
     fun showClicked(@Suppress("UNUSED_PARAMETER") actionEvent: ActionEvent) {
+        displayExpressionFromInput()
+    }
+
+    fun displayExpressionFromInput() {
         parseExpression(expressionField.text)
     }
 
@@ -63,10 +64,15 @@ class StructureViewer {
     }
 
     private fun createGraph(instr: Instruction): Graph {
-        val graph = Graph(graphContentPane)
+        val graph = Graph(this, graphContentPane)
         val node = makeNodeFromInstr(graph, instr)
         graph.rootNode = node
         return graph
+    }
+
+    fun highlightPosition(pos: Position) {
+        expressionField.clearStyles()
+        expressionField.setStyleForRange(pos.line, pos.col, pos.computedEndLine, pos.computedEndCol, TextStyle(TextStyle.Type.SINGLE_CHAR_HIGHLIGHT))
     }
 
     companion object {
@@ -93,7 +99,7 @@ class LabelledContainer(labelText: String, node: Node) : VBox() {
     }
 }
 
-class Graph(val pane: Pane) {
+class Graph(val structureViewer: StructureViewer, val pane: Pane) {
     val nodes = ArrayList<KNode>()
     val links = ArrayList<KNodeLink>()
     var rootNode: KNode? = null
@@ -108,6 +114,14 @@ class Graph(val pane: Pane) {
                 val l = link.makeLine(x1, y1, x2, y2)
                 pane.children.add(l)
                 l.viewOrder = 10.0
+            }
+        }
+    }
+
+    fun registerClickListener(component: Region, pos: Position?) {
+        component.addEventHandler(MouseEvent.MOUSE_CLICKED) { event ->
+            if (pos != null && event.button == MouseButton.PRIMARY) {
+                structureViewer.highlightPosition(pos)
             }
         }
     }
@@ -184,25 +198,26 @@ private fun makeLabelLine(x1: Double, y1: Double, x2: Double, y2: Double, label:
 
 fun makeNodeFromInstr(graph: Graph, instr: Instruction): KNode {
     val node = when (instr) {
-        is LiteralInteger -> LiteralIntegerGraphNode(graph, instr.value)
-        is LiteralDouble -> LiteralDoubleGraphNode(graph, instr.value)
+        is LiteralInteger -> LiteralIntegerGraphNode(graph, instr.value, instr.pos)
+        is LiteralDouble -> LiteralDoubleGraphNode(graph, instr.value, instr.pos)
         is VariableRef -> VarRefGraphNode(graph, instr)
         is Literal1DArray -> LiteralArrayGraphNode.create(graph, instr.values)
         is LiteralLongArray -> LiteralArrayGraphNode.createFromLongArray(graph, instr)
         is LiteralDoubleArray -> LiteralArrayGraphNode.createFromDoubleArray(graph, instr)
-        is LiteralCharacter -> LiteralCharacterArrayNode(graph, instr.valueInt.value)
-        is LiteralStringValue -> LiteralStringGraphNode(graph, instr.s)
-        is FunctionCall1Arg -> makeFunctionCall1ArgGraphNodeFromInstruction(graph, instr.fn, instr.rightArgs)
-        is FunctionCall2Arg -> makeFunctionCall2ArgGraphNodeFromInstruction(graph, instr.fn, instr.leftArgs, instr.rightArgs)
+        is LiteralCharacter -> LiteralCharacterArrayNode(graph, instr.valueInt.value, instr.pos)
+        is LiteralStringValue -> LiteralStringGraphNode(graph, instr.s, instr.pos)
+        is FunctionCall1Arg -> makeFunctionCall1ArgGraphNodeFromInstruction(graph, instr)
+        is FunctionCall2Arg -> makeFunctionCall2ArgGraphNodeFromInstruction(graph, instr)
         else -> throw CreateGraphException("Unsupported instruction type: ${instr}")
     }
     graph.nodes.add(node)
     return node
 }
 
-open class SimpleGraphNode(graph: Graph, val label: Region) : KNode(graph) {
+open class SimpleGraphNode(graph: Graph, val label: Region, val pos: Position?) : KNode(graph) {
     init {
         graph.pane.children.add(label)
+        graph.registerClickListener(label, pos)
     }
 
     override fun bounds() = BoundsDimensions(label.width, label.height)
@@ -221,14 +236,14 @@ open class SimpleGraphNode(graph: Graph, val label: Region) : KNode(graph) {
     }
 }
 
-class LiteralIntegerGraphNode(graph: Graph, value: Long) :
-    SimpleGraphNode(graph, LabelledContainer("Integer", Label(value.toString())))
+class LiteralIntegerGraphNode(graph: Graph, value: Long, pos: Position?) :
+        SimpleGraphNode(graph, LabelledContainer("Integer", Label(value.toString())), pos)
 
-class LiteralDoubleGraphNode(graph: Graph, value: Double) :
-    SimpleGraphNode(graph, LabelledContainer("Double", Label(value.toString())))
+class LiteralDoubleGraphNode(graph: Graph, value: Double, pos: Position?) :
+        SimpleGraphNode(graph, LabelledContainer("Double", Label(value.toString())), pos)
 
 class VarRefGraphNode(graph: Graph, instr: VariableRef) :
-    SimpleGraphNode(graph, LabelledContainer("Variable", Label(instr.name.nameWithNamespace)))
+        SimpleGraphNode(graph, LabelledContainer("Variable", Label(instr.name.nameWithNamespace)), instr.pos)
 
 fun makeCharacterLabel(value: Int): Node {
     val vbox = VBox()
@@ -237,14 +252,15 @@ fun makeCharacterLabel(value: Int): Node {
     return vbox
 }
 
-class LiteralCharacterArrayNode(graph: Graph, value: Int) :
-    SimpleGraphNode(graph, LabelledContainer("Character", makeCharacterLabel(value)))
+class LiteralCharacterArrayNode(graph: Graph, value: Int, pos: Position?) :
+        SimpleGraphNode(graph, LabelledContainer("Character", makeCharacterLabel(value)), pos)
 
-class LiteralStringGraphNode(graph: Graph, value: String) :
-    SimpleGraphNode(graph, LabelledContainer("String", Label("'${value}'").apply { style = "monospaced-label" }))
+class LiteralStringGraphNode(graph: Graph, value: String, pos: Position?) :
+        SimpleGraphNode(graph, LabelledContainer("String", Label("'${value}'").apply { style = "monospaced-label" }), pos)
 
-class LiteralArrayGraphNode private constructor(graph: Graph, valueList: List<KNode>) : KNode(graph) {
-    val topNode = SimpleGraphNode(graph, LabelledContainer("Literal array", Label("Size: ${valueList.size}")))
+class LiteralArrayGraphNode private constructor(graph: Graph, valueList: List<KNode>, pos: Position?) : KNode(graph) {
+    val label = LabelledContainer("Literal array", Label("Size: ${valueList.size}"))
+    val topNode = SimpleGraphNode(graph, label, null)
     val subnodes = valueList.toTypedArray()
     val container = ContainerGraphNode(graph, topNode, *subnodes)
 
@@ -252,6 +268,7 @@ class LiteralArrayGraphNode private constructor(graph: Graph, valueList: List<KN
         subnodes.forEach { node ->
             graph.links.add(LiteralValueArgLink(topNode, node))
         }
+        graph.registerClickListener(label, pos)
     }
 
     override fun bounds() = container.bounds()
@@ -261,17 +278,22 @@ class LiteralArrayGraphNode private constructor(graph: Graph, valueList: List<KN
     companion object {
         fun create(graph: Graph, instrList: List<Instruction>): LiteralArrayGraphNode {
             val valueList = instrList.map { instr -> makeNodeFromInstr(graph, instr) }
-            return LiteralArrayGraphNode(graph, valueList)
+            val newPos = when (val size = instrList.size) {
+                0 -> throw java.lang.IllegalStateException("Explicit array with zero elements")
+                1 -> instrList.first().pos
+                else -> instrList.first().pos.expandToEnd(instrList.last().pos)
+            }
+            return LiteralArrayGraphNode(graph, valueList, newPos)
         }
 
         fun createFromLongArray(graph: Graph, instr: LiteralLongArray): KNode {
-            val valueList = instr.value.map { v -> LiteralIntegerGraphNode(graph, v) }
-            return LiteralArrayGraphNode(graph, valueList)
+            val valueList = instr.value.map { v -> LiteralIntegerGraphNode(graph, v, null) }
+            return LiteralArrayGraphNode(graph, valueList, instr.pos)
         }
 
         fun createFromDoubleArray(graph: Graph, instr: LiteralDoubleArray): KNode {
-            val valueList = instr.value.map { v -> LiteralDoubleGraphNode(graph, v) }
-            return LiteralArrayGraphNode(graph, valueList)
+            val valueList = instr.value.map { v -> LiteralDoubleGraphNode(graph, v, null) }
+            return LiteralArrayGraphNode(graph, valueList, instr.pos)
         }
     }
 }
@@ -288,17 +310,13 @@ private fun formatFnName(callerName: String?, name: String?): String {
 private fun fnName1(fn: APLFunction) = formatFnName(fn.pos.callerName, fn.name1Arg)
 private fun fnName2(fn: APLFunction) = formatFnName(fn.pos.callerName, fn.name2Arg)
 
-private fun makeFunctionCall1ArgGraphNodeFromInstruction(graph: Graph, fn: APLFunction, rightArgs: Instruction): KNode {
-    val rightArgsNode = makeNodeFromInstr(graph, rightArgs)
-    val fnNode = makeFunctionCall1ArgGraphNodeFromFunction(fn, graph, rightArgsNode)
+private fun makeFunctionCall1ArgGraphNodeFromInstruction(graph: Graph, instr: FunctionCall1Arg): KNode {
+    val rightArgsNode = makeNodeFromInstr(graph, instr.rightArgs)
+    val fnNode = makeFunctionCall1ArgGraphNodeFromFunction(instr.fn, graph, rightArgsNode)
     return ContainerGraphNode(graph, fnNode, rightArgsNode)
 }
 
-private fun makeFunctionCall1ArgGraphNodeFromFunction(
-    fn: APLFunction,
-    graph: Graph,
-    rightArgsNode: KNode
-): KNode {
+private fun makeFunctionCall1ArgGraphNodeFromFunction(fn: APLFunction, graph: Graph, rightArgsNode: KNode): KNode {
     return when (fn) {
         is FunctionCallChain.Chain2 -> Chain2A1GraphNode(graph, fn, rightArgsNode)
         is FunctionCallChain.Chain3 -> Chain3A1GraphNode(graph, fn, rightArgsNode)
@@ -309,15 +327,10 @@ private fun makeFunctionCall1ArgGraphNodeFromFunction(
     }
 }
 
-private fun makeFunctionCall2ArgGraphNodeFromInstruction(
-    graph: Graph,
-    fn: APLFunction,
-    leftArgs: Instruction,
-    rightArgs: Instruction
-): KNode {
-    val leftArgsNode = makeNodeFromInstr(graph, leftArgs)
-    val rightArgsNode = makeNodeFromInstr(graph, rightArgs)
-    val fnNode = makeFunctionCall2ArgGraphNodeFromFunction(fn, graph, leftArgsNode, rightArgsNode)
+private fun makeFunctionCall2ArgGraphNodeFromInstruction(graph: Graph, instr: FunctionCall2Arg): KNode {
+    val leftArgsNode = makeNodeFromInstr(graph, instr.leftArgs)
+    val rightArgsNode = makeNodeFromInstr(graph, instr.rightArgs)
+    val fnNode = makeFunctionCall2ArgGraphNodeFromFunction(instr.fn, graph, leftArgsNode, rightArgsNode)
     return ContainerGraphNode(graph, fnNode, leftArgsNode, rightArgsNode)
 }
 
@@ -374,14 +387,13 @@ class ContainerGraphNode(
     }
 }
 
-class FunctionCall1ArgGraphNode(
-    graph: Graph, fn: APLFunction, rightArgLink: KNode
-) : KNode1Arg(graph) {
+class FunctionCall1ArgGraphNode(graph: Graph, fn: APLFunction, rightArgLink: KNode) : KNode1Arg(graph) {
     private val label = LabelledContainer("Call1", Label(fnName1(fn)))
 
     init {
         graph.pane.children.add(label)
         graph.links.add(RightArgLink(this, rightArgLink))
+        graph.registerClickListener(label, fn.pos)
     }
 
     override fun bounds() = BoundsDimensions(label.width, label.height)
@@ -400,9 +412,7 @@ class FunctionCall1ArgGraphNode(
     }
 }
 
-class FunctionCall2ArgGraphNode(
-    graph: Graph, fn: APLFunction, leftArgLink: KNode, rightArgLink: KNode
-) : KNode2Arg(graph) {
+class FunctionCall2ArgGraphNode(graph: Graph, fn: APLFunction, leftArgLink: KNode, rightArgLink: KNode) : KNode2Arg(graph) {
 
     private val label = LabelledContainer("Call2", Label(fnName2(fn)))
 
@@ -410,6 +420,7 @@ class FunctionCall2ArgGraphNode(
         graph.pane.children.add(label)
         graph.links.add(LeftArgLink(this, leftArgLink))
         graph.links.add(RightArgLink(this, rightArgLink))
+        graph.registerClickListener(label, fn.pos)
     }
 
     override fun bounds() = BoundsDimensions(label.width, label.height)
@@ -450,7 +461,7 @@ abstract class AbstractCallSeq2A1GraphNode(graph: Graph, fn0: APLFunction, fn1: 
 }
 
 class Chain2A1GraphNode(graph: Graph, fn: FunctionCallChain.Chain2, rightArgsNode: KNode) :
-    AbstractCallSeq2A1GraphNode(graph, fn.fn0, fn.fn1, rightArgsNode)
+        AbstractCallSeq2A1GraphNode(graph, fn.fn0, fn.fn1, rightArgsNode)
 
 
 class Chain2A2GraphNode(graph: Graph, fn: FunctionCallChain.Chain2, leftArgLink: KNode, rightArgLink: KNode) : KNode(graph) {
@@ -537,7 +548,8 @@ class ComposeA1GraphNode(graph: Graph, fn: ComposeFunctionDescriptor.ComposeFunc
     }
 }
 
-class ReverseComposeA1GraphNode(graph: Graph, fn: ReverseComposeFunctionDescriptor.ReverseComposeFunctionImpl, rightArgsNode: KNode) : KNode(graph) {
+class ReverseComposeA1GraphNode(graph: Graph, fn: ReverseComposeFunctionDescriptor.ReverseComposeFunctionImpl, rightArgsNode: KNode) :
+        KNode(graph) {
     val leftNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn0, graph, rightArgsNode)
     val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn1, graph, leftNode, rightArgsNode)
 
@@ -560,7 +572,7 @@ class ReverseComposeA1GraphNode(graph: Graph, fn: ReverseComposeFunctionDescript
 }
 
 class ComposeA2GraphNode(graph: Graph, fn: ComposeFunctionDescriptor.ComposeFunctionImpl, leftNode: KNode, rightArgLink: KNode) :
-    KNode(graph) {
+        KNode(graph) {
     val rightNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn1, graph, rightArgLink)
     val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn0, graph, leftNode, rightNode)
     val container = ContainerGraphNode(graph, middleNode, leftNode, rightNode)
@@ -586,10 +598,10 @@ class ReverseComposeA2GraphNode(
 }
 
 class OverA1GraphNode(graph: Graph, fn: OverDerivedFunctionDescriptor.OverDerivedFunctionImpl, rightArgsNode: KNode) :
-    AbstractCallSeq2A1GraphNode(graph, fn.fn0, fn.fn1, rightArgsNode)
+        AbstractCallSeq2A1GraphNode(graph, fn.fn0, fn.fn1, rightArgsNode)
 
 class OverA2GraphNode(graph: Graph, fn: OverDerivedFunctionDescriptor.OverDerivedFunctionImpl, leftArgsNode: KNode, rightArgsNode: KNode) :
-    KNode(graph) {
+        KNode(graph) {
     val leftNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn1, graph, leftArgsNode)
     val rightNode = makeFunctionCall1ArgGraphNodeFromFunction(fn.fn1, graph, rightArgsNode)
     val middleNode = makeFunctionCall2ArgGraphNodeFromFunction(fn.fn0, graph, leftNode, rightNode)

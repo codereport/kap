@@ -166,6 +166,14 @@ class Literal1DArray private constructor(val values: List<Instruction>, pos: Pos
         }
 
         private fun collectLongValues(firstValue: Long, values: List<Instruction>, pos: Position): Instruction {
+            fun makePos(): Position {
+                return if (values.isEmpty()) {
+                    pos
+                } else {
+                    pos.expandToEnd(values.last().pos)
+                }
+            }
+
             val result = ArrayList<Long>()
             result.add(firstValue)
             for (i in 1 until values.size) {
@@ -173,13 +181,21 @@ class Literal1DArray private constructor(val values: List<Instruction>, pos: Pos
                 if (v is LiteralInteger) {
                     result.add(v.value)
                 } else {
-                    return Literal1DArray(values, pos)
+                    return Literal1DArray(values, makePos())
                 }
             }
-            return LiteralLongArray(result.toLongArray(), pos)
+            return LiteralLongArray(result.toLongArray(), makePos())
         }
 
         private fun collectDoubleValues(firstValue: Double, values: List<Instruction>, pos: Position): Instruction {
+            fun makePos(): Position {
+                return if (values.isEmpty()) {
+                    pos
+                } else {
+                    pos.expandToEnd(values.last().pos)
+                }
+            }
+
             val result = ArrayList<Double>()
             result.add(firstValue)
             for (i in 1 until values.size) {
@@ -187,10 +203,10 @@ class Literal1DArray private constructor(val values: List<Instruction>, pos: Pos
                 if (v is LiteralDouble) {
                     result.add(v.value)
                 } else {
-                    return Literal1DArray(values, pos)
+                    return Literal1DArray(values, makePos())
                 }
             }
-            return LiteralDoubleArray(result.toDoubleArray(), pos)
+            return LiteralDoubleArray(result.toDoubleArray(), makePos())
         }
     }
 }

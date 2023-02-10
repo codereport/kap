@@ -97,24 +97,7 @@ class ResultList3(val client: Client) {
         styledArea.withUpdateEnabled {
             val startIndex = indexOfTag(tag)
             if (startIndex != null) {
-                val numLines = endLine - startLine + 1
-                when {
-                    numLines == 1 -> {
-                        styledArea.setStyle(startIndex + startLine, startCol, endCol, textStyle)
-                    }
-                    numLines > 1 -> {
-                        styledArea.setStyle(
-                            startIndex + startLine,
-                            startCol,
-                            styledArea.paragraphs[startIndex + startLine].length(),
-                            textStyle)
-                        repeat(numLines - 2) { i ->
-                            val rowIndex = startIndex + startLine + i + 1
-                            styledArea.setStyle(rowIndex, 0, styledArea.paragraphs[startIndex + startLine].length(), textStyle)
-                        }
-                        styledArea.setStyle(startIndex + endLine, 0, endCol, textStyle)
-                    }
-                }
+                styledArea.setStyleForRange(startIndex + startLine, startCol, startIndex + endLine, endCol, textStyle)
             }
         }
     }
