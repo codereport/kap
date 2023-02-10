@@ -6,13 +6,13 @@ package array
  * This ensures that any closures created from this function will properly delegate
  * to dependent functions.
  *
- * @param pos The position where the function was defined.
+ * @param instantiation The instantiation information, including the position and environment, where the function was defined
  * @param fns A list of functions that is used to implement this function.
  */
 abstract class APLFunction(instantiation: FunctionInstantiation, val fns: List<APLFunction> = emptyList()) {
     val pos = instantiation.pos
-    val envx = instantiation.env
-    val instantiation get() = FunctionInstantiation(pos, envx)
+    val instantiationEnv = instantiation.env
+    val instantiation get() = FunctionInstantiation(pos, instantiationEnv)
 
     open fun evalArgsAndCall1Arg(context: RuntimeContext, rightArgs: Instruction): APLValue {
         val rightValue = rightArgs.evalWithContext(context)
@@ -100,11 +100,9 @@ abstract class APLFunction(instantiation: FunctionInstantiation, val fns: List<A
 
     fun allCapturedEnvironments(): List<Environment> {
         val result = ArrayList<Environment>()
-        fun recurse(fn: APLFunction) {
+        iterateFunctionTree { fn ->
             result.addAll(fn.capturedEnvironments())
-            fn.fns.forEach(::recurse)
         }
-        recurse(this)
         return result
     }
 
@@ -342,7 +340,9 @@ class LeftAssignedFunction(val underlying: APLFunction, val leftArgs: Instructio
         val ref = StackStorageRef(binding)
         val list = mutableListOf<Instruction>(AssignmentInstruction(arrayOf(ref), leftArgs, pos))
         list.addAll(relatedInstrs)
-        return Pair(LeftAssignedFunction(innerFn, VariableRef(sym, ref, pos), FunctionInstantiation(pos, parser.currentEnvironment())), list)
+        return Pair(
+            LeftAssignedFunction(innerFn, VariableRef(sym, ref, pos), FunctionInstantiation(pos, parser.currentEnvironment())),
+            list)
     }
 
     override val name1Arg get() = underlying.name2Arg
@@ -395,7 +395,8 @@ class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction) 
     }
 }
 
-class AxisValAssignedFunctionAxisReader(baseFn: APLFunction, val axisReader: Instruction) : NoAxisAPLFunction(baseFn.instantiation, listOf(baseFn)) {
+class AxisValAssignedFunctionAxisReader(baseFn: APLFunction, val axisReader: Instruction) :
+    NoAxisAPLFunction(baseFn.instantiation, listOf(baseFn)) {
     private val baseFn get() = fns[0]
 
     override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {

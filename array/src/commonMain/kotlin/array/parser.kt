@@ -507,8 +507,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                     val definedUserFunction = withEnvironment("function0: ${name.nameWithNamespace}", closed = true, returnTarget = true) { env ->
                         val leftFnBindings = leftArgs.map { sym -> env.bindLocal(sym) }
                         val rightFnBindings = rightArgs.map { sym -> env.bindLocal(sym) }
-                        val inProcessUserFunction =
-                            UserFunction(name, leftFnBindings, rightFnBindings, DummyInstr(pos), env)
+                        val inProcessUserFunction = UserFunction(name, leftFnBindings, rightFnBindings, DummyInstr(pos), env)
                         env.registerLocalFunction(name, inProcessUserFunction)
                         val instr = parseValueToplevel(CloseFnDef)
                         inProcessUserFunction.instr = instr
