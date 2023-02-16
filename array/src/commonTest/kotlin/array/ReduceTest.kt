@@ -45,6 +45,12 @@ class ReduceTest : APLTest() {
         reduceTestWithFunctionName("≥", 1)
     }
 
+    private fun reduceTestWithFunctionName(aplFn: String, correctRes: Int) {
+        val result = parseAPLExpression("${aplFn}/0⍴4")
+        assertTrue(result.dimensions.compareEquals(emptyDimensions()))
+        assertSimpleNumber(correctRes.toLong(), result)
+    }
+
     @Test
     fun reduceWithEqualsAndOptimisedLong() {
         assertSimpleNumber(0, parseAPLExpression("=/⍳5"))
@@ -337,9 +343,61 @@ class ReduceTest : APLTest() {
         }
     }
 
-    private fun reduceTestWithFunctionName(aplFn: String, correctRes: Int) {
-        val result = parseAPLExpression("${aplFn}/0⍴4")
-        assertTrue(result.dimensions.compareEquals(emptyDimensions()))
-        assertSimpleNumber(correctRes.toLong(), result)
+    @Test
+    fun nestedScalarReduce0() {
+        parseAPLExpression("+/ (1 2) (3 4)").let { result ->
+            assertDimension(emptyDimensions(), result)
+            assert1DArray(arrayOf(4, 6), result.valueAt(0))
+        }
+    }
+
+    @Test
+    fun nestedScalarReduce1() {
+        parseAPLExpression("+/ (1 2) (2 3) (3 4)").let { result ->
+            assertDimension(emptyDimensions(), result)
+            assert1DArray(arrayOf(6, 9), result.valueAt(0))
+        }
+    }
+
+    @Test
+    fun nestedScalarReduce2() {
+        parseAPLExpression("+/ ((10 20) (30 40)) ((50 60) (70 80)) ((90 100) (110 120))").let { result ->
+            assertDimension(emptyDimensions(), result)
+            val inner = result.valueAt(0)
+            assertDimension(dimensionsOfSize(2), inner)
+            assert1DArray(arrayOf(150, 180), inner.valueAt(0))
+            assert1DArray(arrayOf(210, 240), inner.valueAt(1))
+        }
+    }
+
+    @Test
+    fun nestedScalarReduce3() {
+        parseAPLExpression("+/ ((10 20) (30 40)) (100 200) ((50 60) (70 80)) ((90 100) (110 120))").let { result ->
+            assertDimension(emptyDimensions(), result)
+            val inner = result.valueAt(0)
+            assertDimension(dimensionsOfSize(2), inner)
+            assert1DArray(arrayOf(250, 280), inner.valueAt(0))
+            assert1DArray(arrayOf(410, 440), inner.valueAt(1))
+        }
+    }
+
+    @Test
+    fun nestedScalarReduceWithAxis0() {
+        parseAPLExpression("+[0]/ (1 2) (2 2 ⍴ 3 4 5 6)").let { result ->
+            assertDimension(emptyDimensions(), result)
+            val inner = result.valueAt(0)
+            assertDimension(dimensionsOfSize(2, 2), inner)
+            assertArrayContent(arrayOf(4, 5, 7, 8), inner)
+        }
+    }
+
+    @Test
+    fun nestedScalarReduceWithAxis1() {
+        parseAPLExpression("+[1]/ (1 2) (2 2 ⍴ 3 4 5 6)").let { result ->
+            assertDimension(emptyDimensions(), result)
+            val inner = result.valueAt(0)
+            assertDimension(dimensionsOfSize(2, 2), inner)
+            assertArrayContent(arrayOf(4, 6, 6, 8), inner)
+        }
     }
 }
