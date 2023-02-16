@@ -382,6 +382,13 @@ class ReduceTest : APLTest() {
     }
 
     @Test
+    fun nestedScalarReduce4() {
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("+[2]/ ((10 20) (30 40)) (100 200) ((50 60) (70 80)) ((90 100) (110 120))")
+        }
+    }
+
+    @Test
     fun nestedScalarReduceWithAxis0() {
         parseAPLExpression("+[0]/ (1 2) (2 2 ⍴ 3 4 5 6)").let { result ->
             assertDimension(emptyDimensions(), result)
