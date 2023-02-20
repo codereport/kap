@@ -141,7 +141,7 @@ class SourceEditor(val client: Client) {
 
     fun runClicked() {
         val source = EditorSourceLocation(this, styledArea.document.text)
-        client.evalSource(source, true)
+        client.evalSource(source)
     }
 
     private fun processSave(): Boolean {
