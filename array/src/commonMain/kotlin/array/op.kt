@@ -197,7 +197,7 @@ class UserDefinedOperatorTwoArg(
     }
 
     abstract inner class APLUserDefinedOperatorFunction(leftFn: APLFunction, extraFns: List<APLFunction>, pos: FunctionInstantiation) :
-            NoAxisAPLFunction(pos, listOf(leftFn) + extraFns), SaveStackCapable by SaveStackSupport() {
+            NoAxisAPLFunction(pos, listOf(leftFn) + extraFns) {
         private val leftOperatorRef = StackStorageRef(leftOpBinding)
         private val rightOperatorRef = StackStorageRef(rightOpBinding)
         private val leftArgsRef = leftArgs.map(::StackStorageRef)
@@ -232,20 +232,14 @@ class UserDefinedOperatorTwoArg(
     }
 
     inner class FnCall(leftFn: APLFunction, rightFn: APLFunction, pos: FunctionInstantiation) :
-            APLUserDefinedOperatorFunction(leftFn, listOf(rightFn), pos) {
-        init {
-            computeCapturedEnvs(leftFn, rightFn)
-        }
+            APLUserDefinedOperatorFunction(leftFn, listOf(rightFn), pos), SaveStackCapable by SaveStackSupport(leftFn, rightFn) {
 
         override fun mkArg(context: RuntimeContext) = LambdaValue(rightFn, currentStack().currentFrame())
         private val rightFn = fns[1]
     }
 
     inner class ValueCall(leftFn: APLFunction, val argInstr: Instruction, pos: FunctionInstantiation) :
-            APLUserDefinedOperatorFunction(leftFn, emptyList(), pos) {
-        init {
-            computeCapturedEnvs(leftFn)
-        }
+            APLUserDefinedOperatorFunction(leftFn, emptyList(), pos), SaveStackCapable by SaveStackSupport(leftFn) {
 
         override fun mkArg(context: RuntimeContext) = argInstr.evalWithContext(context)
     }

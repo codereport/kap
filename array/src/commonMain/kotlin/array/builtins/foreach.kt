@@ -40,17 +40,20 @@ class ForEachResult2Arg(
 }
 
 interface SaveStackCapable {
-    fun computeCapturedEnvs(vararg fns: APLFunction)
     fun savedStack(context: RuntimeContext) = if (saveStack()) currentStack().currentFrame() else null
     fun saveStack(): Boolean
 }
 
-class SaveStackSupport : SaveStackCapable {
+class SaveStackSupport(vararg fn: APLFunction) : SaveStackCapable {
     private var saveStack: Boolean = false
 
     override fun saveStack() = saveStack
 
-    override fun computeCapturedEnvs(vararg fns: APLFunction) {
+    init {
+        computeCapturedEnvs(fn)
+    }
+
+    private fun computeCapturedEnvs(fns: Array<out APLFunction>) {
         val capturedEnvs = fns.flatMap(APLFunction::allCapturedEnvironments)
         if (capturedEnvs.isNotEmpty()) {
             saveStack = capturedEnvs.isNotEmpty()
@@ -61,11 +64,7 @@ class SaveStackSupport : SaveStackCapable {
 
 class ForEachFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescriptor {
     class ForEachFunctionImpl(pos: FunctionInstantiation, fn: APLFunction)
-        : APLFunction(pos, listOf(fn)), ParallelSupported, SaveStackCapable by SaveStackSupport() {
-
-        init {
-            computeCapturedEnvs(fn)
-        }
+        : APLFunction(pos, listOf(fn)), ParallelSupported, SaveStackCapable by SaveStackSupport(fn) {
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             return if (a.isScalar()) {

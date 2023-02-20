@@ -176,12 +176,7 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
 
     class InnerJoinFunctionDescriptor(val fn0Inner: APLFunction, val fn1Inner: APLFunction) : APLFunctionDescriptor {
         class InnerJoinFunctionImpl(pos: FunctionInstantiation, fn0: APLFunction, fn1: APLFunction)
-            : NoAxisAPLFunction(pos, listOf(fn0, fn1)), SaveStackCapable by SaveStackSupport() {
-
-            init {
-                computeCapturedEnvs(fn0, fn1)
-            }
-
+            : NoAxisAPLFunction(pos, listOf(fn0, fn1)), SaveStackCapable by SaveStackSupport(fn0, fn1) {
             override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
                 val aDimensions = a.dimensions
                 val bDimensions = b.dimensions

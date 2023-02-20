@@ -65,14 +65,7 @@ class ReduceResult1Arg(
                     curr.makeAPLNumber()
                 }
                 else -> {
-                    var curr = arg.valueAt(posInSrc)
-                    withPossibleSavedStack(savedStack) {
-                        for (i in 1 until sizeAlongAxis) {
-                            engine.checkInterrupted(pos)
-                            curr = fn.eval2Arg(context, curr, arg.valueAt(i * stepLength + posInSrc), null).collapse()
-                        }
-                    }
-                    curr
+                    fn.reduce(context, arg, sizeAlongAxis, stepLength, posInSrc, savedStack)
                 }
             }
         }
@@ -81,6 +74,27 @@ class ReduceResult1Arg(
     override fun unwrapDeferredValue(): APLValue {
         return unwrapEnclosedSingleValue(this)
     }
+}
+
+fun defaultReduceImpl(
+    fn: APLFunction,
+    context: RuntimeContext,
+    arg: APLValue,
+    offset: Int,
+    sizeAlongAxis: Int,
+    stepLength: Int,
+    pos: Position,
+    savedStack: StorageStack.StorageStackFrame?)
+        : APLValue {
+    val engine = context.engine
+    var curr = arg.valueAt(offset)
+    withPossibleSavedStack(savedStack) {
+        for (i in 1 until sizeAlongAxis) {
+            engine.checkInterrupted(pos)
+            curr = fn.eval2Arg(context, curr, arg.valueAt(i * stepLength + offset), null).collapse()
+        }
+    }
+    return curr
 }
 
 fun unwrapEnclosedSingleValue(value: APLValue): APLValue {
@@ -151,11 +165,7 @@ class ReduceNWiseResultValue(
 }
 
 @Suppress("LeakingThis")
-abstract class ReduceFunctionImpl(val fn: APLFunction, pos: FunctionInstantiation) : APLFunction(pos), SaveStackCapable by SaveStackSupport() {
-    init {
-        computeCapturedEnvs(fn)
-    }
-
+abstract class ReduceFunctionImpl(val fn: APLFunction, pos: FunctionInstantiation) : APLFunction(pos), SaveStackCapable by SaveStackSupport(fn) {
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
         val axisParam = if (axis == null) null else axis.ensureNumber(pos).asInt(pos)
         return if (a.rank == 0) {

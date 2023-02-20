@@ -81,11 +81,7 @@ the monadic one (with Dyalog's ↑ meaning))
 
 class RankOperator : APLOperatorValueRightArg {
     override fun combineFunction(fn: APLFunction, instr: Instruction, opPos: FunctionInstantiation): APLFunction {
-        return object : APLFunction(opPos), SaveStackCapable by SaveStackSupport() {
-            init {
-                computeCapturedEnvs(fn)
-            }
-
+        return object : APLFunction(opPos), SaveStackCapable by SaveStackSupport(fn) {
             override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
                 val aReduced = a.collapseFirstLevel()
                 val aDimensions = aReduced.dimensions

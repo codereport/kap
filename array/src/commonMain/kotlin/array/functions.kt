@@ -1,5 +1,7 @@
 package array
 
+import array.builtins.defaultReduceImpl
+
 /**
  * Class representing a function in KAP. Any subclass of this class that contains
  * a reference to another function should store this reference in the [fns] property.
@@ -85,7 +87,7 @@ abstract class APLFunction(instantiation: FunctionInstantiation, val fns: List<A
     }
 
     open fun copy(fns: List<APLFunction>): APLFunction {
-        throw IllegalStateException("copy function must be implemented. class = ${this::class.simpleName}")
+        throw NotImplementedError("copy function must be implemented. class = ${this::class.simpleName}")
     }
 
     open fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue): APLValue {
@@ -129,6 +131,16 @@ abstract class APLFunction(instantiation: FunctionInstantiation, val fns: List<A
         val v = underFn.eval2Arg(context, a, b, null)
         val baseRes = baseFn.eval1Arg(context, v, null)
         return underFn.evalInverse2ArgB(context, a, baseRes, null)
+    }
+
+    open fun reduce(
+        context: RuntimeContext,
+        arg: APLValue,
+        sizeAlongAxis: Int,
+        stepLength: Int,
+        offset: Int,
+        savedStack: StorageStack.StorageStackFrame?): APLValue {
+        return defaultReduceImpl(this, context, arg, offset, sizeAlongAxis, stepLength, pos, savedStack)
     }
 }
 
@@ -234,7 +246,18 @@ abstract class DelegatedAPLFunctionImpl(pos: FunctionInstantiation, fns: List<AP
     override fun computeClosure(parser: APLParser) =
         innerImpl().computeClosure(parser)
 
-//    abstract override fun copy(fns: List<APLFunction>): APLFunction
+    //    abstract override fun copy(fns: List<APLFunction>): APLFunction
+
+    override fun capturedEnvironments() = innerImpl().capturedEnvironments()
+
+    override fun reduce(
+        context: RuntimeContext,
+        arg: APLValue,
+        sizeAlongAxis: Int,
+        stepLength: Int,
+        offset: Int,
+        savedStack: StorageStack.StorageStackFrame?): APLValue =
+        innerImpl().reduce(context, arg, sizeAlongAxis, stepLength, offset, savedStack)
 
     @Suppress("LeakingThis")
     override val name1Arg = innerImpl().name1Arg
@@ -395,8 +418,7 @@ class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction) 
     }
 }
 
-class AxisValAssignedFunctionAxisReader(baseFn: APLFunction, val axisReader: Instruction) :
-    NoAxisAPLFunction(baseFn.instantiation, listOf(baseFn)) {
+class AxisValAssignedFunctionAxisReader(baseFn: APLFunction, val axisReader: Instruction) : NoAxisAPLFunction(baseFn.instantiation, listOf(baseFn)) {
     private val baseFn get() = fns[0]
 
     override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
