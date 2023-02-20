@@ -15,7 +15,7 @@ scp -r /home/elias/prog/array_kotlin/clientweb/build/distributions/* \
        /home/elias/prog/array_kotlin/array/standard-lib \
        root@matrix.dhsdevelopments.com:/var/www/kapdemo/clientweb
 
-./buildsite.sh
+scripts/buildsite.sh
 
 scp -r /home/elias/prog/array_kotlin/clientweb2/build/distributions/* \
        root@matrix.dhsdevelopments.com:/var/www/kapdemo/clientweb2
