@@ -32,6 +32,24 @@ actual fun nameToCodepoint(name: String): Int? {
     }
 }
 
+actual fun codepointToName(codepoint: Int): String? {
+    memScoped {
+        val errorCode = alloc<icu.UErrorCodeVar>()
+        val length = 200
+        val nameBuf = allocArray<ByteVar>(length)
+        val ret = icu.u_charName!!(codepoint, icu.U_UNICODE_CHAR_NAME, nameBuf, length, errorCode.ptr)
+        if (icu.icu_u_success(errorCode.value)) {
+            return if (ret == 0) {
+                null
+            } else {
+                nameBuf.toKStringFromUtf8()
+            }
+        } else {
+            throw Exception("Error finding name for char: ${codepoint}")
+        }
+    }
+}
+
 actual val backendSupportsUnicodeNames = true
 
 actual fun StringBuilder.addCodepoint(codepoint: Int): StringBuilder {

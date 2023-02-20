@@ -155,6 +155,32 @@ class UnicodeTest : APLTest() {
         }
     }
 
+    @Test
+    fun characterToName() {
+        if (backendSupportsUnicodeNames) {
+            parseAPLExpression("unicode:toNames \"a å\uD83D\uDE3A\"").let { result ->
+                assert1DArray(
+                    arrayOf(
+                        "LATIN SMALL LETTER A",
+                        "SPACE",
+                        "LATIN SMALL LETTER A WITH RING ABOVE",
+                        "SMILING CAT FACE WITH OPEN MOUTH"),
+                    result)
+            }
+        }
+    }
+
+    @Test
+    fun recursiveCharacterToName() {
+        if (backendSupportsUnicodeNames) {
+            parseAPLExpression("unicode:toNames \"ab\" \"äζ\"").let { result ->
+                assertDimension(dimensionsOfSize(2), result)
+                assert1DArray(arrayOf("LATIN SMALL LETTER A", "LATIN SMALL LETTER B"), result.valueAt(0))
+                assert1DArray(arrayOf("LATIN SMALL LETTER A WITH DIAERESIS", "GREEK SMALL LETTER ZETA"), result.valueAt(1))
+            }
+        }
+    }
+
     private fun assertChar(codepoint: Int, result: APLValue) {
         assertTrue(result is APLChar)
         assertEquals(codepoint, result.value)

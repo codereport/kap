@@ -89,6 +89,24 @@ class ToUpperFunction : APLFunctionDescriptor {
     override fun make(instantiation: FunctionInstantiation) = ToUpperFunctionImpl(instantiation)
 }
 
+class ToNamesFunction : APLFunctionDescriptor {
+    class ToNamesFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
+        override fun combine1Arg(a: APLSingleValue): APLValue {
+            if (a is APLChar) {
+                val name = codepointToName(a.value)
+                return if (name == null) {
+                    APLNullValue.APL_NULL_INSTANCE
+                } else {
+                    APLString(name)
+                }
+            } else {
+                throwAPLException(IncompatibleTypeException("Value is not a char: ${a}"))
+            }
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = ToNamesFunctionImpl(instantiation)
+}
 
 class UnicodeModule : KapModule {
     override val name get() = "unicode"
@@ -100,5 +118,6 @@ class UnicodeModule : KapModule {
         engine.registerFunction(namespace.internAndExport("toGraphemes"), GraphemesFunction())
         engine.registerFunction(namespace.internAndExport("toLower"), ToLowerFunction())
         engine.registerFunction(namespace.internAndExport("toUpper"), ToUpperFunction())
+        engine.registerFunction(namespace.internAndExport("toNames"), ToNamesFunction())
     }
 }
