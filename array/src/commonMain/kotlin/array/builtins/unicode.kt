@@ -2,52 +2,36 @@ package array.builtins
 
 import array.*
 
-private fun toUnicodeCodepoint(value: APLValue): APLValue {
-    return when (val v = value.unwrapDeferredValue()) {
-        is APLChar -> v.value.makeAPLNumber()
-        is APLSingleValue -> v
-        else -> ToUnicodeValue(v)
-    }
-}
-
-private class ToUnicodeValue(val value: APLValue) : APLArray() {
-    override val dimensions = value.dimensions
-
-    override fun valueAt(p: Int): APLValue {
-        return toUnicodeCodepoint(value.valueAt(p))
-    }
-}
-
 class MakeCodepoints : APLFunctionDescriptor {
-    class MakeCodepointsImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
-        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            return toUnicodeCodepoint(a)
+    class MakeCodepointsImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
+        override fun combine1Arg(a: APLSingleValue): APLValue {
+            return if (a is APLChar) {
+                a.value.makeAPLNumber()
+            } else {
+                a
+            }
         }
     }
 
     override fun make(instantiation: FunctionInstantiation) = MakeCodepointsImpl(instantiation)
 }
 
-private fun fromUnicodeCodepoint(value: APLValue): APLValue {
-    return when (val v = value.unwrapDeferredValue()) {
-        is APLNumber -> APLChar(v.asInt())
-        is APLSingleValue -> v
-        else -> FromUnicodeValue(v)
-    }
-}
-
-private class FromUnicodeValue(val value: APLValue) : APLArray() {
-    override val dimensions = value.dimensions
-
-    override fun valueAt(p: Int): APLValue {
-        return fromUnicodeCodepoint(value.valueAt(p))
-    }
-}
-
 class MakeCharsFromCodepoints : APLFunctionDescriptor {
-    class MakeCharsFromCodepointsImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
-        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            return fromUnicodeCodepoint(a)
+    class MakeCharsFromCodepointsImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
+        override fun combine1Arg(a: APLSingleValue): APLValue {
+            return singleArgNumericRelationOperation(
+                pos,
+                a,
+                { x -> APLChar.fromLong(x, pos) },
+                { x -> APLChar.fromLong(x.toLong(), pos) },
+                { x ->
+                    if (x.imaginary == 0.0) {
+                        APLChar.fromLong(x.real.toLong(), pos)
+                    } else {
+                        throwAPLException(APLIllegalArgumentException("Complex numbers can't bre presented as characters: ${x}"))
+                    }
+                },
+                { x -> APLChar(x) })
         }
     }
 
@@ -89,6 +73,24 @@ class ToUpperFunction : APLFunctionDescriptor {
     override fun make(instantiation: FunctionInstantiation) = ToUpperFunctionImpl(instantiation)
 }
 
+class ToNamesFunction : APLFunctionDescriptor {
+    class ToNamesFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
+        override fun combine1Arg(a: APLSingleValue): APLValue {
+            if (a is APLChar) {
+                val name = codepointToName(a.value)
+                return if (name == null) {
+                    APLNullValue.APL_NULL_INSTANCE
+                } else {
+                    APLString(name)
+                }
+            } else {
+                throwAPLException(IncompatibleTypeException("Value is not a char: ${a}"))
+            }
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = ToNamesFunctionImpl(instantiation)
+}
 
 class UnicodeModule : KapModule {
     override val name get() = "unicode"
@@ -100,5 +102,6 @@ class UnicodeModule : KapModule {
         engine.registerFunction(namespace.internAndExport("toGraphemes"), GraphemesFunction())
         engine.registerFunction(namespace.internAndExport("toLower"), ToLowerFunction())
         engine.registerFunction(namespace.internAndExport("toUpper"), ToUpperFunction())
+        engine.registerFunction(namespace.internAndExport("toNames"), ToNamesFunction())
     }
 }

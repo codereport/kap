@@ -5,6 +5,7 @@ expect fun isDigit(codepoint: Int): Boolean
 expect fun isWhitespace(codepoint: Int): Boolean
 expect fun charToString(codepoint: Int): String
 expect fun nameToCodepoint(name: String): Int?
+expect fun codepointToName(codepoint: Int): String?
 expect val backendSupportsUnicodeNames: Boolean
 
 fun isAlphanumeric(codepoint: Int) = isLetter(codepoint) || isDigit(codepoint)

@@ -286,7 +286,7 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
         }
     }
 
-    fun evalSource(source: SourceLocation, linkNewContext: Boolean = false) {
+    fun evalSource(source: SourceLocation) {
         calculationQueue.pushRequest(source) { result ->
             if (result is Either.Right) {
                 result.value.printStackTrace()

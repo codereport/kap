@@ -32,6 +32,10 @@ actual fun nameToCodepoint(name: String): Int? {
     return null
 }
 
+actual fun codepointToName(codepoint: Int): String? {
+    return null
+}
+
 actual val backendSupportsUnicodeNames = false
 
 actual fun StringBuilder.addCodepoint(codepoint: Int): StringBuilder {

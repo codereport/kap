@@ -4,92 +4,16 @@ import array.*
 import array.builtins.ComposeFunctionDescriptor
 import array.builtins.OverDerivedFunctionDescriptor
 import array.builtins.ReverseComposeFunctionDescriptor
-import array.gui.Client
-import array.gui.styledarea.InputFieldStyledArea
-import array.gui.styledarea.TextStyle
-import javafx.event.ActionEvent
-import javafx.fxml.FXMLLoader
 import javafx.scene.Group
 import javafx.scene.Node
-import javafx.scene.Parent
-import javafx.scene.Scene
 import javafx.scene.control.Label
-import javafx.scene.input.KeyCode
-import javafx.scene.input.KeyCombination
 import javafx.scene.input.MouseButton
 import javafx.scene.input.MouseEvent
-import javafx.scene.layout.BorderPane
 import javafx.scene.layout.Pane
 import javafx.scene.layout.Region
 import javafx.scene.layout.VBox
 import javafx.scene.shape.Line
-import javafx.stage.Stage
-import org.fxmisc.wellbehaved.event.EventPattern
-import org.fxmisc.wellbehaved.event.InputMap
-import org.fxmisc.wellbehaved.event.Nodes
 import kotlin.math.max
-
-class StructureViewer {
-    lateinit var graphContentPane: Pane
-    lateinit var client: Client
-    lateinit var expressionField: InputFieldStyledArea
-    lateinit var borderPane: BorderPane
-
-    fun initialize() {
-        val returnMapping =
-            InputMap.consume(EventPattern.keyPressed(KeyCode.ENTER, KeyCombination.CONTROL_DOWN)) { displayExpressionFromInput() }
-        Nodes.addInputMap(expressionField, returnMapping)
-    }
-
-    fun showClicked(@Suppress("UNUSED_PARAMETER") actionEvent: ActionEvent) {
-        displayExpressionFromInput()
-    }
-
-    fun displayExpressionFromInput() {
-        parseExpression(expressionField.text)
-    }
-
-    private fun parseExpression(text: String) {
-        val instr = client.engine.parse(StringSourceLocation(text))
-        graphContentPane.children.clear()
-        val graph = createGraph(instr)
-        val root = graph.rootNode
-        if (root != null) {
-            graphContentPane.applyCss()
-            graphContentPane.layout()
-            graph.updateNodes()
-            val bounds = root.bounds()
-            graphContentPane.setPrefSize(bounds.width, bounds.height)
-        }
-    }
-
-    private fun createGraph(instr: Instruction): Graph {
-        val graph = Graph(this, graphContentPane)
-        val node = makeNodeFromInstr(graph, instr)
-        graph.rootNode = node
-        return graph
-    }
-
-    fun highlightPosition(pos: Position) {
-        expressionField.clearStyles()
-        expressionField.setStyleForRange(pos.line, pos.col, pos.computedEndLine, pos.computedEndCol, TextStyle(TextStyle.Type.SINGLE_CHAR_HIGHLIGHT))
-    }
-
-    companion object {
-        fun open(client: Client) {
-            val loader = FXMLLoader(StructureViewer::class.java.getResource("structure-viewer.fxml"))
-            val root: Parent = loader.load()
-            val controller: StructureViewer = loader.getController()
-            controller.client = client
-
-            val stage = Stage()
-            val scene = Scene(root, 800.0, 800.0)
-            stage.title = "Structure Viewer"
-            stage.scene = scene
-            stage.show()
-        }
-    }
-}
 
 class LabelledContainer(labelText: String, node: Node) : VBox() {
     init {
@@ -278,7 +202,7 @@ class LiteralArrayGraphNode private constructor(graph: Graph, valueList: List<KN
     companion object {
         fun create(graph: Graph, instrList: List<Instruction>): LiteralArrayGraphNode {
             val valueList = instrList.map { instr -> makeNodeFromInstr(graph, instr) }
-            val newPos = when (val size = instrList.size) {
+            val newPos = when (instrList.size) {
                 0 -> throw java.lang.IllegalStateException("Explicit array with zero elements")
                 1 -> instrList.first().pos
                 else -> instrList.first().pos.expandToEnd(instrList.last().pos)

@@ -175,4 +175,88 @@ class StringsTest : APLTest() {
             parseAPLExpression("⍎map 1 2")
         }
     }
+
+    @Test
+    fun charDifference() {
+        parseAPLExpression("\"bBa\" - \"aAb\"").let { result ->
+            assert1DArray(arrayOf(1, 1, -1), result)
+        }
+    }
+
+    @Test
+    fun additionOfCharsNotAllowed() {
+        assertFailsWith<APLEvalException> {
+            parseAPLExpression("@a + @A")
+        }
+    }
+
+    @Test
+    fun charPlusInt() {
+        parseAPLExpression("\"af\" + 1 ¯1").let { result ->
+            assertString("be", result)
+        }
+    }
+
+    @Test
+    fun intPlusChar() {
+        parseAPLExpression("8 ¯1 + \"af\"").let { result ->
+            assertString("ie", result)
+        }
+    }
+
+    @Test
+    fun charMinusInt() {
+        parseAPLExpression("\"abj\" - 0 ¯11 3").let { result ->
+            assertString("amg", result)
+        }
+    }
+
+    @Test
+    fun intMinusCharIsNotAllowed() {
+        assertFailsWith<APLEvalException> {
+            parseAPLExpression("98 200 - \"aj\"")
+        }
+    }
+
+    @Test
+    fun charPlusComplexShouldFail() {
+        assertFailsWith<APLEvalException> {
+            parseAPLExpression("@a + 1j1")
+        }
+    }
+
+    @Test
+    fun complexPlusCharShouldFail() {
+        assertFailsWith<APLEvalException> {
+            parseAPLExpression("1j1 + @a")
+        }
+    }
+
+    @Test
+    fun charMinusComplexShouldFail() {
+        assertFailsWith<APLEvalException> {
+            parseAPLExpression("@a - 1j1")
+        }
+    }
+
+    @Test
+    fun charPlusDouble() {
+        parseAPLExpression("\"abc\" + 0.1 0.9 6.2").let { result ->
+            assertString("abi", result)
+        }
+    }
+
+    @Test
+    fun doublePlusChar() {
+        parseAPLExpression("0.2 11.9 1.1 + \"abc\"").let { result ->
+            assertString("amd", result)
+        }
+    }
+
+    @Test
+    fun negativeCharactersNotAllowed0() {
+        assertFailsWith<APLEvalException> {
+            parseAPLExpression("@a - 98")
+        }
+    }
 }
