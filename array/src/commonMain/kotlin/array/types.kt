@@ -1014,4 +1014,7 @@ open class DelegatedValue(val value: APLValue) : APLValue() {
     override fun ensureList(pos: Position?) = value.ensureList(pos)
     override fun ensureMap(pos: Position) = value.ensureMap(pos)
     override fun asBoolean(pos: Position?) = value.asBoolean(pos)
+    override fun formattedAsCodeRequiresParens() = value.formattedAsCodeRequiresParens()
+    override fun ensureNumberOrNull() = value.ensureNumberOrNull()
+    override fun asHtml(buf: Appendable) = value.asHtml(buf)
 }
