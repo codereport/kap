@@ -270,8 +270,8 @@ abstract class MathNumericCombineAPLFunction(pos: FunctionInstantiation) : MathC
 }
 
 class AddAPLFunction : APLFunctionDescriptor {
-    class AddAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
-        override fun numberCombine1Arg(a: APLNumber): APLValue {
+    class AddAPLFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
+        override fun combine1Arg(a: APLSingleValue): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
                 a,
@@ -280,14 +280,21 @@ class AddAPLFunction : APLFunctionDescriptor {
                 { x -> Complex(x.real, -x.imaginary).makeAPLNumber() })
         }
 
-        override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
+        override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
             return numericRelationOperation(
                 pos,
                 a,
                 b,
                 { x, y -> (x + y).makeAPLNumber() },
                 { x, y -> (x + y).makeAPLNumber() },
-                { x, y -> (x + y).makeAPLNumber() })
+                { x, y -> (x + y).makeAPLNumber() },
+                fnOther = { x, y ->
+                    when {
+                        x is APLChar && y is APLNumber -> APLChar.fromLong(x.value + y.asLong(pos), pos)
+                        x is APLNumber && y is APLChar -> APLChar.fromLong(y.value + x.asLong(pos), pos)
+                        else -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos))
+                    }
+                })
         }
 
         override fun combine1ArgLong(a: Long) = a
@@ -327,8 +334,8 @@ class AddAPLFunction : APLFunctionDescriptor {
 }
 
 class SubAPLFunction : APLFunctionDescriptor {
-    class SubAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
-        override fun numberCombine1Arg(a: APLNumber): APLValue {
+    class SubAPLFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
+        override fun combine1Arg(a: APLSingleValue): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
                 a,
@@ -337,14 +344,21 @@ class SubAPLFunction : APLFunctionDescriptor {
                 { x -> (-x).makeAPLNumber() })
         }
 
-        override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
+        override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
             return numericRelationOperation(
                 pos,
                 a,
                 b,
                 { x, y -> (x - y).makeAPLNumber() },
                 { x, y -> (x - y).makeAPLNumber() },
-                { x, y -> (x - y).makeAPLNumber() })
+                { x, y -> (x - y).makeAPLNumber() },
+                { x, y -> (x - y).makeAPLNumber() },
+                { x, y ->
+                    when {
+                        x is APLChar && y is APLNumber -> APLChar.fromLong(x.value - y.asLong(pos), pos)
+                        else -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos))
+                    }
+                })
         }
 
         override fun combine1ArgLong(a: Long) = -a
@@ -657,7 +671,7 @@ fun complexMod(a: Complex, b: Complex): Complex {
 }
 
 class MinAPLFunction : APLFunctionDescriptor {
-    class MinAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
+    class MinAPLFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
         override fun combine1Arg(a: APLSingleValue): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -695,7 +709,7 @@ fun complexCeiling(value: Complex): Complex {
 }
 
 class MaxAPLFunction : APLFunctionDescriptor {
-    class MaxAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
+    class MaxAPLFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
         override fun combine1Arg(a: APLSingleValue): APLValue {
             return singleArgNumericRelationOperation(
                 pos,

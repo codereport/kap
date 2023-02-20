@@ -798,6 +798,12 @@ class EnclosedAPLValue private constructor(val value: APLValue) : APLArray() {
 }
 
 class APLChar(val value: Int) : APLSingleValue() {
+    init {
+        if (value < 0) {
+            throw IllegalArgumentException("Char values cannot be negative")
+        }
+    }
+
     override val aplValueType: APLValueType get() = APLValueType.CHAR
     fun asString() = charToString(value)
     override fun formatted(style: FormatStyle) = when (style) {
@@ -821,6 +827,18 @@ class APLChar(val value: Int) : APLSingleValue() {
     override fun toString() = "APLChar['${asString()}' 0x${value.toString(16)}]"
 
     override fun makeKey() = APLValueKeyImpl(this, value)
+
+    companion object {
+        fun fromLong(value: Long, pos: Position): APLChar {
+            if (value < 0) {
+                throwAPLException(APLEvalException("Codepoints cannot be negative: ${value}", pos))
+            }
+            if (value > Int.MAX_VALUE) {
+                throwAPLException(APLEvalException("Invalid codepoint: ${value}", pos))
+            }
+            return APLChar(value.toInt())
+        }
+    }
 }
 
 class APLString(val content: IntArray) : APLArray() {
