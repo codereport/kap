@@ -7,7 +7,6 @@ import javafx.scene.Scene
 import javafx.scene.image.WritableImage
 import javafx.scene.input.KeyEvent
 import javafx.scene.layout.BorderPane
-import javafx.scene.text.Font
 import javafx.stage.Stage
 import java.util.*
 import java.util.concurrent.atomic.AtomicReference
@@ -34,9 +33,9 @@ class GraphicWindowAPLValue(engine: Engine, width: Int, height: Int, settings: G
     override fun compareEquals(reference: APLValue) = reference is GraphicWindowAPLValue && window === reference.window
     override fun makeKey() = APLValueKeyImpl(this, window)
 
-    fun updateContent(imageData: ImageData) {
+    fun updateContent(image: WritableImage) {
         Platform.runLater {
-            window.repaintContent(imageData)
+            window.repaintContent(image)
         }
     }
 }
@@ -92,26 +91,58 @@ class DrawGraphicFunction : APLFunctionDescriptor {
                 throw APLIncompatibleDomainsException("Left argument must be a graphic object", pos)
             }
             val bDimensions = b.dimensions
-            when (bDimensions.size) {
-                2 -> {
-                    v.updateContent(ImageData(b.toDoubleArray(pos), bDimensions[1], bDimensions[0], false))
-                }
-                3 -> {
-                    if (bDimensions[2] != 3) {
-                        throwAPLException(APLIllegalArgumentException("Colour arrays needs must have a third dimension of size 3", pos))
-                    }
-                    v.updateContent(ImageData(b.toDoubleArray(pos), bDimensions[1], bDimensions[0], true))
-                }
-                else -> {
-                    throw InvalidDimensionsException("Right argument must be 2 or 3-dimensional", pos)
-                }
-            }
-
+            v.updateContent(renderArrayToImage(b, pos))
             return b
         }
     }
 
     override fun make(instantiation: FunctionInstantiation) = DrawGraphicFunctionImpl(instantiation)
+}
+
+private fun renderArrayToImage(b: APLValue, pos: Position): WritableImage {
+    val bDimensions = b.dimensions
+    return when (bDimensions.size) {
+        2 -> {
+            val width = bDimensions[1]
+            val height = bDimensions[0]
+            val image = WritableImage(width, height)
+            val pixelWriter = image.pixelWriter
+            var p = 0
+            for (y in 0 until height) {
+                for (x in 0 until width) {
+                    val value = b.valueAtDouble(p++, pos)
+                    val valueByte = min(max(value * 256, 0.0), 255.0).toInt() and 0xFF
+                    val colour = (0xFF shl 24) or (valueByte shl 16) or (valueByte shl 8) or valueByte
+                    pixelWriter.setArgb(x, y, colour)
+                }
+            }
+            image
+        }
+        3 -> {
+            if (bDimensions[2] != 3) {
+                throwAPLException(APLIllegalArgumentException("Colour arrays needs must have a third dimension of size 3", pos))
+            }
+            val width = bDimensions[1]
+            val height = bDimensions[0]
+            val image = WritableImage(width, height)
+            val pixelWriter = image.pixelWriter
+            var p = 0
+            for (y in 0 until height) {
+                for (x in 0 until width) {
+                    val d0 = b.valueAtDouble(p++, pos)
+                    val d1 = b.valueAtDouble(p++, pos)
+                    val d2 = b.valueAtDouble(p++, pos)
+                    val valueR = min(max((d0 * 255).toInt(), 0), 255) and 0xFF
+                    val valueG = min(max((d1 * 255).toInt(), 0), 255) and 0xFF
+                    val valueB = min(max((d2 * 255).toInt(), 0), 255) and 0xFF
+                    val colour = (0xFF shl 24) or (valueR shl 16) or (valueG shl 8) or valueB
+                    pixelWriter.setArgb(x, y, colour)
+                }
+            }
+            image
+        }
+        else -> throwAPLException(APLIllegalArgumentException("Right argument must be 2 or 3-dimensional", pos))
+    }
 }
 
 typealias EventType = KClass<out KapWindowEvent>
@@ -165,19 +196,22 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int, val settings: S
         }
     }
 
+    /*
+    L ⇐ {⊃1 ⍵ ∨.∧ 3 4 = +/,¯1 0 1 ⊖⌻ ¯1 0 1 ⌽¨ ⊂⍵}
+    curr←?1000 1000⍴2 ◊ while(1) { g gui:draw curr←L curr ◊ time:sleep 0.001 }
+     */
+
     private inner class Content(width: Int, height: Int) {
         val stage = Stage()
         val canvas: ResizableCanvas
-        var image: WritableImage
-        var array: ImageData? = null
+        var currentImage: WritableImage? = null
 
         init {
-            image = WritableImage(width, height)
             canvas = ResizableCanvas()
             canvas.width = width.toDouble()
             canvas.height = height.toDouble()
             canvas.addOnSizeChangeCallback {
-                createImage(canvas.width.toInt(), canvas.height.toInt())
+                repaintImage()
             }
             val border = BorderPane().apply {
                 center = canvas
@@ -188,98 +222,45 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int, val settings: S
             stage.show()
         }
 
-        private fun createImage(width: Int, height: Int) {
-            image = WritableImage(width, height)
-            array?.let { a ->
-                updateArrayAndRepaint(a)
+        fun updateArrayAndRepaint(image: WritableImage) {
+            currentImage = image
+            repaintImage()
+        }
+
+        fun repaintImage() {
+            val image = currentImage
+            if (image != null) {
+                canvas.graphicsContext2D.isImageSmoothing = false
+                canvas.graphicsContext2D.drawImage(image, 0.0, 0.0, image.width, image.height, 0.0, 0.0, canvas.width, canvas.height)
             }
         }
 
-        fun updateArrayAndRepaint(imageData: ImageData) {
-            array = imageData
-            if (!imageData.arrayIs3D) {
-                repaintCanvas2D()
-            } else {
-                repaintCanvas3D()
-            }
-        }
-
-        private fun repaintCanvas2D() {
-            val arrayValues = array!!.array
-            val width = array!!.width
-            val height = array!!.height
-
-            assertx(arrayValues.size == width * height)
-            val imageWidth = image.width
-            val imageHeight = image.height
-            val xStride = width.toDouble() / imageWidth
-            val yStride = height.toDouble() / imageHeight
-            val pixelWriter = image.pixelWriter
-            for (y in 0 until imageHeight.toInt()) {
-                for (x in 0 until imageWidth.toInt()) {
-                    val value = arrayValues[(y * yStride).toInt() * width + (x * xStride).toInt()]
-                    val valueByte = min(max(value * 256, 0.0), 255.0).toInt() and 0xFF
-                    val colour = (0xFF shl 24) or (valueByte shl 16) or (valueByte shl 8) or valueByte
-                    pixelWriter.setArgb(x, y, colour)
-                }
-            }
-            canvas.graphicsContext2D.drawImage(image, 0.0, 0.0)
-            if (settings.labels) {
-                drawCellValues()
-            }
-        }
-
-        private fun repaintCanvas3D() {
-            val imageData = array!!.array
-            val width = array!!.width
-            val height = array!!.height
-
-            assertx(imageData.size == width * height * 3)
-            val lineWidth = width * 3
-            val imageWidth = image.width
-            val imageHeight = image.height
-            val xStride = width.toDouble() / imageWidth
-            val yStride = height.toDouble() / imageHeight
-            val pixelWriter = image.pixelWriter
-            for (y in 0 until imageHeight.toInt()) {
-                for (x in 0 until imageWidth.toInt()) {
-                    val offset = (y * yStride).toInt() * lineWidth + (x * xStride).toInt() * 3
-                    val valueR = min(max((imageData[offset] * 255).toInt(), 0), 255) and 0xFF
-                    val valueG = min(max((imageData[offset + 1] * 255).toInt(), 0), 255) and 0xFF
-                    val valueB = min(max((imageData[offset + 2] * 255).toInt(), 0), 255) and 0xFF
-                    val colour = (0xFF shl 24) or (valueR shl 16) or (valueG shl 8) or valueB
-                    pixelWriter.setArgb(x, y, colour)
-                }
-            }
-            canvas.graphicsContext2D.drawImage(image, 0.0, 0.0)
-        }
-
-        private fun drawCellValues() {
-            val imageData = array!!.array
-            val width = array!!.width
-            val height = array!!.height
-
-            val cellWidth = image.width / width
-            val cellHeight = image.height / height
-            val c = canvas.graphicsContext2D
-            c.font = Font.font("Sans Serif", cellHeight / 2)
-            if (cellWidth > 2 && cellHeight > 2) {
-                for (y in 0 until height) {
-                    for (x in 0 until width) {
-                        val value = imageData[y * height + x]
-                        c.fillText(String.format("%f", value), x * cellWidth, y * cellHeight)
-                    }
-                }
-            }
-        }
+//        private fun drawCellValues() {
+//            val imageData = array!!.array
+//            val width = array!!.width
+//            val height = array!!.height
+//
+//            val cellWidth = image.width / width
+//            val cellHeight = image.height / height
+//            val c = canvas.graphicsContext2D
+//            c.font = Font.font("Sans Serif", cellHeight / 2)
+//            if (cellWidth > 2 && cellHeight > 2) {
+//                for (y in 0 until height) {
+//                    for (x in 0 until width) {
+//                        val value = imageData[y * height + x]
+//                        c.fillText(String.format("%f", value), x * cellWidth, y * cellHeight)
+//                    }
+//                }
+//            }
+//        }
 
         private fun processKeyPress(event: KeyEvent) {
             publishEventIfEnabled(KapKeyEvent(event))
         }
     }
 
-    fun repaintContent(imageData: ImageData) {
-        content.get()?.updateArrayAndRepaint(imageData)
+    fun repaintContent(image: WritableImage) {
+        content.get()?.updateArrayAndRepaint(image)
     }
 
     data class Settings(val labels: Boolean = false)
