@@ -227,7 +227,7 @@ abstract class APLValue {
 
     open fun asBoolean(pos: Position? = null): Boolean {
         val v = unwrapDeferredValue()
-        return if (v == this) {
+        return if (v === this) {
             true
         } else {
             v.asBoolean(pos)
