@@ -170,16 +170,17 @@ class TokenGeneratorTest {
         assertSame(EndOfFile, gen.nextToken())
     }
 
-    @Ignore
     @Test
     fun specialCharacters() {
-        val gen = makeGenerator("@\\n @\\\\ @\\SPACE @\\e @\\u014E @\\GREATER-THAN_OR_EQUIVALENT_TO")
+        val gen = makeGenerator("@\\n @\\r @\\\\ @\\e @\\u014E @\\0 @\\s @\\t")
         assertTokenIsCharacter('\n'.code, gen.nextToken())
+        assertTokenIsCharacter('\r'.code, gen.nextToken())
         assertTokenIsCharacter('\\'.code, gen.nextToken())
-        assertTokenIsCharacter(' '.code, gen.nextToken())
         assertTokenIsCharacter(27, gen.nextToken())
         assertTokenIsCharacter(0x014e, gen.nextToken())
-        assertTokenIsCharacter(0x2273, gen.nextToken())
+        assertTokenIsCharacter(0, gen.nextToken())
+        assertTokenIsCharacter(' '.code, gen.nextToken())
+        assertTokenIsCharacter('\t'.code, gen.nextToken())
         assertSame(EndOfFile, gen.nextToken())
     }
 
