@@ -322,7 +322,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                         ParseResultHolder.FnParseResult(baseFn(), holder.lastToken)
                     }
                     else -> {
-                        val b = makeLeftBindFunction(leftArgs, fn)
+                        val b = makeLeftBindFunction(leftArgs, parsedFn)
                         ParseResultHolder.FnParseResult(Chain2(parsedFn.instantiation, b, holder.fn), holder.lastToken)
                     }
                 }

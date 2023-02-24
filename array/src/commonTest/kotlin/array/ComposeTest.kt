@@ -638,4 +638,11 @@ class ComposeTest : APLTest() {
             assertSimpleNumber(4, result)
         }
     }
+
+    @Test
+    fun trainWithLeftBind2() {
+        parseAPLExpression("(11-⍨2+×) 1").let { result ->
+            assertSimpleNumber(-8, result)
+        }
+    }
 }
