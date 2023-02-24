@@ -441,22 +441,3 @@ class AxisValAssignedFunctionAxisReader(baseFn: APLFunction, val axisReader: Ins
         return baseFn.evalInverse2ArgA(context, a, b, axisReader.evalWithContext(context))
     }
 }
-
-class MergedLeftArgFunction(fn0: APLFunction, fn1: APLFunction) : NoAxisAPLFunction(fn0.instantiation, listOf(fn0, fn1)) {
-    private val fn0 get() = fns[0]
-    private val fn1 get() = fns[1]
-
-    override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-        val res = fn1.eval1Arg(context, a, null)
-        return fn0.eval1Arg(context, res, null)
-    }
-
-    override fun evalInverse1Arg(context: RuntimeContext, a: APLValue): APLValue {
-        val res = fn0.evalInverse1Arg(context, a, null)
-        return fn1.evalInverse1Arg(context, res, null)
-    }
-
-    override fun copy(fns: List<APLFunction>): APLFunction {
-        return MergedLeftArgFunction(fns[0], fns[1])
-    }
-}

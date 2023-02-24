@@ -921,7 +921,7 @@ Monadic single arg:          ∇            (foo) x          {
     @Test
     fun shortFormWithLeftArgAndCommute() {
         val src = """
-            |foo ⇐ 10+⊢
+            |foo ⇐ 10 (+⊢)
             |foo 20
         """.trimMargin()
         parseAPLExpression(src).let { result ->
@@ -932,7 +932,7 @@ Monadic single arg:          ∇            (foo) x          {
     @Test
     fun shortFormWithLeftArgAndFork() {
         val src = """
-            |foo ⇐ 10+⊢⊣
+            |foo ⇐ 10 (÷«⊢»⊣)
             |foo 20
         """.trimMargin()
         parseAPLExpression(src).let { result ->

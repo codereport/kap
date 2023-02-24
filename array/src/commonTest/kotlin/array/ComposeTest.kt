@@ -166,14 +166,14 @@ class ComposeTest : APLTest() {
     @Test
     fun composeWithLeftArgShouldFail() {
         assertFailsWith<LeftAssigned2ArgException> {
-            parseAPLExpression("2 (3+⊢) 5")
+            parseAPLExpression("2 (3 (+⊢)) 5")
         }
     }
 
     @Test
     fun forkWithLeftArgShouldFail() {
         assertFailsWith<LeftAssigned2ArgException> {
-            parseAPLExpression("2 (3+⊢⊣) 5")
+            parseAPLExpression("2 (3 (+«⊢»⊣)) 5")
         }
     }
 
@@ -465,7 +465,7 @@ class ComposeTest : APLTest() {
     @Test
     fun leftBindWithTrain() {
         val src = """
-            |foo ⇐ 2+⊢
+            |foo ⇐ 2 (+⊢)
             |foo 4
         """.trimMargin()
         parseAPLExpression(src).let { result ->
@@ -622,6 +622,20 @@ class ComposeTest : APLTest() {
     fun forkWithNewSyntax() {
         parseAPLExpression("+/«÷»≢ 1 2 3 4").let { result ->
             assertSimpleDouble(2.5, result)
+        }
+    }
+
+    @Test
+    fun trainWithLeftBind0() {
+        parseAPLExpression("(1+2+×) 5").let { result ->
+            assertSimpleNumber(4, result)
+        }
+    }
+
+    @Test
+    fun trainWithLeftBind1() {
+        parseAPLExpression("((1+)(2+)×) 5").let { result ->
+            assertSimpleNumber(4, result)
         }
     }
 }

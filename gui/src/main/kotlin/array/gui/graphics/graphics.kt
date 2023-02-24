@@ -197,7 +197,7 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int, val settings: S
     }
 
     /*
-    L ⇐ {⊃1 ⍵ ∨.∧ 3 4 = +/,¯1 0 1 ⊖⌻ ¯1 0 1 ⌽¨ ⊂⍵}
+    L ⇐ {⊃1 ⍵ ∨.∧ 3 4 = +/ , ¯1 0 1 ⊖⌻ ¯1 0 1 ⌽¨ ⊂⍵}
     curr←?1000 1000⍴2 ◊ while(1) { g gui:draw curr←L curr ◊ time:sleep 0.001 }
      */
 

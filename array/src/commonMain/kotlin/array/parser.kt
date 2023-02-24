@@ -321,18 +321,9 @@ class APLParser(val tokeniser: TokenGenerator) {
                     leftArgs.isEmpty() -> {
                         ParseResultHolder.FnParseResult(baseFn(), holder.lastToken)
                     }
-                    holder.fn is LeftAssignedFunction || holder.fn is MergedLeftArgFunction -> {
-                        val left = LeftAssignedFunction(parsedFn, InstructionList(leftArgs), parsedFn.instantiation)
-                        val right = holder.fn
-                        val mergedFn = MergedLeftArgFunction(left, right)
-                        ParseResultHolder.FnParseResult(mergedFn, holder.lastToken)
-//                        makeLeftBindFunctionParseResult(
-//                            leftArgs,
-//                            MergedLeftArgsFunction(parsedFn, holder.fn),
-//                            holder.lastToken)
-                    }
                     else -> {
-                        makeLeftBindFunctionParseResult(leftArgs, baseFn(), holder.lastToken)
+                        val b = makeLeftBindFunction(leftArgs, fn)
+                        ParseResultHolder.FnParseResult(Chain2(parsedFn.instantiation, b, holder.fn), holder.lastToken)
                     }
                 }
             }
@@ -344,10 +335,14 @@ class APLParser(val tokeniser: TokenGenerator) {
         baseFn: APLFunction,
         lastToken: TokenWithPosition
     ): ParseResultHolder.FnParseResult {
+        val fn = makeLeftBindFunction(leftArgs, baseFn)
+        return ParseResultHolder.FnParseResult(fn, lastToken)
+    }
+
+    private fun makeLeftBindFunction(leftArgs: List<Instruction>, baseFn: APLFunction): LeftAssignedFunction {
         val firstArgPos = leftArgs[0].pos
         val resultList = makeResultList(leftArgs) ?: throw IllegalStateException("Result list is null")
-        val fn = LeftAssignedFunction(baseFn, resultList, baseFn.instantiation.updatePos { it.copy(line = firstArgPos.line, col = firstArgPos.col) })
-        return ParseResultHolder.FnParseResult(fn, lastToken)
+        return LeftAssignedFunction(baseFn, resultList, baseFn.instantiation.updatePos { it.copy(line = firstArgPos.line, col = firstArgPos.col) })
     }
 
     private fun processAssignment(pos: Position, leftArgs: List<Instruction>): ParseResultHolder.InstrParseResult {
