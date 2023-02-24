@@ -327,6 +327,9 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
             'n'.code -> '\n'.code
             'r'.code -> '\r'.code
             'e'.code -> 27
+            '0'.code -> 0
+            's'.code -> ' '.code
+            't'.code -> '\t'.code
             '\\'.code -> '\\'.code
             'u'.code -> processUnicodeHexCode(pos)
             in ('A'.code)..('Z'.code) -> processUnicodeName(ch, pos)
