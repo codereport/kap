@@ -34,6 +34,7 @@ object IncludeToken : Token()
 object DeclareToken : Token()
 object LeftForkToken : Token()
 object RightForkToken : Token()
+object DynassignToken : Token()
 
 class Namespace(val name: String) {
     private val symbols = HashMap<String, NamespaceEntry>()
@@ -537,7 +538,8 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
             "defsyntaxsub" to DefsyntaxSubToken,
             "defsyntax" to DefsyntaxToken,
             "use" to IncludeToken,
-            "declare" to DeclareToken)
+            "declare" to DeclareToken,
+            "dynamicequal" to DynassignToken)
 
         private fun collectSymbol(
             firstChar: Int,

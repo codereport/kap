@@ -62,6 +62,12 @@ actual fun toRegexpWithException(string: String, options: Set<RegexOption>): Reg
     }
 }
 
+actual class MPLock
+
+actual inline fun <T> MPLock.withLocked(fn: () -> T): T {
+    return fn()
+}
+
 actual fun numCores() = 1
 
 actual fun makeBackgroundDispatcher(numThreads: Int): MPThreadPoolExecutor {

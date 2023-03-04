@@ -92,6 +92,7 @@ class StorageStack private constructor() {
         val frame = StorageStackFrame(environment, name, pos)
         stack.add(frame)
         var result: APLValue
+        @Suppress("LiftReturnOrAssignment")
         try {
             result = fn(frame)
         } catch (retValue: ReturnValue) {
@@ -121,13 +122,13 @@ class StorageStack private constructor() {
 
         init {
             val localStorageSize = environment.storageList.size
-            val externalStoageList = environment.externalStorageList
-            val externalStorageSize = externalStoageList.size
+            val externalStorageList = environment.externalStorageList
+            val externalStorageSize = externalStorageList.size
             storageList = Array(localStorageSize + externalStorageSize) { i ->
                 if (i < localStorageSize) {
                     VariableHolder()
                 } else {
-                    val ref = externalStoageList[i - localStorageSize]
+                    val ref = externalStorageList[i - localStorageSize]
                     // We don't subtract 1 from stackIndex here because at this point the element has not been added to the stack yet
                     val stackIndex = stack.size - ref.frameIndex
                     val frame = stack[stackIndex]
@@ -664,7 +665,48 @@ fun throwAPLException(ex: APLEvalException): Nothing {
 expect fun platformInit(engine: Engine)
 
 class VariableHolder {
+    @Volatile
     var value: APLValue? = null
+        get() = field
+        set(newValue) {
+            val oldValue = field
+            field = newValue
+            if (newValue != null && oldValue !== newValue) {
+                fireListeners(newValue)
+            }
+        }
+
+    // The listener registration is thread-safe, but the rest of variable management is not.
+    // The lack of thread-safety for variables was intentional, as the responsibility for preventing issues
+    // is on the programmer. Listener registrations are outside the direct influence of the programmer, which
+    // requires it to be thread-safe.
+    private var listeners: MutableList<VariableUpdateListener>? = null
+    private val listenerLock = MPLock()
+
+    private fun fireListeners(newValue: APLValue) {
+        val listenersCopy = listenerLock.withLocked { listeners }
+        if (listenersCopy != null) {
+            listenersCopy.forEach { listener -> listener.updated(newValue) }
+        }
+    }
+
+    fun registerListener(listener: VariableUpdateListener) {
+        listenerLock.withLocked {
+            val listenersCopy = listeners
+            val list = if (listenersCopy == null) {
+                val newListenerList = ArrayList<VariableUpdateListener>()
+                listeners = newListenerList
+                newListenerList
+            } else {
+                listenersCopy
+            }
+            list.add(listener)
+        }
+    }
+}
+
+interface VariableUpdateListener {
+    fun updated(newValue: APLValue)
 }
 
 @OptIn(ExperimentalContracts::class)

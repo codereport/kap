@@ -85,7 +85,7 @@ class Environment(
     /** A list of objects stored in the stack frame associated with this environment */
     val storageList = ArrayList<StackStorageDescriptor>()
 
-    /** A list of objects needs to be copied from ancestor stack frames */
+    /** A list of objects that needs to be copied from ancestor stack frames */
     val externalStorageList = ArrayList<ExternalStorageRef>()
 
     /** A list of all environments that has this environment as parent */
@@ -642,6 +642,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                 is ParsedComplex -> leftArgs.add(LiteralComplex(token.value, pos))
                 is ParsedCharacter -> leftArgs.add(LiteralCharacter(token.value, pos))
                 is LeftArrow -> return processAssignment(pos, leftArgs)
+                is DynassignToken -> return processDynamicAssignment(pos, leftArgs)
                 is FnDefSym -> leftArgs.add(processFunctionDefinition(pos, leftArgs))
                 is APLNullSym -> leftArgs.add(LiteralAPLNullValue(pos))
                 is StringToken -> leftArgs.add(LiteralStringValue(token.value, pos))

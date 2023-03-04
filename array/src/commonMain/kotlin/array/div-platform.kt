@@ -46,6 +46,10 @@ class RegexpParseException(message: String, cause: Throwable) : Exception(messag
 
 expect fun toRegexpWithException(string: String, options: Set<RegexOption>): Regex
 
+expect class MPLock()
+
+expect inline fun <T> MPLock.withLocked(fn: () -> T): T
+
 expect fun numCores(): Int
 
 interface BackgroundTask<T> {
