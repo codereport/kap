@@ -159,4 +159,24 @@ class DynAssignTest : APLTest() {
             assertEquals("1212122222102132103133", out)
         }
     }
+
+    @Test
+    fun readResultFromFn() {
+        val src =
+            """
+            |∇ foo {
+            |  q ← 10+⍵
+            |  1+q
+            |}
+            |a ← 1
+            |b dynamicequal a+20
+            |io:print foo b
+            |a ← 30
+            |io:print foo b
+            """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assertSimpleNumber(51, result)
+            assertEquals("3251", out)
+        }
+    }
 }

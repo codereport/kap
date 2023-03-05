@@ -672,7 +672,7 @@ class VariableHolder {
             val oldValue = field
             field = newValue
             if (newValue != null && oldValue !== newValue) {
-                fireListeners(newValue)
+                fireListeners(newValue, oldValue)
             }
         }
 
@@ -683,8 +683,8 @@ class VariableHolder {
     private var listeners: MTSafeArrayList<VariableUpdateListener>? = null
     private val listenerLock = MPLock()
 
-    private fun fireListeners(newValue: APLValue) {
-        listeners?.forEach { listener -> listener.updated(newValue) }
+    private fun fireListeners(newValue: APLValue, oldValue: APLValue?) {
+        listeners?.forEach { listener -> listener.updated(newValue, oldValue) }
     }
 
     fun registerListener(listener: VariableUpdateListener) {
@@ -709,7 +709,7 @@ class VariableHolder {
 }
 
 fun interface VariableUpdateListener {
-    fun updated(newValue: APLValue)
+    fun updated(newValue: APLValue, oldValue: APLValue?)
 }
 
 @OptIn(ExperimentalContracts::class)
