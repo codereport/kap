@@ -136,6 +136,27 @@ class DynAssignTest : APLTest() {
             assertSimpleNumber(23, result)
             assertEquals("12132323", out)
         }
+    }
 
+    @Test
+    fun dynamicAssignMultiAssignWithSideEffects() {
+        val src =
+            """
+            |a ← 1
+            |b dynamicequal 20+io:print a
+            |io:print b
+            |io:print b
+            |a ← 2
+            |io:print b
+            |io:print b
+            |b dynamicequal 30+io:print 100+a
+            |io:print b
+            |a ← 3
+            |io:print b
+            """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assertSimpleNumber(133, result)
+            assertEquals("1212122222102132103133", out)
+        }
     }
 }

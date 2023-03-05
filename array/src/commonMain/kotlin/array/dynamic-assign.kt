@@ -55,28 +55,43 @@ class DynamicAssignmentInstruction(
 
     override fun children() = listOf(instr)
 
-    class UpdateTracker(val context: RuntimeContext, vars: List<StackStorageRef>, val instr: Instruction, val holder: VariableHolder) {
+    class UpdateTracker(val context: RuntimeContext, vars: List<StackStorageRef>, val instr: Instruction, val destinationHolder: VariableHolder) {
         private val savedFrame: StorageStack.StorageStackFrame = currentStack().currentFrame()
+        private val listeners: Map<VariableHolder, VariableUpdateListener>
+        private val destinationListener: VariableUpdateListener
 
         init {
+            val listenerMap = HashMap<VariableHolder, VariableUpdateListener>()
             vars.forEach { stackRef ->
                 val storage = currentStack().findStorage(stackRef)
-                val listener = object : VariableUpdateListener {
-                    override fun updated(newValue: APLValue) {
-                        println("value updated: ${newValue}")
-                        processUpdate()
-                    }
+                val listener = VariableUpdateListener {
+                    println("value updated: ${it}")
+                    processUpdate()
                 }
                 storage.registerListener(listener)
+                listenerMap[storage] = listener
+            }
+            listeners = listenerMap
+            destinationListener = VariableUpdateListener { newValue -> processDestinationUpdated(newValue) }
+            destinationHolder.registerListener(destinationListener)
+        }
+
+        private fun processDestinationUpdated(newValue: APLValue) {
+            if (newValue !is DynamicValue || newValue.tracker !== this) {
+                listeners.forEach { (holder, listener) ->
+                    holder.unregisterListener(listener)
+                }
+                destinationHolder.unregisterListener(destinationListener)
             }
         }
 
         private fun processUpdate() {
-            holder.value = DynamicValue(context, instr, savedFrame)
+            destinationHolder.value = DynamicValue(context, instr, savedFrame, this)
         }
     }
 
-    class DynamicValue(val context: RuntimeContext, val instr: Instruction, val savedFrame: StorageStack.StorageStackFrame) : AbstractDelegatedValue() {
+    class DynamicValue(val context: RuntimeContext, val instr: Instruction, val savedFrame: StorageStack.StorageStackFrame, val tracker: UpdateTracker) :
+            AbstractDelegatedValue() {
         private var curr: APLValue? = null
         private val lock = MPLock()
 

@@ -680,21 +680,19 @@ class VariableHolder {
     // The lack of thread-safety for variables was intentional, as the responsibility for preventing issues
     // is on the programmer. Listener registrations are outside the direct influence of the programmer, which
     // requires it to be thread-safe.
-    private var listeners: MutableList<VariableUpdateListener>? = null
+    private var listeners: MTSafeArrayList<VariableUpdateListener>? = null
     private val listenerLock = MPLock()
 
     private fun fireListeners(newValue: APLValue) {
-        val listenersCopy = listenerLock.withLocked { listeners }
-        if (listenersCopy != null) {
-            listenersCopy.forEach { listener -> listener.updated(newValue) }
-        }
+        listeners?.forEach { listener -> listener.updated(newValue) }
     }
 
     fun registerListener(listener: VariableUpdateListener) {
+        println("Registering listener: ${listener}")
         listenerLock.withLocked {
             val listenersCopy = listeners
             val list = if (listenersCopy == null) {
-                val newListenerList = ArrayList<VariableUpdateListener>()
+                val newListenerList = MTSafeArrayList<VariableUpdateListener>()
                 listeners = newListenerList
                 newListenerList
             } else {
@@ -703,9 +701,14 @@ class VariableHolder {
             list.add(listener)
         }
     }
+
+    fun unregisterListener(listener: VariableUpdateListener) {
+        println("Unregistering listener: ${listener}")
+        listeners?.remove(listener)
+    }
 }
 
-interface VariableUpdateListener {
+fun interface VariableUpdateListener {
     fun updated(newValue: APLValue)
 }
 
