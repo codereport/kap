@@ -989,7 +989,8 @@ class APLArrayDouble(
     override fun collapseInt() = this
 }
 
-open class DelegatedValue(val value: APLValue) : APLValue() {
+abstract class AbstractDelegatedValue : APLValue() {
+    abstract val value: APLValue
     override val aplValueType: APLValueType get() = value.aplValueType
     override val dimensions: Dimensions get() = value.dimensions
     override val rank: Int get() = value.rank
@@ -1017,4 +1018,8 @@ open class DelegatedValue(val value: APLValue) : APLValue() {
     override fun formattedAsCodeRequiresParens() = value.formattedAsCodeRequiresParens()
     override fun ensureNumberOrNull() = value.ensureNumberOrNull()
     override fun asHtml(buf: Appendable) = value.asHtml(buf)
+}
+
+open class DelegatedValue(delegate: APLValue) : AbstractDelegatedValue() {
+    override val value = delegate
 }

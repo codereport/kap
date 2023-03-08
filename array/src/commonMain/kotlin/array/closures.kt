@@ -1,8 +1,7 @@
 package array
 
-private fun Environment.rewriteForEscape() {
-    fun bindingsBeyondIndex(env: Environment, level: Int): List<EnvironmentBinding> {
-        val l = env.localBindings().filter { b -> b.frameIndex > level }.toMutableList()
+private fun bindingsBeyondIndex(env: Environment, level: Int): List<EnvironmentBinding> {
+    val l = env.localBindings().filter { b -> b.frameIndex > level }.toMutableList()
 //        val l = ArrayList<EnvironmentBinding>()
 //        val loc = localBindings()
 //        for(b in loc) {
@@ -10,29 +9,30 @@ private fun Environment.rewriteForEscape() {
 //                l.add(b)
 //            }
 //        }
-        env.childEnvironments.forEach { c ->
-            val inner = bindingsBeyondIndex(c, level + 1)
-            l += inner
-        }
-        return l
+    env.childEnvironments.forEach { c ->
+        val inner = bindingsBeyondIndex(c, level + 1)
+        l += inner
     }
+    return l
+}
 
-    fun depthOfEnv(env: Environment): Int {
-        var curr = this
-        var i = 0
-        while (true) {
-            if (curr === env) {
-                return i
-            }
-            i++
-            curr = curr.parent ?: throw IllegalStateException("Can't find env in parent list")
+private fun depthOfEnv(baseEnv: Environment, env: Environment): Int {
+    var curr = baseEnv
+    var i = 0
+    while (true) {
+        if (curr === env) {
+            return i
         }
+        i++
+        curr = curr.parent ?: throw IllegalStateException("Can't find env in parent list")
     }
+}
 
+private fun Environment.rewriteForEscape() {
     val a = bindingsBeyondIndex(this, 0)
     val b = a.groupBy { it.storage }
     b.forEach { (k, v) ->
-        val copiedStorage = ExternalStorageRef(depthOfEnv(k.env), k.index)
+        val copiedStorage = ExternalStorageRef(depthOfEnv(this, k.env), k.index)
         val storageDescriptor = StackStorageDescriptor(this, storageList.size + externalStorageList.size, "copied from: ${k.comment}")
         externalStorageList.add(copiedStorage)
         v.forEach { b ->
@@ -62,4 +62,19 @@ fun Environment.escapeAnalysis() {
     }
 
     recurse(this)
+}
+
+private fun isInParentEnv(baseEnv: Environment, env: Environment): Boolean {
+    var curr = baseEnv.parent
+    while (curr != null) {
+        if (curr === env) {
+            return true
+        }
+        curr = curr.parent
+    }
+    return false
+}
+
+fun Environment.freeVariableRefs(): List<EnvironmentBinding> {
+    return bindings.filter { b -> isInParentEnv(this, b.storage.env) }
 }

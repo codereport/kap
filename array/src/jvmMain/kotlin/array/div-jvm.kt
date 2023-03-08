@@ -3,6 +3,8 @@ package array
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicReferenceArray
+import java.util.concurrent.locks.ReadWriteLock
+import java.util.concurrent.locks.ReentrantReadWriteLock
 import java.util.regex.PatternSyntaxException
 import kotlin.reflect.KClass
 
@@ -47,6 +49,20 @@ actual fun toRegexpWithException(string: String, options: Set<RegexOption>): Reg
         string.toRegex(options)
     } catch (e: PatternSyntaxException) {
         throw RegexpParseException("Error parsing regexp: \"${string}\"", e)
+    }
+}
+
+actual class MPLock actual constructor() {
+    val impl: ReadWriteLock = ReentrantReadWriteLock()
+}
+
+actual inline fun <T> MPLock.withLocked(fn: () -> T): T {
+    val lock = impl.writeLock()
+    lock.lock()
+    try {
+        return fn()
+    } finally {
+        lock.unlock()
     }
 }
 

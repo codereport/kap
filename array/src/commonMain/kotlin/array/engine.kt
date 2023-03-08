@@ -92,6 +92,7 @@ class StorageStack private constructor() {
         val frame = StorageStackFrame(environment, name, pos)
         stack.add(frame)
         var result: APLValue
+        @Suppress("LiftReturnOrAssignment")
         try {
             result = fn(frame)
         } catch (retValue: ReturnValue) {
@@ -121,13 +122,13 @@ class StorageStack private constructor() {
 
         init {
             val localStorageSize = environment.storageList.size
-            val externalStoageList = environment.externalStorageList
-            val externalStorageSize = externalStoageList.size
+            val externalStorageList = environment.externalStorageList
+            val externalStorageSize = externalStorageList.size
             storageList = Array(localStorageSize + externalStorageSize) { i ->
                 if (i < localStorageSize) {
                     VariableHolder()
                 } else {
-                    val ref = externalStoageList[i - localStorageSize]
+                    val ref = externalStorageList[i - localStorageSize]
                     // We don't subtract 1 from stackIndex here because at this point the element has not been added to the stack yet
                     val stackIndex = stack.size - ref.frameIndex
                     val frame = stack[stackIndex]
@@ -664,7 +665,55 @@ fun throwAPLException(ex: APLEvalException): Nothing {
 expect fun platformInit(engine: Engine)
 
 class VariableHolder {
-    var value: APLValue? = null
+    @Volatile
+    private var value: APLValue? = null
+
+    fun value() = value
+
+    fun updateValue(newValue: APLValue?) {
+        val oldValue = value
+        value = newValue
+        if (newValue != null && oldValue !== newValue) {
+            fireListeners(newValue, oldValue)
+        }
+    }
+
+    fun updateValueNoPropagate(newValue: APLValue?) {
+        value = newValue
+    }
+
+    // The listener registration is thread-safe, but the rest of variable management is not.
+    // The lack of thread-safety for variables was intentional, as the responsibility for preventing issues
+    // is on the programmer. Listener registrations are outside the direct influence of the programmer, which
+    // requires it to be thread-safe.
+    private var listeners: MTSafeArrayList<VariableUpdateListener>? = null
+    private val listenerLock = MPLock()
+
+    private fun fireListeners(newValue: APLValue, oldValue: APLValue?) {
+        listeners?.forEach { listener -> listener.updated(newValue, oldValue) }
+    }
+
+    fun registerListener(listener: VariableUpdateListener) {
+        listenerLock.withLocked {
+            val listenersCopy = listeners
+            val list = if (listenersCopy == null) {
+                val newListenerList = MTSafeArrayList<VariableUpdateListener>()
+                listeners = newListenerList
+                newListenerList
+            } else {
+                listenersCopy
+            }
+            list.add(listener)
+        }
+    }
+
+    fun unregisterListener(listener: VariableUpdateListener) {
+        listeners?.remove(listener)
+    }
+}
+
+fun interface VariableUpdateListener {
+    fun updated(newValue: APLValue, oldValue: APLValue?)
 }
 
 @OptIn(ExperimentalContracts::class)
@@ -682,14 +731,14 @@ class RuntimeContext(val engine: Engine) {
             false
         } else {
             val storage = currentStack().findStorage(StackStorageRef(b))
-            storage.value != null
+            storage.value() != null
         }
     }
 
     fun setVar(storageRef: StackStorageRef, value: APLValue) {
         val stack = currentStack()
         val holder = stack.findStorage(storageRef)
-        holder.value = value
+        holder.updateValue(value)
     }
 
     fun assignArgs(args: List<StackStorageRef>, a: APLValue, pos: Position? = null) {
