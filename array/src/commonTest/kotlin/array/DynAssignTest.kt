@@ -2,6 +2,7 @@ package array
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class DynAssignTest : APLTest() {
     @Test
@@ -31,6 +32,66 @@ class DynAssignTest : APLTest() {
         parseAPLExpressionWithOutput(src).let { (result, out) ->
             assertSimpleNumber(4, result)
             assertEquals("24", out)
+        }
+    }
+
+    @Test
+    fun simpleDynamicAssignWithUpdateChain() {
+        val src =
+            """
+            |a ← 1
+            |b dynamicequal a+1
+            |io:print b
+            |c dynamicequal b+2
+            |io:print c
+            |a ← 3
+            |io:print b
+            |io:print c
+            |a ← 4
+            |io:print b
+            |io:print c
+            """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assertSimpleNumber(7, result)
+            assertEquals("244657", out)
+        }
+    }
+
+    @Test
+    fun dynamicChangedToNormal0() {
+        val src =
+            """
+            |a ← 1
+            |b dynamicequal a+1
+            |io:print b
+            |b ← 3 
+            |io:print b
+            |a ← 4
+            |io:print b
+            """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assertSimpleNumber(3, result)
+            assertEquals("233", out)
+        }
+    }
+
+    @Test
+    fun dynamicChangedToNormal1() {
+        val src =
+            """
+            |a ← 1
+            |b dynamicequal a+1
+            |io:print b
+            |c dynamicequal b+2
+            |io:print b
+            |io:print c
+            |b ← 5
+            |io:print b
+            |io:print c
+            """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assertSimpleNumber(7, result)
+            assertEquals("22457", out)
         }
     }
 
@@ -175,8 +236,46 @@ class DynAssignTest : APLTest() {
             |io:print foo b
             """.trimMargin()
         parseAPLExpressionWithOutput(src).let { (result, out) ->
-            assertSimpleNumber(51, result)
-            assertEquals("3251", out)
+            assertSimpleNumber(61, result)
+            assertEquals("3261", out)
+        }
+    }
+
+    @Test
+    fun circularDependency() {
+        val src =
+            """
+            |a ← 1
+            |b dynamicequal a+1
+            |a dynamicequal b+2
+            |b
+            """.trimMargin()
+        assertFailsWith<CircularDynamicAssignment> {
+            parseAPLExpression(src)
+        }
+    }
+
+    @Test
+    fun circularDependencyClearRef() {
+        val engine = Engine()
+        engine.withThreadLocalAssigned {
+            val src =
+                """
+            |a ← 1
+            |b dynamicequal a+1
+            |a dynamicequal b+2
+            |b
+            """.trimMargin()
+            assertFailsWith<CircularDynamicAssignment> {
+                engine.parseAndEval(StringSourceLocation(src), allocateThreadLocals = false)
+            }
+            engine.parseAndEval(StringSourceLocation("a b"), allocateThreadLocals = false).let { result ->
+                assertDimension(dimensionsOfSize(2), result)
+                // The result is null because when a circularity is detected the value is reset to ⍬. This added
+                // to a number is ⍬.
+                assertAPLNull(result.valueAt(0))
+                assertAPLNull(result.valueAt(1))
+            }
         }
     }
 }

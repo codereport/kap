@@ -8,21 +8,27 @@ fun APLParser.processDynamicAssignment(pos: Position, leftArgs: List<Instruction
     if (dest !is VariableRef) {
         throw IncompatibleTypeParseException("Dynamic assignment only works for single variables", pos)
     }
-    withEnvironment("dynamic assignment") {
-        return when (val holder = parseValue()) {
-            is ParseResultHolder.InstrParseResult -> makeDynamicAssignInstruction(this, dest, holder)
-            is ParseResultHolder.FnParseResult -> throw IllegalContextForFunction(holder.pos)
-            is ParseResultHolder.EmptyParseResult -> throw ParseException("No right-side value in dynamic assignment instruction", pos)
-        }
+    val (holder, parsedEnv) = withEnvironment("dynamic assignment") {
+        Pair(parseValue(), currentEnvironment())
+    }
+    return when (holder) {
+        is ParseResultHolder.InstrParseResult -> makeDynamicAssignInstruction(this, dest, holder, parsedEnv)
+        is ParseResultHolder.FnParseResult -> throw IllegalContextForFunction(holder.pos)
+        is ParseResultHolder.EmptyParseResult -> throw ParseException("No right-side value in dynamic assignment instruction", pos)
     }
 }
 
-private fun makeDynamicAssignInstruction(parser: APLParser, dest: VariableRef, holder: ParseResultHolder.InstrParseResult): ParseResultHolder.InstrParseResult {
+private fun makeDynamicAssignInstruction(
+    parser: APLParser,
+    dest: VariableRef,
+    holder: ParseResultHolder.InstrParseResult,
+    parsedEnv: Environment)
+        : ParseResultHolder.InstrParseResult {
+
     val env = parser.currentEnvironment()
     env.canEscape()
-    val freeVariableRefs = env.freeVariableRefs()
-    println("free vars = ${freeVariableRefs}")
-    val assignmentInstr = DynamicAssignmentInstruction(dest.storageRef, freeVariableRefs, holder.instr, env, holder.pos)
+    val freeVariableRefs = parsedEnv.freeVariableRefs()
+    val assignmentInstr = DynamicAssignmentInstruction(dest.storageRef, freeVariableRefs, holder.instr, parsedEnv, holder.pos)
     return ParseResultHolder.InstrParseResult(assignmentInstr, holder.lastToken)
 }
 
@@ -39,13 +45,15 @@ class DynamicAssignmentInstruction(
     private var tracker: UpdateTracker? = null
 
     override fun evalWithContext(context: RuntimeContext): APLValue {
-        val holder = currentStack().findStorage(storageRef)
+        val stack = currentStack()
+        val frame = stack.currentFrame()
+        val holder = stack.findStorage(storageRef)
         return withLinkedContext(env, "dynamic assignment", pos) {
             val res = instr.evalWithContext(context).collapse()
             lock.withLocked {
-                val tr = tracker ?: UpdateTracker(context, vars, instr, holder).also { tracker = it }
+                val tr = tracker ?: UpdateTracker(context, vars, instr, holder, env, frame).also { tracker = it }
                 tr.makeDynamicValue(res).also { dynamicValue ->
-                    holder.value = dynamicValue
+                    holder.updateValue(dynamicValue)
                 }
             }
         }
@@ -53,8 +61,14 @@ class DynamicAssignmentInstruction(
 
     override fun children() = listOf(instr)
 
-    class UpdateTracker(val context: RuntimeContext, vars: List<StackStorageRef>, val instr: Instruction, val destinationHolder: VariableHolder) {
-        private val savedFrame: StorageStack.StorageStackFrame = currentStack().currentFrame()
+    class UpdateTracker(
+        val context: RuntimeContext,
+        vars: List<StackStorageRef>,
+        val instr: Instruction,
+        val destinationHolder: VariableHolder,
+        val env: Environment,
+        val savedFrame: StorageStack.StorageStackFrame
+    ) {
         private val listeners: Map<VariableHolder, VariableUpdateListener>
         private val destinationListener: VariableUpdateListener
 
@@ -63,8 +77,7 @@ class DynamicAssignmentInstruction(
             vars.forEach { stackRef ->
                 val storage = currentStack().findStorage(stackRef)
                 val listener = VariableUpdateListener { newValue, oldValue ->
-                    println("value updated: newValue=${newValue}, oldValue=${oldValue}")
-                    processUpdate()
+                    processUpdate(newValue, oldValue)
                 }
                 storage.registerListener(listener)
                 listenerMap[storage] = listener
@@ -75,7 +88,7 @@ class DynamicAssignmentInstruction(
         }
 
         private fun processDestinationUpdated(newValue: APLValue, oldValue: APLValue?) {
-            assertx((newValue is DynamicValue && newValue.firstAssign) || (oldValue != null && oldValue is DynamicValue && oldValue.tracker === this)) {
+            assertx((newValue is DynamicValue) || (oldValue != null && oldValue is DynamicValue && oldValue.tracker === this)) {
                 "Received notification for variable which is not tracked by this tracker instance. oldValue=${oldValue}"
             }
             if (newValue !is DynamicValue || newValue.tracker !== this) {
@@ -86,36 +99,60 @@ class DynamicAssignmentInstruction(
             }
         }
 
-        private fun processUpdate() {
-            destinationHolder.value = DynamicValue(context, instr, savedFrame, this)
+        private fun processUpdate(newValue: APLValue, oldValue: APLValue?) {
+            val updateId = if (newValue is DynamicValue) {
+                val oldDest = destinationHolder.value()
+                if (oldDest is DynamicValue) {
+                    val id = oldDest.updateId
+                    if (newValue.updateId === id) {
+                        destinationHolder.updateValueNoPropagate(APLNullValue.APL_NULL_INSTANCE)
+                        throwAPLException(CircularDynamicAssignment(instr.pos))
+                    } else {
+                        newValue.updateId
+                    }
+                } else {
+                    UpdateId()
+                }
+            } else {
+                UpdateId()
+            }
+            destinationHolder.updateValue(DynamicValue(context, this, updateId = updateId))
         }
 
         fun makeDynamicValue(res: APLValue): DynamicValue {
-            return DynamicValue(context, instr, savedFrame, this, res)
+            return DynamicValue(context, this, res)
+        }
+    }
+
+    class UpdateId {
+        val id = curr++
+
+        override fun toString() = "UpdateId(${id})"
+
+        companion object {
+            var curr = 0
         }
     }
 
     class DynamicValue(
         val context: RuntimeContext,
-        val instr: Instruction,
-        val savedFrame: StorageStack.StorageStackFrame,
         val tracker: UpdateTracker,
-        initial: APLValue? = null
+        initial: APLValue? = null,
+        val updateId: UpdateId = UpdateId()
     ) : AbstractDelegatedValue() {
         private var curr: APLValue? = initial
         private val lock = MPLock()
-        val firstAssign = initial != null
 
         override val value: APLValue
             get() = lock.withLocked {
-                println("getting dynamic value: ${curr}")
                 curr ?: computeValue()
             }
 
         private fun computeValue(): APLValue {
-            println("Recomputing value")
-            val v = withSavedStackFrame(savedFrame) {
-                instr.evalWithContext(context)
+            val v = withSavedStackFrame(tracker.savedFrame) {
+                withLinkedContext(tracker.env, "dynamic assignment", tracker.instr.pos) {
+                    tracker.instr.evalWithContext(context)
+                }
             }
             curr = v
             return v

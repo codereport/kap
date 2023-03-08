@@ -666,15 +666,21 @@ expect fun platformInit(engine: Engine)
 
 class VariableHolder {
     @Volatile
-    var value: APLValue? = null
-        get() = field
-        set(newValue) {
-            val oldValue = field
-            field = newValue
-            if (newValue != null && oldValue !== newValue) {
-                fireListeners(newValue, oldValue)
-            }
+    private var value: APLValue? = null
+
+    fun value() = value
+
+    fun updateValue(newValue: APLValue?) {
+        val oldValue = value
+        value = newValue
+        if (newValue != null && oldValue !== newValue) {
+            fireListeners(newValue, oldValue)
         }
+    }
+
+    fun updateValueNoPropagate(newValue: APLValue?) {
+        value = newValue
+    }
 
     // The listener registration is thread-safe, but the rest of variable management is not.
     // The lack of thread-safety for variables was intentional, as the responsibility for preventing issues
@@ -688,7 +694,6 @@ class VariableHolder {
     }
 
     fun registerListener(listener: VariableUpdateListener) {
-        println("Registering listener: ${listener}")
         listenerLock.withLocked {
             val listenersCopy = listeners
             val list = if (listenersCopy == null) {
@@ -703,7 +708,6 @@ class VariableHolder {
     }
 
     fun unregisterListener(listener: VariableUpdateListener) {
-        println("Unregistering listener: ${listener}")
         listeners?.remove(listener)
     }
 }
@@ -727,14 +731,14 @@ class RuntimeContext(val engine: Engine) {
             false
         } else {
             val storage = currentStack().findStorage(StackStorageRef(b))
-            storage.value != null
+            storage.value() != null
         }
     }
 
     fun setVar(storageRef: StackStorageRef, value: APLValue) {
         val stack = currentStack()
         val holder = stack.findStorage(storageRef)
-        holder.value = value
+        holder.updateValue(value)
     }
 
     fun assignArgs(args: List<StackStorageRef>, a: APLValue, pos: Position? = null) {

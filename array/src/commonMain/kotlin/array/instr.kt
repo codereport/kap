@@ -110,7 +110,7 @@ class DynamicFunctionDescriptor(val instr: Instruction) : APLFunctionDescriptor 
 
 class VariableRef(val name: Symbol, val storageRef: StackStorageRef, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
-        return currentStack().findStorage(storageRef).value ?: throwAPLException(VariableNotAssigned(storageRef.name, pos))
+        return currentStack().findStorage(storageRef).value() ?: throwAPLException(VariableNotAssigned(storageRef.name, pos))
     }
 
     override fun children(): List<Instruction> = emptyList()

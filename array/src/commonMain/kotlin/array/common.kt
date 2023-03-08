@@ -76,6 +76,7 @@ class ArraySizeException(d: IntArray, pos: Position? = null) :
         APLEvalException("Array too large. Requested size: [${d.joinToString(", ")}]", pos)
 
 class StructuralUnderNotSupported(pos: Position? = null) : APLEvalException("under not supported for function", pos)
+class CircularDynamicAssignment(pos: Position? = null) : APLEvalException("Circular dynamic assignment", pos)
 
 open class ParseException(message: String, pos: Position? = null) : APLGenericException(message, pos)
 class UnexpectedSymbol(ch: Int, pos: Position? = null) :
