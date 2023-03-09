@@ -543,6 +543,8 @@ abstract class ConcatenateAPLFunctionImpl(pos: FunctionInstantiation) : APLFunct
         return ConcatenatedMultiDimensionalArrays(a2, b2, axis)
     }
 
+    override fun identityValue() = APLNullValue.APL_NULL_INSTANCE
+
     // This is an inner class since it's highly dependent on invariants that are established in the parent class
     class ConcatenatedMultiDimensionalArrays(val a: APLValue, val b: APLValue, val axis: Int) : APLArray() {
         override val dimensions: Dimensions

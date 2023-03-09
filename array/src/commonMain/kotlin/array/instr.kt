@@ -1,5 +1,6 @@
 package array
 
+import array.builtins.StructuralUnderOp
 import array.complex.Complex
 
 interface LvalueReader {
@@ -371,8 +372,13 @@ sealed class FunctionCallChain(pos: FunctionInstantiation, fns: List<APLFunction
             return fn1.evalInverse1Arg(context, res, null)
         }
 
-        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue) =
-            inversibleStructuralUnder1Arg(this, baseFn, context, a)
+        private val structuralUnderOp = StructuralUnderOp()
+
+        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue): APLValue {
+            val innerFn: APLFunction = structuralUnderOp.combineFunction(baseFn, fn0, fn0.instantiation).make(instantiation)
+            val outerFn = structuralUnderOp.combineFunction(innerFn, fn1, fn1.instantiation).make(instantiation)
+            return outerFn.eval1Arg(context, a, null)
+        }
 
         override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             if (axis != null) throw AxisNotSupported(pos)

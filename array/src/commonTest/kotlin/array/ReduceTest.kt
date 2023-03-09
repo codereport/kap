@@ -407,4 +407,34 @@ class ReduceTest : APLTest() {
             assertArrayContent(arrayOf(4, 6, 6, 8), inner)
         }
     }
+
+    @Test
+    fun reduceConcatenateEmptyList() {
+        parseAPLExpression(",/⍬").let { result ->
+            assertDimension(emptyDimensions(), result)
+            val inner = result.valueAt(0)
+            assertAPLNull(inner)
+        }
+    }
+
+    @Test
+    fun reduceConcatEmptyArrayDimension0() {
+        parseAPLExpression(",/[0] 3 0 3 ⍴ 0").let { result ->
+            assertDimension(dimensionsOfSize(0, 3), result)
+        }
+    }
+
+    @Test
+    fun reduceConcatEmptyArrayDimension1() {
+        parseAPLExpression(",/[1] 3 0 3 ⍴ 0").let { result ->
+            assertDimension(dimensionsOfSize(3, 3), result)
+        }
+    }
+
+    @Test
+    fun reduceConcatEmptyArrayDimension2() {
+        parseAPLExpression(",/3 0 3 ⍴ 0").let { result ->
+            assertDimension(dimensionsOfSize(3, 0), result)
+        }
+    }
 }

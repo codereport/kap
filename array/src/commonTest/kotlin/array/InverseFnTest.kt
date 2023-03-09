@@ -201,4 +201,32 @@ class InverseFnTest : APLTest() {
             parseAPLExpression("-⍛÷˝ ¯20")
         }
     }
+
+    @Test
+    fun inverseOnTakeAndDrop() {
+        parseAPLExpression("(100+)⍢(3↑5↓) ⍳10").let { result ->
+            assert1DArray(arrayOf(0, 1, 2, 3, 4, 105, 106, 107, 8, 9), result)
+        }
+    }
+
+    @Test
+    fun inverseOnTakeAndDropInsertZeroSize() {
+        parseAPLExpression("{,100}⍢(0↑5↓) ⍳10").let { result ->
+            assert1DArray(arrayOf(0, 1, 2, 3, 4, 100, 5, 6, 7, 8, 9), result)
+        }
+    }
+
+    @Test
+    fun inverseTakeZero() {
+        parseAPLExpression("{,100}⍢(0↑) ⍳10").let { result ->
+            assert1DArray(arrayOf(100, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9), result)
+        }
+    }
+
+    @Test
+    fun inverseTakeMoreThanSizeOfList() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("{,100}⍢(6↑) ⍳3")
+        }
+    }
 }

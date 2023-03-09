@@ -95,7 +95,7 @@ class CalculationQueue(val engine: Engine) {
             } else {
                 engine.rootEnvironment.findBinding(sym)?.let { binding ->
                     val storage = currentStack().findStorage(StackStorageRef(binding))
-                    storage.value
+                    storage.value()
                 }
             }
             callback(result)
@@ -112,7 +112,7 @@ class CalculationQueue(val engine: Engine) {
                 throw IllegalStateException("Attempt tp write to a variable with active frames")
             }
             val storage = stack.findStorage(StackStorageRef(binding))
-            storage.value = value
+            storage.updateValue(value)
             callback(null)
         }
     }
