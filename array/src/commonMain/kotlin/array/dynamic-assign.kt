@@ -32,6 +32,24 @@ private fun makeDynamicAssignInstruction(
     return ParseResultHolder.InstrParseResult(assignmentInstr, holder.lastToken)
 }
 
+private class WeakRefVariableUpdateListener(val storage: VariableHolder, inner: VariableUpdateListener) : VariableUpdateListener {
+    private val ref = MPWeakReference.make(inner)
+
+    init {
+        storage.registerListener(this)
+    }
+
+    override fun updated(newValue: APLValue, oldValue: APLValue?) {
+        val l = ref.value
+        if (l == null) {
+            println("Unregistering listener after GC")
+            storage.unregisterListener(this)
+        } else {
+            l.updated(newValue, oldValue)
+        }
+    }
+}
+
 class DynamicAssignmentInstruction(
     val storageRef: StackStorageRef,
     bindings: List<EnvironmentBinding>,
@@ -76,30 +94,28 @@ class DynamicAssignmentInstruction(
             val listenerMap = HashMap<VariableHolder, VariableUpdateListener>()
             vars.forEach { stackRef ->
                 val storage = currentStack().findStorage(stackRef)
-                val listener = VariableUpdateListener { newValue, oldValue ->
-                    processUpdate(newValue, oldValue)
+                val listener = WeakRefVariableUpdateListener(storage) { newValue, _ ->
+                    processUpdate(newValue)
                 }
-                storage.registerListener(listener)
                 listenerMap[storage] = listener
             }
             listeners = listenerMap
-            destinationListener = VariableUpdateListener { newValue, oldValue -> processDestinationUpdated(newValue, oldValue) }
-            destinationHolder.registerListener(destinationListener)
+            destinationListener = WeakRefVariableUpdateListener(destinationHolder) { newValue, _ -> processDestinationUpdated(newValue) }
         }
 
-        private fun processDestinationUpdated(newValue: APLValue, oldValue: APLValue?) {
-            assertx((newValue is DynamicValue) || (oldValue != null && oldValue is DynamicValue && oldValue.tracker === this)) {
-                "Received notification for variable which is not tracked by this tracker instance. oldValue=${oldValue}"
-            }
+        private fun processDestinationUpdated(newValue: APLValue) {
             if (newValue !is DynamicValue || newValue.tracker !== this) {
                 listeners.forEach { (holder, listener) ->
-                    holder.unregisterListener(listener)
+                    val wasFound = holder.unregisterListener(listener)
+                    assertx(wasFound) {
+                        "Listener was not found when attempting to unregister tracker: value=${newValue}, tracker=${this}"
+                    }
                 }
                 destinationHolder.unregisterListener(destinationListener)
             }
         }
 
-        private fun processUpdate(newValue: APLValue, oldValue: APLValue?) {
+        private fun processUpdate(newValue: APLValue) {
             val updateId = if (newValue is DynamicValue) {
                 val oldDest = destinationHolder.value()
                 if (oldDest is DynamicValue) {
@@ -130,7 +146,7 @@ class DynamicAssignmentInstruction(
         override fun toString() = "UpdateId(${id})"
 
         companion object {
-            var curr = 0
+            private var curr = 0
         }
     }
 
