@@ -26,7 +26,7 @@ private fun makeDynamicAssignInstruction(
         : ParseResultHolder.InstrParseResult {
 
     val env = parser.currentEnvironment()
-    env.canEscape()
+    env.markCanEscape()
     val freeVariableRefs = parsedEnv.freeVariableRefs()
     val assignmentInstr = DynamicAssignmentInstruction(dest.storageRef, freeVariableRefs, holder.instr, parsedEnv, holder.pos)
     return ParseResultHolder.InstrParseResult(assignmentInstr, holder.lastToken)
