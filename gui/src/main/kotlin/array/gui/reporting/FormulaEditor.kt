@@ -3,12 +3,11 @@ package array.gui.reporting
 import array.gui.styledarea.InputFieldStyledArea
 import javafx.event.ActionEvent
 import javafx.fxml.FXMLLoader
-import javafx.scene.Parent
-import javafx.scene.Scene
-import javafx.scene.control.TextArea
+import javafx.scene.control.Dialog
+import javafx.scene.control.DialogPane
 import javafx.scene.control.TextField
-import javafx.stage.Stage
-import kotlin.math.exp
+
+class Formula
 
 class FormulaEditor {
     lateinit var nameField: TextField
@@ -27,14 +26,14 @@ class FormulaEditor {
 
         fun open() {
             val loader = loader()
-            val parent: Parent = loader.load()
+            val parent: DialogPane = loader.load()
             val editor: FormulaEditor = loader.getController()
 
-            val stage = Stage()
-            val scene = Scene(parent, 800.0, 600.0)
-            stage.title = "Edit Formula"
-            stage.scene = scene
-            stage.show()
+            val dialog = Dialog<Formula>()
+            dialog.dialogPane = parent
+
+            val res = dialog.showAndWait()
+            println("res = ${res}")
         }
     }
 }

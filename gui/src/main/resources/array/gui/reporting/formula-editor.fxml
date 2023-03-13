@@ -1,33 +1,29 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<?import javafx.geometry.*?>
-<?import javafx.scene.control.*?>
-<?import javafx.scene.layout.*?>
-
 <?import array.gui.styledarea.InputFieldStyledArea?>
-<DialogPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0" prefWidth="480.0" xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1" fx:controller="array.gui.reporting.FormulaEditor">
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.VBox?>
+<DialogPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0"
+            prefWidth="480.0" stylesheets="@formula-editor.css" xmlns="http://javafx.com/javafx/17.0.2-ea"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="array.gui.reporting.FormulaEditor">
     <content>
         <VBox>
             <children>
-                <Label text="Name" />
-                <TextField fx:id="nameField" />
+                <Label text="Name"/>
+                <TextField fx:id="nameField"/>
                 <Label text="Formula">
                     <VBox.margin>
-                        <Insets top="10.0" />
+                        <Insets top="10.0"/>
                     </VBox.margin>
                 </Label>
-                <InputFieldStyledArea fx:id="expressionField" VBox.vgrow="ALWAYS">
+                <InputFieldStyledArea fx:id="expressionField" styleClass="expression-field" VBox.vgrow="ALWAYS">
                 </InputFieldStyledArea>
-                <ButtonBar prefHeight="40.0" prefWidth="200.0">
-                    <buttons>
-                        <Button onAction="#okClicked" text="OK" ButtonBar.buttonData="OK_DONE" />
-                        <Button onAction="#cancelClicked" text="Cancel" ButtonBar.buttonData="CANCEL_CLOSE" />
-                    </buttons>
-                    <VBox.margin>
-                        <Insets top="10.0" />
-                    </VBox.margin>
-                </ButtonBar>
             </children>
         </VBox>
     </content>
+    <buttonTypes>
+        <ButtonType fx:constant="OK"/>
+        <ButtonType fx:constant="CANCEL"/>
+    </buttonTypes>
 </DialogPane>
