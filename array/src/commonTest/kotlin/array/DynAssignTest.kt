@@ -278,4 +278,22 @@ class DynAssignTest : APLTest() {
             }
         }
     }
+
+    @Test
+    fun dynamicAssignLexicalScopeVariable() {
+        val src =
+            """
+            |a ← 1
+            |{
+            |    b dynamicequal a+2
+            |    io:print b
+            |    a ← 3
+            |    io:print b
+            |} 1
+            """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assertSimpleNumber(5, result)
+            assertEquals("35", out)
+        }
+    }
 }
