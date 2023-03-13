@@ -5,6 +5,7 @@ import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import platform.posix.*
 import kotlin.native.concurrent.AtomicReference
+import kotlin.native.ref.WeakReference
 import kotlin.reflect.KClass
 
 actual fun sleepMillis(time: Long) {
@@ -72,4 +73,14 @@ actual fun numCores() = 1
 
 actual fun makeBackgroundDispatcher(numThreads: Int): MPThreadPoolExecutor {
     return SingleThreadedThreadPoolExecutor()
+}
+
+class LinuxWeakRef<T : Any>(ref: T) : MPWeakReference<T> {
+    val instance = WeakReference<T>(ref)
+
+    override val value: T? get() = instance.value
+}
+
+actual fun <T : Any> MPWeakReference.Companion.make(ref: T): MPWeakReference<T> {
+    return LinuxWeakRef(ref)
 }

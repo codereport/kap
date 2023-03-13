@@ -70,3 +70,25 @@ actual fun numCores() = 1
 actual fun makeBackgroundDispatcher(numThreads: Int): MPThreadPoolExecutor {
     return SingleThreadedThreadPoolExecutor()
 }
+
+class JsWeakReference<T : Any>(ref: T) : MPWeakReference<T> {
+    private val instance: dynamic
+
+    init {
+        @Suppress("UNUSED_VARIABLE")
+        val inst = ref
+        instance = js("new WeakRef(inst)")
+    }
+
+    override val value: T?
+        get() {
+            @Suppress("UNUSED_VARIABLE")
+            val inst = instance
+            val v = js("var a = inst.deref(); if(a) { return a; } else { return null; }")
+            return v as T?
+        }
+}
+
+actual fun <T : Any> MPWeakReference.Companion.make(ref: T): MPWeakReference<T> {
+    return JsWeakReference(ref)
+}

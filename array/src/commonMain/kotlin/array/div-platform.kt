@@ -79,3 +79,11 @@ class SingleThreadedThreadPoolExecutor : MPThreadPoolExecutor {
 }
 
 expect fun makeBackgroundDispatcher(numThreads: Int): MPThreadPoolExecutor
+
+interface MPWeakReference<T> {
+    val value: T?
+
+    companion object
+}
+
+expect fun <T : Any> MPWeakReference.Companion.make(ref: T): MPWeakReference<T>

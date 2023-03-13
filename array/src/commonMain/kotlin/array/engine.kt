@@ -707,8 +707,8 @@ class VariableHolder {
         }
     }
 
-    fun unregisterListener(listener: VariableUpdateListener) {
-        listeners?.remove(listener)
+    fun unregisterListener(listener: VariableUpdateListener): Boolean {
+        return listeners?.remove(listener) ?: false
     }
 }
 

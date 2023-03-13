@@ -1,5 +1,6 @@
 package array
 
+import java.lang.ref.WeakReference
 import java.util.concurrent.Executors
 import java.util.concurrent.Future
 import java.util.concurrent.atomic.AtomicReferenceArray
@@ -92,4 +93,14 @@ class JvmMPThreadPoolExecutor(val maxNumParallel: Int) : MPThreadPoolExecutor {
 
 actual fun makeBackgroundDispatcher(numThreads: Int): MPThreadPoolExecutor {
     return JvmMPThreadPoolExecutor(numThreads)
+}
+
+class JvmWeakReference<T : Any>(ref: T) : MPWeakReference<T> {
+    private val instance = WeakReference(ref)
+
+    override val value: T? get() = instance.get()
+}
+
+actual fun <T : Any> MPWeakReference.Companion.make(ref: T): MPWeakReference<T> {
+    return JvmWeakReference(ref)
 }
