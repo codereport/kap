@@ -283,7 +283,7 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
     }
 
     private fun createReport() {
-        ReportingClient.open()
+        ReportingClient.open(this)
     }
 
     private fun openSettingsWindow() {

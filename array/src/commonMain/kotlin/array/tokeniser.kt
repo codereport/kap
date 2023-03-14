@@ -37,59 +37,78 @@ object RightForkToken : Token()
 object DynassignToken : Token()
 
 class Namespace(val name: String) {
+    private val lock = MPLock()
     private val symbols = HashMap<String, NamespaceEntry>()
     private val imports = ArrayList<Namespace>()
 
     override fun toString() = "Namespace[name=${name}]"
 
     fun findSymbol(name: String, includePrivate: Boolean = false): Symbol? {
-        val e = symbols[name]
-        return when {
-            e == null -> null
-            includePrivate -> e.symbol
-            e.exported -> e.symbol
-            else -> null
+        lock.withLocked {
+            val e = symbols[name]
+            return when {
+                e == null -> null
+                includePrivate -> e.symbol
+                e.exported -> e.symbol
+                else -> null
+            }
         }
     }
 
     fun internSymbol(name: String): Symbol {
-        val e = symbols[name]
-        return if (e == null) {
-            Symbol(name, this).also { sym -> symbols[name] = NamespaceEntry(sym, false) }
-        } else {
-            e.symbol
+        lock.withLocked {
+            val e = symbols[name]
+            return if (e == null) {
+                Symbol(name, this).also { sym -> symbols[name] = NamespaceEntry(sym, false) }
+            } else {
+                e.symbol
+            }
         }
     }
 
     fun addImport(namespace: Namespace) {
-        if (namespace !== this) {
-            imports.add(namespace)
+        lock.withLocked {
+            if (namespace !== this) {
+                imports.add(namespace)
+            }
         }
     }
 
     fun internAndExport(name: String): Symbol {
-        val e = symbols[name]
-        val e2 = if (e == null) {
-            NamespaceEntry(Symbol(name, this), true).also { symbols[name] = it }
-        } else {
-            e.exported = true
-            e
+        lock.withLocked {
+            val e = symbols[name]
+            val e2 = if (e == null) {
+                NamespaceEntry(Symbol(name, this), true).also { symbols[name] = it }
+            } else {
+                e.exported = true
+                e
+            }
+            return e2.symbol
         }
-        return e2.symbol
     }
-
-    fun imports(): List<Namespace> = imports
 
     /**
      * If [symbol] is interned in this namespace, mark it as exported. Otherwise throw
      * an exception.
      */
     fun exportIfInterned(symbol: Symbol) {
-        val v = symbols[symbol.symbolName]
-        if (v == null || v.symbol !== symbol) {
-            throw IllegalArgumentException("Symbol is not interned in namespace")
+        lock.withLocked {
+            val v = symbols[symbol.symbolName]
+            if (v == null || v.symbol !== symbol) {
+                throw IllegalArgumentException("Symbol is not interned in namespace")
+            }
+            v.exported = true
         }
-        v.exported = true
+    }
+
+    fun findSymbolInImports(name: String): Symbol? {
+        lock.withLocked {
+            findSymbol(name, true)?.also { sym -> return sym }
+            imports.forEach { namespace ->
+                namespace.findSymbol(name, false)?.also { sym -> return sym }
+            }
+            return null
+        }
     }
 
     private class NamespaceEntry(val symbol: Symbol, var exported: Boolean)
@@ -262,7 +281,7 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
             when {
                 singleCharFunctions.contains(charToString(ch)) -> {
                     val name = charToString(ch)
-                    findSymbolInImports(name) ?: engine.internSymbol(name, engine.currentNamespace)
+                    engine.currentNamespace.findSymbolInImports(name) ?: engine.internSymbol(name, engine.currentNamespace)
                 }
                 isNegationSign(ch) || isDigit(ch) -> {
                     content.pushBack()
@@ -421,7 +440,7 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
             if (keyword != null) {
                 return keyword
             }
-            val sym = findSymbolInImports(symbolName)
+            val sym = engine.currentNamespace.findSymbolInImports(symbolName)
             if (sym != null) {
                 return sym
             }
@@ -430,14 +449,6 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
             engine.makeNamespace(nsName)
         }
         return engine.internSymbol(symbolName, namespace)
-    }
-
-    private fun findSymbolInImports(name: String): Symbol? {
-        engine.currentNamespace.findSymbol(name, true)?.also { sym -> return sym }
-        engine.currentNamespace.imports().forEach { namespace ->
-            namespace.findSymbol(name, false)?.also { sym -> return sym }
-        }
-        return null
     }
 
     private fun collectString(): Token {

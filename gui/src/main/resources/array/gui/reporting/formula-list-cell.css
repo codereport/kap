@@ -1,0 +1,8 @@
+.name-label {
+    -fx-font-size: 14pt;
+}
+
+.expression-label {
+    -fx-font-family: "Iosevka Fixed";
+    -fx-font-size: 9pt;
+}
