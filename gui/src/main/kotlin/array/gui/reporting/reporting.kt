@@ -3,6 +3,7 @@ package array.gui.reporting
 import array.*
 import array.gui.CalculationQueue
 import array.gui.Client
+import array.gui.reporting.edit.ResultEditor
 import javafx.application.Platform
 import javafx.collections.FXCollections
 import javafx.event.ActionEvent
@@ -14,6 +15,8 @@ import javafx.scene.Scene
 import javafx.scene.control.*
 import javafx.scene.input.MouseEvent
 import javafx.scene.layout.Pane
+import javafx.scene.layout.Priority
+import javafx.scene.layout.VBox
 import javafx.stage.Stage
 import javafx.util.Callback
 
@@ -22,6 +25,8 @@ class ReportingClient {
     lateinit var namespace: Namespace
     lateinit var variableList: ListView<Formula>
     lateinit var reportingHolder: Pane
+
+    lateinit var editorWrapper: VBox
 
     fun setupClient(client: Client) {
         this.client = client
@@ -34,6 +39,10 @@ class ReportingClient {
             listOf(
                 Formula(namespace.internAndExport("foo"), "1"),
                 Formula(namespace.internAndExport("blah"), "1+2")))
+
+        val resultEditor = ResultEditor.make()
+        VBox.setVgrow(resultEditor.root, Priority.ALWAYS)
+        editorWrapper.children.add(resultEditor.root)
     }
 
     fun addFormulaClicked(@Suppress("UNUSED_PARAMETER") actionEvent: ActionEvent) {
@@ -144,7 +153,7 @@ class FormulaListCellController {
     }
 }
 
-class FormulaListCell(val reportingClient: ReportingClient) : ListCell<Formula>() {
+class FormulaListCell(reportingClient: ReportingClient) : ListCell<Formula>() {
     val controller: FormulaListCellController
 
     init {
