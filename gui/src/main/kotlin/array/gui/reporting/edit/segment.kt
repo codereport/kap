@@ -1,8 +1,12 @@
 package array.gui.reporting.edit
 
+import array.gui.reporting.Formula
+import array.gui.reporting.ReportingClient
 import javafx.scene.Node
+import javafx.scene.control.Label
 import org.fxmisc.richtext.StyledTextArea
 import org.fxmisc.richtext.TextExt
+import org.fxmisc.richtext.model.NodeSegmentOpsBase
 import org.fxmisc.richtext.model.SegmentOps
 import org.fxmisc.richtext.model.StyledSegment
 import org.fxmisc.richtext.model.TextOps
@@ -50,25 +54,48 @@ class StringSegment(val value: String) : Segment() {
     }
 }
 
-class DynamicValueSegment() : Segment() {
+class InlineValue(val client: ReportingClient?, val formula: Formula?)
+
+class DynamicValueSegment(val value: InlineValue) : Segment() {
     override fun length(): Int {
-        TODO("Not yet implemented")
+        return textOps.length(value)
     }
 
     override fun charAt(index: Int): Char {
-        TODO("Not yet implemented")
+        return textOps.charAt(value, index)
     }
 
     override fun getText(): String {
-        TODO("Not yet implemented")
+        return textOps.getText(value)
     }
 
     override fun subSequence(start: Int, end: Int?): Segment {
-        TODO("Not yet implemented")
+        val inlineValue = if (end != null) {
+            textOps.subSequence(value, start, end)
+        } else {
+            textOps.subSequence(value, start)
+        }
+        return DynamicValueSegment(inlineValue)
     }
 
     override fun createNode(styledSegment: StyledSegment<Segment, TextStyle>): Node {
-        TODO("Not yet implemented")
+        return if (value.formula != null) {
+            FormulaEditorElement(value.client!!, value.formula)
+        } else {
+            Label("")
+        }
+    }
+
+    companion object {
+        val textOps = object : NodeSegmentOpsBase<InlineValue, TextStyle>(InlineValue(null, null)) {
+            override fun length(seg: InlineValue): Int {
+                return if (seg.formula == null) {
+                    0
+                } else {
+                    1
+                }
+            }
+        }
     }
 }
 
@@ -80,10 +107,10 @@ class SegOps : TextOps<Segment, TextStyle> {
     override fun subSequence(seg: Segment, start: Int) = seg.subSequence(start)
 
     override fun joinSeg(currentSeg: Segment, nextSeg: Segment): Optional<Segment> {
-        if (currentSeg is StringSegment && nextSeg is StringSegment) {
-            return currentSeg.joinWithString(nextSeg)
+        return if (currentSeg is StringSegment && nextSeg is StringSegment) {
+            currentSeg.joinWithString(nextSeg)
         } else {
-            TODO("fix")
+            Optional.empty()
         }
     }
 

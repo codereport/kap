@@ -15,7 +15,7 @@ interface LinkedImage {
      */
     val imagePath: String
 
-    fun createNode(): Node?
+    fun createNode(): Node
 
     companion object {
         fun codec(): Codec<LinkedImage> {

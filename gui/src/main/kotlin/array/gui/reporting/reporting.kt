@@ -73,10 +73,10 @@ class ReportingClient {
     }
 
     fun addVariableToEditor(formula: Formula) {
-        resultEditor.addInlineValue()
+        resultEditor.addInlineValue(this, formula)
     }
 
-    private fun registerVariableListener(name: Symbol, fn: (APLValue) -> Unit) {
+    fun registerVariableListener(name: Symbol, fn: (APLValue) -> Unit) {
         client.calculationQueue.pushJobToQueue(RegisterListenerRequest(name, fn))
     }
 

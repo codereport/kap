@@ -1,8 +1,12 @@
 package array.gui.reporting.edit
 
+import array.gui.Client
+import array.gui.reporting.Formula
+import array.gui.reporting.ReportingClient
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import org.fxmisc.flowless.VirtualizedScrollPane
+import org.fxmisc.richtext.model.ReadOnlyStyledDocumentBuilder
 
 class ResultEditor private constructor() {
     val root: VBox
@@ -23,8 +27,11 @@ class ResultEditor private constructor() {
         VBox.setVgrow(scrollPane, Priority.ALWAYS)
     }
 
-    fun addInlineValue() {
-        //editorArea.insert
+    fun addInlineValue(client: ReportingClient, formula: Formula) {
+        val builder = ReadOnlyStyledDocumentBuilder(SegOps(), ParStyle.EMPTY)
+        builder.addParagraph(DynamicValueSegment(InlineValue(client, formula)), TextStyle.EMPTY)
+        val doc = builder.build()
+        editorArea.insert(0, doc)
     }
 
     companion object {

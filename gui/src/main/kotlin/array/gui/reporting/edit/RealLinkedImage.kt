@@ -20,7 +20,6 @@ class RealLinkedImage(imagePath: String) : LinkedImage {
      * @param imagePath The path to the image file.
      */
     init {
-
         // if the image is below the current working directory,
         // then store as relative path name.
         var imagePath0 = imagePath
@@ -38,9 +37,8 @@ class RealLinkedImage(imagePath: String) : LinkedImage {
         return String.format("RealLinkedImage[path=%s]", imagePath)
     }
 
-    override fun createNode(): Node? {
-        val image =
-            Image("file:$imagePath") // XXX: No need to create new Image objects each time -
+    override fun createNode(): Node {
+        val image = Image("file:$imagePath") // XXX: No need to create new Image objects each time -
         // could be cached in the model layer
         return ImageView(image)
     }

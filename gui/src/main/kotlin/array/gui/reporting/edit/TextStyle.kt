@@ -8,7 +8,7 @@ import java.io.IOException
 import java.nio.charset.MalformedInputException
 import java.util.*
 
-class TextStyle @JvmOverloads constructor(
+data class TextStyle(
     val bold: Optional<Boolean> = Optional.empty(),
     val italic: Optional<Boolean> = Optional.empty(),
     val underline: Optional<Boolean> = Optional.empty(),
@@ -18,35 +18,6 @@ class TextStyle @JvmOverloads constructor(
     val textColor: Optional<Color> = Optional.empty(),
     val backgroundColor: Optional<Color> = Optional.empty()
 ) {
-    override fun hashCode(): Int {
-        return Objects.hash(
-            bold, italic, underline, strikethrough,
-            fontSize, fontFamily, textColor, backgroundColor)
-    }
-
-    override fun equals(other: Any?): Boolean {
-        return if (other is TextStyle) {
-            bold == other.bold && italic == other.italic && underline == other.underline && strikethrough == other.strikethrough &&
-                    fontSize == other.fontSize && fontFamily == other.fontFamily && textColor == other.textColor &&
-                    backgroundColor == other.backgroundColor
-        } else {
-            false
-        }
-    }
-
-    override fun toString(): String {
-        val styles: MutableList<String> = ArrayList()
-        bold.ifPresent { b: Boolean -> styles.add(b.toString()) }
-        italic.ifPresent { i: Boolean -> styles.add(i.toString()) }
-        underline.ifPresent { u: Boolean -> styles.add(u.toString()) }
-        strikethrough.ifPresent { s: Boolean -> styles.add(s.toString()) }
-        fontSize.ifPresent { s: Int -> styles.add(s.toString()) }
-        fontFamily.ifPresent { f: String -> styles.add(f) }
-        textColor.ifPresent { c: Color -> styles.add(c.toString()) }
-        backgroundColor.ifPresent { b: Color -> styles.add(b.toString()) }
-        return java.lang.String.join(",", styles)
-    }
-
     fun toCss(): String {
         val sb = StringBuilder()
         if (bold.isPresent) {
@@ -103,27 +74,73 @@ class TextStyle @JvmOverloads constructor(
             if (mixin.fontSize.isPresent) mixin.fontSize else fontSize,
             if (mixin.fontFamily.isPresent) mixin.fontFamily else fontFamily,
             if (mixin.textColor.isPresent) mixin.textColor else textColor,
-            if (mixin.backgroundColor.isPresent) mixin.backgroundColor else backgroundColor)
+            if (mixin.backgroundColor.isPresent) mixin.backgroundColor else backgroundColor
+        )
     }
 
     fun updateBold(bold: Boolean): TextStyle {
-        return TextStyle(Optional.of(bold), italic, underline, strikethrough, fontSize, fontFamily, textColor, backgroundColor)
+        return TextStyle(
+            Optional.of(bold),
+            italic,
+            underline,
+            strikethrough,
+            fontSize,
+            fontFamily,
+            textColor,
+            backgroundColor
+        )
     }
 
     fun updateItalic(italic: Boolean): TextStyle {
-        return TextStyle(bold, Optional.of(italic), underline, strikethrough, fontSize, fontFamily, textColor, backgroundColor)
+        return TextStyle(
+            bold,
+            Optional.of(italic),
+            underline,
+            strikethrough,
+            fontSize,
+            fontFamily,
+            textColor,
+            backgroundColor
+        )
     }
 
     fun updateUnderline(underline: Boolean): TextStyle {
-        return TextStyle(bold, italic, Optional.of(underline), strikethrough, fontSize, fontFamily, textColor, backgroundColor)
+        return TextStyle(
+            bold,
+            italic,
+            Optional.of(underline),
+            strikethrough,
+            fontSize,
+            fontFamily,
+            textColor,
+            backgroundColor
+        )
     }
 
     fun updateStrikethrough(strikethrough: Boolean): TextStyle {
-        return TextStyle(bold, italic, underline, Optional.of(strikethrough), fontSize, fontFamily, textColor, backgroundColor)
+        return TextStyle(
+            bold,
+            italic,
+            underline,
+            Optional.of(strikethrough),
+            fontSize,
+            fontFamily,
+            textColor,
+            backgroundColor
+        )
     }
 
     fun updateFontSize(fontSize: Int): TextStyle {
-        return TextStyle(bold, italic, underline, strikethrough, Optional.of(fontSize), fontFamily, textColor, backgroundColor)
+        return TextStyle(
+            bold,
+            italic,
+            underline,
+            strikethrough,
+            Optional.of(fontSize),
+            fontFamily,
+            textColor,
+            backgroundColor
+        )
     }
 
     fun updateFontFamily(fontFamily: String): TextStyle {
@@ -134,7 +151,8 @@ class TextStyle @JvmOverloads constructor(
             strikethrough,
             fontSize, Optional.of(fontFamily),
             textColor,
-            backgroundColor)
+            backgroundColor
+        )
     }
 
     fun updateTextColor(textColor: Color): TextStyle {
@@ -145,11 +163,21 @@ class TextStyle @JvmOverloads constructor(
             strikethrough,
             fontSize,
             fontFamily, Optional.of(textColor),
-            backgroundColor)
+            backgroundColor
+        )
     }
 
     fun updateBackgroundColor(backgroundColor: Color): TextStyle {
-        return TextStyle(bold, italic, underline, strikethrough, fontSize, fontFamily, textColor, Optional.of(backgroundColor))
+        return TextStyle(
+            bold,
+            italic,
+            underline,
+            strikethrough,
+            fontSize,
+            fontFamily,
+            textColor,
+            Optional.of(backgroundColor)
+        )
     }
 
     companion object {
@@ -179,7 +207,8 @@ class TextStyle @JvmOverloads constructor(
                 val bgrColor = OPT_COLOR_CODEC.decode(`is`)
                 return TextStyle(
                     bold(bius), italic(bius), underline(bius), strikethrough(bius),
-                    fontSize, fontFamily, textColor, bgrColor)
+                    fontSize, fontFamily, textColor, bgrColor
+                )
             }
 
             private fun encodeBoldItalicUnderlineStrikethrough(s: TextStyle): Int {
