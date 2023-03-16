@@ -27,6 +27,7 @@ class ReportingClient {
     lateinit var reportingHolder: Pane
 
     lateinit var editorWrapper: VBox
+    lateinit var resultEditor: ResultEditor
 
     fun setupClient(client: Client) {
         this.client = client
@@ -40,7 +41,7 @@ class ReportingClient {
                 Formula(namespace.internAndExport("foo"), "1"),
                 Formula(namespace.internAndExport("blah"), "1+2")))
 
-        val resultEditor = ResultEditor.make()
+        resultEditor = ResultEditor.make()
         VBox.setVgrow(resultEditor.root, Priority.ALWAYS)
         editorWrapper.children.add(resultEditor.root)
     }
@@ -69,6 +70,10 @@ class ReportingClient {
         }
         reportingHolder.children.add(label)
         label.addEventHandler(MouseEvent.MOUSE_CLICKED, null)
+    }
+
+    fun addVariableToEditor(formula: Formula) {
+        resultEditor.addInlineValue()
     }
 
     private fun registerVariableListener(name: Symbol, fn: (APLValue) -> Unit) {
@@ -126,18 +131,18 @@ class FormulaListCellController {
 
     private fun makeContextMenu(): ContextMenu {
         val menu = ContextMenu()
-        menu.items.addAll(MenuItem("Add to panel").apply {
-            onAction = EventHandler {
-                addFormulaToPanel()
-            }
-        })
+        menu.items.addAll(
+            MenuItem("Add to panel").apply {
+                onAction = EventHandler {
+                    content?.let(reportingClient::addVariableToPanel)
+                }
+            },
+            MenuItem("Add to editor").apply {
+                onAction = EventHandler {
+                    content?.let(reportingClient::addVariableToEditor)
+                }
+            })
         return menu
-    }
-
-    private fun addFormulaToPanel() {
-        content?.let { v ->
-            reportingClient.addVariableToPanel(v)
-        }
     }
 
     fun updateContent(formula: Formula) {

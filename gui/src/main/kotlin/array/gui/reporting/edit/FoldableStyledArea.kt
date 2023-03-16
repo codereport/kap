@@ -11,13 +11,12 @@ import org.fxmisc.richtext.model.StyledSegment
 import org.fxmisc.richtext.model.TextOps
 import org.fxmisc.richtext.model.TwoDimensional
 import org.reactfx.util.Either
-import java.util.*
 import java.util.function.BiConsumer
 import java.util.function.Function
 import java.util.function.Predicate
 import java.util.function.UnaryOperator
 
-class FoldableStyledArea : GenericStyledArea<ParStyle, Either<String, LinkedImage>, TextStyle>(
+class FoldableStyledArea : GenericStyledArea<ParStyle, Segment, TextStyle>(
     ParStyle.EMPTY,  // default paragraph style
     applyParagraphStyle(),  // paragraph style setter
     initialTextStyle(),  // default segment style
@@ -64,18 +63,17 @@ class FoldableStyledArea : GenericStyledArea<ParStyle, Either<String, LinkedImag
             )
         }
 
-        private fun nodeFactory(): Function<StyledSegment<Either<String, LinkedImage>, TextStyle>, Node> {
-            return Function<StyledSegment<Either<String, LinkedImage>, TextStyle>, Node> { seg ->
-                createNode(seg) { text: TextExt, style: TextStyle ->
-                    text.style = style.toCss()
-                }
+        private fun nodeFactory(): Function<StyledSegment<Segment, TextStyle>, Node> {
+            return Function<StyledSegment<Segment, TextStyle>, Node> { seg ->
+                seg.segment.createNode(seg)
             }
         }
 
-        private fun segOps(): TextOps<Either<String, LinkedImage>, TextStyle> {
-            return styledTextOps._or(
-                linkedImageOps,
-                { _, _ -> Optional.empty() })
+        private fun segOps(): TextOps<Segment, TextStyle> {
+//            return styledTextOps._or(
+//                linkedImageOps,
+//                { _, _ -> Optional.empty() })
+            return SegOps()
         }
 
         private fun applyParagraphStyle(): BiConsumer<TextFlow, ParStyle> {
