@@ -2,6 +2,7 @@ package com.dhsdevelopments.mpbignum
 
 import gmp.*
 import kotlinx.cinterop.*
+import kotlin.native.internal.createCleaner
 
 class MpzWrapper(val value: mpz_t) {
     companion object {
@@ -11,9 +12,10 @@ class MpzWrapper(val value: mpz_t) {
         }
     }
 
-    fun finalize() {
-        println("finalising: ${BigInt(this).toString()}")
-        mpz_clear!!(value)
+    @Suppress("unused")
+    @OptIn(ExperimentalStdlibApi::class)
+    private val cleaner = createCleaner(value) { obj ->
+        mpz_clear!!(obj)
     }
 }
 
