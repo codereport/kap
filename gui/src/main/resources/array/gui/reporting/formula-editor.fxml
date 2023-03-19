@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import array.gui.styledarea.InputFieldStyledArea?>
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.VBox?>
+<DialogPane maxHeight="-Infinity" maxWidth="-Infinity" minHeight="-Infinity" minWidth="-Infinity" prefHeight="300.0"
+            prefWidth="480.0" stylesheets="@formula-editor.css" xmlns="http://javafx.com/javafx/17.0.2-ea"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="array.gui.reporting.FormulaEditor">
+    <content>
+        <VBox>
+            <children>
+                <Label text="Name"/>
+                <TextField fx:id="nameField"/>
+                <Label text="Formula">
+                    <VBox.margin>
+                        <Insets top="10.0"/>
+                    </VBox.margin>
+                </Label>
+                <InputFieldStyledArea fx:id="expressionField" styleClass="expression-field" VBox.vgrow="ALWAYS">
+                </InputFieldStyledArea>
+            </children>
+        </VBox>
+    </content>
+    <buttonTypes>
+        <ButtonType fx:constant="OK"/>
+        <ButtonType fx:constant="CANCEL"/>
+    </buttonTypes>
+</DialogPane>

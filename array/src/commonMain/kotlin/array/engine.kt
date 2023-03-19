@@ -566,12 +566,23 @@ class Engine(numComputeEngines: Int? = null) {
         return customSyntaxSubEntries[name]
     }
 
+    @OptIn(ExperimentalContracts::class)
     inline fun <T> withSavedNamespace(fn: () -> T): T {
+        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
         val oldNamespace = currentNamespace
         try {
             return fn()
         } finally {
             currentNamespace = oldNamespace
+        }
+    }
+
+    @OptIn(ExperimentalContracts::class)
+    inline fun <T> withCurrentNamespace(namespace: Namespace, fn: () -> T): T {
+        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
+        withSavedNamespace {
+            currentNamespace = namespace
+            return fn()
         }
     }
 

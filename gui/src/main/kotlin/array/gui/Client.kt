@@ -4,6 +4,7 @@ import array.*
 import array.gui.arrayedit.ArrayEditor
 import array.gui.graph.GraphModule
 import array.gui.graphics.GuiModule
+import array.gui.reporting.ReportingClient
 import array.gui.settings.Settings
 import array.gui.settings.loadSettings
 import array.gui.settings.saveSettings
@@ -168,6 +169,9 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
                 items.add(MenuItem("Structure Viewer").apply {
                     onAction = EventHandler { Platform.runLater { StructureViewer.open(this@Client) } }
                 })
+                items.add(MenuItem("Create Report").apply {
+                    onAction = EventHandler { createReport() }
+                })
             }
             menus.add(windowMenu)
 
@@ -276,6 +280,10 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
             editor.setFile(file)
             editor.show()
         }
+    }
+
+    private fun createReport() {
+        ReportingClient.open(this)
     }
 
     private fun openSettingsWindow() {

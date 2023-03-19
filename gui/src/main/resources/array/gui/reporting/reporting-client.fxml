@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.layout.*?>
+<AnchorPane prefHeight="400.0" prefWidth="600.0" stylesheets="@reporting-client.css"
+            xmlns="http://javafx.com/javafx/17.0.2-ea" xmlns:fx="http://javafx.com/fxml/1"
+            fx:controller="array.gui.reporting.ReportingClient">
+    <children>
+        <SplitPane dividerPositions="0.3" layoutX="8.0" layoutY="15.0" prefHeight="198.0" prefWidth="206.0"
+                   AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0"
+                   AnchorPane.topAnchor="0.0">
+            <items>
+                <VBox prefHeight="200.0" prefWidth="100.0">
+                    <children>
+                        <ListView fx:id="variableList" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS"/>
+                        <HBox VBox.vgrow="NEVER">
+                            <children>
+                                <Button fx:id="addFormulaButton" mnemonicParsing="false" onAction="#addFormulaClicked"
+                                        text="Add">
+                                    <HBox.margin>
+                                        <Insets bottom="5.0" left="5.0" right="5.0" top="5.0"/>
+                                    </HBox.margin>
+                                </Button>
+                            </children>
+                        </HBox>
+                    </children>
+                </VBox>
+                <SplitPane dividerPositions="0.5" orientation="VERTICAL">
+                    <items>
+                        <AnchorPane minHeight="0.0" minWidth="0.0" prefHeight="285.0" prefWidth="374.0">
+                            <children>
+                                <Pane fx:id="reportingHolder" styleClass="reporting-holder"
+                                      AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                      AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                            </children>
+                        </AnchorPane>
+                        <AnchorPane>
+                            <children>
+                                <VBox fx:id="editorWrapper" prefHeight="200.0" prefWidth="100.0"
+                                      AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0"
+                                      AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0"/>
+                            </children>
+                        </AnchorPane>
+                    </items>
+                </SplitPane>
+            </items>
+        </SplitPane>
+    </children>
+</AnchorPane>

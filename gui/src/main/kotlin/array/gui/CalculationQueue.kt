@@ -28,7 +28,7 @@ class CalculationQueue(val engine: Engine) {
                         engine.clearInterrupted()
                         currentJob = job
                     }
-                    job.request.processRequest()
+                    job.request.processRequest(engine)
                     synchronized(lock) {
                         currentJob = null
                     }
@@ -59,8 +59,8 @@ class CalculationQueue(val engine: Engine) {
         taskCompletedHandlers.forEach { fn -> fn(engine) }
     }
 
-    interface Request {
-        fun processRequest()
+    fun interface Request {
+        fun processRequest(engine: Engine)
     }
 
     private inner class EvalAPLRequest(
@@ -68,7 +68,7 @@ class CalculationQueue(val engine: Engine) {
         val variableBindings: List<Pair<Pair<String, String>, APLValue>>?,
         val callback: (Either<APLValue, Exception>) -> Unit
     ) : Request {
-        override fun processRequest() {
+        override fun processRequest(engine: Engine) {
             val queueResult = try {
                 val resolvedSymbols = variableBindings?.map { (k, v) ->
                     engine.internSymbol(k.second, engine.makeNamespace(k.first)) to v
@@ -88,7 +88,7 @@ class CalculationQueue(val engine: Engine) {
     }
 
     private inner class ReadVariableRequest(val name: String, val callback: (APLValue?) -> Unit) : Request {
-        override fun processRequest() {
+        override fun processRequest(engine: Engine) {
             val sym = engine.currentNamespace.findSymbol(name, includePrivate = true)
             val result = if (sym == null) {
                 null
@@ -103,7 +103,7 @@ class CalculationQueue(val engine: Engine) {
     }
 
     private inner class WriteVariableRequest(val name: String, val value: APLValue, val callback: (Exception?) -> Unit) : Request {
-        override fun processRequest() {
+        override fun processRequest(engine: Engine) {
             val sym = engine.currentNamespace.internSymbol(name)
             val binding = engine.rootEnvironment.bindLocal(sym)
             engine.recomputeRootFrame()
@@ -118,14 +118,14 @@ class CalculationQueue(val engine: Engine) {
     }
 
     private inner class InternSymbolsRequest(val names: List<Pair<String?, String>>, val callback: (List<Symbol>) -> Unit) : Request {
-        override fun processRequest() {
+        override fun processRequest(engine: Engine) {
             val symbolList =
                 names.map { (namespaceName, symName) -> engine.internSymbol(symName, namespaceName?.let { n -> engine.makeNamespace(n) }) }
             callback(symbolList)
         }
     }
 
-    private fun pushJobToQueue(request: Request): JobId {
+    fun pushJobToQueue(request: Request): JobId {
         val jobId = JobId()
         queue.add(Job(jobId, request))
         return jobId
