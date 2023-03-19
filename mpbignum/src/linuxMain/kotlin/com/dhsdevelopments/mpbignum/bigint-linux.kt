@@ -16,6 +16,7 @@ class MpzWrapper(val value: mpz_t) {
     @OptIn(ExperimentalStdlibApi::class)
     private val cleaner = createCleaner(value) { obj ->
         mpz_clear!!(obj)
+        nativeHeap.free(obj)
     }
 }
 
