@@ -5,7 +5,6 @@ import javafx.scene.image.Image
 import javafx.scene.image.ImageView
 import java.io.File
 
-
 /**
  * A custom object which contains a file path to an image file.
  * When rendered in the rich text editor, the image is loaded from the

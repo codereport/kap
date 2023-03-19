@@ -85,9 +85,9 @@ class FoldableStyledArea : GenericStyledArea<ParStyle, Segment, TextStyle>(
         private fun initialTextStyle(): TextStyle {
             return TextStyle
                 .EMPTY
-                .updateFontSize(12)
-                .updateFontFamily("Serif")
-                .updateTextColor(Color.BLACK)
+                .copy(fontSize = 12)
+                .copy(fontFamily = "Serif")
+                .copy(textColour = Color.BLACK)
         }
     }
 }

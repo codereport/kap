@@ -8,7 +8,6 @@ import java.io.DataOutputStream
 import java.io.IOException
 import java.util.*
 
-
 class ParStyle private constructor(
     val alignment: Optional<TextAlignment> = Optional.empty(),
     val backgroundColor: Optional<Color> = Optional.empty(),

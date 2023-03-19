@@ -59,7 +59,7 @@ class CalculationQueue(val engine: Engine) {
         taskCompletedHandlers.forEach { fn -> fn(engine) }
     }
 
-    interface Request {
+    fun interface Request {
         fun processRequest(engine: Engine)
     }
 

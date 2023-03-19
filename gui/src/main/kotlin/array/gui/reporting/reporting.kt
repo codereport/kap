@@ -51,14 +51,14 @@ class ReportingClient {
         println("formula = ${formula}")
         if (formula != null) {
             variableList.items.add(formula)
-            client.calculationQueue.pushJobToQueue(object : CalculationQueue.Request {
-                override fun processRequest(engine: Engine) {
+            client.calculationQueue.pushJobToQueue { engine ->
+                engine.withCurrentNamespace(namespace) {
                     val result = engine.parseAndEval(
                         StringSourceLocation("${formula.name.nameWithNamespace} dynamicequal (${formula.expr})"),
                         allocateThreadLocals = false)
                     println("result: ${result}")
                 }
-            })
+            }
         }
     }
 
@@ -84,6 +84,12 @@ class ReportingClient {
         override fun processRequest(engine: Engine) {
             engine.rootEnvironment.findBinding(name)?.let { b ->
                 val holder = currentStack().findStorage(StackStorageRef(b))
+                val current = holder.value()
+                if (current != null) {
+                    Platform.runLater {
+                        fn(current)
+                    }
+                }
                 holder.registerListener { newValue, oldValue ->
                     println("value updated: new=${newValue}, old=${oldValue}")
                     val result = newValue.collapse()
