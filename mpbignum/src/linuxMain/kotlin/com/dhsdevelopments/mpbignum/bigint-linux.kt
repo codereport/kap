@@ -60,6 +60,12 @@ actual fun BigInt.pow(other: Long): BigInt {
     return BigInt(result)
 }
 
+actual operator fun BigInt.compareTo(other: BigInt): Int {
+    val a = this.inner
+    val b = other.inner
+    return mpz_cmp!!(a, b)
+}
+
 actual fun BigInt.Companion.of(value: Int): BigInt {
     return BigInt.of(value.toString())
 }

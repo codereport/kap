@@ -62,15 +62,21 @@ actual fun BigInt.pow(other: Long): BigInt {
     return BigInt.makeFromJs(js("(function(a0,b0){return eval(\"a0**b0\");})(BigInt(a),BigInt(b))"))
 }
 
-actual fun BigInt.Companion.of(value: Int): BigInt {
+actual operator fun BigInt.compareTo(other: BigInt): Int {
     @Suppress("UNUSED_VARIABLE")
+    val a = this.inner
+    @Suppress("UNUSED_VARIABLE")
+    val b = other.inner
+    return js("(function(a0,b0){if(a0<b0){return -1;} else if(a0>b0){return 1;} else {return 0;}})(a,b)")
+}
+
+actual fun BigInt.Companion.of(value: Int): BigInt {
     val stringified = value.toString()
     return BigInt.of(stringified)
 }
 
 actual fun BigInt.Companion.of(value: Long): BigInt {
-    @Suppress("UNUSED_VARIABLE")
-    val stringified = value.toString()
+    val stringified: String = value.toString()
     return BigInt.of(stringified)
 }
 
