@@ -35,3 +35,5 @@ operator fun BigInt.div(other: Int) = this / BigInt.of(other)
 operator fun Int.div(other: BigInt) = BigInt.of(this) / other
 operator fun BigInt.div(other: Long) = this / BigInt.of(other)
 operator fun Long.div(other: BigInt) = BigInt.of(this) / other
+
+fun BigInt.pow(other: Int) = this.pow(other.toLong())
