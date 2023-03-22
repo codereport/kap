@@ -32,7 +32,7 @@ class ReportingClient {
     fun setupClient(client: Client) {
         this.client = client
         val engine = client.engine
-        namespace = engine.makeNamespace("reportDemo")
+        namespace = engine.makeNamespace("report")
 
         variableList.cellFactory = FormulaCellFactory(this)
         variableList.items = FXCollections.observableArrayList()

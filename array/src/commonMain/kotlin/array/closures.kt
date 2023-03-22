@@ -16,7 +16,7 @@ private fun bindingsBeyondIndex(env: Environment, level: Int): List<EnvironmentB
     return l
 }
 
-private fun depthOfEnv(baseEnv: Environment, env: Environment): Int {
+fun depthOfEnv(baseEnv: Environment, env: Environment): Int {
     var curr = baseEnv
     var i = 0
     while (true) {
@@ -64,17 +64,6 @@ fun Environment.escapeAnalysis() {
     recurse(this)
 }
 
-private fun isInParentEnv(baseEnv: Environment, env: Environment): Boolean {
-    var curr = baseEnv.parent
-    while (curr != null) {
-        if (curr === env) {
-            return true
-        }
-        curr = curr.parent
-    }
-    return false
-}
-
 fun Environment.freeVariableRefs(): List<EnvironmentBinding> {
-    return bindings.filter { b -> isInParentEnv(this, b.storage.env) }
+    return bindingsBeyondIndex(this, 0)
 }

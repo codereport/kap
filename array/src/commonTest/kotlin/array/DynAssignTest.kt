@@ -296,4 +296,36 @@ class DynAssignTest : APLTest() {
             assertEquals("35", out)
         }
     }
+
+    @Test
+    fun dynamicEqualWithInnerRef0() {
+        val src =
+            """
+            |a ← 1
+            |b dynamicequal { a + ⍵ } 2
+            |io:print b
+            |a ← 3
+            |io:print b
+            """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assertSimpleNumber(5, result)
+            assertEquals("35", out)
+        }
+    }
+
+    @Test
+    fun dynamicEqualWithInnerRef1() {
+        val src =
+            """
+            |a ← 1
+            |b dynamicequal { { a + ⍵ } 2 + ⍵ } 4
+            |io:print b
+            |a ← 3
+            |io:print b
+            """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assertSimpleNumber(9, result)
+            assertEquals("79", out)
+        }
+    }
 }

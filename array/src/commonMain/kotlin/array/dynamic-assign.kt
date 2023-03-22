@@ -93,7 +93,8 @@ class DynamicAssignmentInstruction(
         init {
             val listenerMap = HashMap<VariableHolder, VariableUpdateListener>()
             vars.forEach { stackRef ->
-                val storage = currentStack().findStorage(stackRef)
+                val depth = depthOfEnv(stackRef.binding.environment, env)
+                val storage = currentStack().findStorageFromFrameIndexAndOffset(stackRef.frameIndex - depth, stackRef.storageOffset)
                 val listener = WeakRefVariableUpdateListener(storage) { newValue, _ ->
                     processUpdate(newValue)
                 }
