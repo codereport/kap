@@ -46,17 +46,39 @@ class ReportingClient {
         editorWrapper.children.add(resultEditor.root)
     }
 
-    fun addFormulaClicked(@Suppress("UNUSED_PARAMETER") actionEvent: ActionEvent) {
-        val formula = FormulaEditor.open(this)
-        println("formula = ${formula}")
-        if (formula != null) {
+    private fun createDynamicBinding(engine: Engine, formulaResult: FormulaEditor.FormulaEditorResult) {
+        val res = try {
+            engine.withCurrentNamespace(namespace) {
+                val src = "${formulaResult.name} dynamicequal (${formulaResult.expr}) ◊ '${formulaResult.name}"
+                println("Creating binding using expression: ${src}")
+                val result = engine.parseAndEval(
+                    StringSourceLocation(src),
+                    allocateThreadLocals = false)
+                if (result !is APLSymbol) {
+                    println("Result is not an APLSymbol: ${result}")
+                    return
+                }
+                result
+            }
+        } catch(e: APLGenericException) {
+            println("Exception when creating dynamic binding")
+            e.printStackTrace()
+            return
+        }
+        Platform.runLater {
+            val formula = Formula(res.value, formulaResult.expr)
             variableList.items.add(formula)
+        }
+    }
+
+    fun addFormulaClicked(@Suppress("UNUSED_PARAMETER") actionEvent: ActionEvent) {
+        val formulaResult = FormulaEditor.open(this)
+        println("formula = ${formulaResult}")
+        if (formulaResult != null) {
             client.calculationQueue.pushJobToQueue { engine ->
                 engine.withCurrentNamespace(namespace) {
-                    val result = engine.parseAndEval(
-                        StringSourceLocation("${formula.name.nameWithNamespace} dynamicequal (${formula.expr})"),
-                        allocateThreadLocals = false)
-                    println("result: ${result}")
+                    createDynamicBinding(engine, formulaResult)
+                    System.gc()
                 }
             }
         }

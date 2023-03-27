@@ -328,4 +328,43 @@ class DynAssignTest : APLTest() {
             assertEquals("79", out)
         }
     }
+
+    @Test
+    fun multipleEvaluations() {
+        val engine = Engine()
+        engine.withThreadLocalAssigned {
+            engine.parseAndEval(StringSourceLocation("a ← 1"), allocateThreadLocals = false).let { result ->
+                tryGc()
+                assertSimpleNumber(1, result)
+            }
+            engine.parseAndEval(StringSourceLocation("b dynamicequal a+20"), allocateThreadLocals = false).let { result ->
+                tryGc()
+                assertSimpleNumber(21, result)
+            }
+            engine.parseAndEval(StringSourceLocation("c dynamicequal b+200"), allocateThreadLocals = false).let { result ->
+                tryGc()
+                assertSimpleNumber(221, result)
+            }
+            engine.parseAndEval(StringSourceLocation("d dynamicequal c+2000"), allocateThreadLocals = false).let { result ->
+                tryGc()
+                assertSimpleNumber(2221, result)
+            }
+            engine.parseAndEval(StringSourceLocation("a ← 3"), allocateThreadLocals = false).let { result ->
+                tryGc()
+                assertSimpleNumber(3, result)
+            }
+            engine.parseAndEval(StringSourceLocation("d"), allocateThreadLocals = false).let { result ->
+                tryGc()
+                assertSimpleNumber(2223, result)
+            }
+            engine.parseAndEval(StringSourceLocation("a ← 8"), allocateThreadLocals = false).let { result ->
+                tryGc()
+                assertSimpleNumber(8, result)
+            }
+            engine.parseAndEval(StringSourceLocation("d"), allocateThreadLocals = false).let { result ->
+                tryGc()
+                assertSimpleNumber(2228, result)
+            }
+        }
+    }
 }

@@ -12,11 +12,11 @@ class FormulaEditor {
     lateinit var nameField: TextField
     lateinit var expressionField: InputFieldStyledArea
 
-    fun formula(): Formula? {
+    fun formula(): FormulaEditorResult? {
         val name = nameField.text.trim()
         val expr = expressionField.text.trim()
         return if (name.isNotEmpty() && expr.isNotEmpty()) {
-            Formula(reportingClient.namespace.internAndExport(name), expr)
+            FormulaEditorResult(name, expr)
         } else {
             null
         }
@@ -25,7 +25,7 @@ class FormulaEditor {
     companion object {
         fun loader() = FXMLLoader(FormulaEditor::class.java.getResource("formula-editor.fxml"))
 
-        fun open(reportingClient: ReportingClient): Formula? {
+        fun open(reportingClient: ReportingClient): FormulaEditorResult? {
             val loader = loader()
             val parent: DialogPane = loader.load()
             val editor: FormulaEditor = loader.getController()
@@ -42,4 +42,6 @@ class FormulaEditor {
             }
         }
     }
+
+    data class FormulaEditorResult(val name: String, val expr: String)
 }

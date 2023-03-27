@@ -34,3 +34,6 @@ actual fun nativeTestInit() {
     initDirectory("../../../../array", "standard-lib")
     initDirectory("../../../../array", "test-data")
 }
+
+actual fun tryGc() {
+}

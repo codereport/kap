@@ -3,6 +3,10 @@ package array.gui.reporting.edit
 import array.gui.Client
 import array.gui.reporting.Formula
 import array.gui.reporting.ReportingClient
+import javafx.event.ActionEvent
+import javafx.event.EventHandler
+import javafx.scene.control.ContextMenu
+import javafx.scene.control.MenuItem
 import javafx.scene.layout.Priority
 import javafx.scene.layout.VBox
 import org.fxmisc.flowless.VirtualizedScrollPane
@@ -21,10 +25,15 @@ class ResultEditor private constructor() {
 //            setStyleCodecs(
 //                ParStyle.CODEC,
 //                Codec.styledSegmentCodec(Codec.eitherCodec(Codec.STRING_CODEC, LinkedImage.codec()), TextStyle.CODEC))
+            contextMenu = ContextMenu(MenuItem("Insert dynamic value").apply { onAction = EventHandler { insertDynamicValue() } })
         }
         val scrollPane = VirtualizedScrollPane(editorArea)
         vbox.children.add(scrollPane)
         VBox.setVgrow(scrollPane, Priority.ALWAYS)
+    }
+
+    private fun insertDynamicValue() {
+        println("insert")
     }
 
     fun addInlineValue(client: ReportingClient, formula: Formula) {

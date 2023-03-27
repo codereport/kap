@@ -228,3 +228,4 @@ abstract class APLTest {
 }
 
 expect fun nativeTestInit()
+expect fun tryGc()

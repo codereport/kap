@@ -14,7 +14,9 @@ fun APLParser.processDynamicAssignment(pos: Position, leftArgs: List<Instruction
     return when (holder) {
         is ParseResultHolder.InstrParseResult -> makeDynamicAssignInstruction(this, dest, holder, parsedEnv)
         is ParseResultHolder.FnParseResult -> throw IllegalContextForFunction(holder.pos)
-        is ParseResultHolder.EmptyParseResult -> throw ParseException("No right-side value in dynamic assignment instruction", pos)
+        is ParseResultHolder.EmptyParseResult -> throw ParseException(
+            "No right-side value in dynamic assignment instruction",
+            pos)
     }
 }
 
@@ -22,17 +24,23 @@ private fun makeDynamicAssignInstruction(
     parser: APLParser,
     dest: VariableRef,
     holder: ParseResultHolder.InstrParseResult,
-    parsedEnv: Environment)
+    parsedEnv: Environment
+)
         : ParseResultHolder.InstrParseResult {
 
     val env = parser.currentEnvironment()
     env.markCanEscape()
     val freeVariableRefs = parsedEnv.freeVariableRefs()
-    val assignmentInstr = DynamicAssignmentInstruction(dest.storageRef, freeVariableRefs, holder.instr, parsedEnv, holder.pos)
+    val assignmentInstr =
+        DynamicAssignmentInstruction(dest.storageRef, freeVariableRefs, holder.instr, parsedEnv, holder.pos)
     return ParseResultHolder.InstrParseResult(assignmentInstr, holder.lastToken)
 }
 
-private class WeakRefVariableUpdateListener(val storage: VariableHolder, inner: VariableUpdateListener) : VariableUpdateListener {
+private class WeakRefVariableUpdateListener(
+    private val debugName: String,
+    val storage: VariableHolder,
+    inner: VariableUpdateListener
+) : VariableUpdateListener {
     private val ref = MPWeakReference.make(inner)
 
     init {
@@ -42,7 +50,7 @@ private class WeakRefVariableUpdateListener(val storage: VariableHolder, inner: 
     override fun updated(newValue: APLValue, oldValue: APLValue?) {
         val l = ref.value
         if (l == null) {
-            println("Unregistering listener after GC")
+            println("Unregistering listener after GC: name=${debugName}")
             storage.unregisterListener(this)
         } else {
             l.updated(newValue, oldValue)
@@ -87,32 +95,40 @@ class DynamicAssignmentInstruction(
         val env: Environment,
         val savedFrame: StorageStack.StorageStackFrame
     ) {
-        private val listeners: Map<VariableHolder, VariableUpdateListener>
-        private val destinationListener: VariableUpdateListener
+        private val listeners: Map<VariableHolder, Pair<WeakRefVariableUpdateListener, VariableUpdateListener>>
+        private val destinationListener: Pair<WeakRefVariableUpdateListener, VariableUpdateListener>
 
         init {
-            val listenerMap = HashMap<VariableHolder, VariableUpdateListener>()
+            val listenerMap = HashMap<VariableHolder, Pair<WeakRefVariableUpdateListener, VariableUpdateListener>>()
             vars.forEach { stackRef ->
                 val depth = depthOfEnv(stackRef.binding.environment, env)
-                val storage = currentStack().findStorageFromFrameIndexAndOffset(stackRef.frameIndex - depth, stackRef.storageOffset)
-                val listener = WeakRefVariableUpdateListener(storage) { newValue, _ ->
+                val storage = currentStack().findStorageFromFrameIndexAndOffset(
+                    stackRef.frameIndex - depth,
+                    stackRef.storageOffset)
+                val innerListener = VariableUpdateListener { newValue, _ ->
                     processUpdate(newValue)
                 }
-                listenerMap[storage] = listener
+                val listener = WeakRefVariableUpdateListener("TrackedDependency(ref=${stackRef.name})", storage, innerListener)
+                listenerMap[storage] = Pair(listener, innerListener)
             }
             listeners = listenerMap
-            destinationListener = WeakRefVariableUpdateListener(destinationHolder) { newValue, _ -> processDestinationUpdated(newValue) }
+
+            val innerDestListener = VariableUpdateListener { newValue, _ -> processDestinationUpdated(newValue) }
+            destinationListener = Pair(
+                WeakRefVariableUpdateListener(
+                    "UpdateTracker(env=${env.name})",
+                    destinationHolder, innerDestListener), innerDestListener)
         }
 
         private fun processDestinationUpdated(newValue: APLValue) {
             if (newValue !is DynamicValue || newValue.tracker !== this) {
                 listeners.forEach { (holder, listener) ->
-                    val wasFound = holder.unregisterListener(listener)
+                    val wasFound = holder.unregisterListener(listener.first)
                     assertx(wasFound) {
                         "Listener was not found when attempting to unregister tracker: value=${newValue}, tracker=${this}"
                     }
                 }
-                destinationHolder.unregisterListener(destinationListener)
+                destinationHolder.unregisterListener(destinationListener.first)
             }
         }
 
