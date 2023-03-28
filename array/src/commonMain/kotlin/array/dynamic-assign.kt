@@ -133,7 +133,12 @@ class DynamicAssignmentInstruction(
         }
 
         private fun processUpdate(newValue: APLValue) {
-            val updateId = if (newValue is DynamicValue) {
+            val updateId = computeUpdateId(newValue)
+            destinationHolder.updateValue(DynamicValue(context, this, updateId = updateId))
+        }
+
+        private fun computeUpdateId(newValue: APLValue): UpdateId {
+            if (newValue is DynamicValue) {
                 val oldDest = destinationHolder.value()
                 if (oldDest is DynamicValue) {
                     val id = oldDest.updateId
@@ -141,15 +146,11 @@ class DynamicAssignmentInstruction(
                         destinationHolder.updateValueNoPropagate(APLNullValue.APL_NULL_INSTANCE)
                         throwAPLException(CircularDynamicAssignment(instr.pos))
                     } else {
-                        newValue.updateId
+                        return newValue.updateId
                     }
-                } else {
-                    UpdateId()
                 }
-            } else {
-                UpdateId()
             }
-            destinationHolder.updateValue(DynamicValue(context, this, updateId = updateId))
+            return UpdateId()
         }
 
         fun makeDynamicValue(res: APLValue): DynamicValue {
