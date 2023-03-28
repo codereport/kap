@@ -51,4 +51,20 @@ class DivTest {
         val c = a / b
         assertEquals("5", c.toString())
     }
+
+    @Test
+    fun divideWithFractionalResult() {
+        val a = BigInt.of(1000)
+        val b = BigInt.of(21)
+        val c = a / b
+        assertEquals("47", c.toString())
+    }
+
+    @Test
+    fun divideNegativeValue() {
+        val a = BigInt.of(-20)
+        val b = BigInt.of(4)
+        val c = a / b
+        assertEquals("-5", c.toString())
+    }
 }
