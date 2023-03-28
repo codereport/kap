@@ -39,3 +39,15 @@ actual fun BigInt.Companion.of(value: Long): BigInt {
 actual fun BigInt.Companion.of(s: String): BigInt {
     return BigInt(BigInteger(s))
 }
+
+actual infix fun BigInt.and(other: BigInt): BigInt {
+    return BigInt(inner and other.inner)
+}
+
+actual infix fun BigInt.or(other: BigInt): BigInt {
+    return BigInt(inner or other.inner)
+}
+
+actual infix fun BigInt.xor(other: BigInt): BigInt {
+    return BigInt(inner xor other.inner)
+}

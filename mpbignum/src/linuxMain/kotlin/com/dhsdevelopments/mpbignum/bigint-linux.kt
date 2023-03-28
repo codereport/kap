@@ -92,3 +92,7 @@ actual fun BigInt.Companion.of(s: String): BigInt {
         return BigInt(result)
     }
 }
+
+actual infix fun BigInt.and(other: BigInt) = basicOperation(other) { result, a, b -> mpz_and!!(result.value, a, b) }
+actual infix fun BigInt.or(other: BigInt) = basicOperation(other) { result, a, b -> mpz_ior!!(result.value, a, b) }
+actual infix fun BigInt.xor(other: BigInt) = basicOperation(other) { result, a, b -> mpz_xor!!(result.value, a, b) }

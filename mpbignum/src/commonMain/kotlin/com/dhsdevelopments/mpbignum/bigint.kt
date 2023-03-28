@@ -44,3 +44,21 @@ operator fun BigInt.compareTo(other: Int): Int = this.compareTo(BigInt.of(other)
 operator fun BigInt.compareTo(other: Long): Int = this.compareTo(BigInt.of(other))
 operator fun Int.compareTo(other: BigInt): Int = BigInt.of(this).compareTo(other)
 operator fun Long.compareTo(other: BigInt): Int = BigInt.of(this).compareTo(other)
+
+expect infix fun BigInt.and(other: BigInt): BigInt
+expect infix fun BigInt.or(other: BigInt): BigInt
+expect infix fun BigInt.xor(other: BigInt): BigInt
+
+infix fun BigInt.and(other: Long): BigInt = this and BigInt.of(other)
+infix fun Long.and(other: BigInt): BigInt = BigInt.of(this) and other
+infix fun BigInt.or(other: Long): BigInt = this or BigInt.of(other)
+infix fun Long.or(other: BigInt): BigInt = BigInt.of(this) or other
+infix fun BigInt.xor(other: Long): BigInt = this xor BigInt.of(other)
+infix fun Long.xor(other: BigInt): BigInt = BigInt.of(this) xor other
+
+infix fun BigInt.and(other: Int): BigInt = this and BigInt.of(other)
+infix fun Int.and(other: BigInt): BigInt = BigInt.of(this) and other
+infix fun BigInt.or(other: Int): BigInt = this or BigInt.of(other)
+infix fun Int.or(other: BigInt): BigInt = BigInt.of(this) or other
+infix fun BigInt.xor(other: Int): BigInt = this xor BigInt.of(other)
+infix fun Int.xor(other: BigInt): BigInt = BigInt.of(this) xor other
