@@ -45,6 +45,13 @@ private inline fun BigInt.basicOperation(other: BigInt, fn: (result: MpzWrapper,
     return BigInt(result)
 }
 
+private inline fun BigInt.basicOperation1Arg(fn: (result: MpzWrapper, a: mpz_t) -> Unit): BigInt {
+    val a = this.inner
+    val result = MpzWrapper.allocMpz()
+    fn(result, a)
+    return BigInt(result)
+}
+
 actual operator fun BigInt.plus(other: BigInt) = basicOperation(other) { result, a, b -> mpz_add!!(result.value, a, b) }
 actual operator fun BigInt.minus(other: BigInt) = basicOperation(other) { result, a, b -> mpz_sub!!(result.value, a, b) }
 actual operator fun BigInt.times(other: BigInt) = basicOperation(other) { result, a, b -> mpz_mul!!(result.value, a, b) }
@@ -96,3 +103,27 @@ actual fun BigInt.Companion.of(s: String): BigInt {
 actual infix fun BigInt.and(other: BigInt) = basicOperation(other) { result, a, b -> mpz_and!!(result.value, a, b) }
 actual infix fun BigInt.or(other: BigInt) = basicOperation(other) { result, a, b -> mpz_ior!!(result.value, a, b) }
 actual infix fun BigInt.xor(other: BigInt) = basicOperation(other) { result, a, b -> mpz_xor!!(result.value, a, b) }
+
+actual infix fun BigInt.shl(other: Long): BigInt {
+    return when {
+        other > 0 -> basicOperation1Arg { result, a ->
+            mpz_mul_2exp!!(result.value, a, other.toULong())
+        }
+        other < 0 -> basicOperation1Arg { result, a ->
+            mpz_fdiv_q_2exp!!(result.value, a, (-other).toULong())
+        }
+        else -> this
+    }
+}
+
+actual infix fun BigInt.shr(other: Long): BigInt {
+    return when {
+        other > 0 -> basicOperation1Arg { result, a ->
+            mpz_fdiv_q_2exp!!(result.value, a, other.toULong())
+        }
+        other < 0 -> basicOperation1Arg { result, a ->
+            mpz_mul_2exp!!(result.value, a, (-other).toULong())
+        }
+        else -> this
+    }
+}

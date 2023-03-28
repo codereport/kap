@@ -62,3 +62,6 @@ infix fun BigInt.or(other: Int): BigInt = this or BigInt.of(other)
 infix fun Int.or(other: BigInt): BigInt = BigInt.of(this) or other
 infix fun BigInt.xor(other: Int): BigInt = this xor BigInt.of(other)
 infix fun Int.xor(other: BigInt): BigInt = BigInt.of(this) xor other
+
+expect infix fun BigInt.shl(other: Long): BigInt
+expect infix fun BigInt.shr(other: Long): BigInt
