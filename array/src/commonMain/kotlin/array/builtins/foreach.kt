@@ -63,8 +63,8 @@ class SaveStackSupport(vararg fn: APLFunction) : SaveStackCapable {
 }
 
 class ForEachFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescriptor {
-    class ForEachFunctionImpl(pos: FunctionInstantiation, fn: APLFunction)
-        : APLFunction(pos, listOf(fn)), ParallelSupported, SaveStackCapable by SaveStackSupport(fn) {
+    class ForEachFunctionImpl(pos: FunctionInstantiation, fn: APLFunction) : APLFunction(pos, listOf(fn)), ParallelSupported,
+            SaveStackCapable by SaveStackSupport(fn) {
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             return if (a.isScalar()) {
@@ -109,8 +109,8 @@ class ForEachFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescripto
             b: APLValue,
             axis: APLValue?,
             pos: Position,
-            savedStack: StorageStack.StorageStackFrame?)
-                : APLValue {
+            savedStack: StorageStack.StorageStackFrame?
+        ): APLValue {
             if (a.isScalar() && b.isScalar()) {
                 return EnclosedAPLValue.make(fn.eval2Arg(context, a.disclose(), b.disclose(), axis).unwrapDeferredValue())
             }

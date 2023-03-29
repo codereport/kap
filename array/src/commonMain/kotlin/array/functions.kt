@@ -139,7 +139,8 @@ abstract class APLFunction(instantiation: FunctionInstantiation, val fns: List<A
         sizeAlongAxis: Int,
         stepLength: Int,
         offset: Int,
-        savedStack: StorageStack.StorageStackFrame?): APLValue {
+        savedStack: StorageStack.StorageStackFrame?
+    ): APLValue {
         return defaultReduceImpl(this, context, arg, offset, sizeAlongAxis, stepLength, pos, savedStack)
     }
 }
@@ -250,13 +251,7 @@ abstract class DelegatedAPLFunctionImpl(pos: FunctionInstantiation, fns: List<AP
 
     override fun capturedEnvironments() = innerImpl().capturedEnvironments()
 
-    override fun reduce(
-        context: RuntimeContext,
-        arg: APLValue,
-        sizeAlongAxis: Int,
-        stepLength: Int,
-        offset: Int,
-        savedStack: StorageStack.StorageStackFrame?): APLValue =
+    override fun reduce(context: RuntimeContext, arg: APLValue, sizeAlongAxis: Int, stepLength: Int, offset: Int, savedStack: StorageStack.StorageStackFrame?) =
         innerImpl().reduce(context, arg, sizeAlongAxis, stepLength, offset, savedStack)
 
     @Suppress("LeakingThis")

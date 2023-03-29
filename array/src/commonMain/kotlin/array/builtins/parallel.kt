@@ -4,7 +4,7 @@ import kotlin.math.ceil
 import kotlin.math.min
 
 class ParallelWrappedException(val exceptions: List<Throwable>, pos: Position? = null) :
-    APLEvalException("Wrapped exceptions. Primary: ${exceptions[0].message}", pos) {
+        APLEvalException("Wrapped exceptions. Primary: ${exceptions[0].message}", pos) {
     fun primaryException() = exceptions[0]
 }
 

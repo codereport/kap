@@ -505,8 +505,8 @@ class Engine(numComputeEngines: Int? = null) {
         source: SourceLocation,
         extraBindings: Map<Symbol, APLValue>? = null,
         allocateThreadLocals: Boolean = true,
-        collapseResult: Boolean = true)
-            : APLValue {
+        collapseResult: Boolean = true
+    ): APLValue {
         if (extraBindings != null) {
             throw IllegalArgumentException("extra bindings is not supported at the moment")
         }

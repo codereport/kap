@@ -7,7 +7,8 @@ class CustomSyntax(
     val environment: Environment,
     val rulesList: List<SyntaxRule>,
     val instr: Instruction,
-    val pos: Position)
+    val pos: Position
+)
 
 class SyntaxRuleVariableBinding(val name: EnvironmentBinding, val value: Instruction)
 
