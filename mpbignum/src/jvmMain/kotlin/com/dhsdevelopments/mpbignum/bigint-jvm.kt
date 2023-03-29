@@ -61,7 +61,7 @@ actual infix fun BigInt.shl(other: Long): BigInt {
 
 actual infix fun BigInt.shr(other: Long): BigInt {
     if(other < Int.MIN_VALUE || other >= Int.MAX_VALUE) {
-        throw IllegalArgumentException("Argument to shl must be a positive number that fits in 32 bits: ${other}")
+        throw IllegalArgumentException("Argument to shr must be a positive number that fits in 32 bits: ${other}")
     }
     return BigInt(inner shr other.toInt())
 }
