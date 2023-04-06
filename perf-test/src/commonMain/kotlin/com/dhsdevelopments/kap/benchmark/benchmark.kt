@@ -50,7 +50,7 @@ private fun simpleSum(): BenchmarkTestCase {
 private fun benchmarkMultipleCall(): BenchmarkTestCase {
     val srcString = """
             |f ⇐ {⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵+⍵}
-            |({f 5}⍣10000000) 0
+            |({f 5}⍣200000) 0
         """.trimMargin()
     // Pre-rewrite: 3.4658
     // Orig: 5.375100000000001
@@ -79,9 +79,9 @@ class BenchmarkResults(val results: List<Long>) {
     }
 }
 
-fun benchmarkSrc(srcString: String): BenchmarkResults {
+fun benchmarkSrc(srcString: String, libPath: String): BenchmarkResults {
     val engine = Engine()
-    engine.addLibrarySearchPath("array/standard-lib")
+    engine.addLibrarySearchPath(libPath)
     engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
     val iterations = 10
     repeat(iterations) {
@@ -99,11 +99,11 @@ fun benchmarkSrc(srcString: String): BenchmarkResults {
     return BenchmarkResults(results)
 }
 
-fun runAllTests(name: String) {
+fun runAllTests(name: String, libPath: String) {
     val tests = listOf(benchmarkPrimes(), benchmarkVarLookupScope(), contribBench(), simpleSum(), benchmarkMultipleCall())
     println("Running tests: ${name}")
     tests.forEach { testcase ->
-        val results = benchmarkSrc(testcase.src)
+        val results = benchmarkSrc(testcase.src, libPath)
         println("${testcase.name}: ${results.summary()}")
     }
 }

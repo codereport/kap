@@ -30,6 +30,7 @@ kotlin {
 //        }
         nodejs {
         }
+        binaries.executable()
     }
     linuxX64("linux") {
         compilations.main.kotlinOptions {
@@ -37,6 +38,11 @@ kotlin {
         }
         compilations.test.kotlinOptions {
             freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+        }
+        binaries {
+            executable {
+                entryPoint = 'com.dhsdevelopments.kap.benchmark.main'
+            }
         }
     }
 

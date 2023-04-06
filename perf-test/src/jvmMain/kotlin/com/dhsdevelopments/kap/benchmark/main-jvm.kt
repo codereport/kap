@@ -2,13 +2,13 @@ package com.dhsdevelopments.kap.benchmark
 
 /*
 Running tests: JVM
-primes: avg=572.1, median=573.5, min=550, max=590, stddev=1.0002836305713394
-var lookup scope: avg=2667.2, median=2661.0, min=2637, max=2710, stddev=1.0000373596689864
-contrib bench: avg=394.1, median=397.5, min=376, max=408, stddev=1.0003685060966
-simple sum: avg=347.5, median=347.5, min=336, max=393, stddev=1.0010141330420723
-multiple call: avg=13163.6, median=13179.5, min=12900, max=13378, stddev=1.000044230923112
+primes: avg=255.1, median=251.5, min=249, max=280, stddev=1.0005767743846692
+var lookup scope: avg=1545.0, median=1545.0, min=1522, max=1574, stddev=1.000038582848229
+contrib bench: avg=235.9, median=239.5, min=232, max=242, stddev=1.0000619041696195
+simple sum: avg=193.5, median=191.0, min=191, max=206, stddev=1.0002543594139597
+multiple call: avg=140.3, median=139.0, min=138, max=153, stddev=1.0004675272623051
 */
 
 fun main() {
-    runAllTests("JVM")
+    runAllTests("JVM", "array/standard-lib")
 }
