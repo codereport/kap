@@ -19,6 +19,8 @@ actual operator fun BigInt.minus(other: BigInt) = BigInt(inner.minus(other.inner
 actual operator fun BigInt.times(other: BigInt) = BigInt(inner.times(other.inner))
 actual operator fun BigInt.div(other: BigInt) = BigInt(inner.div(other.inner))
 
+actual operator fun BigInt.unaryMinus() = BigInt(-inner)
+
 actual fun BigInt.pow(other: Long): BigInt {
     if (other < 0 || other >= Int.MAX_VALUE) {
         throw IllegalArgumentException("Argument to pow must be a positive number that fits in 32 bits: ${other}")
@@ -60,8 +62,20 @@ actual infix fun BigInt.shl(other: Long): BigInt {
 }
 
 actual infix fun BigInt.shr(other: Long): BigInt {
-    if(other < Int.MIN_VALUE || other >= Int.MAX_VALUE) {
+    if (other < Int.MIN_VALUE || other >= Int.MAX_VALUE) {
         throw IllegalArgumentException("Argument to shr must be a positive number that fits in 32 bits: ${other}")
     }
     return BigInt(inner shr other.toInt())
+}
+
+actual fun BigInt.toLong(): Long {
+    return inner.toLong()
+}
+
+actual fun BigInt.toDouble(): Double {
+    return inner.toDouble()
+}
+
+actual fun BigInt.signum(): Int {
+    return inner.signum()
 }

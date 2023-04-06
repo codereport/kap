@@ -43,4 +43,18 @@ class SubTest {
         val c = b - a
         assertEquals("20", c.toString())
     }
+
+    @Test
+    fun negate0() {
+        val a = BigInt.of(10)
+        val b = -a
+        assertEquals("-10", b.toString())
+    }
+
+    @Test
+    fun negate1() {
+        val a = BigInt.of(-10)
+        val b = -a
+        assertEquals("10", b.toString())
+    }
 }

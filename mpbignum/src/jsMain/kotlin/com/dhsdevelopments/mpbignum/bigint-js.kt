@@ -1,6 +1,26 @@
 package com.dhsdevelopments.mpbignum
 
-class BigIntWrapper(val value: dynamic)
+class BigIntWrapper(val value: dynamic) {
+    override fun equals(other: Any?): Boolean {
+        if (other !is BigIntWrapper) {
+            return false
+        }
+
+        @Suppress("UNUSED_VARIABLE")
+        val a = value
+
+        @Suppress("UNUSED_VARIABLE")
+        val b = other.value
+        return js("a==b") as Boolean
+    }
+
+    override fun hashCode(): Int {
+        @Suppress("UNUSED_VARIABLE")
+        val a = value
+        val s = js("BigInt.asIntN(32,a).toString()") as String
+        return s.toInt()
+    }
+}
 
 actual value class BigInt(val impl: Any) {
     override fun toString(): String = inner.toString()
@@ -51,6 +71,12 @@ actual operator fun BigInt.div(other: BigInt): BigInt {
     @Suppress("UNUSED_VARIABLE")
     val b = other.inner
     return BigInt.makeFromJs(js("a/b"))
+}
+
+actual operator fun BigInt.unaryMinus(): BigInt {
+    @Suppress("UNUSED_VARIABLE")
+    val a = this.inner
+    return BigInt.makeFromJs(js("-a"))
 }
 
 actual fun BigInt.pow(other: Long): BigInt {
@@ -137,4 +163,23 @@ actual infix fun BigInt.shr(other: Long): BigInt {
     val b = other
 
     return BigInt.makeFromJs(js("(function(b0){return a>>b0})(BigInt(b))"))
+}
+
+actual fun BigInt.toLong(): Long {
+    @Suppress("UNUSED_VARIABLE")
+    val a = this.inner
+    val s = js("BigInt.asIntN(64,a).toString()") as String
+    return s.toLong()
+}
+
+actual fun BigInt.toDouble(): Double {
+    @Suppress("UNUSED_VARIABLE")
+    val a = this.inner
+    return js("Number(a)") as Double
+}
+
+actual fun BigInt.signum(): Int {
+    @Suppress("UNUSED_VARIABLE")
+    val a = this.inner
+    return js("(function(a0){if(a0<0){return -1;} else if(a0>0){return 1;} else {return 0;}})(a)")
 }

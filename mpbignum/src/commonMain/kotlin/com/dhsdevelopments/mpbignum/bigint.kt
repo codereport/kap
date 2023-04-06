@@ -5,10 +5,17 @@ expect value class BigInt(val impl: Any) {
     }
 }
 
+object BigIntConstants {
+    val ZERO = BigInt.of(0)
+    val ALL_BITS_64 = BigInt.of("18446744073709551615")
+}
+
 expect operator fun BigInt.plus(other: BigInt): BigInt
 expect operator fun BigInt.minus(other: BigInt): BigInt
 expect operator fun BigInt.times(other: BigInt): BigInt
 expect operator fun BigInt.div(other: BigInt): BigInt
+
+expect operator fun BigInt.unaryMinus(): BigInt
 
 expect fun BigInt.pow(other: Long): BigInt
 
@@ -65,3 +72,8 @@ infix fun Int.xor(other: BigInt): BigInt = BigInt.of(this) xor other
 
 expect infix fun BigInt.shl(other: Long): BigInt
 expect infix fun BigInt.shr(other: Long): BigInt
+
+expect fun BigInt.toLong(): Long
+expect fun BigInt.toDouble(): Double
+
+expect fun BigInt.signum(): Int

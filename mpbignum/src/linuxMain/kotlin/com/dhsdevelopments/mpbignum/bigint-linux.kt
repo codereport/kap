@@ -12,6 +12,17 @@ class MpzWrapper(val value: mpz_t) {
         }
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (other !is MpzWrapper) {
+            return false
+        }
+        return mpz_cmp!!(this.value, other.value) == 0
+    }
+
+    override fun hashCode(): Int {
+        return mpz_get_si!!(this.value).toInt()
+    }
+
     @Suppress("unused")
     @OptIn(ExperimentalStdlibApi::class)
     private val cleaner = createCleaner(value) { obj ->
@@ -56,6 +67,8 @@ actual operator fun BigInt.plus(other: BigInt) = basicOperation(other) { result,
 actual operator fun BigInt.minus(other: BigInt) = basicOperation(other) { result, a, b -> mpz_sub!!(result.value, a, b) }
 actual operator fun BigInt.times(other: BigInt) = basicOperation(other) { result, a, b -> mpz_mul!!(result.value, a, b) }
 actual operator fun BigInt.div(other: BigInt) = basicOperation(other) { result, a, b -> mpz_div!!(result.value, a, b) }
+
+actual operator fun BigInt.unaryMinus() = basicOperation1Arg { result, a -> mpz_neg!!(result.value, a) }
 
 actual fun BigInt.pow(other: Long): BigInt {
     if (other < 0) {
@@ -126,4 +139,20 @@ actual infix fun BigInt.shr(other: Long): BigInt {
         }
         else -> this
     }
+}
+
+actual fun BigInt.toLong(): Long {
+    return if (this.signum() == -1) {
+        -mpz_get_ui!!(this.inner).toLong()
+    } else {
+        mpz_get_ui!!(this.inner).toLong()
+    }
+}
+
+actual fun BigInt.toDouble(): Double {
+    return mpz_get_d!!(this.inner)
+}
+
+actual fun BigInt.signum(): Int {
+    return mpz_sgn_wrap(this.inner)
 }
