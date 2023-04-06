@@ -1,6 +1,10 @@
 package array
 
 import array.complex.Complex
+import com.dhsdevelopments.mpbignum.BigInt
+import com.dhsdevelopments.mpbignum.compareTo
+import com.dhsdevelopments.mpbignum.of
+import com.dhsdevelopments.mpbignum.toLong
 
 abstract class APLNumber : APLSingleValue() {
     override fun toString() = "APLNumber(${formatted(FormatStyle.PRETTY)})"
@@ -23,6 +27,8 @@ abstract class APLNumber : APLSingleValue() {
     }
 
     override fun asBoolean(pos: Position?) = asInt(pos) != 0
+
+    open fun asBigInt(): BigInt = TODO("foo")
 }
 
 class APLLong(val value: Long) : APLNumber() {
@@ -57,6 +63,8 @@ class APLLong(val value: Long) : APLNumber() {
     override fun toString() = "APLLong(${formatted(FormatStyle.PRETTY)})"
     override fun makeKey() = APLValueKeyImpl(this, value)
     override fun asBoolean(pos: Position?) = value != 0L
+
+    override fun asBigInt() = BigInt.of(value)
 }
 
 class APLDouble(val value: Double) : APLNumber() {
@@ -101,6 +109,57 @@ class APLDouble(val value: Double) : APLNumber() {
     override fun toString() = "APLDouble(${formatted(FormatStyle.PRETTY)})"
     override fun makeKey() = APLValueKeyImpl(this, value)
     override fun asBoolean(pos: Position?) = value != 0.0
+}
+
+fun checkBigIntInRangeLong(value: BigInt, pos: Position?) {
+    if (value < Long.MIN_VALUE || value > Long.MAX_VALUE) {
+        throwAPLException(LongMagnitudeException(value, pos))
+    }
+}
+
+class APLBigInt(val value: BigInt) : APLNumber() {
+    override fun asDouble(pos: Position?): Double {
+        TODO("Not yet implemented")
+    }
+
+    override fun asLong(pos: Position?): Long {
+        checkBigIntInRangeLong(value, pos)
+        return value.toLong()
+    }
+
+    override fun asComplex(): Complex {
+        TODO("Not yet implemented")
+    }
+
+    override fun isComplex() = false
+
+    override val aplValueType: APLValueType get() = APLValueType.INTEGER
+
+    override fun formatted(style: FormatStyle) = value.toString()
+
+    override fun compareEquals(reference: APLValue) = when (val v = reference.unwrapDeferredValue()) {
+        is APLLong -> value == BigInt.of(v.value)
+        is APLDouble -> TODO("foo")
+        is APLComplex -> TODO("foo")
+        is APLBigInt -> value == v.value
+        else -> false
+    }
+
+    override fun compare(reference: APLValue, pos: Position?) = when (reference) {
+        is APLLong -> value.compareTo(reference.value)
+        is APLDouble -> TODO("foo")
+        is APLComplex -> compareComplex(asComplex(), reference.value)
+        is APLBigInt -> value.compareTo(reference.value)
+        else -> super.compare(reference, pos)
+    }
+
+    override fun makeKey(): APLValueKey {
+        return APLValueKeyImpl(this, value)
+    }
+
+    override fun asBigInt() = value
+
+    override fun toString() = "APLBigInt(${formatted(FormatStyle.PRETTY)})"
 }
 
 class NumberComplexException(value: Complex, pos: Position? = null) : IncompatibleTypeException("Number is complex: ${value}", pos)
@@ -172,6 +231,7 @@ fun Long.makeAPLNumber(): APLLong {
 
 fun Double.makeAPLNumber() = APLDouble(this)
 fun Complex.makeAPLNumber() = if (this.imaginary == 0.0) APLDouble(real) else APLComplex(this)
+fun BigInt.makeAPLNumber() = APLBigInt(this)
 
 private fun compareComplex(a: Complex, b: Complex): Int {
     return if (a.real == b.real) {

@@ -3,6 +3,8 @@ package array.builtins
 import array.*
 import array.OptimisationFlags.Companion.OPTIMISATION_FLAG_2ARG_LONG_LONG
 import array.complex.Complex
+import com.dhsdevelopments.mpbignum.BigInt
+import com.dhsdevelopments.mpbignum.LongExpressionOverflow
 
 class EqualsAPLFunction : APLFunctionDescriptor {
     class EqualsAPLFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
@@ -195,6 +197,9 @@ inline fun numericRelationOperation(
     },
     fnOther: ((aOther: APLValue, bOther: APLValue) -> APLValue) = { _, _ ->
         throwAPLException(IncompatibleTypeException("Incompatible argument types", pos))
+    },
+    fnBigint: ((aBigint: BigInt, bBigint: BigInt) -> APLValue) = { _, _ ->
+        throwAPLException(IncompatibleTypeException("Bigint is not supported"))
     }
 ): APLValue {
     return when {
@@ -202,7 +207,12 @@ inline fun numericRelationOperation(
             when {
                 a is APLComplex || b is APLComplex -> fnComplex(a.asComplex(), b.asComplex())
                 a is APLDouble || b is APLDouble -> fnDouble(a.asDouble(), b.asDouble())
-                else -> fnLong(a.asLong(pos), b.asLong(pos))
+                a is APLBigInt || b is APLBigInt -> fnBigint(a.asBigInt(), b.asBigInt())
+                else -> try {
+                    fnLong(a.asLong(pos), b.asLong(pos))
+                } catch (e: LongExpressionOverflow) {
+                    APLBigInt(e.result)
+                }
             }
         }
         a is APLChar && b is APLChar -> {
@@ -218,13 +228,15 @@ inline fun singleArgNumericRelationOperation(
     fnLong: (Long) -> APLValue,
     fnDouble: (Double) -> APLValue,
     fnComplex: (Complex) -> APLValue,
-    fnChar: ((Int) -> APLValue) = { _ -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos)) }
+    fnChar: ((Int) -> APLValue) = { _ -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos)) },
+    fnBigInt: ((BigInt) -> APLValue) = { _ -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos)) }
 ): APLValue {
     return when (a) {
         is APLLong -> fnLong(a.asLong(pos))
         is APLDouble -> fnDouble(a.asDouble(pos))
         is APLComplex -> fnComplex(a.asComplex())
         is APLChar -> fnChar(a.value)
+        is APLBigInt -> fnBigInt(a.value)
         else -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos))
     }
 }

@@ -1,5 +1,6 @@
 package array
 
+import com.dhsdevelopments.mpbignum.BigInt
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -43,6 +44,7 @@ open class APLEvalException(message: String, pos: Position? = null, cause: Throw
 }
 
 open class IncompatibleTypeException(message: String, pos: Position? = null) : APLEvalException(message, pos)
+
 class InvalidDimensionsException(message: String, pos: Position? = null) : APLEvalException(message, pos) {
     constructor(aDimensions: Dimensions, bDimensions: Dimensions, pos: Position)
             : this("Mismatched dimensions. a: ${aDimensions}, b: ${bDimensions}", pos)
@@ -66,7 +68,10 @@ class Unimplemented2ArgException(pos: Position? = null) : APLEvalException("Func
 class IllegalArgumentNumException(expectedCount: Int, receivedCount: Int, pos: Position? = null) :
         APLEvalException("Expected a list of ${expectedCount} values. Actual elements: ${receivedCount}", pos)
 
-class IntMagnitudeException(value: Long, pos: Position? = null) : APLEvalException("Value does not fit in an int: ${value}", pos)
+open class KAPOverflowException(message: String, pos: Position? = null, cause: Throwable? = null) : APLEvalException(message, pos, cause)
+class IntMagnitudeException(value: Long, pos: Position? = null) : KAPOverflowException("Value does not fit in an int: ${value}", pos)
+class LongMagnitudeException(value: BigInt, pos: Position? = null) : KAPOverflowException("Value does not fit in a long: ${value}", pos)
+
 class InverseNotAvailable(pos: Position? = null) : APLEvalException("Function does not have an inverse", pos)
 
 class LeftAssigned2ArgException(pos: Position? = null) :

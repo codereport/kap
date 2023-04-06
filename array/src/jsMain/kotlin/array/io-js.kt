@@ -201,10 +201,12 @@ actual fun openOutputCharFile(name: String): CharacterConsumer {
 }
 
 actual fun fileType(path: String): FileNameType? {
-    return when (registeredFilesRoot.find(path)) {
-        null -> null
-        is RegisteredEntry.File -> FileNameType.FILE
-        is RegisteredEntry.Directory -> FileNameType.DIRECTORY
+    val found = registeredFilesRoot.find(path)
+    return when {
+        found == null -> null
+        found is RegisteredEntry.File -> FileNameType.FILE
+        found is RegisteredEntry.Directory -> FileNameType.DIRECTORY
+        else -> FileNameType.UNDEFINED
     }
 }
 

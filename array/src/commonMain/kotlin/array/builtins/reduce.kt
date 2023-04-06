@@ -1,6 +1,7 @@
 package array.builtins
 
 import array.*
+import com.dhsdevelopments.mpbignum.LongExpressionOverflow
 import kotlin.math.absoluteValue
 
 class ReduceResult1Arg(
@@ -47,12 +48,23 @@ class ReduceResult1Arg(
                 specialisedType === ArrayMemberType.LONG && fn.optimisationFlags.is2ALongLong -> {
                     var curr = arg.valueAtLong(posInSrc, pos)
                     withPossibleSavedStack(savedStack) {
-                        for (i in 1 until sizeAlongAxis) {
-                            engine.checkInterrupted(pos)
-                            curr = fn.eval2ArgLongLong(context, curr, arg.valueAtLong(i * stepLength + posInSrc, pos), null)
+                        var i = 1
+                        try {
+                            while (i < sizeAlongAxis) {
+                                engine.checkInterrupted(pos)
+                                curr = fn.eval2ArgLongLong(context, curr, arg.valueAtLong(i++ * stepLength + posInSrc, pos), null)
+                            }
+                            APLLong(curr)
+                        } catch (e: LongExpressionOverflow) {
+                            // If we get here, the current evaluation must have overflowed, so continue in generic mode
+                            var curr0: APLValue = APLBigInt(e.result)
+                            while (i < sizeAlongAxis) {
+                                engine.checkInterrupted(pos)
+                                curr0 = fn.eval2Arg(context, curr0, arg.valueAt(i++ * stepLength + posInSrc), null)
+                            }
+                            curr0
                         }
                     }
-                    curr.makeAPLNumber()
                 }
                 specialisedType === ArrayMemberType.DOUBLE && fn.optimisationFlags.is2ADoubleDouble -> {
                     var curr = arg.valueAtDouble(posInSrc, pos)
@@ -165,7 +177,6 @@ class ReduceNWiseResultValue(
     }
 }
 
-@Suppress("LeakingThis")
 abstract class ReduceFunctionImpl(val fn: APLFunction, pos: FunctionInstantiation) : APLFunction(pos), SaveStackCapable by SaveStackSupport(fn) {
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
         val axisParam = if (axis == null) null else axis.ensureNumber(pos).asInt(pos)

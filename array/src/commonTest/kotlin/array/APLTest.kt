@@ -1,11 +1,10 @@
 package array
 
 import array.complex.Complex
+import com.dhsdevelopments.mpbignum.BigInt
+import com.dhsdevelopments.mpbignum.of
 import kotlin.math.pow
-import kotlin.test.BeforeTest
-import kotlin.test.assertEquals
-import kotlin.test.assertSame
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class NearDouble(val expected: Double, val precision: Int = 4) {
     fun assertNear(v: Double, message: String? = null) {
@@ -144,6 +143,10 @@ abstract class APLTest {
         assertEquals(expected, v.ensureNumber().asComplex(), message)
     }
 
+    fun assertBigIntOrLong(expected: String, result: APLValue, message: String? = null) {
+        assertAPLValue(InnerBigIntOrLong(expected), result, message)
+    }
+
     fun assertString(expected: String, value: APLValue, message: String? = null) {
         val suffix = if (message != null) ": ${message}" else ""
         assertEquals(1, value.dimensions.size, "Expected rank-1, got: ${value.dimensions.size}${suffix}")
@@ -223,6 +226,20 @@ abstract class APLTest {
     inner class InnerDoubleOrLong(val expectedDouble: Double) : InnerTest {
         override fun assertContent(result: APLValue, message: String?) {
             assertEquals(expectedDouble, result.ensureNumber().asDouble())
+        }
+    }
+
+    inner class InnerBigIntOrLong(val expected: BigInt) : InnerTest {
+        constructor(expectedString: String) : this(BigInt.of(expectedString))
+        constructor(expectedLong: Long) : this(BigInt.of(expectedLong))
+
+        override fun assertContent(result: APLValue, message: String?) {
+            val v: String = when (result) {
+                is APLLong -> result.value.toString()
+                is APLBigInt -> result.value.toString()
+                else -> fail(message)
+            }
+            assertEquals(expected.toString(), v, "${expected} != ${v}, ${message}")
         }
     }
 }

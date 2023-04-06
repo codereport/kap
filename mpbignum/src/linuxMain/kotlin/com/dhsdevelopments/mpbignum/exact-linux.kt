@@ -49,7 +49,16 @@ actual inline fun addExactWrapped(a: Long, b: Long): Long {
     try {
         return addExact(a, b)
     } catch (e: ArithmeticException) {
-        throw APLValueAtOverflow(BigInt.of(a) + BigInt.of(b))
+        throw LongExpressionOverflow(BigInt.of(a) + BigInt.of(b))
+    }
+}
+
+@Throws(LongExpressionOverflow::class)
+actual inline fun subExactWrapped(a: Long, b: Long): Long {
+    try {
+        return subExact(a, b)
+    } catch (e: ArithmeticException) {
+        throw LongExpressionOverflow(BigInt.of(a) - BigInt.of(b))
     }
 }
 
@@ -57,6 +66,6 @@ actual inline fun mulExactWrapped(a: Long, b: Long): Long {
     try {
         return mulExact(a, b)
     } catch (e: ArithmeticException) {
-        throw APLValueAtOverflow(BigInt.of(a) * BigInt.of(b))
+        throw LongExpressionOverflow(BigInt.of(a) * BigInt.of(b))
     }
 }

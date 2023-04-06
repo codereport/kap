@@ -13,6 +13,27 @@ class NumbersTest : APLTest() {
     }
 
     @Test
+    fun testSignum() {
+        parseAPLExpression("× 2 0 ¯3 ¯10000000000000000000000000000000 10000000000000000000000000000000").let { result ->
+            assert1DArray(arrayOf(1, 0, -1, -1, 1), result)
+        }
+    }
+
+    @Test
+    fun addToBigIntSpecialisedArray() {
+        parseAPLExpression("+/ 10 ⍴ 1000000000000000000").let { result ->
+            assertBigIntOrLong("10000000000000000000", result)
+        }
+    }
+
+    @Test
+    fun addToBigIntGenericArray() {
+        parseAPLExpression("+/ int:ensureGeneric 10 ⍴ 1000000000000000000").let { result ->
+            assertBigIntOrLong("10000000000000000000", result)
+        }
+    }
+
+    @Test
     fun testDivision() {
         assertSimpleNumber(0, parseAPLExpression("1÷0"))
         assertSimpleNumber(0, parseAPLExpression("100÷0"))
@@ -90,7 +111,7 @@ class NumbersTest : APLTest() {
 
     @Test
     fun testExponential() {
-        assertSimpleDouble(1024.0, parseAPLExpression("2⋆10"))
+        assertAPLValue(InnerBigIntOrLong(1024), parseAPLExpression("2⋆10"))
         assertDoubleWithRange(Pair(0.0009, 0.0011), parseAPLExpression("10⋆¯3"))
         assertSimpleDouble(0.0, parseAPLExpression("0⋆10"))
         assertSimpleDouble(1.0, parseAPLExpression("10⋆0"))
@@ -147,12 +168,11 @@ class NumbersTest : APLTest() {
     @Test
     fun functionAliases() {
         val result = parseAPLExpression("2*4")
-        assertSimpleDouble(16.0, result)
+        assertAPLValue(InnerBigIntOrLong(16), result)
     }
 
     private fun assertMathsOperation(op: (Long, Long) -> Long, name: String) {
-        val args: Array<Long> =
-            arrayOf(0, 1, -1, 2, 3, 10, 100, 123456, -12345, Int.MAX_VALUE.toLong(), Int.MIN_VALUE.toLong(), Long.MAX_VALUE, Long.MIN_VALUE)
+        val args: Array<Long> = arrayOf(0, 1, -1, 2, 3, 10, 100, 123456, -12345)
         args.forEach { left ->
             args.forEach { right ->
                 val expr = "${formatLongAsAPL(left)}${name}${formatLongAsAPL(right)}"
