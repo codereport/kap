@@ -47,6 +47,23 @@ class NumbersTest : APLTest() {
     }
 
     @Test
+    fun testDivisionBigint() {
+        parseAPLExpression("10000000000000000000000000000000 ÷ 2").let { result ->
+            assertBigIntOrLong("5000000000000000000000000000000", result)
+        }
+        parseAPLExpression("123456789012345678901234567891 ÷ 2").let { result ->
+            assertBigIntOrLong("61728394506172839450617283945", result)
+        }
+    }
+
+    @Test
+    fun testMonadicDivisionBigint() {
+        parseAPLExpression("÷123456789012345678901234567890").let { result ->
+            assertDoubleWithRange(Pair(8.09999E-30, 8.10001E-30), result)
+        }
+    }
+
+    @Test
     fun testAbs() {
         // Plain integers
         assertSimpleNumber(2, parseAPLExpression("|2"))

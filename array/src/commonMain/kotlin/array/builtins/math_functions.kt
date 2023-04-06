@@ -503,7 +503,8 @@ class DivAPLFunction : APLFunctionDescriptor {
                 a,
                 { x -> if (x == 0L) APLLONG_0 else (1.0 / x).makeAPLNumber() },
                 { x -> if (x == 0.0) APLLONG_0 else (1.0 / x).makeAPLNumber() },
-                { x -> if (x == Complex.ZERO) APLLONG_0 else x.reciprocal().makeAPLNumber() })
+                { x -> if (x == Complex.ZERO) APLLONG_0 else x.reciprocal().makeAPLNumber() },
+                fnBigInt = { x -> (1.0 / x.toDouble()).makeAPLNumber() })
         }
 
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
@@ -519,7 +520,8 @@ class DivAPLFunction : APLFunctionDescriptor {
                     }
                 },
                 { x, y -> APLDouble(if (y == 0.0) 0.0 else x / y) },
-                { x, y -> if (y == Complex.ZERO) APLDOUBLE_0 else (x / y).makeAPLNumber() })
+                { x, y -> if (y == Complex.ZERO) APLDOUBLE_0 else (x / y).makeAPLNumber() },
+                fnBigint = { x, y -> (x / y).makeAPLNumber() })
         }
 
         override fun combine1ArgDouble(a: Double) = 1.0 / a
