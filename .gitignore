@@ -38,6 +38,7 @@
 /text-client/build
 /client-java/build
 /mpbignum/build
+/perf-test/build
 
 /*.hprof
 /website/src/orchid/resources/pages/*.html
