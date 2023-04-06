@@ -10,5 +10,5 @@ pipeline:
       ./gradlew gui:build
       ./gradlew text-client:build
       ./gradlew client-java:build
-      ./buildsite.sh
+      ./scripts/buildsite.sh
       ./gradlew allTests
