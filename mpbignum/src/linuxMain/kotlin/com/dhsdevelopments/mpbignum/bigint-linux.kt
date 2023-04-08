@@ -6,10 +6,10 @@ import kotlin.native.internal.createCleaner
 
 class MpzWrapper(val value: mpz_t) {
     companion object {
-        fun allocMpz(): MpzWrapper {
-            val m: mpz_t = nativeHeap.allocArray(sizeOf<__mpz_struct>())
-            return MpzWrapper(m)
+        fun allocMpzWrapper(): MpzWrapper {
+            return MpzWrapper(nativeHeap.allocMpzStruct())
         }
+
     }
 
     override fun equals(other: Any?): Boolean {
@@ -31,6 +31,8 @@ class MpzWrapper(val value: mpz_t) {
     }
 }
 
+inline fun NativePlacement.allocMpzStruct(): mpz_t = allocArray<__mpz_struct>(sizeOf<__mpz_struct>())
+
 actual value class BigInt actual constructor(actual val impl: Any) {
     override fun toString(): String {
         val m = inner
@@ -51,17 +53,20 @@ actual value class BigInt actual constructor(actual val impl: Any) {
 private inline fun BigInt.basicOperation(other: BigInt, fn: (result: MpzWrapper, a: mpz_t, b: mpz_t) -> Unit): BigInt {
     val a = this.inner
     val b = other.inner
-    val result = MpzWrapper.allocMpz()
+    val result = MpzWrapper.allocMpzWrapper()
     fn(result, a, b)
     return BigInt(result)
 }
 
 private inline fun BigInt.basicOperation1Arg(fn: (result: MpzWrapper, a: mpz_t) -> Unit): BigInt {
     val a = this.inner
-    val result = MpzWrapper.allocMpz()
+    val result = MpzWrapper.allocMpzWrapper()
     fn(result, a)
     return BigInt(result)
 }
+
+actual val BigInt.absoluteValue: BigInt
+    get() = basicOperation1Arg { result, a -> mpz_abs!!(result.value, a) }
 
 actual operator fun BigInt.plus(other: BigInt) = basicOperation(other) { result, a, b -> mpz_add!!(result.value, a, b) }
 actual operator fun BigInt.minus(other: BigInt) = basicOperation(other) { result, a, b -> mpz_sub!!(result.value, a, b) }
@@ -75,9 +80,41 @@ actual fun BigInt.pow(other: Long): BigInt {
         throw IllegalArgumentException("Negative power: ${other}")
     }
     val a = this.inner
-    val result = MpzWrapper.allocMpz()
+    val result = MpzWrapper.allocMpzWrapper()
     mpz_pow_ui!!(result.value, a, other.toULong())
     return BigInt(result)
+}
+
+actual operator fun BigInt.rem(other: BigInt): BigInt {
+    return basicOperation(other) { result, a, b ->
+        if (mpz_sgn_wrap(a) == -1) {
+            memScoped {
+                val res = allocMpzStruct()
+                if (mpz_sgn_wrap(b) == -1) {
+                    val bAbs = allocMpzStruct()
+                    mpz_neg!!(bAbs, b)
+                    mpz_mod!!(res, a, b)
+                    mpz_sub!!(result.value, res, bAbs)
+                    mpz_clear!!(bAbs)
+                } else {
+                    mpz_mod!!(res, a, b)
+                    mpz_sub!!(result.value, res, b)
+                }
+                mpz_clear!!(res)
+            }
+        } else {
+            if (mpz_sgn_wrap(b) == -1) {
+                memScoped {
+                    val bAbs = allocMpzStruct()
+                    mpz_neg!!(bAbs, b)
+                    mpz_mod!!(result.value, a, bAbs)
+                    mpz_clear!!(bAbs)
+                }
+            } else {
+                mpz_mod!!(result.value, a, b)
+            }
+        }
+    }
 }
 
 actual operator fun BigInt.compareTo(other: BigInt): Int {
@@ -95,7 +132,7 @@ actual fun BigInt.Companion.of(value: Long): BigInt {
 }
 
 actual fun BigInt.Companion.of(s: String): BigInt {
-    val result = MpzWrapper.allocMpz()
+    val result = MpzWrapper.allocMpzWrapper()
     val m = result.value
     mpz_init!!(m)
     memScoped {

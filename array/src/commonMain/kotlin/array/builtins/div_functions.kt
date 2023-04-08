@@ -275,6 +275,21 @@ class EnsureTypeFunction(val overrideType: ArrayMemberType) : APLFunctionDescrip
     override fun make(instantiation: FunctionInstantiation) = EnsureTypeFunctionImpl(instantiation)
 }
 
+class AsBigintFunction : APLFunctionDescriptor {
+    class AsBigintFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val a0 = a.unwrapDeferredValue()
+            return when (a0) {
+                is APLBigInt -> a0
+                is APLLong -> APLBigInt(a0.asBigInt())
+                else -> throwAPLException(APLIncompatibleDomainsException("Argument is not an integer: ${a0.formatted(FormatStyle.PLAIN)}"))
+            }
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = AsBigintFunctionImpl(instantiation)
+}
+
 class ToListFunction : APLFunctionDescriptor {
     class ToListFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {

@@ -350,6 +350,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("ensureGeneric", EnsureTypeFunction(ArrayMemberType.GENERIC), "int")
         registerNativeFunction("ensureLong", EnsureTypeFunction(ArrayMemberType.LONG), "int")
         registerNativeFunction("ensureDouble", EnsureTypeFunction(ArrayMemberType.DOUBLE), "int")
+        registerNativeFunction("asBigint", AsBigintFunction(), "int")
         registerNativeOperator("atLeave", AtLeaveScopeOperator())
         registerNativeFunction("toList", ToListFunction())
         registerNativeFunction("fromList", FromListFunction())

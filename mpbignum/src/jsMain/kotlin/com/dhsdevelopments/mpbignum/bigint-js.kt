@@ -37,6 +37,13 @@ actual value class BigInt(val impl: Any) {
     }
 }
 
+actual val BigInt.absoluteValue: BigInt
+    get() {
+        @Suppress("UNUSED_VARIABLE")
+        val a = this.inner
+        return BigInt.makeFromJs(js("(function(){if(a<0){return -a;} else {return a;}})()"))
+    }
+
 actual operator fun BigInt.plus(other: BigInt): BigInt {
     @Suppress("UNUSED_VARIABLE")
     val a = this.inner
@@ -86,6 +93,15 @@ actual fun BigInt.pow(other: Long): BigInt {
     @Suppress("UNUSED_VARIABLE")
     val b = other.toString()
     return BigInt.makeFromJs(js("(function(a0,b0){return eval(\"a0**b0\");})(BigInt(a),BigInt(b))"))
+}
+
+actual operator fun BigInt.rem(other: BigInt): BigInt {
+    @Suppress("UNUSED_VARIABLE")
+    val a = this.inner
+
+    @Suppress("UNUSED_VARIABLE")
+    val b = other.inner
+    return BigInt.makeFromJs(js("a%b"))
 }
 
 actual operator fun BigInt.compareTo(other: BigInt): Int {

@@ -96,6 +96,16 @@ class NumbersTest : APLTest() {
         assertDoubleWithRange(Pair(342.285, 342.287), parseAPLExpression("|¯194J¯282"))
     }
 
+    fun testAbsWithBignum() {
+        parseAPLExpression("|10000000000000000000000000000000 ¯10000000000000000000000000000000 (int:asBigint 0)").let { result ->
+            assert1DArray(
+                arrayOf(
+                    InnerBigIntOrLong("10000000000000000000000000000000"),
+                    InnerBigIntOrLong("10000000000000000000000000000000"),
+                    InnerBigIntOrLong("0")), result)
+        }
+    }
+
     @Test
     fun testMod() {
         assertSimpleNumber(1, parseAPLExpression("2|3"))
@@ -103,7 +113,7 @@ class NumbersTest : APLTest() {
         assertSimpleNumber(-1, parseAPLExpression("¯2|11"))
         assertSimpleNumber(0, parseAPLExpression("3|3"))
         assertSimpleNumber(2, parseAPLExpression("100|2"))
-        assertSimpleNumber(-5, parseAPLExpression("10000|¯20005"))
+        assertSimpleNumber(9995, parseAPLExpression("10000|¯20005"))
         assertSimpleNumber(0, parseAPLExpression("5|0"))
         assertSimpleNumber(0, parseAPLExpression("0|0"))
         assertSimpleNumber(3, parseAPLExpression("0|3"))
@@ -113,14 +123,44 @@ class NumbersTest : APLTest() {
     }
 
     @Test
-    fun testModOptimisedInt() {
-        parseAPLExpression("4 | int:ensureLong 2 5 6").let { result ->
-            assertDimension(dimensionsOfSize(3), result)
-            assertArrayContent(arrayOf(2, 1, 2), result)
+    fun testModCombinationsLong() {
+        parseAPLExpression("(int:ensureLong 2 2 ¯2 ¯2) | (int:ensureLong 123 ¯123 123 ¯123)").let { result ->
+            assert1DArray(arrayOf(1, 1, -1, -1), result)
         }
-        parseAPLExpression("4 | int:ensureGeneric 2 5 6").let { result ->
-            assertDimension(dimensionsOfSize(3), result)
-            assertArrayContent(arrayOf(2, 1, 2), result)
+    }
+
+    @Test
+    fun testModCombinationsGeneric() {
+        parseAPLExpression("(int:ensureGeneric 2 2 ¯2 ¯2) | (int:ensureGeneric 123 ¯123 123 ¯123)").let { result ->
+            assert1DArray(arrayOf(1, 1, -1, -1), result)
+        }
+    }
+
+    @Test
+    fun testModCombinationsBigint0() {
+        parseAPLExpression("(int:asBigint¨ 2 2 ¯2 ¯2) | int:asBigint¨ 123 ¯123 123 ¯123").let { result ->
+            assert1DArray(arrayOf(InnerBigIntOrLong(1), InnerBigIntOrLong(1), InnerBigIntOrLong(-1), InnerBigIntOrLong(-1)), result)
+        }
+    }
+
+    @Test
+    fun testModCombinationsBigint1() {
+        parseAPLExpression("(int:asBigint¨ 10000 10000 ¯10000 ¯10000) | int:asBigint¨ 20005 ¯20005 20005 ¯20005").let { result ->
+            assert1DArray(arrayOf(InnerBigIntOrLong(5), InnerBigIntOrLong(9995), InnerBigIntOrLong(-9995), InnerBigIntOrLong(-5)), result)
+        }
+    }
+
+    //10000|¯20005
+
+    @Test
+    fun testModOptimisedInt() {
+        parseAPLExpression("4 | int:ensureLong 2 5 6 ¯2").let { result ->
+            assertDimension(dimensionsOfSize(4), result)
+            assertArrayContent(arrayOf(2, 1, 2, 2), result)
+        }
+        parseAPLExpression("4 | int:ensureGeneric 2 5 6 ¯2").let { result ->
+            assertDimension(dimensionsOfSize(4), result)
+            assertArrayContent(arrayOf(2, 1, 2, 2), result)
         }
     }
 
@@ -133,6 +173,20 @@ class NumbersTest : APLTest() {
         parseAPLExpression("2.0 | int:ensureGeneric 2.0 2.1 2.5").let { result ->
             assertDimension(dimensionsOfSize(3), result)
             assertArrayContent(arrayOf(NearDouble(0.0, 4), NearDouble(0.1, 4), NearDouble(0.5, 4)), result)
+        }
+    }
+
+    @Test
+    fun testModBigint() {
+        parseAPLExpression("4 | (int:asBigint 2) (int:asBigint 5) (int:asBigint 6) (int:asBigint ¯2) 123456789012345678901234567891").let { result ->
+            assert1DArray(
+                arrayOf(
+                    InnerBigIntOrLong("2"),
+                    InnerBigIntOrLong("1"),
+                    InnerBigIntOrLong("2"),
+                    InnerBigIntOrLong("2"),
+                    InnerBigIntOrLong("3")),
+                result)
         }
     }
 
