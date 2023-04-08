@@ -37,6 +37,10 @@ actual operator fun BigInt.rem(other: BigInt): BigInt {
 
 actual operator fun BigInt.compareTo(other: BigInt) = inner.compareTo(other.inner)
 
+actual fun BigInt.Companion.of(value: Short): BigInt {
+    return BigInt.of(value.toString())
+}
+
 actual fun BigInt.Companion.of(value: Int): BigInt {
     return BigInt.of(value.toString())
 }

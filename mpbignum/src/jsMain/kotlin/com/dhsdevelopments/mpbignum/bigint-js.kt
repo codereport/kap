@@ -113,6 +113,11 @@ actual operator fun BigInt.compareTo(other: BigInt): Int {
     return js("(function(a0,b0){if(a0<b0){return -1;} else if(a0>b0){return 1;} else {return 0;}})(a,b)")
 }
 
+actual fun BigInt.Companion.of(value: Short): BigInt {
+    val stringified = value.toString()
+    return BigInt.of(stringified)
+}
+
 actual fun BigInt.Companion.of(value: Int): BigInt {
     val stringified = value.toString()
     return BigInt.of(stringified)

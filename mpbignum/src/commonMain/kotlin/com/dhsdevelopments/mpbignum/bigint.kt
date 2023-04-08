@@ -27,6 +27,7 @@ operator fun Long.rem(other: BigInt): BigInt = BigInt.of(this) % other
 
 expect operator fun BigInt.compareTo(other: BigInt): Int
 
+expect fun BigInt.Companion.of(value: Short): BigInt
 expect fun BigInt.Companion.of(value: Int): BigInt
 expect fun BigInt.Companion.of(value: Long): BigInt
 expect fun BigInt.Companion.of(s: String): BigInt
@@ -83,3 +84,7 @@ expect fun BigInt.toLong(): Long
 expect fun BigInt.toDouble(): Double
 
 expect fun BigInt.signum(): Int
+
+fun Short.toBigInt() = BigInt.of(this)
+fun Int.toBigInt() = BigInt.of(this)
+fun Long.toBigInt() = BigInt.of(this)

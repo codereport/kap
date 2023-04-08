@@ -223,6 +223,19 @@ class NumbersTest : APLTest() {
     }
 
     @Test
+    fun testMonadicExponential() {
+        parseAPLExpression("⋆1 2 (int:asBigint 3) ¯10").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearDouble(2.718281828),
+                    NearDouble(7.389056099),
+                    NearDouble(20.08553692),
+                    NearDouble(0.00004539992976, 8)),
+                result)
+        }
+    }
+
+    @Test
     fun invalidExpressions() {
         assertFailsWith<ParseException> {
             parseAPLExpression("1+")
@@ -289,7 +302,7 @@ class NumbersTest : APLTest() {
         }
     }
 
-    fun runExprTest(expr: String, withStandardLib: Boolean = false, fn: (APLValue) -> Unit) {
+    private fun runExprTest(expr: String, withStandardLib: Boolean = false, fn: (APLValue) -> Unit) {
         parseAPLExpression(expr, withStandardLib).let { result ->
             fn(result)
         }

@@ -667,7 +667,8 @@ class PowerAPLFunction : APLFunctionDescriptor {
                 a,
                 { x -> exp(x.toDouble()).makeAPLNumber() },
                 { x -> exp(x).makeAPLNumber() },
-                { x -> E.pow(x).makeAPLNumber() })
+                { x -> E.pow(x).makeAPLNumber() },
+                fnBigInt = { x -> E.pow(x.toDouble()).makeAPLNumber() })
         }
 
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
@@ -677,7 +678,7 @@ class PowerAPLFunction : APLFunctionDescriptor {
                 b,
                 { x, y ->
                     if (x > 0 && y > 0) {
-                        (BigInt.of(x).pow(y)).makeAPLNumber()
+                        (x.toBigInt().pow(y)).makeAPLNumber()
                     } else {
                         x.toDouble().pow(y.toDouble()).makeAPLNumber()
                     }
