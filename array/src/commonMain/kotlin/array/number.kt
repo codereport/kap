@@ -1,10 +1,7 @@
 package array
 
 import array.complex.Complex
-import com.dhsdevelopments.mpbignum.BigInt
-import com.dhsdevelopments.mpbignum.compareTo
-import com.dhsdevelopments.mpbignum.of
-import com.dhsdevelopments.mpbignum.toLong
+import com.dhsdevelopments.mpbignum.*
 
 abstract class APLNumber : APLSingleValue() {
     override fun toString() = "APLNumber(${formatted(FormatStyle.PRETTY)})"
@@ -119,7 +116,7 @@ fun checkBigIntInRangeLong(value: BigInt, pos: Position?) {
 
 class APLBigInt(val value: BigInt) : APLNumber() {
     override fun asDouble(pos: Position?): Double {
-        TODO("Not yet implemented")
+        return value.toDouble()
     }
 
     override fun asLong(pos: Position?): Long {

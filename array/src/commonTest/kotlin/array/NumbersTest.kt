@@ -52,6 +52,35 @@ class NumbersTest : APLTest() {
     }
 
     @Test
+    fun addBigintToDouble() {
+        parseAPLExpression("(int:asBigint 5) + 0.0").let { result ->
+            assertNearDouble(NearDouble(5.0), result)
+        }
+    }
+
+    @Test
+    fun addDoubleToBigint() {
+        parseAPLExpression("0.0 + int:asBigint 5").let { result ->
+            assertNearDouble(NearDouble(5.0), result)
+        }
+    }
+
+
+    @Test
+    fun subBigint() {
+        parseAPLExpression("30000000000000000000 - 10000000000000000000").let { result ->
+            assertBigIntOrLong("20000000000000000000", result)
+        }
+    }
+
+    @Test
+    fun subBigintSpeialisedArray() {
+        parseAPLExpression("-/ 100000 ⍴ 100000000000000").let { result ->
+            assertBigIntOrLong("-9999800000000000000", result)
+        }
+    }
+
+    @Test
     fun testDivision() {
         assertSimpleNumber(0, parseAPLExpression("1÷0"))
         assertSimpleNumber(0, parseAPLExpression("100÷0"))
@@ -70,7 +99,19 @@ class NumbersTest : APLTest() {
             assertBigIntOrLong("5000000000000000000000000000000", result)
         }
         parseAPLExpression("123456789012345678901234567891 ÷ 2").let { result ->
-            assertBigIntOrLong("61728394506172839450617283945", result)
+            assertNearDouble(NearDouble(6.172839450617284e+28, -24), result)
+        }
+    }
+
+    @Test
+    fun divisionConvertToDouble() {
+        // Test provided by dzaima
+        parseAPLExpression("a←×/24⍴2 ⋄ a (a×a×a) ÷ 1000000000000000").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearDouble(1.6777216e-8),
+                    NearDouble(4722366.482869646)),
+                result)
         }
     }
 

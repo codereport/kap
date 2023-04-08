@@ -199,7 +199,7 @@ inline fun numericRelationOperation(
         throwAPLException(IncompatibleTypeException("Incompatible argument types", pos))
     },
     fnBigint: ((aBigint: BigInt, bBigint: BigInt) -> APLValue) = { _, _ ->
-        throwAPLException(IncompatibleTypeException("Bigint is not supported"))
+        throwAPLException(IncompatibleTypeException("Bigint is not supported", pos))
     }
 ): APLValue {
     return when {

@@ -408,12 +408,13 @@ class SubAPLFunction : APLFunctionDescriptor {
                         x is APLChar && y is APLNumber -> APLChar.fromLong(x.value - y.asLong(pos), pos)
                         else -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos))
                     }
-                })
+                },
+                fnBigint = { x, y -> (x - y).makeAPLNumber() })
         }
 
         override fun combine1ArgLong(a: Long) = -a
         override fun combine1ArgDouble(a: Double) = -a
-        override fun combine2ArgLong(a: Long, b: Long) = a - b
+        override fun combine2ArgLong(a: Long, b: Long) = subExactWrapped(a, b)
         override fun combine2ArgDouble(a: Double, b: Double) = a - b
 
         override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?) =
@@ -522,7 +523,13 @@ class DivAPLFunction : APLFunctionDescriptor {
                 },
                 { x, y -> APLDouble(if (y == 0.0) 0.0 else x / y) },
                 { x, y -> if (y == Complex.ZERO) APLDOUBLE_0 else (x / y).makeAPLNumber() },
-                fnBigint = { x, y -> (x / y).makeAPLNumber() })
+                fnBigint = { x, y ->
+                    when {
+                        y == BigIntConstants.ZERO -> APLLONG_0
+                        x % y == BigIntConstants.ZERO -> (x / y).makeAPLNumber()
+                        else -> (x.toDouble() / y.toDouble()).makeAPLNumber()
+                    }
+                })
         }
 
         override fun combine1ArgDouble(a: Double) = 1.0 / a
