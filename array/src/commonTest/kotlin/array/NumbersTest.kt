@@ -13,6 +13,24 @@ class NumbersTest : APLTest() {
     }
 
     @Test
+    fun monadicAdd() {
+        parseAPLExpression("+1 2 ¯6 2J7 2J¯7").let { result ->
+            assert1DArray(arrayOf(1, 2, -6, Complex(2.0, -7.0), Complex(2.0, 7.0)), result)
+        }
+    }
+
+    @Test
+    fun monadicAddWithBigint() {
+        parseAPLExpression("+¯10000000000000000000000000000000 10000000000000000000000000000000").let { result ->
+            assert1DArray(
+                arrayOf(
+                    InnerBigIntOrLong("-10000000000000000000000000000000"),
+                    InnerBigIntOrLong("10000000000000000000000000000000")),
+                result)
+        }
+    }
+
+    @Test
     fun testSignum() {
         parseAPLExpression("× 2 0 ¯3 ¯10000000000000000000000000000000 10000000000000000000000000000000").let { result ->
             assert1DArray(arrayOf(1, 0, -1, -1, 1), result)

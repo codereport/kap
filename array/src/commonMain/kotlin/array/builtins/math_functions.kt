@@ -324,7 +324,8 @@ class AddAPLFunction : APLFunctionDescriptor {
                 a,
                 { x -> x.makeAPLNumber() },
                 { x -> x.makeAPLNumber() },
-                { x -> Complex(x.real, -x.imaginary).makeAPLNumber() })
+                { x -> Complex(x.real, -x.imaginary).makeAPLNumber() },
+                fnBigInt = { x -> x.makeAPLNumber() })
         }
 
         override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
