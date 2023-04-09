@@ -640,6 +640,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                 is ParsedLong -> leftArgs.add(LiteralInteger(token.value, pos))
                 is ParsedDouble -> leftArgs.add(LiteralDouble(token.value, pos))
                 is ParsedComplex -> leftArgs.add(LiteralComplex(token.value, pos))
+                is ParsedBigInt -> leftArgs.add(LiteralBigInt(token.value, pos))
                 is ParsedCharacter -> leftArgs.add(LiteralCharacter(token.value, pos))
                 is LeftArrow -> return processAssignment(pos, leftArgs)
                 is DynassignToken -> return processDynamicAssignment(pos, leftArgs)

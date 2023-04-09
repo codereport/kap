@@ -1,6 +1,10 @@
 package array
 
 import array.complex.Complex
+import com.dhsdevelopments.mpbignum.BigInt
+import com.dhsdevelopments.mpbignum.compareTo
+import com.dhsdevelopments.mpbignum.of
+import com.dhsdevelopments.mpbignum.toLong
 
 abstract class Token {
     open fun formatted(): String {
@@ -147,6 +151,10 @@ class ParsedComplex(val value: Complex) : Token() {
 
 class ParsedCharacter(val value: Int) : Token() {
     override fun toString() = "ParsedCharacter[${value}]"
+}
+
+class ParsedBigInt(val value: BigInt) : Token() {
+    override fun toString() = "ParsedBigInt[${value}]"
 }
 
 interface SourceLocation {
@@ -587,8 +595,8 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
             }
             val name = buf.toString()
             val keywordResult = "^:([^:]+)$".toRegex().matchEntire(name)
-            if (keywordResult != null) {
-                return Pair("keyword", keywordResult.groups.get(1)!!.value)
+            return if (keywordResult != null) {
+                Pair("keyword", keywordResult.groups.get(1)!!.value)
             } else {
                 val result =
                     "^(?:([^:]+):)?([^:]+)$".toRegex().matchEntire(name) ?: throw ParseException(
@@ -596,7 +604,7 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
                         posBeforeParse)
                 val symbolString = result.groups.get(2)!!.value
                 val nsName = result.groups.get(1)
-                return Pair(nsName?.value, symbolString)
+                Pair(nsName?.value, symbolString)
             }
         }
 
@@ -611,7 +619,12 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
                 val groups = result.groups
                 val sign = groups.get(1) ?: throw IllegalNumberFormat("Illegal format of sign")
                 val s = groups.get(2) ?: throw IllegalNumberFormat("Illegal format of number part")
-                ParsedLong(withNeg(sign.value != "", s.value).toLong())
+                val v = BigInt.of(withNeg(sign.value != "", s.value))
+                if (v >= Long.MIN_VALUE && v <= Long.MAX_VALUE) {
+                    ParsedLong(v.toLong())
+                } else {
+                    ParsedBigInt(v)
+                }
             },
             NumberParser("^(¯?)([0-9]+(?:\\.[0-9]*)?)[jJ](¯?)([0-9]+(?:\\.[0-9]*)?)$".toRegex()) { result ->
                 val groups = result.groups

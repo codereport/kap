@@ -25,9 +25,13 @@ private fun benchmarkVarLookupScope(): String {
 }
 
 private fun contribBench(): String {
-    // Pre-rewrite: 0.18969999999999998
-    // Standalone stack allocation: 0.1326
+    // Basic bignum: 0.3519
     return "+/{+/⍵(⍵+1)}¨⍳1000000"
+}
+
+private fun simpleSum(): String {
+    // Basic bignum: 0.36469999999999997
+    return "+/⍳100000000"
 }
 
 private fun benchmarkMultipleCall(): String {
@@ -47,7 +51,7 @@ fun main() {
     val engine = Engine()
     engine.addLibrarySearchPath("array/standard-lib")
     engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
-    val srcString = contribBench()
+    val srcString = simpleSum()
     println("Starting")
     val iterations = 10
     repeat(iterations) {

@@ -2,6 +2,7 @@ package array
 
 import array.builtins.StructuralUnderOp
 import array.complex.Complex
+import com.dhsdevelopments.mpbignum.BigInt
 
 interface LvalueReader {
     fun makeInstruction(rightArgs: Instruction, pos: Position): Instruction
@@ -237,6 +238,15 @@ class LiteralComplex(value: Complex, pos: Position) : Instruction(pos) {
     override fun children(): List<Instruction> = emptyList()
     override fun toString() = "LiteralComplex[value=$valueInt]"
     val value get() = valueInt.asComplex()
+}
+
+class LiteralBigInt(value: BigInt, pos: Position) : Instruction(pos) {
+    private val valueInt = APLBigInt(value)
+
+    override fun evalWithContext(context: RuntimeContext) = valueInt
+    override fun children(): List<Instruction> = emptyList()
+    override fun toString() = "LiteralComplex[value=$valueInt]"
+    val value get() = valueInt.asBigInt()
 }
 
 class LiteralCharacter(value: Int, pos: Position) : Instruction(pos) {

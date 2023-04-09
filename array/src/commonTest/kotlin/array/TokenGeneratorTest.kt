@@ -1,6 +1,8 @@
 package array
 
 import array.complex.Complex
+import com.dhsdevelopments.mpbignum.BigInt
+import com.dhsdevelopments.mpbignum.of
 import kotlin.test.*
 
 class TokenGeneratorTest {
@@ -553,6 +555,38 @@ class TokenGeneratorTest {
         assertSame(EndOfFile, gen.nextToken())
     }
 
+    @Test
+    fun parseBigInt() {
+        val gen =
+            makeGenerator(
+                "1234567891234567891234567890 ¯22222234567891234567891234567890 9223372036854775807 " +
+                        "9223372036854775808 ¯9223372036854775808 ¯9223372036854775809")
+        gen.nextToken().let { token ->
+            assertTrue(token is ParsedBigInt)
+            assertEquals(BigInt.of("1234567891234567891234567890"), token.value)
+        }
+        gen.nextToken().let { token ->
+            assertTrue(token is ParsedBigInt)
+            assertEquals(BigInt.of("-22222234567891234567891234567890"), token.value)
+        }
+        gen.nextToken().let { token ->
+            assertTrue(token is ParsedLong)
+            assertEquals(0x7FFFFFFFFFFFFFFF, token.value)
+        }
+        gen.nextToken().let { token ->
+            assertTrue(token is ParsedBigInt)
+            assertEquals(BigInt.of("9223372036854775808"), token.value)
+        }
+        gen.nextToken().let { token ->
+            assertTrue(token is ParsedLong)
+            assertEquals((-0x7FFFFFFFFFFFFFFF) - 1, token.value)
+        }
+        gen.nextToken().let { token ->
+            assertTrue(token is ParsedBigInt)
+            assertEquals(BigInt.of("-9223372036854775809"), token.value)
+        }
+        assertSame(EndOfFile, gen.nextToken())
+    }
 
     private fun makeGenerator(content: String): TokenGenerator {
         val engine = Engine()

@@ -6,6 +6,7 @@ import array.OptimisationFlags.Companion.OPTIMISATION_FLAG_1ARG_LONG
 import array.OptimisationFlags.Companion.OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE
 import array.OptimisationFlags.Companion.OPTIMISATION_FLAG_2ARG_LONG_LONG
 import array.complex.*
+import com.dhsdevelopments.mpbignum.*
 import kotlin.math.*
 
 interface CellSumFunction1Arg {
@@ -87,10 +88,31 @@ class LongArraySum2Args(
         dimensions = a0.dimensions
     }
 
-    override fun valueAt(p: Int) = valueAtLong(p, pos).makeAPLNumber()
+    override fun valueAt(p: Int): APLValue {
+        return try {
+            valueAtLong(p, pos).makeAPLNumber()
+        } catch (e: LongExpressionOverflow) {
+            APLBigInt(e.result)
+        }
+    }
 
     override fun valueAtLong(p: Int, pos: Position?): Long {
-        return fn.combine2ArgLong(a0.valueAtLong(p, pos), b0.valueAtLong(p, pos))
+        val a1 = try {
+            a0.valueAtLong(p, pos)
+        } catch (e: LongExpressionOverflow) {
+            val a2 = APLBigInt(e.result)
+            val b2 = b0.valueAt(p).ensureNumber(pos)
+            val res = fn.combine2Arg(a2, b2).ensureNumber(pos)
+            throw LongExpressionOverflow(res.asBigInt())
+        }
+        val b1 = try {
+            b0.valueAtLong(p, pos)
+        } catch (e: LongExpressionOverflow) {
+            val b2 = APLBigInt(e.result)
+            val res = fn.combine2Arg(a1.makeAPLNumber(), b2).ensureNumber(pos)
+            throw LongExpressionOverflow(res.asBigInt())
+        }
+        return fn.combine2ArgLong(a1, b1)
     }
 }
 
@@ -129,7 +151,14 @@ class LongArraySum2ArgsLeftScalar(
     override fun valueAt(p: Int) = valueAtLong(p, pos).makeAPLNumber()
 
     override fun valueAtLong(p: Int, pos: Position?): Long {
-        return fn.combine2ArgLong(a0, b0.valueAtLong(p, pos))
+        val b1 = try {
+            b0.valueAtLong(p, pos)
+        } catch (e: LongExpressionOverflow) {
+            val b2 = APLBigInt(e.result)
+            val res = fn.combine2Arg(a0.makeAPLNumber(), b2).ensureNumber()
+            throw LongExpressionOverflow(res.asBigInt())
+        }
+        return fn.combine2ArgLong(a0, b1)
     }
 }
 
@@ -142,10 +171,21 @@ class LongArraySum2ArgsRightScalar(
     override val dimensions = a0.dimensions
     override val specialisedType get() = ArrayMemberType.LONG
 
-    override fun valueAt(p: Int) = valueAtLong(p, pos).makeAPLNumber()
+    override fun valueAt(p: Int) = try {
+        valueAtLong(p, pos).makeAPLNumber()
+    } catch (e: LongExpressionOverflow) {
+        e.result.makeAPLNumber()
+    }
 
     override fun valueAtLong(p: Int, pos: Position?): Long {
-        return fn.combine2ArgLong(a0.valueAtLong(p, pos), b0)
+        val a1 = try {
+            a0.valueAtLong(p, pos)
+        } catch (e: LongExpressionOverflow) {
+            val a2 = APLBigInt(e.result)
+            val res = fn.combine2Arg(a2, b0.makeAPLNumber()).ensureNumber()
+            throw LongExpressionOverflow(res.asBigInt())
+        }
+        return fn.combine2ArgLong(a1, b0)
     }
 }
 
@@ -170,25 +210,31 @@ abstract class MathCombineAPLFunction(pos: FunctionInstantiation) : APLFunction(
                 when {
                     a is APLLong && b.specialisedType === ArrayMemberType.LONG && optimisationFlags.is2ALongLong ->
                         LongArraySum2ArgsLeftScalar(this, a.value, b, pos)
+
                     b.isScalar() -> EnclosedAPLValue.make(makeCellSumFunction2Args(a, b.valueAt(0), pos))
                     else ->
                         GenericArraySum2Args(this, a, b, pos)
                 }
             }
+
             b is APLSingleValue -> {
                 when {
                     b is APLLong && a.specialisedType === ArrayMemberType.LONG && optimisationFlags.is2ALongLong ->
                         LongArraySum2ArgsRightScalar(this, a, b.value, pos)
+
                     a.isScalar() -> EnclosedAPLValue.make(makeCellSumFunction2Args(a.valueAt(0), b, pos))
                     else ->
                         GenericArraySum2Args(this, a, b, pos)
                 }
             }
+
             a.rank == 0 && b.rank == 0 -> EnclosedAPLValue.make(makeCellSumFunction2Args(a.valueAt(0), b.valueAt(0), pos))
             a.specialisedType === ArrayMemberType.LONG && b.specialisedType === ArrayMemberType.LONG && optimisationFlags.is2ALongLong ->
                 LongArraySum2Args(this, a, b, pos)
+
             a.specialisedType === ArrayMemberType.DOUBLE && b.specialisedType === ArrayMemberType.DOUBLE && optimisationFlags.is2ADoubleDouble ->
                 DoubleArraySum2Args(this, a, b, pos)
+
             else ->
                 GenericArraySum2Args(this, a, b, pos)
         }
@@ -233,6 +279,7 @@ abstract class MathCombineAPLFunction(pos: FunctionInstantiation) : APLFunction(
                 aDimensions.size == 1 && bDimensions.size == 1 -> {
                     if (axisInt == 0) Pair(a0, b0) else throwAPLException(IllegalAxisException(axisInt, aDimensions, pos))
                 }
+
                 aDimensions.size == 1 -> Pair(computeTransformation(a0, aDimensions, bDimensions), b0)
                 bDimensions.size == 1 -> Pair(a0, computeTransformation(b0, bDimensions, aDimensions))
                 else -> throwAPLException(APLIllegalArgumentException("When specifying an axis, A or B has to be rank 1", pos))
@@ -277,7 +324,8 @@ class AddAPLFunction : APLFunctionDescriptor {
                 a,
                 { x -> x.makeAPLNumber() },
                 { x -> x.makeAPLNumber() },
-                { x -> Complex(x.real, -x.imaginary).makeAPLNumber() })
+                { x -> Complex(x.real, -x.imaginary).makeAPLNumber() },
+                fnBigInt = { x -> x.makeAPLNumber() })
         }
 
         override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
@@ -285,7 +333,7 @@ class AddAPLFunction : APLFunctionDescriptor {
                 pos,
                 a,
                 b,
-                { x, y -> (x + y).makeAPLNumber() },
+                { x, y -> addExactWrapped(x, y).makeAPLNumber() },
                 { x, y -> (x + y).makeAPLNumber() },
                 { x, y -> (x + y).makeAPLNumber() },
                 fnOther = { x, y ->
@@ -294,13 +342,14 @@ class AddAPLFunction : APLFunctionDescriptor {
                         x is APLNumber && y is APLChar -> APLChar.fromLong(y.value + x.asLong(pos), pos)
                         else -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos))
                     }
-                })
+                },
+                fnBigint = { x, y -> (x + y).makeAPLNumber() })
         }
 
         override fun combine1ArgLong(a: Long) = a
         override fun combine1ArgDouble(a: Double) = a
 
-        override fun combine2ArgLong(a: Long, b: Long) = a + b
+        override fun combine2ArgLong(a: Long, b: Long) = addExactWrapped(a, b)
         override fun combine2ArgDouble(a: Double, b: Double) = a + b
 
         override fun identityValue() = APLLONG_0
@@ -341,7 +390,8 @@ class SubAPLFunction : APLFunctionDescriptor {
                 a,
                 { x -> (-x).makeAPLNumber() },
                 { x -> (-x).makeAPLNumber() },
-                { x -> (-x).makeAPLNumber() })
+                { x -> (-x).makeAPLNumber() },
+                fnBigInt = { x -> (-x).makeAPLNumber() })
         }
 
         override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
@@ -358,12 +408,13 @@ class SubAPLFunction : APLFunctionDescriptor {
                         x is APLChar && y is APLNumber -> APLChar.fromLong(x.value - y.asLong(pos), pos)
                         else -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos))
                     }
-                })
+                },
+                fnBigint = { x, y -> (x - y).makeAPLNumber() })
         }
 
         override fun combine1ArgLong(a: Long) = -a
         override fun combine1ArgDouble(a: Double) = -a
-        override fun combine2ArgLong(a: Long, b: Long) = a - b
+        override fun combine2ArgLong(a: Long, b: Long) = subExactWrapped(a, b)
         override fun combine2ArgDouble(a: Double, b: Double) = a - b
 
         override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?) =
@@ -404,7 +455,8 @@ class MulAPLFunction : APLFunctionDescriptor {
                 a,
                 { x -> x.sign.toLong().makeAPLNumber() },
                 { x -> x.sign.toLong().makeAPLNumber() },
-                { x -> x.signum().makeAPLNumber() })
+                { x -> x.signum().makeAPLNumber() },
+                fnBigInt = { x -> x.signum().makeAPLNumber() })
         }
 
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
@@ -412,9 +464,10 @@ class MulAPLFunction : APLFunctionDescriptor {
                 pos,
                 a,
                 b,
+                { x, y -> mulExactWrapped(x, y).makeAPLNumber() },
                 { x, y -> (x * y).makeAPLNumber() },
                 { x, y -> (x * y).makeAPLNumber() },
-                { x, y -> (x * y).makeAPLNumber() })
+                fnBigint = { x, y -> (x * y).makeAPLNumber() })
         }
 
         override fun identityValue() = APLLONG_1
@@ -423,7 +476,7 @@ class MulAPLFunction : APLFunctionDescriptor {
         override fun combine1ArgLong(a: Long) = a.sign.toLong()
         override fun combine1ArgDouble(a: Double) = a.sign
 
-        override fun combine2ArgLong(a: Long, b: Long) = a * b
+        override fun combine2ArgLong(a: Long, b: Long) = mulExactWrapped(a, b)
         override fun combine2ArgDouble(a: Double, b: Double) = a * b
 
         private val divFn by lazy { DivAPLFunction().make(pos) }
@@ -452,7 +505,8 @@ class DivAPLFunction : APLFunctionDescriptor {
                 a,
                 { x -> if (x == 0L) APLLONG_0 else (1.0 / x).makeAPLNumber() },
                 { x -> if (x == 0.0) APLLONG_0 else (1.0 / x).makeAPLNumber() },
-                { x -> if (x == Complex.ZERO) APLLONG_0 else x.reciprocal().makeAPLNumber() })
+                { x -> if (x == Complex.ZERO) APLLONG_0 else x.reciprocal().makeAPLNumber() },
+                fnBigInt = { x -> (1.0 / x.toDouble()).makeAPLNumber() })
         }
 
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
@@ -468,7 +522,14 @@ class DivAPLFunction : APLFunctionDescriptor {
                     }
                 },
                 { x, y -> APLDouble(if (y == 0.0) 0.0 else x / y) },
-                { x, y -> if (y == Complex.ZERO) APLDOUBLE_0 else (x / y).makeAPLNumber() })
+                { x, y -> if (y == Complex.ZERO) APLDOUBLE_0 else (x / y).makeAPLNumber() },
+                fnBigint = { x, y ->
+                    when {
+                        y == BigIntConstants.ZERO -> APLLONG_0
+                        x % y == BigIntConstants.ZERO -> (x / y).makeAPLNumber()
+                        else -> (x.toDouble() / y.toDouble()).makeAPLNumber()
+                    }
+                })
         }
 
         override fun combine1ArgDouble(a: Double) = 1.0 / a
@@ -569,7 +630,8 @@ class ModAPLFunction : APLFunctionDescriptor {
                 a,
                 { x -> abs(x).makeAPLNumber() },
                 { x -> abs(x).makeAPLNumber() },
-                { x -> hypot(x.real, x.imaginary).makeAPLNumber() })
+                { x -> hypot(x.real, x.imaginary).makeAPLNumber() },
+                fnBigInt = { x -> x.absoluteValue.makeAPLNumber() })
         }
 
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
@@ -579,14 +641,18 @@ class ModAPLFunction : APLFunctionDescriptor {
                 b,
                 { x, y -> opLong(x, y).makeAPLNumber() },
                 { x, y -> opDouble(x, y).makeAPLNumber() },
-                { x, y -> complexMod(x, y).makeAPLNumber() })
+                { x, y -> complexMod(x, y).makeAPLNumber() },
+                fnBigint = { x, y -> bigintMod(x, y).makeAPLNumber() })
         }
 
         private fun opLong(x: Long, y: Long) =
-            if (x == 0L) y else (y % x).let { result -> (if (x < 0) -result else result) }
+            if (x == 0L) y else (y % x).let { result -> if ((x < 0 && y > 0) || (x > 0 && y < 0)) x + result else result }
 
         private fun opDouble(x: Double, y: Double) =
-            if (x == 0.0) y else (y % x).let { result -> (if (x < 0) -result else result) }
+            if (x == 0.0) y else (y % x).let { result -> if ((x < 0 && y > 0) || (x > 0 && y < 0)) x + result else result }
+
+        private fun bigintMod(x: BigInt, y: BigInt) =
+            if (x == BigIntConstants.ZERO) y else (y % x).let { result -> if ((x < 0 && y > 0) || (x > 0 && y < 0)) x + result else result }
 
         override fun combine2ArgLong(a: Long, b: Long) = opLong(a, b)
         override fun combine2ArgDouble(a: Double, b: Double) = opDouble(a, b)
@@ -608,7 +674,8 @@ class PowerAPLFunction : APLFunctionDescriptor {
                 a,
                 { x -> exp(x.toDouble()).makeAPLNumber() },
                 { x -> exp(x).makeAPLNumber() },
-                { x -> E.pow(x).makeAPLNumber() })
+                { x -> E.pow(x).makeAPLNumber() },
+                fnBigInt = { x -> E.pow(x.toDouble()).makeAPLNumber() })
         }
 
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
@@ -616,7 +683,13 @@ class PowerAPLFunction : APLFunctionDescriptor {
                 pos,
                 a,
                 b,
-                { x, y -> x.toDouble().pow(y.toDouble()).makeAPLNumber() },
+                { x, y ->
+                    if (x > 0 && y > 0) {
+                        (x.toBigInt().pow(y)).makeAPLNumber()
+                    } else {
+                        x.toDouble().pow(y.toDouble()).makeAPLNumber()
+                    }
+                },
                 { x, y ->
                     if (x < 0) {
                         x.toComplex().pow(y.toComplex()).makeAPLNumber()
@@ -624,7 +697,21 @@ class PowerAPLFunction : APLFunctionDescriptor {
                         x.pow(y).makeAPLNumber()
                     }
                 },
-                { x, y -> x.pow(y).makeAPLNumber() })
+                { x, y -> x.pow(y).makeAPLNumber() },
+                fnBigint = { x, y ->
+                    when {
+                        x > 0 && y > 0 -> {
+                            checkBigIntInRangeLong(y, pos)
+                            x.pow(y.toLong()).makeAPLNumber()
+                        }
+                        x < 0 -> {
+                            x.toDouble().toComplex().pow(y.toDouble().toComplex()).makeAPLNumber()
+                        }
+                        else -> {
+                            x.toDouble().pow(y.toDouble()).makeAPLNumber()
+                        }
+                    }
+                })
         }
 
         private val logFn by lazy { LogAPLFunction().make(pos) }

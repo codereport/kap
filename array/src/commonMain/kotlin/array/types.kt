@@ -5,6 +5,7 @@ import array.rendertext.String2D
 import array.rendertext.encloseInBox
 import array.rendertext.maybeWrapInParens
 import array.rendertext.renderStringValue
+import com.dhsdevelopments.mpbignum.LongExpressionOverflow
 
 enum class APLValueType(val typeName: String) {
     INTEGER("integer"),
@@ -102,8 +103,11 @@ abstract class APLValue {
     open val specialisedType: ArrayMemberType get() = ArrayMemberType.GENERIC
 
     abstract fun valueAt(p: Int): APLValue
+
     open fun valueAtLong(p: Int, pos: Position?) = valueAt(p).ensureNumber(pos).asLong(pos)
+
     open fun valueAtDouble(p: Int, pos: Position?) = valueAt(p).ensureNumber(pos).asDouble(pos)
+
     open fun valueAtInt(p: Int, pos: Position?): Int {
         val l = valueAtLong(p, pos)
         if (l < Int.MIN_VALUE || l > Int.MAX_VALUE) {
@@ -757,7 +761,7 @@ class CollapsedArrayImpl(dimensions: Dimensions, values: Array<APLValue>) : APLA
         fun make(orig: APLValue): APLValue {
             val d = orig.dimensions
             return when (orig.specialisedType) {
-                ArrayMemberType.LONG -> APLArrayLong(d, LongArray(d.contentSize()) { index -> orig.valueAtLong(index, null) })
+                ArrayMemberType.LONG -> APLArrayLong.makeWithOverflowCheck(d, orig, null)
                 ArrayMemberType.DOUBLE -> APLArrayDouble(d, DoubleArray(d.contentSize()) { index -> orig.valueAtDouble(index, null) })
                 ArrayMemberType.GENERIC -> {
                     val content = Array(d.contentSize()) { index -> orig.valueAt(index).collapseInt() }
@@ -765,6 +769,32 @@ class CollapsedArrayImpl(dimensions: Dimensions, values: Array<APLValue>) : APLA
                 }
             }
         }
+
+    }
+}
+
+private fun APLArrayLong.Companion.makeWithOverflowCheck(d: Dimensions, orig: APLValue, pos: Position?): APLValue {
+    assertx(orig.specialisedType === ArrayMemberType.LONG)
+    val result = LongArray(d.contentSize())
+    var i = 0
+    try {
+        repeat(result.size) {
+            val v = orig.valueAtLong(i, pos)
+            result[i] = v
+            i++
+        }
+        return APLArrayLong(d, result)
+    } catch (e: LongExpressionOverflow) {
+        val array = Array(result.size) { i0 ->
+            if (i0 < i) {
+                result[i0].makeAPLNumber()
+            } else if (i0 == i) {
+                APLBigInt(e.result)
+            } else {
+                orig.valueAt(i0)
+            }
+        }
+        return APLArrayImpl(d, array)
     }
 }
 
@@ -977,6 +1007,8 @@ class APLArrayLong(
     override fun valueAt(p: Int) = values[p].makeAPLNumber()
     override fun valueAtLong(p: Int, pos: Position?) = values[p]
     override fun collapseInt() = this
+
+    companion object
 }
 
 class APLArrayDouble(

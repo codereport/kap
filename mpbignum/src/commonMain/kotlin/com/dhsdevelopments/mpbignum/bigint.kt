@@ -10,6 +10,8 @@ object BigIntConstants {
     val ALL_BITS_64 = BigInt.of("18446744073709551615")
 }
 
+expect val BigInt.absoluteValue: BigInt
+
 expect operator fun BigInt.plus(other: BigInt): BigInt
 expect operator fun BigInt.minus(other: BigInt): BigInt
 expect operator fun BigInt.times(other: BigInt): BigInt
@@ -19,8 +21,13 @@ expect operator fun BigInt.unaryMinus(): BigInt
 
 expect fun BigInt.pow(other: Long): BigInt
 
+expect operator fun BigInt.rem(other: BigInt): BigInt
+operator fun BigInt.rem(other: Long): BigInt = this % BigInt.of(other)
+operator fun Long.rem(other: BigInt): BigInt = BigInt.of(this) % other
+
 expect operator fun BigInt.compareTo(other: BigInt): Int
 
+expect fun BigInt.Companion.of(value: Short): BigInt
 expect fun BigInt.Companion.of(value: Int): BigInt
 expect fun BigInt.Companion.of(value: Long): BigInt
 expect fun BigInt.Companion.of(s: String): BigInt
@@ -77,3 +84,7 @@ expect fun BigInt.toLong(): Long
 expect fun BigInt.toDouble(): Double
 
 expect fun BigInt.signum(): Int
+
+fun Short.toBigInt() = BigInt.of(this)
+fun Int.toBigInt() = BigInt.of(this)
+fun Long.toBigInt() = BigInt.of(this)

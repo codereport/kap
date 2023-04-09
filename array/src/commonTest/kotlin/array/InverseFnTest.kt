@@ -159,7 +159,7 @@ class InverseFnTest : APLTest() {
 
     @Test
     fun inverseLog0() {
-        assertSimpleDouble(1024.0, parseAPLExpression("2 ⍟inverse 10"))
+        assertAPLValue(InnerBigIntOrLong(1024), parseAPLExpression("2 ⍟inverse 10"))
     }
 
     @Test

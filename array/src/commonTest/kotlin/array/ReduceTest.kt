@@ -437,4 +437,18 @@ class ReduceTest : APLTest() {
             assertDimension(dimensionsOfSize(3, 0), result)
         }
     }
+
+    @Test
+    fun reduceFirstValueOverflow() {
+        parseAPLExpression("+/ (↑ 2 3 × 5000000000000000000) 5000000000000000004 5000000000000000003 5000000000000000003").let { result ->
+            assertBigIntOrLong("25000000000000000010", result)
+        }
+    }
+
+    @Test
+    fun reduceMultBigInt() {
+        parseAPLExpression("×/ 68 ⍴ 2").let { result ->
+            assertBigIntOrLong("295147905179352825856", result)
+        }
+    }
 }

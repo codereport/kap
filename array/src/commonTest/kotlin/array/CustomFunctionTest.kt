@@ -294,7 +294,7 @@ class CustomFunctionTest : APLTest() {
     @Test
     fun simple2Train1() {
         parseAPLExpression("f ⇐ -* ⋄ 2 f 5").let { result ->
-            assertAPLValue(InnerDouble(-32.0), result)
+            assertAPLValue(InnerBigIntOrLong(-32), result)
         }
     }
 

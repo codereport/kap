@@ -14,6 +14,9 @@ actual value class BigInt(val impl: Any) {
     }
 }
 
+actual val BigInt.absoluteValue: BigInt
+    get() = BigInt(inner.abs())
+
 actual operator fun BigInt.plus(other: BigInt) = BigInt(inner.plus(other.inner))
 actual operator fun BigInt.minus(other: BigInt) = BigInt(inner.minus(other.inner))
 actual operator fun BigInt.times(other: BigInt) = BigInt(inner.times(other.inner))
@@ -28,7 +31,15 @@ actual fun BigInt.pow(other: Long): BigInt {
     return BigInt(inner.pow(other.toInt()))
 }
 
+actual operator fun BigInt.rem(other: BigInt): BigInt {
+    return BigInt(inner.rem(other.inner))
+}
+
 actual operator fun BigInt.compareTo(other: BigInt) = inner.compareTo(other.inner)
+
+actual fun BigInt.Companion.of(value: Short): BigInt {
+    return BigInt.of(value.toString())
+}
 
 actual fun BigInt.Companion.of(value: Int): BigInt {
     return BigInt.of(value.toString())
@@ -55,7 +66,7 @@ actual infix fun BigInt.xor(other: BigInt): BigInt {
 }
 
 actual infix fun BigInt.shl(other: Long): BigInt {
-    if(other < Int.MIN_VALUE || other >= Int.MAX_VALUE) {
+    if (other < Int.MIN_VALUE || other >= Int.MAX_VALUE) {
         throw IllegalArgumentException("Argument to shl must be a positive number that fits in 32 bits: ${other}")
     }
     return BigInt(inner shl other.toInt())

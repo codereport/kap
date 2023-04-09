@@ -13,6 +13,74 @@ class NumbersTest : APLTest() {
     }
 
     @Test
+    fun monadicAdd() {
+        parseAPLExpression("+1 2 ¯6 2J7 2J¯7").let { result ->
+            assert1DArray(arrayOf(1, 2, -6, Complex(2.0, -7.0), Complex(2.0, 7.0)), result)
+        }
+    }
+
+    @Test
+    fun monadicAddWithBigint() {
+        parseAPLExpression("+¯10000000000000000000000000000000 10000000000000000000000000000000").let { result ->
+            assert1DArray(
+                arrayOf(
+                    InnerBigIntOrLong("-10000000000000000000000000000000"),
+                    InnerBigIntOrLong("10000000000000000000000000000000")),
+                result)
+        }
+    }
+
+    @Test
+    fun testSignum() {
+        parseAPLExpression("× 2 0 ¯3 ¯10000000000000000000000000000000 10000000000000000000000000000000").let { result ->
+            assert1DArray(arrayOf(1, 0, -1, -1, 1), result)
+        }
+    }
+
+    @Test
+    fun addToBigIntSpecialisedArray() {
+        parseAPLExpression("+/ 10 ⍴ 1000000000000000000").let { result ->
+            assertBigIntOrLong("10000000000000000000", result)
+        }
+    }
+
+    @Test
+    fun addToBigIntGenericArray() {
+        parseAPLExpression("+/ int:ensureGeneric 10 ⍴ 1000000000000000000").let { result ->
+            assertBigIntOrLong("10000000000000000000", result)
+        }
+    }
+
+    @Test
+    fun addBigintToDouble() {
+        parseAPLExpression("(int:asBigint 5) + 0.0").let { result ->
+            assertNearDouble(NearDouble(5.0), result)
+        }
+    }
+
+    @Test
+    fun addDoubleToBigint() {
+        parseAPLExpression("0.0 + int:asBigint 5").let { result ->
+            assertNearDouble(NearDouble(5.0), result)
+        }
+    }
+
+
+    @Test
+    fun subBigint() {
+        parseAPLExpression("30000000000000000000 - 10000000000000000000").let { result ->
+            assertBigIntOrLong("20000000000000000000", result)
+        }
+    }
+
+    @Test
+    fun subBigintSpeialisedArray() {
+        parseAPLExpression("-/ 100000 ⍴ 100000000000000").let { result ->
+            assertBigIntOrLong("-9999800000000000000", result)
+        }
+    }
+
+    @Test
     fun testDivision() {
         assertSimpleNumber(0, parseAPLExpression("1÷0"))
         assertSimpleNumber(0, parseAPLExpression("100÷0"))
@@ -23,6 +91,35 @@ class NumbersTest : APLTest() {
         assertSimpleNumber(2, parseAPLExpression("4÷2"))
         assertSimpleNumber(20, parseAPLExpression("40÷2"))
         assertDoubleWithRange(Pair(3.33332, 3.33334), parseAPLExpression("10÷3"))
+    }
+
+    @Test
+    fun testDivisionBigint() {
+        parseAPLExpression("10000000000000000000000000000000 ÷ 2").let { result ->
+            assertBigIntOrLong("5000000000000000000000000000000", result)
+        }
+        parseAPLExpression("123456789012345678901234567891 ÷ 2").let { result ->
+            assertNearDouble(NearDouble(6.172839450617284e+28, -24), result)
+        }
+    }
+
+    @Test
+    fun divisionConvertToDouble() {
+        // Test provided by dzaima
+        parseAPLExpression("a←×/24⍴2 ⋄ a (a×a×a) ÷ 1000000000000000").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearDouble(1.6777216e-8),
+                    NearDouble(4722366.482869646)),
+                result)
+        }
+    }
+
+    @Test
+    fun testMonadicDivisionBigint() {
+        parseAPLExpression("÷123456789012345678901234567890").let { result ->
+            assertDoubleWithRange(Pair(8.09999E-30, 8.10001E-30), result)
+        }
     }
 
     @Test
@@ -40,6 +137,16 @@ class NumbersTest : APLTest() {
         assertDoubleWithRange(Pair(342.285, 342.287), parseAPLExpression("|¯194J¯282"))
     }
 
+    fun testAbsWithBignum() {
+        parseAPLExpression("|10000000000000000000000000000000 ¯10000000000000000000000000000000 (int:asBigint 0)").let { result ->
+            assert1DArray(
+                arrayOf(
+                    InnerBigIntOrLong("10000000000000000000000000000000"),
+                    InnerBigIntOrLong("10000000000000000000000000000000"),
+                    InnerBigIntOrLong("0")), result)
+        }
+    }
+
     @Test
     fun testMod() {
         assertSimpleNumber(1, parseAPLExpression("2|3"))
@@ -47,7 +154,7 @@ class NumbersTest : APLTest() {
         assertSimpleNumber(-1, parseAPLExpression("¯2|11"))
         assertSimpleNumber(0, parseAPLExpression("3|3"))
         assertSimpleNumber(2, parseAPLExpression("100|2"))
-        assertSimpleNumber(-5, parseAPLExpression("10000|¯20005"))
+        assertSimpleNumber(9995, parseAPLExpression("10000|¯20005"))
         assertSimpleNumber(0, parseAPLExpression("5|0"))
         assertSimpleNumber(0, parseAPLExpression("0|0"))
         assertSimpleNumber(3, parseAPLExpression("0|3"))
@@ -57,14 +164,44 @@ class NumbersTest : APLTest() {
     }
 
     @Test
-    fun testModOptimisedInt() {
-        parseAPLExpression("4 | int:ensureLong 2 5 6").let { result ->
-            assertDimension(dimensionsOfSize(3), result)
-            assertArrayContent(arrayOf(2, 1, 2), result)
+    fun testModCombinationsLong() {
+        parseAPLExpression("(int:ensureLong 2 2 ¯2 ¯2) | (int:ensureLong 123 ¯123 123 ¯123)").let { result ->
+            assert1DArray(arrayOf(1, 1, -1, -1), result)
         }
-        parseAPLExpression("4 | int:ensureGeneric 2 5 6").let { result ->
-            assertDimension(dimensionsOfSize(3), result)
-            assertArrayContent(arrayOf(2, 1, 2), result)
+    }
+
+    @Test
+    fun testModCombinationsGeneric() {
+        parseAPLExpression("(int:ensureGeneric 2 2 ¯2 ¯2) | (int:ensureGeneric 123 ¯123 123 ¯123)").let { result ->
+            assert1DArray(arrayOf(1, 1, -1, -1), result)
+        }
+    }
+
+    @Test
+    fun testModCombinationsBigint0() {
+        parseAPLExpression("(int:asBigint¨ 2 2 ¯2 ¯2) | int:asBigint¨ 123 ¯123 123 ¯123").let { result ->
+            assert1DArray(arrayOf(InnerBigIntOrLong(1), InnerBigIntOrLong(1), InnerBigIntOrLong(-1), InnerBigIntOrLong(-1)), result)
+        }
+    }
+
+    @Test
+    fun testModCombinationsBigint1() {
+        parseAPLExpression("(int:asBigint¨ 10000 10000 ¯10000 ¯10000) | int:asBigint¨ 20005 ¯20005 20005 ¯20005").let { result ->
+            assert1DArray(arrayOf(InnerBigIntOrLong(5), InnerBigIntOrLong(9995), InnerBigIntOrLong(-9995), InnerBigIntOrLong(-5)), result)
+        }
+    }
+
+    //10000|¯20005
+
+    @Test
+    fun testModOptimisedInt() {
+        parseAPLExpression("4 | int:ensureLong 2 5 6 ¯2").let { result ->
+            assertDimension(dimensionsOfSize(4), result)
+            assertArrayContent(arrayOf(2, 1, 2, 2), result)
+        }
+        parseAPLExpression("4 | int:ensureGeneric 2 5 6 ¯2").let { result ->
+            assertDimension(dimensionsOfSize(4), result)
+            assertArrayContent(arrayOf(2, 1, 2, 2), result)
         }
     }
 
@@ -81,6 +218,20 @@ class NumbersTest : APLTest() {
     }
 
     @Test
+    fun testModBigint() {
+        parseAPLExpression("4 | (int:asBigint 2) (int:asBigint 5) (int:asBigint 6) (int:asBigint ¯2) 123456789012345678901234567891").let { result ->
+            assert1DArray(
+                arrayOf(
+                    InnerBigIntOrLong("2"),
+                    InnerBigIntOrLong("1"),
+                    InnerBigIntOrLong("2"),
+                    InnerBigIntOrLong("2"),
+                    InnerBigIntOrLong("3")),
+                result)
+        }
+    }
+
+    @Test
     fun testNegation() {
         assertSimpleNumber(0, parseAPLExpression("-0"))
         assertSimpleNumber(1, parseAPLExpression("-(1-2)"))
@@ -90,7 +241,7 @@ class NumbersTest : APLTest() {
 
     @Test
     fun testExponential() {
-        assertSimpleDouble(1024.0, parseAPLExpression("2⋆10"))
+        assertAPLValue(InnerBigIntOrLong(1024), parseAPLExpression("2⋆10"))
         assertDoubleWithRange(Pair(0.0009, 0.0011), parseAPLExpression("10⋆¯3"))
         assertSimpleDouble(0.0, parseAPLExpression("0⋆10"))
         assertSimpleDouble(1.0, parseAPLExpression("10⋆0"))
@@ -108,6 +259,19 @@ class NumbersTest : APLTest() {
                     NearComplex(Complex(478.0, -621.0)),
                     NearComplex(Complex(-242.0, 702.0)),
                     NearComplex(Complex(16.0, -16.0))),
+                result)
+        }
+    }
+
+    @Test
+    fun testMonadicExponential() {
+        parseAPLExpression("⋆1 2 (int:asBigint 3) ¯10").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearDouble(2.718281828),
+                    NearDouble(7.389056099),
+                    NearDouble(20.08553692),
+                    NearDouble(0.00004539992976, 8)),
                 result)
         }
     }
@@ -147,12 +311,11 @@ class NumbersTest : APLTest() {
     @Test
     fun functionAliases() {
         val result = parseAPLExpression("2*4")
-        assertSimpleDouble(16.0, result)
+        assertAPLValue(InnerBigIntOrLong(16), result)
     }
 
     private fun assertMathsOperation(op: (Long, Long) -> Long, name: String) {
-        val args: Array<Long> =
-            arrayOf(0, 1, -1, 2, 3, 10, 100, 123456, -12345, Int.MAX_VALUE.toLong(), Int.MIN_VALUE.toLong(), Long.MAX_VALUE, Long.MIN_VALUE)
+        val args: Array<Long> = arrayOf(0, 1, -1, 2, 3, 10, 100, 123456, -12345)
         args.forEach { left ->
             args.forEach { right ->
                 val expr = "${formatLongAsAPL(left)}${name}${formatLongAsAPL(right)}"
@@ -180,7 +343,7 @@ class NumbersTest : APLTest() {
         }
     }
 
-    fun runExprTest(expr: String, withStandardLib: Boolean = false, fn: (APLValue) -> Unit) {
+    private fun runExprTest(expr: String, withStandardLib: Boolean = false, fn: (APLValue) -> Unit) {
         parseAPLExpression(expr, withStandardLib).let { result ->
             fn(result)
         }

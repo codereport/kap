@@ -201,4 +201,21 @@ class CsvTest : APLTest() {
         assertDimension(dimensionsOfSize(6, 4), result)
         assertArrayContent(arrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24), result)
     }
+
+    @Test
+    fun stringWithNewline() {
+        val content = """
+            |"foo","bar","xyztest
+            |newline"
+            |"w","ab
+            |cd
+            |efgh
+            |ij","a
+            |b"
+        """.trimMargin()
+        val input = StringCharacterProvider(content)
+        val result = readCsv(input)
+        assertDimension(dimensionsOfSize(2, 3), result)
+        assertArrayContent(arrayOf("foo", "bar", "xyztest\nnewline", "w", "ab\ncd\nefgh\nij", "a\nb"), result)
+    }
 }

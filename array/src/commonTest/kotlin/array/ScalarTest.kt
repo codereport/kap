@@ -441,7 +441,7 @@ class ScalarTest : APLTest() {
     }
 
     private fun runScalarTestSD(functionName: String, doubleFn: (Double, Double) -> Double) {
-        val result = parseAPLExpression("100 $functionName 100+3 4 ⍴ ⍳100")
+        val result = parseAPLExpression("100 $functionName 100.0+3 4 ⍴ ⍳100")
         assertDimension(dimensionsOfSize(3, 4), result)
         for (i in 0 until result.size) {
             assertEquals(
@@ -452,7 +452,7 @@ class ScalarTest : APLTest() {
     }
 
     private fun runScalarTestDS(functionName: String, doubleFn: (Double, Double) -> Double) {
-        val result = parseAPLExpression("(100+3 4 ⍴ ⍳100) $functionName 10")
+        val result = parseAPLExpression("(100.0+3 4 ⍴ ⍳100) $functionName 10")
         assertDimension(dimensionsOfSize(3, 4), result)
         for (i in 0 until result.size) {
             assertEquals(

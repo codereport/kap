@@ -119,6 +119,7 @@ kotlin {
                 implementation kotlin('stdlib-common')
                 implementation kotlin('stdlib')
                 implementation kotlin('reflect')
+                implementation project(':mpbignum')
                 implementation("org.jetbrains.kotlinx:kotlinx-collections-immutable:0.3.5")
             }
         }
@@ -131,10 +132,10 @@ kotlin {
         jvmMain {
             dependencies {
                 implementation kotlin('stdlib-jdk8')
-                implementation "org.apache.poi:poi-ooxml:5.2.2"
-                implementation 'com.google.code.gson:gson:2.9.0'
-                implementation 'org.apache.derby:derbywar:10.15.2.0'
-                implementation 'org.xerial:sqlite-jdbc:3.36.0.3'
+                implementation "org.apache.poi:poi-ooxml:5.2.3"
+                implementation 'com.google.code.gson:gson:2.10.1'
+                implementation 'org.apache.derby:derbywar:10.16.1.1'
+                implementation 'org.xerial:sqlite-jdbc:3.41.2.1'
             }
         }
         jvmTest {
