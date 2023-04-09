@@ -1,6 +1,7 @@
 package array
 
 import array.complex.Complex
+import array.complex.toComplex
 import com.dhsdevelopments.mpbignum.*
 
 abstract class APLNumber : APLSingleValue() {
@@ -125,7 +126,7 @@ class APLBigInt(val value: BigInt) : APLNumber() {
     }
 
     override fun asComplex(): Complex {
-        TODO("Not yet implemented")
+        return value.toDouble().toComplex()
     }
 
     override fun isComplex() = false
