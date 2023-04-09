@@ -2,7 +2,7 @@ package array.builtins
 
 import array.*
 import array.csv.readCsv
-import array.csv.writeCsv
+import array.csv.writeAPLArrayAsCsv
 
 class ReadFunction : APLFunctionDescriptor {
     class ReadFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
@@ -66,7 +66,7 @@ class WriteCsvFunction : APLFunctionDescriptor {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val fileName = a.toStringValue(pos)
             openOutputCharFile(fileName).use { dest ->
-                writeCsv(dest, b, pos)
+                writeAPLArrayAsCsv(dest, b, pos)
             }
             return b
         }

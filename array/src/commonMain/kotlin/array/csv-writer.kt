@@ -2,7 +2,7 @@ package array.csv
 
 import array.*
 
-fun writeCsv(dest: CharacterConsumer, value: APLValue, pos: Position? = null) {
+fun writeAPLArrayAsCsv(dest: CharacterConsumer, value: APLValue, pos: Position? = null) {
     val dimensions = value.dimensions
     if (dimensions.size != 2) {
         throwAPLException(InvalidDimensionsException("Value must be a 2-dimensional array", pos))
@@ -45,4 +45,22 @@ private fun escapeString(s: String): String {
         }
     }
     return buf.toString()
+}
+
+class CsvWriter(val consumer: CharacterConsumer) {
+    private var numColumns: Int? = null
+
+    fun writeRow(values: List<String>) {
+        val n = numColumns
+        if (n != null && n != values.size) {
+            throw IllegalArgumentException("Attempt to add a row of ${values.size} cells. Table is expected to have ${n} columns.")
+        }
+        values.map { v -> maybeEscape(v) }.joinToString(",").let(consumer::writeString)
+        consumer.writeString("\n")
+    }
+
+    private fun maybeEscape(s: String): String {
+        val v = s.replace("\"".toRegex(), "\"\"")
+        return "\"${v}\""
+    }
 }

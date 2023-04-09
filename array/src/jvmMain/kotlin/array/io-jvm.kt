@@ -4,6 +4,7 @@ import java.io.*
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.Paths
+import kotlin.io.path.createDirectory
 import kotlin.io.path.pathString
 import kotlin.math.min
 
@@ -223,6 +224,12 @@ actual fun fileType(path: String): FileNameType? {
 
 actual fun currentDirectory(): String {
     return System.getProperty("user.dir")
+}
+
+actual fun createDirectory(path: String) {
+    transformIOException {
+        Path.of(path).createDirectory()
+    }
 }
 
 actual fun readDirectoryContent(dirName: String): List<PathEntry> {

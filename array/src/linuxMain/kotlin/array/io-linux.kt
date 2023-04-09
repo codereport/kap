@@ -131,18 +131,20 @@ private fun openInputWithTranslatedExceptions(name: String): Int {
 }
 
 private fun openOutputWithTranslatedExceptions(name: String): Int {
-    val fd = open(name, O_WRONLY or O_CREAT, 438) // rwxrwxrwx
+    val fd = open(name, O_WRONLY or O_CREAT, 438) // rw-rw-rw-
     if (fd == -1) {
-        translateErrno(errno)
+        println("Path: '${currentDirectory()}'")
+        translateErrno(errno, "Open file: '${name}'")
     }
     return fd
 }
 
-private fun translateErrno(err: Int): Nothing {
+private fun translateErrno(err: Int, description: String? = null): Nothing {
+    val prefix = if (description == null) "" else "${description}: "
     if (err == ENOENT) {
-        throw MPFileNotFoundException(nativeErrorString())
+        throw MPFileNotFoundException(prefix + nativeErrorString())
     } else {
-        throw MPFileException(nativeErrorString())
+        throw MPFileException(prefix + nativeErrorString())
     }
 }
 
@@ -180,6 +182,15 @@ actual fun currentDirectory(): String {
             }
         }
         return result
+    }
+}
+
+actual fun createDirectory(path: String) {
+    memScoped {
+        val result = mkdir(path, 511) // rwxrwxrwx
+        if (result == -1) {
+            translateErrno(errno)
+        }
     }
 }
 

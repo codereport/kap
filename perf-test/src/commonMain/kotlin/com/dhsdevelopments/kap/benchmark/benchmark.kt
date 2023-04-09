@@ -1,8 +1,7 @@
 package com.dhsdevelopments.kap.benchmark
 
-import array.Engine
-import array.StringSourceLocation
-import array.currentTime
+import array.*
+import array.csv.CsvWriter
 import kotlin.math.pow
 import kotlin.math.sqrt
 
@@ -60,7 +59,7 @@ private fun benchmarkMultipleCall(): BenchmarkTestCase {
     return BenchmarkTestCase("multiple call", srcString)
 }
 
-class BenchmarkResults(val results: List<Long>) {
+class TestCaseResults(val name: String, val results: List<Long>) {
     fun avg() = results.sum() / results.size.toDouble()
     fun max() = results.max()
     fun min() = results.min()
@@ -79,7 +78,9 @@ class BenchmarkResults(val results: List<Long>) {
     }
 }
 
-fun benchmarkSrc(srcString: String, libPath: String): BenchmarkResults {
+class BenchmarkResult(val name: String, testcases: List<BenchmarkTestCase>)
+
+fun benchmarkSrc(name: String, srcString: String, libPath: String): TestCaseResults {
     val engine = Engine()
     engine.addLibrarySearchPath(libPath)
     engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
@@ -96,14 +97,34 @@ fun benchmarkSrc(srcString: String, libPath: String): BenchmarkResults {
         }
         results.add(elapsed)
     }
-    return BenchmarkResults(results)
+    return TestCaseResults(name, results)
 }
 
-fun runAllTests(name: String, libPath: String) {
+fun runAllTests(name: String, libPath: String, reportPath: String, reportName: String): BenchmarkResult {
+    val type = fileType(reportPath)
+    if (type == null) {
+        createDirectory(reportPath)
+    } else if (type != FileNameType.DIRECTORY) {
+        throw IllegalStateException("Report directory is a file: ${reportPath}")
+    }
+
     val tests = listOf(benchmarkPrimes(), benchmarkVarLookupScope(), contribBench(), simpleSum(), benchmarkMultipleCall())
     println("Running tests: ${name}")
+    val results = ArrayList<TestCaseResults>()
     tests.forEach { testcase ->
-        val results = benchmarkSrc(testcase.src, libPath)
-        println("${testcase.name}: ${results.summary()}")
+        val result = benchmarkSrc(testcase.name, testcase.src, libPath)
+        println("${testcase.name}: ${result.summary()}")
+        results.add(result)
     }
+
+    openOutputCharFile("${reportPath}/benchmark-${reportName}-${name}.csv").use { output ->
+        val writer = CsvWriter(output)
+        results.forEach { testcase ->
+            val row = arrayListOf(testcase.name)
+            row.addAll(testcase.results.map(Long::toString))
+            writer.writeRow(row)
+        }
+    }
+
+    return BenchmarkResult(name, tests)
 }

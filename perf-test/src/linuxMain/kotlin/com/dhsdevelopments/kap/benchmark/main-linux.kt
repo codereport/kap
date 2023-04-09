@@ -22,5 +22,5 @@ multiple call: avg=841.5, median=695.0, min=582, max=1001, stddev=1.018845169164
 */
 
 fun main() {
-    runAllTests("linux", "../array/standard-lib")
+    runAllTests("linux", "../array/standard-lib", "../benchmark-reports", "unnamed")
 }

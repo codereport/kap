@@ -237,6 +237,8 @@ expect fun fileType(path: String): FileNameType?
 
 expect fun currentDirectory(): String
 
+expect fun createDirectory(path: String)
+
 class PathUtils {
     companion object {
         fun cleanupPathName(path: String): String {

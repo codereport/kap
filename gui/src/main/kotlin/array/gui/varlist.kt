@@ -1,7 +1,7 @@
 package array.gui
 
 import array.*
-import array.csv.writeCsv
+import array.csv.writeAPLArrayAsCsv
 import array.msofficereader.saveExcelFile
 import array.rendertext.renderStringValue
 import javafx.application.Platform
@@ -121,7 +121,7 @@ private fun exportToCsv(client: Client, value: APLValue) {
     if (file != null) {
         client.withErrorDialog("Export to CSV") {
             WriterCharacterConsumer(FileWriter(file, Charsets.UTF_8)).use { dest ->
-                writeCsv(dest, value)
+                writeAPLArrayAsCsv(dest, value)
             }
         }
     }

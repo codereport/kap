@@ -42,3 +42,4 @@
 
 /*.hprof
 /website/src/orchid/resources/pages/*.html
+/benchmark-reports

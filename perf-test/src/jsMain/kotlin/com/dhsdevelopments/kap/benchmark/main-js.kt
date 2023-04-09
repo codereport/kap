@@ -33,7 +33,7 @@ var jsFilesystem: dynamic = js("require('fs')")
 
 fun main() {
     loadFs()
-    runAllTests("js", "standard-lib")
+    runAllTests("js", "standard-lib", "benchmark-reports", "unnamed")
 }
 
 fun loadFs() {

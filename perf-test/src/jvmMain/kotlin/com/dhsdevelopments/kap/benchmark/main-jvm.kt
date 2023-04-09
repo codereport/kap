@@ -1,7 +1,7 @@
 package com.dhsdevelopments.kap.benchmark
 
 /*
-Basline:
+Baseline:
 Running tests: JVM
 primes: avg=255.1, median=251.5, min=249, max=280, stddev=1.0005767743846692
 var lookup scope: avg=1545.0, median=1545.0, min=1522, max=1574, stddev=1.000038582848229
@@ -19,5 +19,5 @@ multiple call: avg=132.0, median=131.0, min=130, max=134, stddev=1.0000401736650
 */
 
 fun main() {
-    runAllTests("JVM", "array/standard-lib")
+    runAllTests("jvm", "array/standard-lib", "benchmark-reports", "unnamed")
 }

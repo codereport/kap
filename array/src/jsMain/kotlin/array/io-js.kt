@@ -214,6 +214,33 @@ actual fun currentDirectory(): String {
     return "/"
 }
 
+actual fun createDirectory(path: String) {
+    val (dir, name) = baseName(path) ?: throw MPFileException("Empty directory name")
+    val foundDir = registeredFilesRoot.find(dir) ?: throw MPFileException("Directory not found: ${dir}")
+    if (foundDir !is RegisteredEntry.Directory) {
+        throw MPFileException("Parent name is not a directory: ${dir}")
+    }
+    if (foundDir.files.containsKey(name)) {
+        throw MPFileException("File ${name} already exists in directory ${dir}")
+    }
+    foundDir.createDirectory(name)
+}
+
+private fun baseName(name: String): Pair<String, String>? {
+    val parts = name.split("/")
+    return when (parts.size) {
+        0 -> null
+        1 -> Pair("/", parts[0])
+        else -> {
+            if (parts[0].isEmpty()) {
+                Pair("/" + parts.subList(1, parts.size - 1).joinToString("/"), parts.last())
+            } else {
+                Pair(parts.subList(0, parts.size - 1).joinToString("/"), parts.last())
+            }
+        }
+    }
+}
+
 actual fun readDirectoryContent(dirName: String): List<PathEntry> {
     val dir = registeredFilesRoot.find(dirName) ?: throw MPFileException("Path not found: ${dirName}")
     if (dir !is RegisteredEntry.Directory) throw MPFileException("Path does not indicate a directory name: ${dirName}")
