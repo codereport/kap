@@ -197,3 +197,5 @@ actual fun BigInt.toDouble(): Double {
 actual fun BigInt.signum(): Int {
     return mpz_sgn_wrap(this.inner)
 }
+
+actual fun BigInt.gcd(other: BigInt) = basicOperation(other) { result, a, b -> mpz_gcd!!(result.value, a, b) }

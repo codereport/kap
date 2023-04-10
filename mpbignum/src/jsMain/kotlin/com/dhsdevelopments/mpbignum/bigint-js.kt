@@ -204,3 +204,7 @@ actual fun BigInt.signum(): Int {
     val a = this.inner
     return js("(function(a0){if(a0<0){return -1;} else if(a0>0){return 1;} else {return 0;}})(a)")
 }
+
+actual fun BigInt.gcd(other: BigInt): BigInt {
+    return standardGcd(this, other)
+}

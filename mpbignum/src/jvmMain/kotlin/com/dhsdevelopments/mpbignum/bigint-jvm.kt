@@ -90,3 +90,7 @@ actual fun BigInt.toDouble(): Double {
 actual fun BigInt.signum(): Int {
     return inner.signum()
 }
+
+actual fun BigInt.gcd(other: BigInt): BigInt {
+    return BigInt(inner.gcd(other.inner))
+}

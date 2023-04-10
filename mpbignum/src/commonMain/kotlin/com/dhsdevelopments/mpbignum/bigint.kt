@@ -7,6 +7,7 @@ expect value class BigInt(val impl: Any) {
 
 object BigIntConstants {
     val ZERO = BigInt.of(0)
+    val ONE = BigInt.of(1)
     val ALL_BITS_64 = BigInt.of("18446744073709551615")
 }
 
@@ -84,6 +85,8 @@ expect fun BigInt.toLong(): Long
 expect fun BigInt.toDouble(): Double
 
 expect fun BigInt.signum(): Int
+
+expect fun BigInt.gcd(other: BigInt): BigInt
 
 fun Short.toBigInt() = BigInt.of(this)
 fun Int.toBigInt() = BigInt.of(this)
