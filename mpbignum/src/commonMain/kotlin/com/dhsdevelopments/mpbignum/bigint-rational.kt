@@ -5,6 +5,12 @@ interface Rational {
     val denominator: BigInt
 
     operator fun plus(other: Rational): Rational
+    operator fun minus(other: Rational): Rational
+    operator fun times(other: Rational): Rational
+    operator fun div(other: Rational): Rational
+    operator fun unaryMinus(): Rational
+
+    fun toDouble(): Double
 
     companion object {
     }

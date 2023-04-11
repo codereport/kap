@@ -94,3 +94,7 @@ actual fun BigInt.signum(): Int {
 actual fun BigInt.gcd(other: BigInt): BigInt {
     return BigInt(inner.gcd(other.inner))
 }
+
+actual fun BigInt.toString(radix: Int): String {
+    return inner.toString(radix)
+}

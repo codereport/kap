@@ -208,3 +208,9 @@ actual fun BigInt.signum(): Int {
 actual fun BigInt.gcd(other: BigInt): BigInt {
     return standardGcd(this, other)
 }
+
+actual fun BigInt.toString(radix: Int): String {
+    @Suppress("UNUSED_VARIABLE")
+    val a = this.inner
+    return js("a.toString(radix)")
+}

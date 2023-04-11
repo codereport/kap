@@ -35,13 +35,7 @@ inline fun NativePlacement.allocMpzStruct(): mpz_t = allocArray<__mpz_struct>(si
 
 actual value class BigInt actual constructor(actual val impl: Any) {
     override fun toString(): String {
-        val m = inner
-        val size = mpz_sizeinbase!!(m, 10)
-        memScoped {
-            val buf = allocArray<ByteVar>(size.toLong() + 2)
-            mpz_get_str!!(buf, 10, m)
-            return buf.toKString()
-        }
+        return this.toString(10)
     }
 
     val inner get() = (impl as MpzWrapper).value
@@ -199,3 +193,13 @@ actual fun BigInt.signum(): Int {
 }
 
 actual fun BigInt.gcd(other: BigInt) = basicOperation(other) { result, a, b -> mpz_gcd!!(result.value, a, b) }
+
+actual fun BigInt.toString(radix: Int): String {
+    val m = inner
+    val size = mpz_sizeinbase!!(m, radix)
+    memScoped {
+        val buf = allocArray<ByteVar>(size.toLong() + 2)
+        mpz_get_str!!(buf, radix, m)
+        return buf.toKString()
+    }
+}

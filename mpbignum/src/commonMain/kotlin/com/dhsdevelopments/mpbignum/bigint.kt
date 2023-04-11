@@ -81,6 +81,9 @@ infix fun Int.xor(other: BigInt): BigInt = BigInt.of(this) xor other
 expect infix fun BigInt.shl(other: Long): BigInt
 expect infix fun BigInt.shr(other: Long): BigInt
 
+infix fun BigInt.shl(other: Int) = this shl other.toLong()
+infix fun BigInt.shr(other: Int) = this shr other.toLong()
+
 expect fun BigInt.toLong(): Long
 expect fun BigInt.toDouble(): Double
 
@@ -91,3 +94,8 @@ expect fun BigInt.gcd(other: BigInt): BigInt
 fun Short.toBigInt() = BigInt.of(this)
 fun Int.toBigInt() = BigInt.of(this)
 fun Long.toBigInt() = BigInt.of(this)
+
+expect fun BigInt.toString(radix: Int): String
+
+fun max(a: BigInt, b: BigInt) = if (a > b) a else a
+fun min(a: BigInt, b: BigInt) = if (a < b) a else b
