@@ -82,6 +82,9 @@ class RationalStandard(numeratorInt: BigInt, denominatorInt: BigInt, isNormalise
     console.log(f(3n**100n, 2n))
     */
 
+    // Better version:
+    // https://github.com/neelance/go/blob/4d23cbc67100c1ce50b7d4fcc67e50091f92eb5b/src/math/big/rat.go#L169
+
     override fun toDouble(): Double {
         val sa = max(0, numerator.toString(2).length - 64)
         val sb = max(0, denominator.toString(2).length - 64)
