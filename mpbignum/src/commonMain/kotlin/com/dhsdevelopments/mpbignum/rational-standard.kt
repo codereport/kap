@@ -20,7 +20,7 @@ class RationalStandard(numeratorInt: BigInt, denominatorInt: BigInt, isNormalise
                 denominatorInt0 = -denominatorInt
             }
             else -> {
-                throw IllegalArgumentException("Zero denominator")
+                throw ArithmeticException("Zero denominator")
             }
         }
 
@@ -39,25 +39,28 @@ class RationalStandard(numeratorInt: BigInt, denominatorInt: BigInt, isNormalise
         }
     }
 
-    override operator fun plus(other: Rational): Rational {
-        return if (this.denominator == other.denominator) {
-            RationalStandard(this.numerator + other.numerator, this.denominator, true)
+    private inline fun <T> alignDenominator(other: Rational, fn: (n0: BigInt, n1: BigInt, denominator: BigInt) -> T): T {
+        val num0 = numerator
+        val den0 = denominator
+        val num1 = other.numerator
+        val den1 = other.denominator
+        return if (den0 == den1) {
+            fn(num0, num1, den0)
         } else {
-            val lcm = (this.denominator * other.denominator) / this.denominator.gcd(other.denominator)
-            val ra = lcm / this.denominator
-            val rb = lcm / other.denominator
-            RationalStandard(numerator * ra + other.numerator * rb, lcm)
+            val common = den0 * den1
+            fn(num0 * den1, num1 * den0, common)
+        }
+    }
+
+    override operator fun plus(other: Rational): Rational {
+        return alignDenominator(other) { n0, n1, den ->
+            RationalStandard(n0 + n1, den)
         }
     }
 
     override operator fun minus(other: Rational): Rational {
-        return if (this.denominator == other.denominator) {
-            RationalStandard(this.numerator - other.numerator, this.denominator)
-        } else {
-            val lcm = (this.denominator * other.denominator) / this.denominator.gcd(other.denominator)
-            val ra = lcm / this.denominator
-            val rb = lcm / other.denominator
-            RationalStandard(numerator * ra - other.numerator * rb, lcm)
+        return alignDenominator(other) { n0, n1, den ->
+            RationalStandard(n0 - n1, den)
         }
     }
 
@@ -73,14 +76,35 @@ class RationalStandard(numeratorInt: BigInt, denominatorInt: BigInt, isNormalise
         return RationalStandard(-this.numerator, this.denominator)
     }
 
-    /*
-    let f = (a,b) => {
-      let [sa,sb] = [a,b].map(c=>Math.max(0,c.toString(2).length-64));
-      return Number(a>>BigInt(sa)) / Number(b>>BigInt(sb)) * Math.pow(2, sa-sb);
+    override fun rem(other: Rational): Rational {
+        return alignDenominator(other) { n0, n1, den ->
+            RationalStandard(n0 % n1, den)
+        }
     }
-    console.log(f(3n * 3n**1000n, 10n * 3n**1000n))
-    console.log(f(3n**100n, 2n))
-    */
+
+    override fun compareTo(other: Rational): Int {
+        return alignDenominator(other) { n0, n1, _ ->
+            n0.compareTo(n1)
+        }
+    }
+
+    override fun pow(other: Long): Rational {
+        return when {
+            other == 0L -> RationalStandard(BigIntConstants.ONE, BigIntConstants.ONE)
+            numerator == BigIntConstants.ZERO -> this
+            other < 0 -> RationalStandard(denominator.pow(-other), numerator.pow(-other))
+            else -> RationalStandard(numerator.pow(other), denominator.pow(other))
+        }
+    }
+
+    /*
+        let f = (a,b) => {
+          let [sa,sb] = [a,b].map(c=>Math.max(0,c.toString(2).length-64));
+          return Number(a>>BigInt(sa)) / Number(b>>BigInt(sb)) * Math.pow(2, sa-sb);
+        }
+        console.log(f(3n * 3n**1000n, 10n * 3n**1000n))
+        console.log(f(3n**100n, 2n))
+        */
 
     // Better version:
     // https://github.com/neelance/go/blob/4d23cbc67100c1ce50b7d4fcc67e50091f92eb5b/src/math/big/rat.go#L169
