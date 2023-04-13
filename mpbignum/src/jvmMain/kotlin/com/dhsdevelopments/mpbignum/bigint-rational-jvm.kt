@@ -2,6 +2,7 @@ package com.dhsdevelopments.mpbignum
 
 import org.apache.commons.math3.exception.ZeroException
 import org.apache.commons.math3.fraction.BigFraction
+import java.math.BigInteger
 
 class JvmRational private constructor(val value: BigFraction) : Rational {
     constructor(a: BigInt, b: BigInt) : this(BigFraction(a.inner, b.inner))
@@ -54,9 +55,43 @@ class JvmRational private constructor(val value: BigFraction) : Rational {
         return JvmRational(value.pow(other))
     }
 
+    override fun signum(): Int {
+        return when {
+            this > 0 -> 1
+            this < 0 -> -1
+            else -> 0
+        }
+    }
+
+    override fun ceil(): BigInt {
+        return if (value.denominator == BigInteger.ONE) {
+            BigInt(value.numerator)
+        } else if (value.numerator < BigInteger.ZERO) {
+            return BigInt(value.numerator / value.denominator)
+        } else {
+            return BigInt(value.numerator / value.denominator + BigInteger.ONE)
+        }
+    }
+
+    override fun floor(): BigInt {
+        return if (value.denominator == BigInteger.ONE) {
+            BigInt(value.numerator)
+        } else if (value.numerator < BigInteger.ZERO) {
+            BigInt(value.numerator / value.denominator - BigInteger.ONE)
+        } else {
+            BigInt(value.numerator / value.denominator)
+        }
+    }
+
+    override fun toLongTruncated(): Long {
+        return value.toLong()
+    }
+
     override fun toDouble(): Double {
         return value.toDouble()
     }
+
+    override fun toString() = value.toString()
 
     override fun equals(other: Any?): Boolean {
         if (this === other) {
@@ -78,4 +113,12 @@ actual fun Rational.Companion.make(a: BigInt, b: BigInt): Rational {
     } catch (e: ZeroException) {
         throw ArithmeticException("Zero denominator")
     }
+}
+
+actual fun Rational.Companion.make(a: Long, b: Long): Rational {
+    return make(a.toBigInt(), b.toBigInt())
+}
+
+actual fun Rational.Companion.make(a: String, b: String): Rational {
+    return make(BigInt.of(a), BigInt.of(b))
 }

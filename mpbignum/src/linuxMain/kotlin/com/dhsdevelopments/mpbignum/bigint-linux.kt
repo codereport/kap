@@ -66,7 +66,7 @@ actual val BigInt.absoluteValue: BigInt
 actual operator fun BigInt.plus(other: BigInt) = basicOperation(other) { result, a, b -> mpz_add!!(result, a, b) }
 actual operator fun BigInt.minus(other: BigInt) = basicOperation(other) { result, a, b -> mpz_sub!!(result, a, b) }
 actual operator fun BigInt.times(other: BigInt) = basicOperation(other) { result, a, b -> mpz_mul!!(result, a, b) }
-actual operator fun BigInt.div(other: BigInt) = basicOperation(other) { result, a, b -> mpz_div!!(result, a, b) }
+actual operator fun BigInt.div(other: BigInt) = basicOperation(other) { result, a, b -> mpz_tdiv_q!!(result, a, b) }
 
 actual operator fun BigInt.unaryMinus() = basicOperation1Arg { result, a -> mpz_neg!!(result, a) }
 
@@ -184,12 +184,16 @@ actual infix fun BigInt.shr(other: Long): BigInt {
     }
 }
 
-actual fun BigInt.toLong(): Long {
-    return if (this.signum() == -1) {
-        -mpz_get_ui!!(this.inner).toLong()
+internal fun mpzToLong(value: mpz_t): Long {
+    return if (mpz_sgn_wrap(value) == -1) {
+        -mpz_get_ui!!(value).toLong()
     } else {
-        mpz_get_ui!!(this.inner).toLong()
+        mpz_get_ui!!(value).toLong()
     }
+}
+
+actual fun BigInt.toLong(): Long {
+    return mpzToLong(this.inner)
 }
 
 actual fun BigInt.toDouble(): Double {

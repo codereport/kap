@@ -1,6 +1,8 @@
 package array
 
 import array.complex.Complex
+import com.dhsdevelopments.mpbignum.Rational
+import com.dhsdevelopments.mpbignum.make
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
@@ -42,7 +44,7 @@ class InverseFnTest : APLTest() {
 
     @Test
     fun reciprocalInverse() {
-        assertSimpleDouble(0.125, parseAPLExpression("÷inverse 8"))
+        assertRational(Rational.make(1, 8), parseAPLExpression("÷inverse 8"))
     }
 
     @Test
@@ -62,7 +64,7 @@ class InverseFnTest : APLTest() {
 
     @Test
     fun mulInverse1() {
-        assertSimpleDouble(0.2, parseAPLExpression("10 ×⍨inverse 2"))
+        assertRational(Rational.make(1, 5), parseAPLExpression("10 ×⍨inverse 2"))
     }
 
     @Test
@@ -139,7 +141,7 @@ class InverseFnTest : APLTest() {
 
     @Test
     fun inverseWithMonadicChain2() {
-        assertSimpleDouble(0.125, parseAPLExpression("((2+)÷)inverse 10"))
+        assertRational(Rational.make(1, 8), parseAPLExpression("((2+)÷)inverse 10"))
     }
 
     @Test

@@ -20,6 +20,20 @@ class LinuxRational(val value: mpq_t) : Rational {
             return LinuxRational(m)
         }
 
+        fun make(a: Long, b: Long): LinuxRational {
+            if (b == 0L) {
+                throw ArithmeticException("Denominator is zero")
+            }
+            val m = nativeHeap.allocMpqStruct()
+            if (b > 0) {
+                mpq_set_si_wrap(m, a, b.toULong())
+            } else {
+                mpq_set_si_wrap(m, -a, (-b).toULong())
+            }
+            mpq_canonicalize!!(m)
+            return LinuxRational(m)
+        }
+
         fun make(s: String): LinuxRational {
             val m0 = memScoped {
                 val m = nativeHeap.allocMpqStruct()
@@ -34,6 +48,10 @@ class LinuxRational(val value: mpq_t) : Rational {
                 m
             }
             return LinuxRational(m0)
+        }
+
+        fun make(a: String, b: String): Rational {
+            return make("${a}/${b}")
         }
     }
 
@@ -212,6 +230,53 @@ class LinuxRational(val value: mpq_t) : Rational {
         }
     }
 
+    override fun signum(): Int {
+        return mpq_sgn_wrap(value)
+    }
+
+    override fun ceil(): BigInt {
+        val num = numerator
+        val den = denominator
+        return if (mpz_cmp_si_wrap(den.inner, 1) == 0) {
+            num
+        } else {
+            val res = MpzWrapper.allocMpzWrapper()
+            mpz_cdiv_q!!(res.value, num.inner, den.inner)
+            BigInt(res)
+        }
+    }
+
+    override fun floor(): BigInt {
+        val num = numerator
+        val den = denominator
+        return if (mpz_cmp_si_wrap(den.inner, 1) == 0) {
+            num
+        } else {
+            val res = MpzWrapper.allocMpzWrapper()
+            mpz_fdiv_q!!(res.value, num.inner, den.inner)
+            BigInt(res)
+        }
+    }
+
+    override fun toLongTruncated(): Long {
+        memScoped {
+            val num = numerator.inner
+            val den = denominator.inner
+            return when {
+                mpz_cmp_si_wrap(den, 1) == 0 -> {
+                    mpzToLong(num)
+                }
+                else -> {
+                    val a = allocMpzStruct()
+                    mpz_tdiv_q!!(a, num, den)
+                    val result = mpzToLong(a)
+                    mpz_clear!!(a)
+                    result
+                }
+            }
+        }
+    }
+
     override fun toDouble(): Double {
         return mpq_get_d!!(value)
     }
@@ -266,5 +331,13 @@ class LinuxRational(val value: mpq_t) : Rational {
 }
 
 actual fun Rational.Companion.make(a: BigInt, b: BigInt): Rational {
+    return LinuxRational.make(a, b)
+}
+
+actual fun Rational.Companion.make(a: Long, b: Long): Rational {
+    return LinuxRational.make(a, b)
+}
+
+actual fun Rational.Companion.make(a: String, b: String): Rational {
     return LinuxRational.make(a, b)
 }

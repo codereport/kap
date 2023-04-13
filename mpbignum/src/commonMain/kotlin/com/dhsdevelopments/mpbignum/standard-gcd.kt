@@ -16,5 +16,5 @@ fun standardGcd(a: BigInt, b: BigInt): BigInt {
         b0 = a0 % b0
         a0 = z
     }
-    return a0
+    return a0.absoluteValue
 }

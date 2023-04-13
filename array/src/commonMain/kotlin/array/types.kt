@@ -17,7 +17,8 @@ enum class APLValueType(val typeName: String) {
     LAMBDA_FN("function"),
     LIST("list"),
     MAP("map"),
-    INTERNAL("internal")
+    INTERNAL("internal"),
+    RATIONAL("rational")
 }
 
 enum class FormatStyle {

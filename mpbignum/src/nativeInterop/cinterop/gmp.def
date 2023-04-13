@@ -6,10 +6,22 @@ linkerOpts.linux = -L/usr/lib64 -L/usr/lib/x86_64-linux-gnu -lgmp
 
 ---
 
+static inline int mpz_cmp_si_wrap(const mpz_t op1, unsigned long op2) {
+    return mpz_cmp_si(op1, op2);
+}
+
 static inline int mpz_sgn_wrap(const mpz_t op) {
     return mpz_sgn(op);
 }
 
 static inline int mpq_cmp_si_wrap(const mpq_t op, long num2, unsigned long den2) {
     return mpq_cmp_si(op, num2, den2);
+}
+
+static inline int mpq_sgn_wrap(const mpq_t op) {
+    return mpq_sgn(op);
+}
+
+static inline void mpq_set_si_wrap(const mpq_t op, long num, unsigned long den) {
+    mpq_set_si(op, num, den);
 }

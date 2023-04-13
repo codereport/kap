@@ -1,5 +1,7 @@
 package array
 
+import com.dhsdevelopments.mpbignum.Rational
+import com.dhsdevelopments.mpbignum.make
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -514,14 +516,14 @@ class ComposeTest : APLTest() {
     @Test
     fun leftBindWithTrainArgument() {
         parseAPLExpression("(1(-÷)) 4").let { result ->
-            assertSimpleDouble(-0.25, result)
+            assertRational(Rational.make(-1, 4), result)
         }
     }
 
     @Test
     fun leftBindArgumentIsFirstArgInTrain() {
         parseAPLExpression("((3-)÷) 8").let { result ->
-            assertSimpleDouble(2.875, result)
+            assertRational(Rational.make(23, 8), result)
         }
     }
 
@@ -621,7 +623,7 @@ class ComposeTest : APLTest() {
     @Test
     fun forkWithNewSyntax() {
         parseAPLExpression("+/«÷»≢ 1 2 3 4").let { result ->
-            assertSimpleDouble(2.5, result)
+            assertRational(Rational.make(5, 2), result)
         }
     }
 
