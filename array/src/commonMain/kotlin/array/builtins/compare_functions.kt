@@ -5,6 +5,7 @@ import array.OptimisationFlags.Companion.OPTIMISATION_FLAG_2ARG_LONG_LONG
 import array.complex.Complex
 import com.dhsdevelopments.mpbignum.BigInt
 import com.dhsdevelopments.mpbignum.LongExpressionOverflow
+import com.dhsdevelopments.mpbignum.Rational
 
 class EqualsAPLFunction : APLFunctionDescriptor {
     class EqualsAPLFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
@@ -200,6 +201,9 @@ inline fun numericRelationOperation(
     },
     fnBigint: ((aBigint: BigInt, bBigint: BigInt) -> APLValue) = { _, _ ->
         throwAPLException(IncompatibleTypeException("Bigint is not supported", pos))
+    },
+    fnRational: ((aRational: Rational, bRational: Rational) -> APLValue) = { _, _ ->
+        throwAPLException(IncompatibleTypeException("Rational is not supported", pos))
     }
 ): APLValue {
     return when {
@@ -208,6 +212,7 @@ inline fun numericRelationOperation(
                 a is APLComplex || b is APLComplex -> fnComplex(a.asComplex(), b.asComplex())
                 a is APLDouble || b is APLDouble -> fnDouble(a.asDouble(), b.asDouble())
                 a is APLBigInt || b is APLBigInt -> fnBigint(a.asBigInt(), b.asBigInt())
+                a is APLRational || b is APLRational -> fnRational(a.asRational(), b.asRational())
                 else -> try {
                     fnLong(a.asLong(pos), b.asLong(pos))
                 } catch (e: LongExpressionOverflow) {
@@ -229,7 +234,8 @@ inline fun singleArgNumericRelationOperation(
     fnDouble: (Double) -> APLValue,
     fnComplex: (Complex) -> APLValue,
     fnChar: ((Int) -> APLValue) = { _ -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos)) },
-    fnBigInt: ((BigInt) -> APLValue) = { _ -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos)) }
+    fnBigInt: ((BigInt) -> APLValue) = { _ -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos)) },
+    fnRational: ((Rational) -> APLValue) = { _ -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos)) }
 ): APLValue {
     return when (a) {
         is APLLong -> fnLong(a.asLong(pos))
@@ -237,6 +243,7 @@ inline fun singleArgNumericRelationOperation(
         is APLComplex -> fnComplex(a.asComplex())
         is APLChar -> fnChar(a.value)
         is APLBigInt -> fnBigInt(a.value)
+        is APLRational -> fnRational(a.value)
         else -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos))
     }
 }

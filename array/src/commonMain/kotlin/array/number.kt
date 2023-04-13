@@ -27,6 +27,7 @@ abstract class APLNumber : APLSingleValue() {
     override fun asBoolean(pos: Position?) = asInt(pos) != 0
 
     open fun asBigInt(): BigInt = TODO("foo")
+    open fun asRational(): Rational = TODO("foo")
 }
 
 class APLLong(val value: Long) : APLNumber() {
@@ -35,6 +36,9 @@ class APLLong(val value: Long) : APLNumber() {
     override fun asLong(pos: Position?) = value
     override fun asComplex() = Complex(value.toDouble())
     override fun isComplex() = false
+    override fun asBoolean(pos: Position?) = value != 0L
+    override fun asBigInt() = BigInt.of(value)
+    override fun asRational() = Rational.make(value.toBigInt(), BigIntConstants.ONE)
 
     override fun formatted(style: FormatStyle) = when (style) {
         FormatStyle.PLAIN -> value.toString()
@@ -60,9 +64,6 @@ class APLLong(val value: Long) : APLNumber() {
 
     override fun toString() = "APLLong(${formatted(FormatStyle.PRETTY)})"
     override fun makeKey() = APLValueKeyImpl(this, value)
-    override fun asBoolean(pos: Position?) = value != 0L
-
-    override fun asBigInt() = BigInt.of(value)
 }
 
 class APLDouble(val value: Double) : APLNumber() {
@@ -128,8 +129,9 @@ class APLBigInt(val value: BigInt) : APLWideNumber() {
     }
 
     override fun asComplex() = value.toDouble().toComplex()
-
     override fun isComplex() = false
+    override fun asBigInt() = value
+    override fun asRational() = Rational.make(value, BigIntConstants.ONE)
 
     override val aplValueType: APLValueType get() = APLValueType.INTEGER
 
@@ -161,8 +163,6 @@ class APLBigInt(val value: BigInt) : APLWideNumber() {
         return APLValueKeyImpl(this, value)
     }
 
-    override fun asBigInt() = value
-
     override fun toString() = "APLBigInt(${formatted(FormatStyle.PRETTY)})"
 }
 
@@ -174,22 +174,40 @@ class APLRational(val value: Rational): APLWideNumber() {
     }
 
     override fun asComplex() = value.toDouble().toComplex()
-
     override fun isComplex() = false
+    override fun asRational() = value
 
     override val aplValueType: APLValueType get() = APLValueType.RATIONAL
 
     override fun formatted(style: FormatStyle) = when (style) {
         FormatStyle.PLAIN -> "${value.numerator}/${value.denominator}"
         FormatStyle.PRETTY -> "${value.numerator}/${value.denominator}"
-        FormatStyle.READABLE ->"${bigIntToStringReadable(value.numerator)}/${bigIntToStringReadable(value.denominator)}"
+        FormatStyle.READABLE -> "(${bigIntToStringReadable(value.numerator)}÷${bigIntToStringReadable(value.denominator)})"
+    }
+
+    override fun compareEquals(reference: APLValue) = when (val v = reference.unwrapDeferredValue()) {
+        is APLLong -> value == Rational.make(v.value.toBigInt(), BigIntConstants.ONE)
+        is APLDouble -> TODO("foo")
+        is APLComplex -> TODO("foo")
+        is APLBigInt -> value == Rational.make(v.value, BigIntConstants.ONE)
+        is APLRational -> value == v.value
+        else -> false
+    }
+
+    override fun compare(reference: APLValue, pos: Position?) = when (val v = reference.unwrapDeferredValue()) {
+        is APLLong -> value.compareTo(Rational.make(v.value.toBigInt(), BigIntConstants.ONE))
+        is APLDouble -> value.toDouble().compareTo(v.value)
+        is APLComplex -> compareComplex(value.toDouble().toComplex(), v.value)
+        is APLBigInt -> value.compareTo(Rational.make(v.value, BigIntConstants.ONE))
+        is APLRational -> value.compareTo(v.value)
+        else -> super.compare(v, pos)
     }
 
     override fun makeKey(): APLValueKey {
         return APLValueKeyImpl(this, value)
     }
 
-    override fun toString() = "APLRational(${formatted(FormatStyle.PRETTY)}"
+    override fun toString() = "APLRational(${formatted(FormatStyle.PRETTY)})"
 }
 
 class NumberComplexException(value: Complex, pos: Position? = null) : IncompatibleTypeException("Number is complex: ${value}", pos)
@@ -262,6 +280,7 @@ fun Long.makeAPLNumber(): APLLong {
 fun Double.makeAPLNumber() = APLDouble(this)
 fun Complex.makeAPLNumber() = if (this.imaginary == 0.0) APLDouble(real) else APLComplex(this)
 fun BigInt.makeAPLNumber() = APLBigInt(this)
+fun Rational.makeAPLNumber() = if (denominator == BigIntConstants.ONE) numerator.makeAPLNumber() else APLRational(this)
 
 private fun compareComplex(a: Complex, b: Complex): Int {
     return if (a.real == b.real) {

@@ -39,6 +39,10 @@ class RationalStandard(numeratorInt: BigInt, denominatorInt: BigInt, isNormalise
         }
     }
 
+    override fun toLongTruncated(): Long {
+        return (numerator / denominator).toLong()
+    }
+
     private inline fun <T> alignDenominator(other: Rational, fn: (n0: BigInt, n1: BigInt, denominator: BigInt) -> T): T {
         val num0 = numerator
         val den0 = denominator
@@ -94,6 +98,14 @@ class RationalStandard(numeratorInt: BigInt, denominatorInt: BigInt, isNormalise
             numerator == BigIntConstants.ZERO -> this
             other < 0 -> RationalStandard(denominator.pow(-other), numerator.pow(-other))
             else -> RationalStandard(numerator.pow(other), denominator.pow(other))
+        }
+    }
+
+    override fun signum(): Int {
+        return when {
+            this > 0 -> 1
+            this < 0 -> -1
+            else -> 0
         }
     }
 

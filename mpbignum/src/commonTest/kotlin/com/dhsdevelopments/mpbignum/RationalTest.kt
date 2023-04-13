@@ -24,6 +24,14 @@ class RationalTest {
     }
 
     @Test
+    fun createFromLong() {
+        assertEquals(mkrational(9, 8), Rational.make(9, 8))
+        assertEquals(mkrational(-3, 2), Rational.make(-3, 2))
+        assertEquals(mkrational(-8, -64), Rational.make(1, 8))
+        assertEquals(mkrational(6, -8), Rational.make(-3, 4))
+    }
+
+    @Test
     fun testDenormalised0() {
         val a = mkrational(4, 12)
         assertEquals(mkrational(1, 3), a)
@@ -330,6 +338,62 @@ class RationalTest {
         val a = mkrational(0, 1)
         val b = mkrational(0, 1)
         assertEquals(a, b)
+    }
+
+    @Test
+    fun testSignum0() {
+        val a = mkrational(2, 1)
+        val b = a.signum()
+        assertEquals(1, b)
+    }
+
+    @Test
+    fun testSignum1() {
+        val a = mkrational(-2, 1)
+        val b = a.signum()
+        assertEquals(-1, b)
+    }
+
+    @Test
+    fun testSignum2() {
+        val a = mkrational(0, 1)
+        val b = a.signum()
+        assertEquals(0, b)
+    }
+
+    @Test
+    fun testConvertToLong0() {
+        val a = mkrational(2, 1)
+        val b = a.toLongTruncated()
+        assertEquals(2, b)
+    }
+
+    @Test
+    fun testConvertToLong1() {
+        val a = mkrational(14, 3)
+        val b = a.toLongTruncated()
+        assertEquals(4, b)
+    }
+
+    @Test
+    fun testConvertToLong2() {
+        val a = mkrational(-2, 1)
+        val b = a.toLongTruncated()
+        assertEquals(-2, b)
+    }
+
+    @Test
+    fun testConvertToLong3() {
+        val a = mkrational(-10, 3)
+        val b = a.toLongTruncated()
+        assertEquals(-3, b)
+    }
+
+    @Test
+    fun testConvertToLong4() {
+        val a = mkrational(Long.MAX_VALUE, 1) + 12
+        val b = a.toLongTruncated()
+        assertEquals(Long.MIN_VALUE + 11, b)
     }
 
     private fun assertDouble(expected: Double, precision: Int, result: Double) {
