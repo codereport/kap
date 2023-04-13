@@ -75,7 +75,7 @@ value class Dimensions(val dimensions: IntArray) {
 
     fun multipliers(): DimensionMultipliers {
         var curr = 1
-        val a = IntArray(dimensions.size) { 0 }
+        val a = IntArray(dimensions.size)
         for (i in dimensions.size - 1 downTo 0) {
             a[i] = curr
             curr *= dimensions[i]
