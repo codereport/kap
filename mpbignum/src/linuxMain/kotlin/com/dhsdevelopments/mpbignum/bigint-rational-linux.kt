@@ -20,6 +20,20 @@ class LinuxRational(val value: mpq_t) : Rational {
             return LinuxRational(m)
         }
 
+        fun make(a: Long, b: Long): LinuxRational {
+            if (b == 0L) {
+                throw ArithmeticException("Denominator is zero")
+            }
+            val m = nativeHeap.allocMpqStruct()
+            if (b > 0) {
+                mpq_set_si_wrap(m, a, b.toULong())
+            } else {
+                mpq_set_si_wrap(m, -a, (-b).toULong())
+            }
+            mpq_canonicalize!!(m)
+            return LinuxRational(m)
+        }
+
         fun make(s: String): LinuxRational {
             val m0 = memScoped {
                 val m = nativeHeap.allocMpqStruct()
@@ -212,6 +226,38 @@ class LinuxRational(val value: mpq_t) : Rational {
         }
     }
 
+    override fun signum(): Int {
+        return mpq_sgn_wrap(value)
+    }
+
+    override fun toLongTruncated(): Long {
+        memScoped {
+            val num = numerator.inner
+            val den = denominator.inner
+            return when {
+                mpz_cmp_si_wrap(den, 1) == 0 -> {
+                    mpzToLong(num)
+                }
+                mpz_sgn_wrap(num) == -1 -> {
+                    val adjusted = allocMpzStruct()
+                    mpz_add_ui!!(adjusted, num, 1UL)
+                    val a = allocMpzStruct()
+                    mpz_div!!(a, adjusted, den)
+                    val result = mpzToLong(a)
+                    mpz_clear!!(a)
+                    result
+                }
+                else -> {
+                    val a = allocMpzStruct()
+                    mpz_div!!(a, num, den)
+                    val result = mpzToLong(a)
+                    mpz_clear!!(a)
+                    result
+                }
+            }
+        }
+    }
+
     override fun toDouble(): Double {
         return mpq_get_d!!(value)
     }
@@ -266,5 +312,9 @@ class LinuxRational(val value: mpq_t) : Rational {
 }
 
 actual fun Rational.Companion.make(a: BigInt, b: BigInt): Rational {
+    return LinuxRational.make(a, b)
+}
+
+actual fun Rational.Companion.make(a: Long, b: Long): Rational {
     return LinuxRational.make(a, b)
 }

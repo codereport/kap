@@ -184,12 +184,16 @@ actual infix fun BigInt.shr(other: Long): BigInt {
     }
 }
 
-actual fun BigInt.toLong(): Long {
-    return if (this.signum() == -1) {
-        -mpz_get_ui!!(this.inner).toLong()
+internal fun mpzToLong(value: mpz_t): Long {
+    return if (mpz_sgn_wrap(value) == -1) {
+        -mpz_get_ui!!(value).toLong()
     } else {
-        mpz_get_ui!!(this.inner).toLong()
+        mpz_get_ui!!(value).toLong()
     }
+}
+
+actual fun BigInt.toLong(): Long {
+    return mpzToLong(this.inner)
 }
 
 actual fun BigInt.toDouble(): Double {

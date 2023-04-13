@@ -2,6 +2,7 @@ package array
 
 import array.complex.Complex
 import com.dhsdevelopments.mpbignum.BigInt
+import com.dhsdevelopments.mpbignum.Rational
 import com.dhsdevelopments.mpbignum.of
 import kotlin.math.pow
 import kotlin.test.*
@@ -147,6 +148,11 @@ abstract class APLTest {
         assertAPLValue(InnerBigIntOrLong(expected), result, message)
     }
 
+    fun assertRational(expected: Rational, result: APLValue, message: String? = null) {
+        assertTrue(result is APLRational)
+        assertEquals(expected, result.value, message)
+    }
+
     fun assertString(expected: String, value: APLValue, message: String? = null) {
         val suffix = if (message != null) ": ${message}" else ""
         assertEquals(1, value.dimensions.size, "Expected rank-1, got: ${value.dimensions.size}${suffix}")
@@ -171,6 +177,7 @@ abstract class APLTest {
             is String -> assertString(expected, result, message)
             is NearDouble -> assertNearDouble(expected, result, message)
             is InnerTest -> expected.assertContent(result, message)
+            is Rational -> assertRational(expected, result, message)
             else -> throw IllegalArgumentException("No support for comparing values of type: ${result::class.simpleName}")
         }
     }
