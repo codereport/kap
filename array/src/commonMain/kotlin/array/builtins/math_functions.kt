@@ -509,7 +509,7 @@ class DivAPLFunction : APLFunctionDescriptor {
             return singleArgNumericRelationOperation(
                 pos,
                 a,
-                { x -> if (x == 0L) APLLONG_0 else (1.0 / x).makeAPLNumber() },
+                { x -> if (x == 0L) APLLONG_0 else Rational.make(BigIntConstants.ONE, x.toBigInt()).makeAPLNumber() },
                 { x -> if (x == 0.0) APLLONG_0 else (1.0 / x).makeAPLNumber() },
                 { x -> if (x == Complex.ZERO) APLLONG_0 else x.reciprocal().makeAPLNumber() },
                 fnBigInt = { x -> Rational.make(BigIntConstants.ONE, x).makeAPLNumber() },
@@ -784,7 +784,7 @@ class MinAPLFunction : APLFunctionDescriptor {
                 { x -> floor(x).makeAPLNumber() },
                 { x -> complexFloor(x).makeAPLNumber() },
                 fnBigInt = { x -> x.makeAPLNumber() },
-                fnRational = { x -> floor().makeAPLNumber() })
+                fnRational = { x -> x.floor().makeAPLNumber() })
         }
 
         override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
@@ -826,7 +826,7 @@ class MaxAPLFunction : APLFunctionDescriptor {
                 { x -> ceil(x).makeAPLNumber() },
                 { x -> complexCeiling(x).makeAPLNumber() },
                 fnBigInt = { x -> x.makeAPLNumber() },
-                fnRational = { x -> ceil().makeAPLNumber() })
+                fnRational = { x -> x.ceil().makeAPLNumber() })
         }
 
         override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {

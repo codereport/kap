@@ -523,7 +523,7 @@ class ComposeTest : APLTest() {
     @Test
     fun leftBindArgumentIsFirstArgInTrain() {
         parseAPLExpression("((3-)÷) 8").let { result ->
-            assertSimpleDouble(2.875, result)
+            assertRational(Rational.make(23, 8), result)
         }
     }
 

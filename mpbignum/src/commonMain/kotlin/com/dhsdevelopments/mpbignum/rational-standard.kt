@@ -109,6 +109,30 @@ class RationalStandard(numeratorInt: BigInt, denominatorInt: BigInt, isNormalise
         }
     }
 
+    override fun ceil(): BigInt {
+        println("ceil: ${this}")
+        return if (denominator == BigIntConstants.ONE) {
+            println("1")
+            numerator
+        } else if (numerator < BigIntConstants.ZERO) {
+            println("2")
+            numerator / denominator
+        } else {
+            println("3")
+            numerator / denominator + BigIntConstants.ONE
+        }
+    }
+
+    override fun floor(): BigInt {
+        return if (denominator == BigIntConstants.ONE) {
+            numerator
+        } else if (numerator < BigIntConstants.ZERO) {
+            numerator / denominator - BigIntConstants.ONE
+        } else {
+            numerator / denominator
+        }
+    }
+
     /*
         let f = (a,b) => {
           let [sa,sb] = [a,b].map(c=>Math.max(0,c.toString(2).length-64));

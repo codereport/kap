@@ -7,13 +7,13 @@ class RationalTest {
     @Test
     fun negativeDenominator() {
         val a = mkrational("1", "-2")
-        assertEquals(mkrational("-1", "2"), a)
+        assertRationalInt("-1", "2", a)
     }
 
     @Test
     fun numAndDenNegative() {
         val a = mkrational("-1", "-2")
-        assertEquals(mkrational("1", "2"), a)
+        assertRationalInt("1", "2", a)
     }
 
     @Test
@@ -25,34 +25,54 @@ class RationalTest {
 
     @Test
     fun createFromLong() {
-        assertEquals(mkrational(9, 8), Rational.make(9, 8))
-        assertEquals(mkrational(-3, 2), Rational.make(-3, 2))
-        assertEquals(mkrational(-8, -64), Rational.make(1, 8))
-        assertEquals(mkrational(6, -8), Rational.make(-3, 4))
+        assertRationalInt(9, 8, Rational.make(9, 8))
+        assertRationalInt(-3, 2, Rational.make(-3, 2))
+        assertRationalInt(1, 8, Rational.make(-8, -64))
+        assertRationalInt(-3, 4, Rational.make(6, -8))
+    }
+
+    @Test
+    fun createFromString() {
+        assertRationalInt(1, 2, Rational.make("1", "2"))
+        assertRationalInt(-3, 2, Rational.make("-3", "2"))
+        assertRationalInt(4, 3, Rational.make("-4", "-3"))
+        assertRationalInt(-3, 4, Rational.make("3", "-4"))
     }
 
     @Test
     fun testDenormalised0() {
         val a = mkrational(4, 12)
-        assertEquals(mkrational(1, 3), a)
+        assertRationalInt(1, 3, a)
     }
 
     @Test
     fun testDenormalised1() {
         val a = mkrational(-4, 12)
-        assertEquals(mkrational(-1, 3), a)
+        assertRationalInt(-1, 3, a)
     }
 
     @Test
     fun testDenormalised2() {
         val a = mkrational(4, -12)
-        assertEquals(mkrational(-1, 3), a)
+        assertRationalInt(-1, 3, a)
     }
 
     @Test
     fun testDenormalised3() {
         val a = mkrational(-4, -12)
-        assertEquals(mkrational(1, 3), a)
+        assertRationalInt(1, 3, a)
+    }
+
+    @Test
+    fun testDenormalised4() {
+        val a = mkrational(-1, 3)
+        assertRationalInt(-1, 3, a)
+    }
+
+    @Test
+    fun testDenormalised5() {
+        val a = mkrational(1, -3)
+        assertRationalInt(-1, 3, a)
     }
 
     @Test
@@ -76,7 +96,7 @@ class RationalTest {
         val a = mkrational("-10", "3")
         val b = mkrational("1", "2")
         val c = a + b
-        assertEquals(mkrational("-17", "6"), c)
+        assertRationalInt("-17", "6", c)
     }
 
     @Test
@@ -84,7 +104,7 @@ class RationalTest {
         val a = mkrational(3, 2)
         val b = mkrational(1, 2)
         val c = a - b
-        assertEquals(mkrational(1, 1), c)
+        assertRationalInt(1, 1, c)
     }
 
     @Test
@@ -92,7 +112,7 @@ class RationalTest {
         val a = mkrational(31, 9)
         val b = mkrational(2, 43)
         val c = a - b
-        assertEquals(mkrational(1315, 387), c)
+        assertRationalInt(1315, 387, c)
     }
 
     @Test
@@ -100,28 +120,28 @@ class RationalTest {
         val a = mkrational(-4, 3)
         val b = mkrational(-4, 9)
         val c = a - b
-        assertEquals(mkrational(-8, 9), c)
+        assertRationalInt(-8, 9, c)
     }
 
     @Test
     fun negateSimple() {
         val a = mkrational(3, 1)
         val b = -a
-        assertEquals(mkrational(-3, 1), b)
+        assertRationalInt(-3, 1, b)
     }
 
     @Test
     fun negateNegative() {
         val a = mkrational(-5, 4)
         val b = -a
-        assertEquals(mkrational(5, 4), b)
+        assertRationalInt(5, 4, b)
     }
 
     @Test
     fun negateZero() {
         val a = mkrational(0, 1)
         val b = -a
-        assertEquals(mkrational(0, 1), b)
+        assertRationalInt(0, 1, b)
     }
 
     @Test
@@ -129,7 +149,7 @@ class RationalTest {
         val a = mkrational(1, 2)
         val b = mkrational(2, 5)
         val c = a * b
-        assertEquals(mkrational(1, 5), c)
+        assertRationalInt(1, 5, c)
     }
 
     @Test
@@ -137,7 +157,7 @@ class RationalTest {
         val a = mkrational(1, 2)
         val b = mkrational(4, 2)
         val c = a * b
-        assertEquals(mkrational(1, 1), c)
+        assertRationalInt(1, 1, c)
     }
 
     @Test
@@ -145,7 +165,7 @@ class RationalTest {
         val a = mkrational(2, 1)
         val b = mkrational(1, 2)
         val c = a / b
-        assertEquals(mkrational(4, 1), c)
+        assertRationalInt(4, 1, c)
     }
 
     @Test
@@ -153,7 +173,7 @@ class RationalTest {
         val a = mkrational(7, 1)
         val b = mkrational(1, 2)
         val c = a / b
-        assertEquals(mkrational(14, 1), c)
+        assertRationalInt(14, 1, c)
     }
 
     @Test
@@ -161,7 +181,7 @@ class RationalTest {
         val a = mkrational(1, 1)
         val b = mkrational(1, 2)
         val c = a / b
-        assertEquals(mkrational(2, 1), c)
+        assertRationalInt(2, 1, c)
     }
 
     @Test
@@ -192,7 +212,7 @@ class RationalTest {
         val a = mkrational(7, 3)
         val b = mkrational(1, 5)
         val c = a % b
-        assertEquals(mkrational(2, 15), c)
+        assertRationalInt(2, 15, c)
     }
 
     @Test
@@ -200,7 +220,7 @@ class RationalTest {
         val a = mkrational(-100, 9)
         val b = mkrational(6, 7)
         val c = a % b
-        assertEquals(mkrational(-52, 63), c)
+        assertRationalInt(-52, 63, c)
     }
 
     @Test
@@ -208,7 +228,7 @@ class RationalTest {
         val a = mkrational(100, 9)
         val b = mkrational(-6, 7)
         val c = a % b
-        assertEquals(mkrational(52, 63), c)
+        assertRationalInt(52, 63, c)
     }
 
     @Test
@@ -216,14 +236,14 @@ class RationalTest {
         val a = mkrational(-100, 9)
         val b = mkrational(-6, 7)
         val c = a % b
-        assertEquals(mkrational(-52, 63), c)
+        assertRationalInt(-52, 63, c)
     }
 
     @Test
     fun testPower0() {
         val a = mkrational(1, 2)
         val b = a.pow(5)
-        assertEquals(mkrational(1, 32), b)
+        assertRationalInt(1, 32, b)
     }
 
     @Test
@@ -231,7 +251,7 @@ class RationalTest {
         val a = mkrational(3, 4)
         val b = -10L
         val c = a.pow(b)
-        assertEquals(mkrational(1048576, 59049), c)
+        assertRationalInt(1048576, 59049, c)
     }
 
     @Test
@@ -239,21 +259,21 @@ class RationalTest {
         val a = mkrational(-8, 5)
         val b = 9L
         val c = a.pow(b)
-        assertEquals(mkrational(-134217728, 1953125), c)
+        assertRationalInt(-134217728, 1953125, c)
     }
 
     @Test
     fun testPower3() {
         val a = mkrational(2, 3)
         val b = a.pow(0)
-        assertEquals(mkrational(1, 1), b)
+        assertRationalInt(1, 1, b)
     }
 
     @Test
     fun testPower4() {
         val a = mkrational(0, 1)
         val b = a.pow(2)
-        assertEquals(mkrational(0, 1), b)
+        assertRationalInt(0, 1, b)
     }
 
     @Test
@@ -394,6 +414,38 @@ class RationalTest {
         val a = mkrational(Long.MAX_VALUE, 1) + 12
         val b = a.toLongTruncated()
         assertEquals(Long.MIN_VALUE + 11, b)
+    }
+
+    @Test
+    fun ceilTest() {
+        assertEquals(BigInt.of(2), mkrational(12, 11).ceil())
+        assertEquals(BigInt.of(0), mkrational(-1, 3).ceil())
+        assertEquals(BigInt.of(5), mkrational(14, 3).ceil())
+        assertEquals(BigInt.of(-4), mkrational(-14, 3).ceil())
+        assertEquals(BigInt.of(12), mkrational(12, 1).ceil())
+        assertEquals(BigInt.of(-12), mkrational(-12, 1).ceil())
+        assertEquals(BigInt.of(3), mkrational(11, 4).ceil())
+        assertEquals(BigInt.of(-2), mkrational(-11, 4).ceil())
+    }
+
+    @Test
+    fun floorTest() {
+        assertEquals(BigInt.of(-3), mkrational(-27, 11).floor())
+        assertEquals(BigInt.of(0), mkrational(1, 3).floor())
+        assertEquals(BigInt.of(4), mkrational(21, 5).floor())
+        assertEquals(BigInt.of(4), mkrational(4, 1).floor())
+        assertEquals(BigInt.of(-4), mkrational(-4, 1).floor())
+        assertEquals(BigInt.of(-5), mkrational(-14, 3).floor())
+    }
+
+    private fun assertRationalInt(a: Long, b: Long, result: Rational) {
+        assertEquals(a.toBigInt(), result.numerator)
+        assertEquals(b.toBigInt(), result.denominator)
+    }
+
+    private fun assertRationalInt(a: String, b: String, result: Rational) {
+        assertEquals(BigInt.of(a), result.numerator)
+        assertEquals(BigInt.of(b), result.denominator)
     }
 
     private fun assertDouble(expected: Double, precision: Int, result: Double) {

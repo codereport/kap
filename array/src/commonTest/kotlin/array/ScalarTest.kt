@@ -139,6 +139,25 @@ class ScalarTest : APLTest() {
     }
 
     @Test
+    fun additionWithDifferentTypes() {
+        assertAPLValue(4, parseAPLExpression("2+2"))
+        assertAPLValue(NearDouble(3.2), parseAPLExpression("2+1.2"))
+        assertAPLValue(Rational.make(7, 3), parseAPLExpression("2+(1÷3)"))
+        assertAPLValue(InnerBigIntOrLong("10000000000000000000000000000000002"), parseAPLExpression("2+10000000000000000000000000000000000"))
+        assertAPLValue(NearDouble(3.2), parseAPLExpression("1.2+2"))
+        assertAPLValue(NearDouble(2.4), parseAPLExpression("1.2+1.2"))
+        assertAPLValue(NearDouble(1.53333333), parseAPLExpression("1.2+(1÷3)"))
+        assertAPLValue(NearDouble(1.0e34, -30), parseAPLExpression("1.2+10000000000000000000000000000000000"))
+        assertAPLValue(Rational.make(7, 3), parseAPLExpression("(1÷3)+2"))
+        assertAPLValue(NearDouble(1.53333333), parseAPLExpression("(1÷3)+1.2"))
+        assertAPLValue(Rational.make(2, 3), parseAPLExpression("(1÷3)+(1÷3)"))
+        assertAPLValue(Rational.make("30000000000000000000000000000000001", "3"), parseAPLExpression("(1÷3)+10000000000000000000000000000000000"))
+        assertAPLValue(InnerBigIntOrLong("10000000000000000000000000000000002"), parseAPLExpression("10000000000000000000000000000000000+2"))
+        assertAPLValue(NearDouble(1.0e34, -30), parseAPLExpression("10000000000000000000000000000000000+1.2"))
+        assertAPLValue(Rational.make("30000000000000000000000000000000001", "3"), parseAPLExpression("10000000000000000000000000000000000+(1÷3)"))
+    }
+
+    @Test
     fun failWithWrongRank() {
         assertFailsWith<APLEvalException> {
             parseAPLExpression("(2 3 ⍴ ⍳6) +[0] 2 3 4 ⍴ ⍳24")
@@ -177,6 +196,8 @@ class ScalarTest : APLTest() {
         runMaxTest(Rational.make(3, 4), "⌈", "(3÷4)", "¯5")
         runMaxTest(Rational.make(1, 2), "⌈", "(¯3÷4)", "(1÷2)")
         runMaxTest(InnerBigIntOrLong(8), "⌈", "(10÷3)", "8")
+        // rational to bigint
+        runMaxTest(InnerBigIntOrLong("1000000000000000000000000000000000000"), "⌈", "(10÷3)", "1000000000000000000000000000000000000")
         // characters
         parseAPLExpression("@a⌈@b").let { result ->
             val v = result.unwrapDeferredValue()
@@ -222,6 +243,12 @@ class ScalarTest : APLTest() {
         runMaxTest(Rational.make(1, 2), "⌈", "(¯3÷4)", "(1÷2)")
         runMaxTest(InnerBigIntOrLong(8), "⌈", "(10÷3)", "8")
 
+        runMaxTest(
+            InnerBigIntOrLong("1000000000000000000000000000000000000"),
+            "⌊",
+            "(5000000000000000000000000000000000000÷3)",
+            "1000000000000000000000000000000000000")
+
         parseAPLExpression("@a⌊@b").let { result ->
             val v = result.unwrapDeferredValue()
             assertTrue(v is APLChar)
@@ -265,7 +292,7 @@ class ScalarTest : APLTest() {
         assertSimpleNumber(3, parseAPLExpression("⌈3"))
         assertSimpleNumber(-3, parseAPLExpression("⌈¯3"))
         assertBigIntOrLong("3", parseAPLExpression("⌈ int:asBigint 3"))
-        assertBigIntOrLong("-3", parseAPLExpression("⌈¯int:asBigint 3"))
+        assertBigIntOrLong("-3", parseAPLExpression("⌈ int:asBigint ¯3"))
     }
 
     @Test

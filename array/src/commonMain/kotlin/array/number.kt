@@ -26,8 +26,8 @@ abstract class APLNumber : APLSingleValue() {
 
     override fun asBoolean(pos: Position?) = asInt(pos) != 0
 
-    open fun asBigInt(): BigInt = TODO("foo")
-    open fun asRational(): Rational = TODO("foo")
+    open fun asBigInt(): BigInt = throwAPLException(APLIllegalArgumentException("Value cannot be converted to bigint: ${formatted(FormatStyle.PLAIN)}"))
+    open fun asRational(): Rational = throwAPLException(APLIllegalArgumentException("Value cannot be converted to rational: ${formatted(FormatStyle.PLAIN)}"))
 }
 
 class APLLong(val value: Long) : APLNumber() {

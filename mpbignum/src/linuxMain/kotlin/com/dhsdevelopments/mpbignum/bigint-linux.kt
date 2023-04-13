@@ -66,7 +66,7 @@ actual val BigInt.absoluteValue: BigInt
 actual operator fun BigInt.plus(other: BigInt) = basicOperation(other) { result, a, b -> mpz_add!!(result, a, b) }
 actual operator fun BigInt.minus(other: BigInt) = basicOperation(other) { result, a, b -> mpz_sub!!(result, a, b) }
 actual operator fun BigInt.times(other: BigInt) = basicOperation(other) { result, a, b -> mpz_mul!!(result, a, b) }
-actual operator fun BigInt.div(other: BigInt) = basicOperation(other) { result, a, b -> mpz_div!!(result, a, b) }
+actual operator fun BigInt.div(other: BigInt) = basicOperation(other) { result, a, b -> mpz_tdiv_q!!(result, a, b) }
 
 actual operator fun BigInt.unaryMinus() = basicOperation1Arg { result, a -> mpz_neg!!(result, a) }
 

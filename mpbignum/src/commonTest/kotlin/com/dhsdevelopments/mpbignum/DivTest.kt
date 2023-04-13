@@ -67,4 +67,36 @@ class DivTest {
         val c = a / b
         assertEquals("-5", c.toString())
     }
+
+    @Test
+    fun divideNotEven0() {
+        val a = BigInt.of(10)
+        val b = BigInt.of(9)
+        val c = a / b
+        assertEquals("1", c.toString())
+    }
+
+    @Test
+    fun divideNotEven1() {
+        val a = BigInt.of(299)
+        val b = BigInt.of(3)
+        val c = a / b
+        assertEquals("99", c.toString())
+    }
+
+    @Test
+    fun divideNotEven2() {
+        val a = BigInt.of(-10)
+        val b = BigInt.of(9)
+        val c = a / b
+        assertEquals("-1", c.toString())
+    }
+
+    @Test
+    fun divideNotEven3() {
+        val a = BigInt.of(-299)
+        val b = BigInt.of(3)
+        val c = a / b
+        assertEquals("-99", c.toString())
+    }
 }

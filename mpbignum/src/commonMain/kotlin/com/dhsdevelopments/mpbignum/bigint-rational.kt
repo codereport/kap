@@ -37,6 +37,7 @@ interface Rational {
 
 expect fun Rational.Companion.make(a: BigInt, b: BigInt): Rational
 expect fun Rational.Companion.make(a: Long, b: Long): Rational
+expect fun Rational.Companion.make(a: String, b: String): Rational
 
 fun Short.toRational() = Rational.make(this.toBigInt(), BigIntConstants.ONE)
 fun Int.toRational() = Rational.make(this.toBigInt(), BigIntConstants.ONE)

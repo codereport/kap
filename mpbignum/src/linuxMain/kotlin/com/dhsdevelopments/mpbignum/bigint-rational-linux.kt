@@ -49,6 +49,10 @@ class LinuxRational(val value: mpq_t) : Rational {
             }
             return LinuxRational(m0)
         }
+
+        fun make(a: String, b: String): Rational {
+            return make("${a}/${b}")
+        }
     }
 
     @Suppress("unused")
@@ -230,6 +234,30 @@ class LinuxRational(val value: mpq_t) : Rational {
         return mpq_sgn_wrap(value)
     }
 
+    override fun ceil(): BigInt {
+        val num = numerator
+        val den = denominator
+        return if (mpz_cmp_si_wrap(den.inner, 1) == 0) {
+            num
+        } else {
+            val res = MpzWrapper.allocMpzWrapper()
+            mpz_cdiv_q!!(res.value, num.inner, den.inner)
+            BigInt(res)
+        }
+    }
+
+    override fun floor(): BigInt {
+        val num = numerator
+        val den = denominator
+        return if (mpz_cmp_si_wrap(den.inner, 1) == 0) {
+            num
+        } else {
+            val res = MpzWrapper.allocMpzWrapper()
+            mpz_fdiv_q!!(res.value, num.inner, den.inner)
+            BigInt(res)
+        }
+    }
+
     override fun toLongTruncated(): Long {
         memScoped {
             val num = numerator.inner
@@ -238,18 +266,9 @@ class LinuxRational(val value: mpq_t) : Rational {
                 mpz_cmp_si_wrap(den, 1) == 0 -> {
                     mpzToLong(num)
                 }
-                mpz_sgn_wrap(num) == -1 -> {
-                    val adjusted = allocMpzStruct()
-                    mpz_add_ui!!(adjusted, num, 1UL)
-                    val a = allocMpzStruct()
-                    mpz_div!!(a, adjusted, den)
-                    val result = mpzToLong(a)
-                    mpz_clear!!(a)
-                    result
-                }
                 else -> {
                     val a = allocMpzStruct()
-                    mpz_div!!(a, num, den)
+                    mpz_tdiv_q!!(a, num, den)
                     val result = mpzToLong(a)
                     mpz_clear!!(a)
                     result
@@ -316,5 +335,9 @@ actual fun Rational.Companion.make(a: BigInt, b: BigInt): Rational {
 }
 
 actual fun Rational.Companion.make(a: Long, b: Long): Rational {
+    return LinuxRational.make(a, b)
+}
+
+actual fun Rational.Companion.make(a: String, b: String): Rational {
     return LinuxRational.make(a, b)
 }

@@ -211,8 +211,8 @@ inline fun numericRelationOperation(
             when {
                 a is APLComplex || b is APLComplex -> fnComplex(a.asComplex(), b.asComplex())
                 a is APLDouble || b is APLDouble -> fnDouble(a.asDouble(), b.asDouble())
-                a is APLBigInt || b is APLBigInt -> fnBigint(a.asBigInt(), b.asBigInt())
                 a is APLRational || b is APLRational -> fnRational(a.asRational(), b.asRational())
+                a is APLBigInt || b is APLBigInt -> fnBigint(a.asBigInt(), b.asBigInt())
                 else -> try {
                     fnLong(a.asLong(pos), b.asLong(pos))
                 } catch (e: LongExpressionOverflow) {
