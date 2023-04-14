@@ -165,6 +165,47 @@ class ScalarTest : APLTest() {
     }
 
     @Test
+    fun testPowBigInt0() {
+        parseAPLExpression("4*62").let { result ->
+            assertBigIntOrLong("21267647932558653966460912964485513216", result)
+        }
+        parseAPLExpression("4*int:asBigint 62").let { result ->
+            assertBigIntOrLong("21267647932558653966460912964485513216", result)
+        }
+    }
+
+    @Test
+    fun testPowBigInt1() {
+        parseAPLExpression("¯4*61").let { result ->
+            assertBigIntOrLong("-5316911983139663491615228241121378304", result)
+        }
+        parseAPLExpression("¯4*int:asBigint 61").let { result ->
+            assertBigIntOrLong("-5316911983139663491615228241121378304", result)
+        }
+    }
+
+    @Test
+    fun testPowRational0() {
+        parseAPLExpression("(1÷4)*3").let { result ->
+            assertRational(Rational.make(1, 64), result)
+        }
+    }
+
+    @Test
+    fun testPowRational1() {
+        parseAPLExpression("(¯3÷4)*7").let { result ->
+            assertRational(Rational.make(-2187, 16384), result)
+        }
+    }
+
+    @Test
+    fun testPowRational2() {
+        parseAPLExpression("(3÷4)*¯4").let { result ->
+            assertRational(Rational.make(256, 81), result)
+        }
+    }
+
+    @Test
     fun testMax() {
         // ints
         runMaxTest(2, "⌈", "1", "2")

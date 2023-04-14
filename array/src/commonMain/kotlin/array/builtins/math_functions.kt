@@ -703,10 +703,10 @@ class PowerAPLFunction : APLFunctionDescriptor {
                 a,
                 b,
                 { x, y ->
-                    if (x > 0 && y > 0) {
-                        (x.toBigInt().pow(y)).makeAPLNumber()
-                    } else {
-                        x.toDouble().pow(y.toDouble()).makeAPLNumber()
+                    when {
+                        y > 0 -> (x.toBigInt().pow(y)).makeAPLNumber()
+                        y < 0 -> x.toDouble().pow(y.toDouble()).makeAPLNumber()
+                        else -> APLLONG_1
                     }
                 },
                 { x, y ->
@@ -718,21 +718,22 @@ class PowerAPLFunction : APLFunctionDescriptor {
                 },
                 { x, y -> x.pow(y).makeAPLNumber() },
                 fnBigint = { x, y ->
-                    when {
-                        x > 0 && y > 0 -> {
-                            checkBigIntInRangeLong(y, pos)
-                            x.pow(y.toLong()).makeAPLNumber()
-                        }
-                        x < 0 -> {
-                            x.toDouble().toComplex().pow(y.toDouble().toComplex()).makeAPLNumber()
-                        }
-                        else -> {
-                            x.toDouble().pow(y.toDouble()).makeAPLNumber()
-                        }
+                    if (y > 0) {
+                        checkBigIntInRangeLong(y, pos)
+                        x.pow(y.toLong()).makeAPLNumber()
+                    } else {
+                        x.toDouble().pow(y.toDouble()).makeAPLNumber()
                     }
                 },
                 fnRational = { x, y ->
-                    TODO("foo")
+                    if (y.denominator != BigIntConstants.ONE) {
+                        x.toDouble().pow(y.toDouble()).makeAPLNumber()
+                    } else {
+                        val v0 = y.numerator
+                        checkBigIntInRangeLong(v0, pos)
+                        val v1 = y.toLongTruncated()
+                        x.pow(v1).makeAPLNumber()
+                    }
                 })
         }
 

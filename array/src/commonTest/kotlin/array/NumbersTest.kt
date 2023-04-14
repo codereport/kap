@@ -266,11 +266,16 @@ class NumbersTest : APLTest() {
     fun testExponential() {
         assertAPLValue(InnerBigIntOrLong(1024), parseAPLExpression("2⋆10"))
         assertDoubleWithRange(Pair(0.0009, 0.0011), parseAPLExpression("10⋆¯3"))
-        assertSimpleDouble(0.0, parseAPLExpression("0⋆10"))
-        assertSimpleDouble(1.0, parseAPLExpression("10⋆0"))
+        assertSimpleDouble(0.0, parseAPLExpression("0⋆10.0"))
+        assertBigIntOrLong("0", parseAPLExpression("0⋆10"))
+        assertSimpleDouble(1.0, parseAPLExpression("10⋆0.0"))
+        assertBigIntOrLong("1", parseAPLExpression("10⋆0"))
         assertComplexWithRange(Pair(-0.0000001, 0.0000001), Pair(1.732050807, 1.732050809), parseAPLExpression("¯3⋆0.5"))
         assertComplexWithRange(Pair(0.01342669136, 0.01342669138), Pair(0.04132310697, 0.04132310699), parseAPLExpression("¯7.1*¯1.6"))
-        assertSimpleDouble(-27.0, parseAPLExpression("¯3⋆3"))
+        assertBigIntOrLong("-27", parseAPLExpression("¯3⋆3"))
+        // This is special cased to be compatible with apl
+        assertSimpleNumber(1, parseAPLExpression("0⋆0"))
+        assertSimpleDouble(1.0, parseAPLExpression("0⋆0.0"))
     }
 
     @Test

@@ -68,6 +68,8 @@ class Unimplemented2ArgException(pos: Position? = null) : APLEvalException("Func
 class IllegalArgumentNumException(expectedCount: Int, receivedCount: Int, pos: Position? = null) :
         APLEvalException("Expected a list of ${expectedCount} values. Actual elements: ${receivedCount}", pos)
 
+class APLArithmeticException(message: String, pos: Position? = null) : APLEvalException(message, pos)
+
 open class KAPOverflowException(message: String, pos: Position? = null, cause: Throwable? = null) : APLEvalException(message, pos, cause)
 class IntMagnitudeException(value: Long, pos: Position? = null) : KAPOverflowException("Value does not fit in an int: ${value}", pos)
 class LongMagnitudeException(value: BigInt, pos: Position? = null) : KAPOverflowException("Value does not fit in a long: ${value}", pos)

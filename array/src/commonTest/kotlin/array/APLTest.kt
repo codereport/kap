@@ -245,7 +245,10 @@ abstract class APLTest {
             val v: String = when (result) {
                 is APLLong -> result.value.toString()
                 is APLBigInt -> result.value.toString()
-                else -> fail(message)
+                else -> {
+                    val msgSuffix = if (message == null) "" else ": ${message}"
+                    fail("Unexpected type: ${result}${msgSuffix}")
+                }
             }
             assertEquals(expected.toString(), v, "${expected} != ${v}, ${message}")
         }
