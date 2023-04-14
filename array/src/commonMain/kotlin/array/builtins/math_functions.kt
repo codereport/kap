@@ -705,7 +705,7 @@ class PowerAPLFunction : APLFunctionDescriptor {
                 { x, y ->
                     when {
                         y > 0 -> (x.toBigInt().pow(y)).makeAPLNumber()
-                        y < 0 -> x.toDouble().pow(y.toDouble()).makeAPLNumber()
+                        y < 0 -> if (x > 0) x.toRational().pow(y).makeAPLNumber() else x.toDouble().pow(y.toDouble()).makeAPLNumber()
                         else -> APLLONG_1
                     }
                 },

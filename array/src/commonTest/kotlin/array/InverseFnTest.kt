@@ -166,7 +166,7 @@ class InverseFnTest : APLTest() {
 
     @Test
     fun inverseLog1() {
-        assertSimpleDouble(0.125, parseAPLExpression("2 ⍟inverse ¯3"))
+        assertRational(Rational.make(1, 8), parseAPLExpression("2 ⍟inverse ¯3"))
     }
 
     @Test
