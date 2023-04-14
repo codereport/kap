@@ -235,10 +235,28 @@ The inverse of compose is also available:
 
 === Over
 
-The over operator derives a function that when called dyadically the right function on both arguments individually and then calls the left function on the results.
+The over operator derives a function which, when called dyadically, calls the right function on both arguments individually and then calls the left function on the results.
+In other words, this operator can be thought of processing the arguments using A before acting on it using B.
 
 - `x A⍥B y` is evaluated as `(B x) A (B y)`
 - `A⍥B y` is evaluated as `A (x B y)`
+
+=== Left-bound functions
+
+A left-bound function derives a monadic function from a dyadic function by assigning a constant to the left argument.
+For example, `2+` is a derived function that adds `2` to its argument.
+This functionality is particularly useful in trains.
+The following is a function that divides the argument by 2 and then adds 1: `1+2÷⍨`.
+Example:
+
+```
+    A ⇐ 1+2÷⍨
+    A 10
+6
+```
+
+In APL, the same code would use the `∘` operator to bind the left argument to the function.
+This syntax is not possible in KAP since operators in KAP requires the left argument to be a function.
 
 == Differences in standard functions
 
