@@ -10,6 +10,7 @@ The following is a list of the main datatypes KAP supports:
 - Integer
 - Floating point
 - Character
+- Big rational (includes big integer)
 - Array
 - Hash table
 - Function

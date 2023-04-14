@@ -62,16 +62,11 @@ As keywords are the most common use of symbols, this namespace is assumed by def
 
 === Numbers
 
-APL only supports floating point numbers.
-In practice the actual implementation may use different types for optimisation.
-For example Dyalog supports a large number of different datatypes, such as byte arrays or integer arrays.
-The details are hidden from the programmer who don't have to be concerned with underlying implementation details.
-
-KAP makes the difference between integers and floating point numbers more visible to the programmer.
+In contrast to APL, KAP makes the difference between integers and floating point numbers explicit.
 If a number is specified with a period, it is a floating point number (64-bit double).
-Otherwise it is a 64-bit integer.
-Mathematical operations between integers usually gives integer results.
-If an operation is performed between an integer and a floating point number, the integer is first converted to floating point before the operation is performed.
+Otherwise, it is an integer (stored as a bigint if it doesn't fit in a 64-bit register).
+Mathematical operations on rationals gives a rational result if possible, otherwise it's converted to floating point before the computation takes place.
+A floating point number is never converted to a rational number unless explicitly requested using monadic `⌊` or `⌈`.
 
 The real and imaginary components of complex numbers are always floating point.
 
@@ -104,8 +99,12 @@ If the `@` symbol is followed by a `\`, and at least one more character, the fol
 - `@\r` -- carriage return (`U+000D`)
 - `@\e` -- escape (`U+001B`)
 - `@\\` -- backslash `\`
-- `@\uNNNN` -- explicit Unicode codepoint in hex. For example: `@\u905` for `अ`
-- `@\UNICODE_CHARACTER` -- Unicode name. For example: `@\LATIN_SMALL_LETTER_A_WITH_DIAERESIS` for `ä`. Note that this syntax is not available in the Javascript backend as this would either require the use of extra external files.
+- `@\0` -- the NUL character (unicode value 0)
+- `@\uNNNN` -- explicit Unicode codepoint in hex.
+For example: `@\u905` for `अ`
+- `@\UNICODE_CHARACTER` -- Unicode name.
+For example: `@\LATIN_SMALL_LETTER_A_WITH_DIAERESIS` for `ä`.
+Note that this syntax is not available in the Javascript backend as this would either require the use of extra external files.
 
 === Symbols
 
@@ -194,11 +193,58 @@ list
 ┗━━━━━┛
 ----
 
+== Tacit programming
+
+KAP supports a modified version of tacit programming as included in Dyalog.
+The most significant difference between KAP and APL in this regard is that KAP does not implement forks in the form of a 3-train, and instead uses dedicated symbols for this purpose.
+
+The following tacit programming structures exist:
+
+=== 2-chain
+
+A sequence of two functions next to each other are executed in the same manner as a train in APL:
+
+- `x (AB) y` is evaluated as `A x B y`
+
+- `(AB) y` is evaluated as `A B y`
+
+Since KAP does not implement APL-style forks, this expands to any number of functions in a train.
+In other words:
+
+- `x (ABCD) y` is evaluated as `A B C x D y`
+
+=== Fork
+
+The fork is specified using `«` and `»`.
+It has the following form:
+
+- `x A«B»C y` is evaluated as `(x A y) B (x C y)`
+- `A«B»C y` is evaluated as `(A y) B (C y)`
+
+=== Compositions
+
+The compose operator works the same as APL when called dyadically, but its monadic version is different.
+
+- `x A∘B y` is evaluated as `x A (B y)`
+- `A∘B y` is evaluated as `x A (B y)`
+
+The inverse of compose is also available:
+
+- `x A⍛B y` is evaluated as `(A x) B y`
+- `A⍛B y` is evaluated as `(A y) B y`
+
+=== Over
+
+The over operator derives a function that when called dyadically the right function on both arguments individually and then calls the left function on the results.
+
+- `x A⍥B y` is evaluated as `(B x) A (B y)`
+- `A⍥B y` is evaluated as `A (x B y)`
+
 == Differences in standard functions
 
 === Enclose and disclose: `⊂`, `⊃`
 
-In KAP, the `⊂` and `⊃` functions follow the APL2 style, which can be argued is more consistent than the style used by for example Dyalog.
+In KAP, the `⊂` and `⊃` functions follow the APL2 style, based on an assumption that it is more consistent than the style used by for example Dyalog.
 The function `⊂` encloses the value in a scalar wrapper, and `⊃` undoes this operation, returning the contained value.
 
 [source,kap]
