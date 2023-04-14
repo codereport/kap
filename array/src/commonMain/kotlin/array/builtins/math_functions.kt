@@ -644,7 +644,8 @@ class ModAPLFunction : APLFunctionDescriptor {
                 { x -> abs(x).makeAPLNumber() },
                 { x -> abs(x).makeAPLNumber() },
                 { x -> hypot(x.real, x.imaginary).makeAPLNumber() },
-                fnBigInt = { x -> x.absoluteValue.makeAPLNumber() })
+                fnBigInt = { x -> x.absoluteValue.makeAPLNumber() },
+                fnRational = { x -> x.absoluteValue.makeAPLNumber() })
         }
 
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
@@ -655,7 +656,8 @@ class ModAPLFunction : APLFunctionDescriptor {
                 { x, y -> opLong(x, y).makeAPLNumber() },
                 { x, y -> opDouble(x, y).makeAPLNumber() },
                 { x, y -> complexMod(x, y).makeAPLNumber() },
-                fnBigint = { x, y -> bigintMod(x, y).makeAPLNumber() })
+                fnBigint = { x, y -> bigintMod(x, y).makeAPLNumber() },
+                fnRational = { x, y -> rationalMod(x, y).makeAPLNumber() })
         }
 
         private fun opLong(x: Long, y: Long) =
@@ -666,6 +668,9 @@ class ModAPLFunction : APLFunctionDescriptor {
 
         private fun bigintMod(x: BigInt, y: BigInt) =
             if (x == BigIntConstants.ZERO) y else (y % x).let { result -> if ((x < 0 && y > 0) || (x > 0 && y < 0)) x + result else result }
+
+        private fun rationalMod(x: Rational, y: Rational) =
+            if (x == Rational.ZERO) y else (y % x).let { result -> if ((x < 0 && y > 0) || (x > 0 && y < 0)) x + result else result }
 
         override fun combine2ArgLong(a: Long, b: Long) = opLong(a, b)
         override fun combine2ArgDouble(a: Double, b: Double) = opDouble(a, b)

@@ -55,6 +55,18 @@ class LinuxRational(val value: mpq_t) : Rational {
         }
     }
 
+    override val absoluteValue: Rational
+        get() {
+            return if (mpq_sgn_wrap(value) == -1) {
+                val result = nativeHeap.allocMpqStruct()
+                mpq_neg!!(result, this.value)
+                mpq_canonicalize!!(result)
+                LinuxRational(result)
+            } else {
+                this
+            }
+        }
+
     @Suppress("unused")
     @OptIn(ExperimentalStdlibApi::class)
     private val cleaner = createCleaner(value) { obj ->

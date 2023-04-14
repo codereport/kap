@@ -47,6 +47,9 @@ class JvmRational private constructor(val value: BigFraction) : Rational {
         return JvmRational(fraction)
     }
 
+    override val absoluteValue: Rational
+        get() = JvmRational(value.abs())
+
     override fun compareTo(other: Rational): Int {
         return value.compareTo((other as JvmRational).value)
     }

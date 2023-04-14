@@ -43,6 +43,9 @@ class RationalStandard(numeratorInt: BigInt, denominatorInt: BigInt, isNormalise
         return (numerator / denominator).toLong()
     }
 
+    override val absoluteValue: Rational
+        get() = if (numerator.signum() == -1) -this else this
+
     private inline fun <T> alignDenominator(other: Rational, fn: (n0: BigInt, n1: BigInt, denominator: BigInt) -> T): T {
         val num0 = numerator
         val den0 = denominator

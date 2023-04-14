@@ -3,6 +3,7 @@ package array
 import array.complex.Complex
 import com.dhsdevelopments.mpbignum.BigInt
 import com.dhsdevelopments.mpbignum.Rational
+import com.dhsdevelopments.mpbignum.make
 import com.dhsdevelopments.mpbignum.of
 import kotlin.math.pow
 import kotlin.test.*
@@ -149,7 +150,7 @@ abstract class APLTest {
     }
 
     fun assertRational(expected: Rational, result: APLValue, message: String? = null) {
-        assertTrue(result is APLRational)
+        assertTrue(result is APLRational, "Got ${result}, expected ${expected}")
         assertEquals(expected, result.value, message)
     }
 
@@ -247,6 +248,14 @@ abstract class APLTest {
                 else -> fail(message)
             }
             assertEquals(expected.toString(), v, "${expected} != ${v}, ${message}")
+        }
+    }
+
+    inner class InnerRational(val expected: Rational) : InnerTest {
+        constructor(num: Long, den: Long) : this(Rational.make(num, den))
+
+        override fun assertContent(result: APLValue, message: String?) {
+            assertRational(expected, result, message)
         }
     }
 }

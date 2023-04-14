@@ -438,6 +438,16 @@ class RationalTest {
         assertEquals(BigInt.of(-5), mkrational(-14, 3).floor())
     }
 
+    @Test
+    fun absTest() {
+        assertRationalInt(3, 4, mkrational(3, 4).absoluteValue)
+        assertRationalInt(3, 4, mkrational(-3, 4).absoluteValue)
+        assertRationalInt(0, 1, mkrational(0, 1).absoluteValue)
+        assertRationalInt("61728394506172839450617283900", "1", mkrational("123456789012345678901234567800", "2").absoluteValue)
+        assertRationalInt("2057613150205761315020576130", "1", mkrational("-12345678901234567890123456780", "6").absoluteValue)
+        assertRationalInt("12345678901234567890123456788", "11", mkrational("-12345678901234567890123456788", "11").absoluteValue)
+    }
+
     private fun assertRationalInt(a: Long, b: Long, result: Rational) {
         assertEquals(a.toBigInt(), result.numerator)
         assertEquals(b.toBigInt(), result.denominator)

@@ -1,6 +1,8 @@
 package array
 
 import array.complex.Complex
+import com.dhsdevelopments.mpbignum.Rational
+import com.dhsdevelopments.mpbignum.make
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
@@ -137,6 +139,7 @@ class NumbersTest : APLTest() {
         assertDoubleWithRange(Pair(342.285, 342.287), parseAPLExpression("|¯194J¯282"))
     }
 
+    @Test
     fun testAbsWithBignum() {
         parseAPLExpression("|10000000000000000000000000000000 ¯10000000000000000000000000000000 (int:asBigint 0)").let { result ->
             assert1DArray(
@@ -144,6 +147,19 @@ class NumbersTest : APLTest() {
                     InnerBigIntOrLong("10000000000000000000000000000000"),
                     InnerBigIntOrLong("10000000000000000000000000000000"),
                     InnerBigIntOrLong("0")), result)
+        }
+    }
+
+    @Test
+    fun absRational() {
+        parseAPLExpression("| (1÷9) (¯3÷2) (100000000000000000000000000000000000÷3) (1000000000000000000000000000000000000÷3)").let { result ->
+            assert1DArray(
+                arrayOf(
+                    InnerRational(1, 9),
+                    InnerRational(3, 2),
+                    InnerRational(Rational.make("100000000000000000000000000000000000", "3")),
+                    InnerRational(Rational.make("1000000000000000000000000000000000000", "3"))),
+                result)
         }
     }
 
@@ -228,6 +244,13 @@ class NumbersTest : APLTest() {
                     InnerBigIntOrLong("2"),
                     InnerBigIntOrLong("3")),
                 result)
+        }
+    }
+
+    @Test
+    fun testModRational() {
+        parseAPLExpression("5 | (117÷10) (¯117÷3)").let { result ->
+            assert1DArray(arrayOf(InnerRational(17, 10), InnerBigIntOrLong(1)), result)
         }
     }
 

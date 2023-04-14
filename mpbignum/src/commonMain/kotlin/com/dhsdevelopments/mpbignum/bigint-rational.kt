@@ -17,6 +17,8 @@ interface Rational {
     fun ceil(): BigInt
     fun floor(): BigInt
 
+    val absoluteValue: Rational
+
     fun toDouble(): Double
     fun toLongTruncated(): Long
     fun isInteger(): Boolean = denominator == BigIntConstants.ONE

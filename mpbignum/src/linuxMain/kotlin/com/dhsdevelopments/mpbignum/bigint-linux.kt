@@ -215,3 +215,7 @@ actual fun BigInt.toString(radix: Int): String {
         return buf.toKString()
     }
 }
+
+actual fun BigInt.rangeInLong(): Boolean {
+    return this >= BigIntConstants.LONG_MIN_VALUE && this <= BigIntConstants.LONG_MAX_VALUE
+}

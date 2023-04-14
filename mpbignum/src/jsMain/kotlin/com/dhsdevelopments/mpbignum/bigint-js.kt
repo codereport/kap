@@ -214,3 +214,7 @@ actual fun BigInt.toString(radix: Int): String {
     val a = this.inner
     return js("a.toString(radix)")
 }
+
+actual fun BigInt.rangeInLong(): Boolean {
+    return this >= BigIntConstants.LONG_MIN_VALUE && this <= BigIntConstants.LONG_MAX_VALUE
+}

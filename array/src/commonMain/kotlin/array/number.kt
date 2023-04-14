@@ -118,7 +118,7 @@ fun checkBigIntInRangeLong(value: BigInt, pos: Position?) {
 
 sealed class APLWideNumber : APLNumber()
 
-private fun bigIntToStringReadable(value: BigInt) = if(value < 0) "¯${-value}" else value.toString()
+private fun bigIntToStringReadable(value: BigInt) = if (value < 0) "¯${-value}" else value.toString()
 
 class APLBigInt(val value: BigInt) : APLWideNumber() {
     override fun asDouble(pos: Position?) = value.toDouble()
@@ -166,7 +166,7 @@ class APLBigInt(val value: BigInt) : APLWideNumber() {
     override fun toString() = "APLBigInt(${formatted(FormatStyle.PRETTY)})"
 }
 
-class APLRational(val value: Rational): APLWideNumber() {
+class APLRational(val value: Rational) : APLWideNumber() {
     override fun asDouble(pos: Position?) = value.toDouble()
 
     override fun asLong(pos: Position?): Long {

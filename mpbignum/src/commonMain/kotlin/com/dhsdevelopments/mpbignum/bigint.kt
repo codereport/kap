@@ -9,6 +9,8 @@ object BigIntConstants {
     val ZERO = BigInt.of(0)
     val ONE = BigInt.of(1)
     val ALL_BITS_64 = BigInt.of("18446744073709551615")
+    val LONG_MAX_VALUE = BigInt.of(Long.MIN_VALUE)
+    val LONG_MIN_VALUE = BigInt.of(Long.MAX_VALUE)
 }
 
 expect val BigInt.absoluteValue: BigInt
@@ -99,3 +101,5 @@ expect fun BigInt.toString(radix: Int): String
 
 fun max(a: BigInt, b: BigInt) = if (a > b) a else a
 fun min(a: BigInt, b: BigInt) = if (a < b) a else b
+
+expect fun BigInt.rangeInLong(): Boolean
