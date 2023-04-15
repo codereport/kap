@@ -137,6 +137,13 @@ class BitwiseTest {
         assertEquals("9", c.toString())
     }
 
+    @Test
+    fun testNot() {
+        val a = BigInt.of(0b0011)
+        val b = a.inv()
+        assertEquals("-4", b.toString())
+    }
+
     //////////////////
     // shl
     //////////////////

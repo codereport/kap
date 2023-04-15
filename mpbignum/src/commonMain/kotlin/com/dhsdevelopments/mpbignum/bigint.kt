@@ -9,8 +9,8 @@ object BigIntConstants {
     val ZERO = BigInt.of(0)
     val ONE = BigInt.of(1)
     val ALL_BITS_64 = BigInt.of("18446744073709551615")
-    val LONG_MAX_VALUE = BigInt.of(Long.MIN_VALUE)
-    val LONG_MIN_VALUE = BigInt.of(Long.MAX_VALUE)
+    val LONG_MIN_VALUE = BigInt.of(Long.MIN_VALUE)
+    val LONG_MAX_VALUE = BigInt.of(Long.MAX_VALUE)
 }
 
 expect val BigInt.absoluteValue: BigInt
@@ -79,6 +79,8 @@ infix fun BigInt.or(other: Int): BigInt = this or BigInt.of(other)
 infix fun Int.or(other: BigInt): BigInt = BigInt.of(this) or other
 infix fun BigInt.xor(other: Int): BigInt = this xor BigInt.of(other)
 infix fun Int.xor(other: BigInt): BigInt = BigInt.of(this) xor other
+
+expect fun BigInt.inv(): BigInt
 
 expect infix fun BigInt.shl(other: Long): BigInt
 expect infix fun BigInt.shr(other: Long): BigInt

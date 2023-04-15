@@ -149,6 +149,10 @@ abstract class APLTest {
         assertAPLValue(InnerBigIntOrLong(expected), result, message)
     }
 
+    fun assertBigIntOrLong(expected: Long, result: APLValue, message: String? = null) {
+        assertAPLValue(InnerBigIntOrLong(expected), result, message)
+    }
+
     fun assertRational(expected: Rational, result: APLValue, message: String? = null) {
         assertTrue(result is APLRational, "Got ${result}, expected ${expected}")
         assertEquals(expected, result.value, message)

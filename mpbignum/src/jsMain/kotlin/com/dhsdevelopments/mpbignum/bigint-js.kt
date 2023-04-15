@@ -166,6 +166,12 @@ actual infix fun BigInt.xor(other: BigInt): BigInt {
     return BigInt.makeFromJs(js("a^b"))
 }
 
+actual fun BigInt.inv(): BigInt {
+    @Suppress("UNUSED_VARIABLE")
+    val a = this.inner
+    return BigInt.makeFromJs(js("~a"))
+}
+
 actual infix fun BigInt.shl(other: Long): BigInt {
     @Suppress("UNUSED_VARIABLE")
     val a = this.inner

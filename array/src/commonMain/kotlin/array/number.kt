@@ -101,7 +101,7 @@ class APLDouble(val value: Double) : APLNumber() {
 }
 
 fun checkBigIntInRangeLong(value: BigInt, pos: Position?) {
-    if (value < Long.MIN_VALUE || value > Long.MAX_VALUE) {
+    if (!value.rangeInLong()) {
         throwAPLException(LongMagnitudeException(value, pos))
     }
 }

@@ -160,6 +160,8 @@ actual infix fun BigInt.and(other: BigInt) = basicOperation(other) { result, a, 
 actual infix fun BigInt.or(other: BigInt) = basicOperation(other) { result, a, b -> mpz_ior!!(result, a, b) }
 actual infix fun BigInt.xor(other: BigInt) = basicOperation(other) { result, a, b -> mpz_xor!!(result, a, b) }
 
+actual fun BigInt.inv(): BigInt = basicOperation1Arg { result, a -> mpz_com!!(result, a) }
+
 actual infix fun BigInt.shl(other: Long): BigInt {
     return when {
         other > 0 -> basicOperation1Arg { result, a ->
@@ -217,5 +219,5 @@ actual fun BigInt.toString(radix: Int): String {
 }
 
 actual fun BigInt.rangeInLong(): Boolean {
-    return this >= BigIntConstants.LONG_MIN_VALUE && this <= BigIntConstants.LONG_MAX_VALUE
+    return mpz_fits_slong_p!!(inner) != 0
 }
