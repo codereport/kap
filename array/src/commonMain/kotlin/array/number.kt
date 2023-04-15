@@ -75,17 +75,7 @@ class APLDouble(val value: Double) : APLNumber() {
 
     override fun formatted(style: FormatStyle) = when (style) {
         FormatStyle.PLAIN -> value.toString()
-        FormatStyle.PRETTY -> {
-            // Kotlin native doesn't have a decent formatter, so we'll take the easy way out:
-            // We'll check if the value fits in a Long and if it does, use it for rendering.
-            // This is the easiest way to avoid displaying a decimal point for integers.
-            // Let's hope this changes sooner rather than later.
-            if (value.rem(1) == 0.0 && value <= Long.MAX_VALUE && value >= Long.MIN_VALUE) {
-                value.toLong().toString()
-            } else {
-                value.toString()
-            }
-        }
+        FormatStyle.PRETTY -> value.toString()
         FormatStyle.READABLE -> if (value < 0) "¯" + (-value).toString() else value.toString()
     }
 
