@@ -721,8 +721,15 @@ class PowerAPLFunction : APLFunctionDescriptor {
                     if (y > 0) {
                         checkBigIntInRangeLong(y, pos)
                         x.pow(y.toLong()).makeAPLNumber()
+                    } else if (y < 0) {
+                        if (x > 0) {
+                            checkBigIntInRangeLong(y, pos)
+                            Rational.make(x, BigIntConstants.ONE).pow(y.toLong()).makeAPLNumber()
+                        } else {
+                            x.toDouble().pow(y.toDouble()).makeAPLNumber()
+                        }
                     } else {
-                        x.toDouble().pow(y.toDouble()).makeAPLNumber()
+                        APLLONG_1
                     }
                 },
                 fnRational = { x, y ->

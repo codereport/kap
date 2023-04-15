@@ -213,6 +213,13 @@ class ScalarTest : APLTest() {
     }
 
     @Test
+    fun testPowRational4() {
+        parseAPLExpression("(int:asBigint 8)*¯4").let { result ->
+            assertRational(Rational.make(1, 4096), result)
+        }
+    }
+
+    @Test
     fun testMax() {
         // ints
         runMaxTest(2, "⌈", "1", "2")
