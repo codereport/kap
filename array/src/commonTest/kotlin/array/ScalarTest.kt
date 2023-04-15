@@ -220,6 +220,13 @@ class ScalarTest : APLTest() {
     }
 
     @Test
+    fun testPowRational5() {
+        parseAPLExpression("(¯1÷5)⋆(1÷4)").let { result ->
+            assertAPLValue(NearComplex(Complex(0.4728708045015879, 0.47287080450158786)), result)
+        }
+    }
+
+    @Test
     fun testMax() {
         // ints
         runMaxTest(2, "⌈", "1", "2")

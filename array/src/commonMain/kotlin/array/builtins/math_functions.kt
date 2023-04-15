@@ -734,7 +734,11 @@ class PowerAPLFunction : APLFunctionDescriptor {
                 },
                 fnRational = { x, y ->
                     if (y.denominator != BigIntConstants.ONE) {
-                        x.toDouble().pow(y.toDouble()).makeAPLNumber()
+                        if (x < 0) {
+                            x.toDouble().toComplex().pow(y.toDouble().toComplex()).makeAPLNumber()
+                        } else {
+                            x.toDouble().pow(y.toDouble()).makeAPLNumber()
+                        }
                     } else {
                         val v0 = y.numerator
                         checkBigIntInRangeLong(v0, pos)
