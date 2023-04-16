@@ -39,6 +39,7 @@ kotlin {
                 // https://gist.github.com/karlrwjohnson/a631cbda6b2fb316bc0a9f37156eae5d
                 var list = new ArrayList()
                 list.addAll(devServer.static)
+                println("adding to path: " + compilation.output.resourcesDir.path)
                 list.add(new File(compilation.output.resourcesDir.path + "/../../../distributions").canonicalPath)
                 devServer.static = list
             }

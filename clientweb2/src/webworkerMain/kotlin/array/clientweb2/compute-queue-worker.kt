@@ -61,7 +61,11 @@ fun initQueue() {
         val request = Json.decodeFromString<EvalRequest>(event.data as String)
         val result = try {
             val value = engine.parseAndEval(StringSourceLocation(request.src), allocateThreadLocals = false).collapse()
-            EvalResponse(value.formatted(FormatStyle.PRETTY))
+            when (request.resultType) {
+                ResultType.FORMATTED_PRETTY -> StringResponse(value.formatted(FormatStyle.PRETTY))
+                ResultType.FORMATTED_READABLE -> StringResponse(value.formatted(FormatStyle.READABLE))
+                ResultType.JS -> DataResponse(formatValueToJs(value))
+            }
         } catch (e: APLGenericException) {
             EvalExceptionDescriptor(e.formattedError(), makePosDescriptor(e.pos))
         } catch (e: Exception) {

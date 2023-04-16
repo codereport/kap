@@ -14,6 +14,8 @@ import org.w3c.dom.*
 external fun decodeURIComponent(text: String): String
 external fun encodeURIComponent(text: String): String
 
+var useHtmlValueRenderer: Boolean = false
+
 object Keymap {
     private val map = HashMap<String, String>()
 
@@ -86,7 +88,14 @@ private fun findResultHistoryNode(): HTMLDivElement {
 
 private fun addResponseToResultHistory(response: EvalResponse) {
     val outer = document.create.div(classes = "return-result source-node") {
-        +response.result
+        when (response) {
+            is StringResponse -> {
+                +response.result
+            }
+            is DataResponse -> {
+                formatResponse(response)
+            }
+        }
     }
     appendNodeToResultHistory(outer)
     window.scrollTo(0.0, document.body!!.scrollHeight.toDouble())
@@ -137,7 +146,8 @@ private fun appendNodeToResultHistory(outer: HTMLElement) {
 
 private fun sendCommand(worker: Worker, command: String) {
     println("Sending command: '${command}'")
-    worker.postMessage(Json.encodeToString(EvalRequest(command)))
+    val rendererSelectorValue: dynamic = document.getElementsByName("experimentalRender")[0]
+    worker.postMessage(Json.encodeToString(EvalRequest(command, if (rendererSelectorValue.checked) ResultType.JS else ResultType.FORMATTED_PRETTY)))
 }
 
 private fun sendCommandFromField(worker: Worker) {
@@ -242,6 +252,12 @@ fun engineAvailableCallback(worker: Worker) {
 
     val topElement = findElement<HTMLDivElement>("top")
     val outer = document.create.div {
+        div {
+            +"Use experimental new renderer: "
+            input(InputType.checkBox, name = "experimentalRender") {
+                checked = false
+            }
+        }
         div {
             createKeyboardHelp()
         }

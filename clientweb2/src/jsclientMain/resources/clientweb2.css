@@ -66,3 +66,20 @@
     font-family: "Iosevka Fixed";
     src: url(fonts/iosevka-fixed-regular.ttf);
 }
+
+table.array2Table {
+    border-collapse: collapse;
+}
+
+table.array2Table > tbody > tr > td {
+    border: 1px solid black;
+    padding: 0.15em;
+}
+
+table.array2Table > tbody > tr > td.kapNumber {
+    text-align: right;
+}
+
+.kapString {
+    color: #0c5c0c
+}
