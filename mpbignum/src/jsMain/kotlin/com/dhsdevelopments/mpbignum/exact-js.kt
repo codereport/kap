@@ -47,6 +47,7 @@ actual inline fun mulExact(a: Long, b: Long): Long {
     return a * b
 }
 
+// This avoids an unnecessary object creation in the resulting Javascript
 val LONG_0 = 0L
 
 actual inline fun addExactWrapped(a: Long, b: Long): Long {

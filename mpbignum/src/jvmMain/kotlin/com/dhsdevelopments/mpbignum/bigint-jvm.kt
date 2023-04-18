@@ -103,9 +103,6 @@ actual fun BigInt.toString(radix: Int): String {
     return inner.toString(radix)
 }
 
-private val BIG_INT_MIN_LONG = Long.MIN_VALUE.toBigInteger()
-private val BIG_INT_MAX_LONG = Long.MAX_VALUE.toBigInteger()
-
 actual fun BigInt.rangeInLong(): Boolean {
-    return inner in BIG_INT_MIN_LONG..BIG_INT_MAX_LONG
+    return inner.bitLength() <= 63
 }

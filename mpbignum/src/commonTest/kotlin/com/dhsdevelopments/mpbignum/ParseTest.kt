@@ -1,9 +1,6 @@
 package com.dhsdevelopments.mpbignum
 
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertNotEquals
+import kotlin.test.*
 
 class ParseTest {
     @Test
@@ -114,5 +111,21 @@ class ParseTest {
         assertEquals(-1, BigInt.of(-2).signum())
         assertEquals(1, BigInt.of(2).signum())
         assertEquals(0, BigInt.of(0).signum())
+    }
+
+    @Test
+    fun testRangeInLong() {
+        assertTrue(BigInt.of("9223372036854775807").rangeInLong())
+        assertFalse(BigInt.of("9223372036854775808").rangeInLong())
+        assertTrue(BigInt.of("2147483647").rangeInLong())
+        assertTrue(BigInt.of("2147483648").rangeInLong())
+        assertTrue(BigInt.of("0").rangeInLong())
+        assertTrue(BigInt.of("1").rangeInLong())
+        assertTrue(BigInt.of("-2147483648").rangeInLong())
+        assertTrue(BigInt.of("2147483649").rangeInLong())
+        assertTrue(BigInt.of("-9223372036854775808").rangeInLong())
+        assertFalse(BigInt.of("-9223372036854775809").rangeInLong())
+        assertFalse(BigInt.of("-1000000000000000000000000000").rangeInLong())
+        assertFalse(BigInt.of("1000000000000000000000000000").rangeInLong())
     }
 }
