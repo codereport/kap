@@ -714,8 +714,13 @@ fun APLValue.toStringValueOrNull(): String? {
     return buf.toString()
 }
 
-fun APLValue.toStringValue(pos: Position? = null): String {
-    return this.toStringValueOrNull() ?: throwAPLException(IncompatibleTypeException("Argument is not a string", pos))
+fun APLValue.toStringValue(pos: Position? = null, message: String? = null): String {
+    val result = this.toStringValueOrNull()
+    if (result == null) {
+        val messagePrefix = if (message == null) "" else "${message}: "
+        throwAPLException(IncompatibleTypeException("${messagePrefix}Argument is not a string", pos))
+    }
+    return result
 }
 
 fun arrayAsString(array: APLValue, style: FormatStyle): String {
@@ -897,7 +902,7 @@ class APLNullValue private constructor() : APLArray() {
 }
 
 /**
- * Special version of of the regular null value that is emitted by a blank expression.
+ * Special version of the regular null value that is emitted by a blank expression.
  * This value acts like a regular null value in most cases. However, in certain contexts
  * it has different behaviour. The main case is for array indexing.
  */
