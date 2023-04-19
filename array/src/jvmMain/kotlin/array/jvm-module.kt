@@ -49,7 +49,7 @@ private fun ensureJvmGenericValue(a: APLValue, pos: Position): JvmInstanceValue 
     return a0
 }
 
-private inline fun <reified T : Any> ensureJvmInstance(a: APLValue, pos: Position): T {
+private inline fun <reified T : Any?> ensureJvmInstance(a: APLValue, pos: Position): T {
     val wrapped: JvmInstanceValue = ensureJvmGenericValue(a, pos)
     val instance = wrapped.instance
     if (instance !is T) {
@@ -58,23 +58,22 @@ private inline fun <reified T : Any> ensureJvmInstance(a: APLValue, pos: Positio
     return instance
 }
 
+fun isNullKeyword(engine: Engine, v: APLValue): Boolean {
+    return if (v is APLSymbol) {
+        val sym = v.value
+        sym.namespace === engine.keywordNamespace && sym.symbolName == "null"
+    } else {
+        false
+    }
+}
+
 fun toJava(engine: Engine, a: APLValue): Any? {
     val a0 = a.unwrapDeferredValue()
-
-    fun isNullKeyword(): Boolean {
-        return if (a0 is APLSymbol) {
-            val sym = a0.value
-            sym.namespace === engine.keywordNamespace && sym.symbolName == "null"
-        } else {
-            false
-        }
-    }
-
     return when {
         a0 is JvmInstanceValue -> a0.instance
         a0 is APLLong -> a0.value
         a0.isStringValue() -> a0.toStringValue()
-        isNullKeyword() -> null
+        isNullKeyword(engine, a0) -> null
         else -> throw IllegalArgumentException("Cannot convert to Java: ${a}")
     }
 }
@@ -242,6 +241,50 @@ class ToJvmDoubleFunction : APLFunctionDescriptor {
     override fun make(instantiation: FunctionInstantiation) = ToJvmDoubleFunctionImpl(instantiation)
 }
 
+class ToJvmBooleanFunction : APLFunctionDescriptor {
+    class ToJvmBooleanFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val n = a.asBoolean()
+            return JvmInstanceValue(n)
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = ToJvmBooleanFunctionImpl(instantiation)
+}
+
+private fun javaObjToKap(engine: Engine, value: Any?, pos: Position): APLValue {
+    return when (value) {
+        null -> APLSymbol(engine.internSymbol("null", engine.keywordNamespace))
+        is Short -> value.toLong().makeAPLNumber()
+        is Int -> value.makeAPLNumber()
+        is Long -> value.makeAPLNumber()
+        is Byte -> value.toInt().makeAPLNumber()
+        is Float -> value.toDouble().makeAPLNumber()
+        is Double -> value.makeAPLNumber()
+        is String -> APLString(value)
+        is ByteArray -> APLArrayLong(dimensionsOfSize(value.size), LongArray(value.size) { i -> value[i].toLong() })
+        is IntArray -> APLArrayLong(dimensionsOfSize(value.size), LongArray(value.size) { i -> value[i].toLong() })
+        is LongArray -> APLArrayLong(dimensionsOfSize(value.size), value.copyOf())
+        is FloatArray -> APLArrayDouble(dimensionsOfSize(value.size), DoubleArray(value.size) { i -> value[i].toDouble() })
+        is DoubleArray -> APLArrayDouble(dimensionsOfSize(value.size), value.copyOf())
+        is Array<*> -> APLArrayImpl(dimensionsOfSize(value.size), value.map { v -> javaObjToKap(engine, v, pos) }.toTypedArray())
+        is List<*> -> APLArrayImpl(dimensionsOfSize(value.size), value.map { v -> javaObjToKap(engine, v, pos) }.toTypedArray())
+        else -> throwAPLException(APLIllegalArgumentException("Unexpected JVM type: ${value::class.qualifiedName}"))
+    }
+}
+
+class FromJvmFunction : APLFunctionDescriptor {
+    class FromJvmFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val a0 = ensureJvmInstance<Any?>(a, pos)
+            return javaObjToKap(context.engine, a0, pos)
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = FromJvmFunctionImpl(instantiation)
+}
+
+
 class JvmModule : KapModule {
     override val name get() = "jvm"
 
@@ -260,5 +303,7 @@ class JvmModule : KapModule {
         engine.registerFunction(ns.internAndExport("toJvmChar"), ToJvmCharFunction())
         engine.registerFunction(ns.internAndExport("toJvmFloat"), ToJvmFloatFunction())
         engine.registerFunction(ns.internAndExport("toJvmDouble"), ToJvmDoubleFunction())
+        engine.registerFunction(ns.internAndExport("toJvmBoolean"), ToJvmBooleanFunction())
+        engine.registerFunction(ns.internAndExport("fromJvm"), FromJvmFunction())
     }
 }
