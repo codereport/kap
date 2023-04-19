@@ -153,6 +153,95 @@ class ToJvmStringFunction : APLFunctionDescriptor {
     override fun make(instantiation: FunctionInstantiation) = ToJvmStringFunctionImpl(instantiation)
 }
 
+class ToJvmShortFunction : APLFunctionDescriptor {
+    class ToJvmShortFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val n = a.ensureNumber(pos).asLong(pos)
+            if (n < Short.MIN_VALUE || n > Short.MAX_VALUE) {
+                throwAPLException(KAPOverflowException("Value does not fit in short: ${n}"))
+            }
+            return JvmInstanceValue(n.toShort())
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = ToJvmShortFunctionImpl(instantiation)
+}
+
+class ToJvmIntFunction : APLFunctionDescriptor {
+    class ToJvmIntFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val n = a.ensureNumber(pos).asLong(pos)
+            if (n < Int.MIN_VALUE || n > Int.MAX_VALUE) {
+                throwAPLException(KAPOverflowException("Value does not fit in int: ${n}"))
+            }
+            return JvmInstanceValue(n.toInt())
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = ToJvmIntFunctionImpl(instantiation)
+}
+
+class ToJvmLongFunction : APLFunctionDescriptor {
+    class ToJvmLongFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val n = a.ensureNumber(pos).asLong(pos)
+            return JvmInstanceValue(n)
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = ToJvmLongFunctionImpl(instantiation)
+}
+
+class ToJvmByteFunction : APLFunctionDescriptor {
+    class ToJvmByteFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val n = a.ensureNumber(pos).asLong(pos)
+            if (n < Byte.MIN_VALUE || n > Byte.MAX_VALUE) {
+                throwAPLException(KAPOverflowException("Value does not fit in byte: ${n}"))
+            }
+            return JvmInstanceValue(n.toByte())
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = ToJvmByteFunctionImpl(instantiation)
+}
+
+class ToJvmCharFunction : APLFunctionDescriptor {
+    class ToJvmCharFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val n = a.ensureNumber(pos).asLong(pos)
+            if (n < Char.MIN_VALUE.code || n > Char.MAX_VALUE.code) {
+                throwAPLException(KAPOverflowException("Value does not fit in char: ${n}"))
+            }
+            return JvmInstanceValue(n.toInt().toChar())
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = ToJvmCharFunctionImpl(instantiation)
+}
+
+class ToJvmFloatFunction : APLFunctionDescriptor {
+    class ToJvmFloatFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val n = a.ensureNumber(pos).asDouble(pos)
+            return JvmInstanceValue(n.toFloat())
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = ToJvmFloatFunctionImpl(instantiation)
+}
+
+class ToJvmDoubleFunction : APLFunctionDescriptor {
+    class ToJvmDoubleFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val n = a.ensureNumber(pos).asDouble(pos)
+            return JvmInstanceValue(n)
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = ToJvmDoubleFunctionImpl(instantiation)
+}
+
 class JvmModule : KapModule {
     override val name get() = "jvm"
 
@@ -164,5 +253,12 @@ class JvmModule : KapModule {
         engine.registerFunction(ns.internAndExport("callMethod"), CallMethodFunction())
         engine.registerFunction(ns.internAndExport("createInstance"), CreateInstanceFunction())
         engine.registerFunction(ns.internAndExport("toJvmString"), ToJvmStringFunction())
+        engine.registerFunction(ns.internAndExport("toJvmShort"), ToJvmShortFunction())
+        engine.registerFunction(ns.internAndExport("toJvmInt"), ToJvmIntFunction())
+        engine.registerFunction(ns.internAndExport("toJvmLong"), ToJvmLongFunction())
+        engine.registerFunction(ns.internAndExport("toJvmByte"), ToJvmByteFunction())
+        engine.registerFunction(ns.internAndExport("toJvmChar"), ToJvmCharFunction())
+        engine.registerFunction(ns.internAndExport("toJvmFloat"), ToJvmFloatFunction())
+        engine.registerFunction(ns.internAndExport("toJvmDouble"), ToJvmDoubleFunction())
     }
 }

@@ -1,6 +1,8 @@
 package array.jvmmod
 
 import array.APLTest
+import array.APLValue
+import array.dimensionsOfSize
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertSame
@@ -69,4 +71,29 @@ class MethodCallsTest : APLTest() {
         assertTrue(instance is String)
         assertEquals("message from method: qwe", instance)
     }
+
+    @Test
+    fun convertToPrimitiveType() {
+        fun verifyJvmValue(expected: Any, v: APLValue) {
+            assertTrue(v is JvmInstanceValue)
+            val instance = v.instance
+            assertEquals(expected, instance)
+        }
+
+        val src =
+            """
+            |(jvm:toJvmFloat 50.0) (jvm:toJvmDouble 60.0) (jvm:toJvmShort 10) (jvm:toJvmInt 20) (jvm:toJvmLong 30) (jvm:toJvmByte 40) (jvm:toJvmChar @a-@\u0)
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertDimension(dimensionsOfSize(7), result)
+            verifyJvmValue(50.0.toFloat(), result.valueAt(0))
+            verifyJvmValue(60.0, result.valueAt(1))
+            verifyJvmValue(10.toShort(), result.valueAt(2))
+            verifyJvmValue(20, result.valueAt(3))
+            verifyJvmValue(30.toLong(), result.valueAt(4))
+            verifyJvmValue(40.toByte(), result.valueAt(5))
+            verifyJvmValue('a', result.valueAt(6))
+        }
+    }
+
 }
