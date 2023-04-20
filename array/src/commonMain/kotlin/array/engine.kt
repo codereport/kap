@@ -814,4 +814,5 @@ interface KapModule {
 
 class StandardSymbols(val engine: Engine) {
     val platform by lazy { engine.internSymbol("platform", engine.coreNamespace) }
+    val nullKeyword by lazy { engine.internSymbol("null", engine.keywordNamespace) }
 }

@@ -60,8 +60,7 @@ private inline fun <reified T : Any?> ensureJvmInstance(a: APLValue, pos: Positi
 
 fun isNullKeyword(engine: Engine, v: APLValue): Boolean {
     return if (v is APLSymbol) {
-        val sym = v.value
-        sym.namespace === engine.keywordNamespace && sym.symbolName == "null"
+        v.value == engine.standardSymbols.nullKeyword
     } else {
         false
     }
@@ -254,7 +253,7 @@ class ToJvmBooleanFunction : APLFunctionDescriptor {
 
 private fun javaObjToKap(engine: Engine, value: Any?, pos: Position): APLValue {
     return when (value) {
-        null -> APLSymbol(engine.internSymbol("null", engine.keywordNamespace))
+        null -> APLSymbol(engine.standardSymbols.nullKeyword)
         is Short -> value.toLong().makeAPLNumber()
         is Int -> value.makeAPLNumber()
         is Long -> value.makeAPLNumber()
