@@ -220,6 +220,18 @@ inline fun <T> withThreadLocalsUnassigned(fn: () -> T): T {
 
 fun currentStack() = threadLocalStorageStackRef.value ?: throw IllegalStateException("Storage stack is not bound")
 
+interface SystemParameterProvider {
+    fun lookupValue(): APLValue
+}
+
+class ConstantStringSystemParameterProvider(val value: String) : SystemParameterProvider {
+    override fun lookupValue() = APLString(value)
+}
+
+class ConstantSymbolSystemParameterProvider(val name: Symbol) : SystemParameterProvider {
+    override fun lookupValue() = APLSymbol(name)
+}
+
 class Engine(numComputeEngines: Int? = null) {
     private val functions = HashMap<Symbol, APLFunctionDescriptor>()
     private val operators = HashMap<Symbol, APLOperator>()
@@ -245,6 +257,8 @@ class Engine(numComputeEngines: Int? = null) {
     val closableHandlers = HashMap<KClass<out APLValue>, ClosableHandler<*>>()
     val backgroundDispatcher = makeBackgroundDispatcher(numComputeEngines ?: numCores())
     val inComputeThread = makeMPThreadLocal<Boolean>()
+    val systemParameters = HashMap<Symbol, SystemParameterProvider>()
+    val standardSymbols = StandardSymbols(this)
 
     @Volatile
     private var breakPending = false
@@ -368,6 +382,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("typeof", TypeofFunction())
         registerNativeFunction("isLocallyBound", IsLocallyBoundFunction())
         registerNativeFunction("comp", CompFunction())
+        registerNativeFunction("sysparam", SystemParameterFunction())
 
         // operators
         registerNativeOperator("¨", ForEachOp())
@@ -795,4 +810,8 @@ interface KapModule {
      * Initialise the module.
      */
     fun init(engine: Engine)
+}
+
+class StandardSymbols(val engine: Engine) {
+    val platform by lazy { engine.internSymbol("platform", engine.coreNamespace) }
 }

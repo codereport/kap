@@ -42,6 +42,21 @@ class CompFunction : APLFunctionDescriptor {
     }
 }
 
+class SystemParameterNotFound(val name: Symbol, pos: Position? = null) : APLEvalException("System parameter not found: ${name.nameWithNamespace}", pos)
+
+class SystemParameterFunction : APLFunctionDescriptor {
+    class SystemParameterFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val name = a.ensureSymbol(pos).value
+            val result = context.engine.systemParameters[name] ?: throwAPLException(SystemParameterNotFound(name, pos))
+            return result.lookupValue()
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = SystemParameterFunctionImpl(instantiation)
+}
+
+
 /**
  * This value represents the result of a 1-arg function call which will only be performed
  * after the value is actually needed.
