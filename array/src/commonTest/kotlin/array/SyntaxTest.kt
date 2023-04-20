@@ -307,4 +307,14 @@ class SyntaxTest : APLTest() {
             assertSimpleNumber(106, result)
         }
     }
+
+    @Test
+    fun stringArg() {
+        val result = parseAPLExpression(
+            """
+            |defsyntax foo (:string a) { "bar",a }
+            |foo "xcx"
+            """.trimMargin())
+        assertString("barxcx", result)
+    }
 }

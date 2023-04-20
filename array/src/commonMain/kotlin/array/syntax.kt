@@ -65,6 +65,15 @@ class ValueSyntaxRule(val variable: EnvironmentBinding) : SyntaxRule {
     }
 }
 
+class StringSyntaxRule(val variable: EnvironmentBinding) : SyntaxRule {
+    override fun isValid(token: Token) = token is StringToken
+
+    override fun processRule(parser: APLParser, syntaxRuleBindings: MutableList<SyntaxRuleVariableBinding>) {
+        val (token, pos) = parser.tokeniser.nextTokenAndPosWithType<StringToken>()
+        syntaxRuleBindings.add(SyntaxRuleVariableBinding(variable, LiteralStringValue(token.value, pos)))
+    }
+}
+
 abstract class FunctionSyntaxRule(private val variable: EnvironmentBinding) : SyntaxRule {
     override fun isValid(token: Token) = token == startToken()
 
@@ -181,6 +190,7 @@ private fun processPair(parser: APLParser, curr: MutableList<SyntaxRule>, token:
         "constant" -> curr.add(ConstantSyntaxRule(tokeniser.nextTokenWithType()))
         "special" -> curr.add(TokenSyntaxRule.make(tokeniser))
         "value" -> curr.add(ValueSyntaxRule(parser.currentEnvironment().bindLocal(tokeniser.nextTokenWithType())))
+        "string" -> curr.add(StringSyntaxRule(parser.currentEnvironment().bindLocal(tokeniser.nextTokenWithType())))
         "function" -> curr.add(
             BFunctionSyntaxRule(
                 parser.currentEnvironment().bindLocal(tokeniser.nextTokenWithType())))
