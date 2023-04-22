@@ -124,7 +124,7 @@ class RegexpReplaceFunction : APLFunctionDescriptor {
             val regexp = regexpFromValue(a, pos)
             val args = b.listify()
             if (args.listSize() != 2) {
-                throwAPLException(APLIllegalArgumentException("Function requires 2 arguments", pos))
+                throwAPLException(IllegalArgumentNumException(2, args.listSize(), pos))
             }
             val matchString = args.listElement(0).toStringValue(pos)
             val replacementArg = args.listElement(1).collapse()

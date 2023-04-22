@@ -2,9 +2,11 @@ package array.jvmmod
 
 import array.APLTest
 import array.APLValue
+import array.ListOutOfBounds
 import array.dimensionsOfSize
 import org.junit.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 
 class TypesExample() {
@@ -73,6 +75,21 @@ class JavaTypesTest : APLTest() {
             """.trimMargin()
         parseAPLExpression(src).let { result ->
             assertSimpleNumber(1, result)
+        }
+    }
+
+    @Test
+    fun missingMethodName() {
+        val src =
+            """
+            |typesExampleClass ← jvm:findClass "array.jvmmod.TypesExample"
+            |constructor ← typesExampleClass jvm:findConstructor toList ⍬
+            |a ← constructor jvm:createInstance toList ⍬
+            |createLongMethod ← typesExampleClass jvm:findMethod "createLong"
+            |jvm:fromJvm createLongMethod jvm:callMethod toList ⍬ 
+            """.trimMargin()
+        assertFailsWith<ListOutOfBounds> {
+            parseAPLExpression(src)
         }
     }
 

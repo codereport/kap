@@ -82,7 +82,7 @@ class FindMethodFunction : APLFunctionDescriptor {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val cl = ensureJvmInstance<Class<*>>(a, pos)
             val b0 = b.unwrapDeferredValue().listify()
-            val methodName = b0.listElement(0).toStringValue(pos, "method name")
+            val methodName = b0.listElement(0, pos).toStringValue(pos, "method name")
             val method = try {
                 cl.getMethod(methodName, *b0.elements.drop(1).map { v -> ensureJvmInstance<Class<*>>(v, pos) }.toTypedArray())
             } catch (e: NoSuchMethodException) {
@@ -118,7 +118,7 @@ class CallMethodFunction : APLFunctionDescriptor {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val method = ensureJvmInstance<Method>(a, pos)
             val b0 = b.listify()
-            val instance = toJava(context.engine, b0.listElement(0))
+            val instance = toJava(context.engine, b0.listElement(0, pos))
             val result = method.invoke(instance, *b0.elements.drop(1).map { v -> toJava(context.engine, v) }.toTypedArray())
             return JvmInstanceValue(result)
         }

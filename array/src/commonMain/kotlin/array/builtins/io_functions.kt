@@ -136,11 +136,11 @@ class HttpPostFunction : APLFunctionDescriptor {
     class HttpPostFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val args = a.listify()
-            val url = args.listElement(0).toStringValue(pos)
+            val url = args.listElement(0, pos).toStringValue(pos)
             val (data, headers) = when (args.listSize()) {
                 1 -> Pair(APLString.make(""), emptyMap())
-                2 -> Pair(args.listElement(1), emptyMap())
-                3 -> Pair(args.listElement(1), ensureHeaderArray(args.listElement(2), pos))
+                2 -> Pair(args.listElement(1, pos), emptyMap())
+                3 -> Pair(args.listElement(1, pos), ensureHeaderArray(args.listElement(2), pos))
                 else -> throwAPLException(
                     APLIllegalArgumentException(
                         "Function requires 1-3 arguments, ${args.listSize()} arguments were passed.",

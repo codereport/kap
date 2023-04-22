@@ -295,4 +295,16 @@ class CompareTest : APLTest() {
         assertSimpleNumber(-1, parseAPLExpression("(3÷2) cmp 1.6"))
         assertSimpleNumber(0, parseAPLExpression("1.5 cmp (3÷2)"))
     }
+
+    @Test
+    fun compareBigIntAndChar() {
+        assertSimpleNumber(-1, parseAPLExpression("100000000000000000000000000 cmp @c"))
+        assertSimpleNumber(1, parseAPLExpression("@c cmp 100000000000000000000000000"))
+    }
+
+    @Test
+    fun compareRationalAndChar() {
+        assertSimpleNumber(-1, parseAPLExpression("(500000000000000000000000000÷3) cmp @c"))
+        assertSimpleNumber(1, parseAPLExpression("@c cmp (500000000000000000000000000÷3)"))
+    }
 }

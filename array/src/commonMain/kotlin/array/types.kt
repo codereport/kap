@@ -246,7 +246,15 @@ abstract class APLValue {
     }
 
     companion object {
-        val typeSortOrder = arrayOf(APLLong::class, APLDouble::class, APLComplex::class, APLChar::class, APLArray::class, APLSymbol::class)
+        val typeSortOrder = arrayOf(
+            APLLong::class,
+            APLBigInt::class,
+            APLRational::class,
+            APLDouble::class,
+            APLComplex::class,
+            APLChar::class,
+            APLArray::class,
+            APLSymbol::class)
         val typeToPosition = typeSortOrder.mapIndexed { i, cl -> cl to i }.toMap()
     }
 
@@ -602,7 +610,12 @@ class APLList(val elements: List<APLValue>) : APLSingleValue() {
     }
 
     fun listSize() = elements.size
-    fun listElement(index: Int) = elements[index]
+    fun listElement(index: Int, pos: Position? = null) =
+        if (index >= 0 && index < elements.size) {
+            elements[index]
+        } else {
+            throwAPLException(ListOutOfBounds("Attempt to access element ${index} from list. Size: ${elements.size}", pos))
+        }
 
     override fun compare(reference: APLValue, pos: Position?): Int {
         return if (reference is APLList) {
