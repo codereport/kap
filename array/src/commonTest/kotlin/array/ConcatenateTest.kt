@@ -304,6 +304,13 @@ class ConcatenateTest : APLTest() {
         }
     }
 
+    @Test
+    fun contatenateOverInvalidAxis() {
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("0 ,[1.5] 0")
+        }
+    }
+
     private fun assertChar(expected: Int, result: APLValue) {
         assertTrue(result is APLChar)
         assertEquals(expected, result.value)

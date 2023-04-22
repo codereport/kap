@@ -436,12 +436,17 @@ abstract class ConcatenateAPLFunctionImpl(pos: FunctionInstantiation) : APLFunct
     }
 
     private fun joinByLaminate(a: APLValue, b: APLValue, axis: Int): APLValue {
-        val a1 = if (a.isScalar()) {
+        val aIsScalar = a.isScalar()
+        val bIsScalar = b.isScalar()
+        if (aIsScalar && bIsScalar) {
+            throwAPLException(IllegalAxisException("Both arguments are scalar", pos))
+        }
+        val a1 = if (aIsScalar) {
             ResizedArrayImpls.makeResizedArray(b.dimensions, a)
         } else {
             a
         }
-        val b1 = if (b.isScalar()) {
+        val b1 = if (bIsScalar) {
             ResizedArrayImpls.makeResizedArray(a.dimensions, b)
         } else {
             b

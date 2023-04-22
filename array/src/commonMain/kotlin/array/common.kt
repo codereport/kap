@@ -52,7 +52,7 @@ class InvalidDimensionsException(message: String, pos: Position? = null) : APLEv
 
 class APLIndexOutOfBoundsException(message: String, pos: Position? = null) : APLEvalException("Index out of bounds: ${message}", pos)
 class VariableNotAssigned(name: Symbol, pos: Position? = null) : APLEvalException("Variable not assigned: ${name.nameWithNamespace}", pos)
-class IllegalAxisException(message: String, pos: Position?) : APLEvalException(message, pos) {
+class IllegalAxisException(message: String, pos: Position? = null) : APLEvalException(message, pos) {
     constructor(axis: Int, dimensions: Dimensions, pos: Position? = null)
             : this("Axis $axis is not valid. Expected: ${dimensions.size}", pos)
 }
