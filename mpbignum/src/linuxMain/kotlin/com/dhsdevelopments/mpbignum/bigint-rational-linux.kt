@@ -294,7 +294,12 @@ class LinuxRational(val value: mpq_t) : Rational {
     }
 
     override fun compareTo(other: Rational): Int {
-        return mpq_cmp!!(value, (other as LinuxRational).value)
+        val result = mpq_cmp!!(value, (other as LinuxRational).value)
+        return when {
+            result < 0 -> -1
+            result > 0 -> 1
+            else -> 0
+        }
     }
 
     override fun equals(other: Any?): Boolean {
