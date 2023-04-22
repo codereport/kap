@@ -6,6 +6,7 @@ import array.complex.Complex
 import com.dhsdevelopments.mpbignum.BigInt
 import com.dhsdevelopments.mpbignum.LongExpressionOverflow
 import com.dhsdevelopments.mpbignum.Rational
+import com.dhsdevelopments.mpbignum.compareTo
 
 class EqualsAPLFunction : APLFunctionDescriptor {
     class EqualsAPLFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
@@ -21,7 +22,9 @@ class EqualsAPLFunction : APLFunctionDescriptor {
                     { x, y -> makeBoolean(x == y) },
                     { x, y -> makeBoolean(x == y) },
                     { x, y -> makeBoolean(x == y) },
-                    { x, y -> if (x.compareEquals(y)) APLLONG_1 else APLLONG_0 })
+                    { x, y -> if (x.compareEquals(y)) APLLONG_1 else APLLONG_0 },
+                    fnBigint = { x, y -> makeBoolean(x == y) },
+                    fnRational = { x, y -> makeBoolean(x == y) })
             }
         }
 
@@ -49,7 +52,9 @@ class NotEqualsAPLFunction : APLFunctionDescriptor {
                     { x, y -> makeBoolean(x != y) },
                     { x, y -> makeBoolean(x != y) },
                     { x, y -> makeBoolean(x != y) },
-                    { x, y -> if (x.compareEquals(y)) APLLONG_0 else APLLONG_1 })
+                    { x, y -> if (x.compareEquals(y)) APLLONG_0 else APLLONG_1 },
+                    fnBigint = { x, y -> makeBoolean(x != y) },
+                    fnRational = { x, y -> makeBoolean(x != y) })
             }
         }
 
@@ -72,7 +77,9 @@ class LessThanAPLFunction : APLFunctionDescriptor {
                 { x, y -> makeBoolean(x < y) },
                 { x, y -> makeBoolean(x < y) },
                 { x, y -> makeBoolean(if (x.real == y.real) x.imaginary < y.imaginary else x.real < y.real) },
-                { x, y -> makeBoolean(x < y) })
+                { x, y -> makeBoolean(x < y) },
+                fnBigint = { x, y -> makeBoolean(x < y) },
+                fnRational = { x, y -> makeBoolean(x < y) })
         }
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
@@ -109,7 +116,9 @@ class GreaterThanAPLFunction : APLFunctionDescriptor {
                 { x, y -> makeBoolean(x > y) },
                 { x, y -> makeBoolean(x > y) },
                 { x, y -> makeBoolean(if (x.real == y.real) x.imaginary > y.imaginary else x.real > y.real) },
-                { x, y -> makeBoolean(x > y) })
+                { x, y -> makeBoolean(x > y) },
+                fnBigint = { x, y -> makeBoolean(x > y) },
+                fnRational = { x, y -> makeBoolean(x > y) })
         }
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
@@ -150,7 +159,9 @@ class LessThanEqualAPLFunction : APLFunctionDescriptor {
                 { x, y -> makeBoolean(x <= y) },
                 { x, y -> makeBoolean(x <= y) },
                 { x, y -> makeBoolean(if (x.real == y.real) x.imaginary <= y.imaginary else x.real < y.real) },
-                { x, y -> makeBoolean(x <= y) })
+                { x, y -> makeBoolean(x <= y) },
+                fnBigint = { x, y -> makeBoolean(x <= y) },
+                fnRational = { x, y -> makeBoolean(x <= y) })
         }
 
         override fun identityValue() = APLLONG_1
@@ -171,7 +182,9 @@ class GreaterThanEqualAPLFunction : APLFunctionDescriptor {
                 { x, y -> makeBoolean(x >= y) },
                 { x, y -> makeBoolean(x >= y) },
                 { x, y -> makeBoolean(if (x.real == y.real) x.imaginary >= y.imaginary else x.real > y.real) },
-                { x, y -> makeBoolean(x >= y) })
+                { x, y -> makeBoolean(x >= y) },
+                fnBigint = { x, y -> makeBoolean(x >= y) },
+                fnRational = { x, y -> makeBoolean(x >= y) })
         }
 
         override fun identityValue() = APLLONG_1

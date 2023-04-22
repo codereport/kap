@@ -10,6 +10,7 @@ class CompareTest : APLTest() {
         testFunction(arrayOf(1, 0, 1, 1, 0, 1), "≤")
         testFunction(arrayOf(0, 1, 1, 0, 1, 1), "≥")
         testFunction(arrayOf(0, 0, 1, 0, 0, 1), "=")
+        testFunction(arrayOf(1, 1, 0, 1, 1, 0), "≠")
     }
 
     @Test
@@ -101,9 +102,16 @@ class CompareTest : APLTest() {
 
     private fun testFunction(expected: Array<Long>, name: String) {
         assertSimpleNumber(expected[0], parseAPLExpression("1${name}2"))
+        assertSimpleNumber(expected[0], parseAPLExpression("100000000000000000000000000${name}200000000000000000000000000"))
+        assertSimpleNumber(expected[0], parseAPLExpression("(1÷3)${name}(2÷3)"))
         assertSimpleNumber(expected[1], parseAPLExpression("2${name}1"))
+        assertSimpleNumber(expected[1], parseAPLExpression("200000000000000000000000000${name}100000000000000000000000000"))
+        assertSimpleNumber(expected[1], parseAPLExpression("(2÷3)${name}(1÷3)"))
         assertSimpleNumber(expected[2], parseAPLExpression("2${name}2"))
+        assertSimpleNumber(expected[2], parseAPLExpression("200000000000000000000000000${name}200000000000000000000000000"))
+        assertSimpleNumber(expected[2], parseAPLExpression("(2÷3)${name}(2÷3)"))
         assertSimpleNumber(expected[3], parseAPLExpression("0${name}1"))
+        assertSimpleNumber(expected[4], parseAPLExpression("1${name}0"))
         assertSimpleNumber(expected[4], parseAPLExpression("1${name}0"))
         assertSimpleNumber(expected[5], parseAPLExpression("0${name}0"))
     }
