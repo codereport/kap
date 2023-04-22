@@ -296,6 +296,13 @@ class ConcatenateTest : APLTest() {
         }
     }
 
+    @Test
+    fun concatenateWithAdditionalDimension() {
+        parseAPLExpression("0 ,[2] 0 ,[1.5] 2 2 ⍴ 1 2 3 4").let { result ->
+            assertDimension(dimensionsOfSize(2, 2, 3), result)
+            assertArrayContent(arrayOf(0, 0, 1, 0, 0, 2, 0, 0, 3, 0, 0, 4), result)
+        }
+    }
 
     private fun assertChar(expected: Int, result: APLValue) {
         assertTrue(result is APLChar)
