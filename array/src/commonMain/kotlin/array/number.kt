@@ -55,11 +55,13 @@ class APLLong(val value: Long) : APLNumber() {
         }
     }
 
-    override fun compare(reference: APLValue, pos: Position?) = when (reference) {
-        is APLLong -> value.compareTo(reference.value)
-        is APLDouble -> value.compareTo(reference.value)
-        is APLComplex -> compareComplex(asComplex(), reference.value)
-        else -> super.compare(reference, pos)
+    override fun compare(reference: APLValue, pos: Position?) = when (val v = reference.unwrapDeferredValue()) {
+        is APLLong -> value.compareTo(v.value)
+        is APLDouble -> value.compareTo(v.value)
+        is APLComplex -> compareComplex(asComplex(), v.value)
+        is APLBigInt -> value.toBigInt().compareTo(v.value)
+        is APLRational -> value.toRational().compareTo(v.value)
+        else -> super.compare(v, pos)
     }
 
     override fun toString() = "APLLong(${formatted(FormatStyle.PRETTY)})"
@@ -88,11 +90,13 @@ class APLDouble(val value: Double) : APLNumber() {
         }
     }
 
-    override fun compare(reference: APLValue, pos: Position?) = when (reference) {
-        is APLLong -> value.compareTo(reference.value)
-        is APLDouble -> value.compareTo(reference.value)
-        is APLComplex -> compareComplex(asComplex(), reference.value)
-        else -> super.compare(reference, pos)
+    override fun compare(reference: APLValue, pos: Position?) = when (val v = reference.unwrapDeferredValue()) {
+        is APLLong -> value.compareTo(v.value)
+        is APLDouble -> value.compareTo(v.value)
+        is APLComplex -> compareComplex(asComplex(), v.value)
+        is APLBigInt -> value.compareTo(v.value.toDouble())
+        is APLRational -> value.compareTo(v.value.toDouble())
+        else -> super.compare(v, pos)
     }
 
     override fun toString() = "APLDouble(${formatted(FormatStyle.PRETTY)})"
@@ -142,7 +146,7 @@ class APLBigInt(val value: BigInt) : APLWideNumber() {
 
     override fun compare(reference: APLValue, pos: Position?) = when (val v = reference.unwrapDeferredValue()) {
         is APLLong -> value.compareTo(v.value)
-        is APLDouble -> TODO("foo")
+        is APLDouble -> value.toDouble().compareTo(v.value)
         is APLComplex -> compareComplex(asComplex(), v.value)
         is APLBigInt -> value.compareTo(v.value)
         is APLRational -> Rational.make(value, BigIntConstants.ONE).compareTo(v.value)

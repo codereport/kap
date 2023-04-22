@@ -250,4 +250,49 @@ class CompareTest : APLTest() {
         assertSimpleNumber(-1, parseAPLExpression("(10;11;12) cmp (1;2;3;4)"))
         assertSimpleNumber(1, parseAPLExpression("(1;2;3;4) cmp (10;11;12)"))
     }
+
+    @Test
+    fun compareIntAndRational() {
+        assertSimpleNumber(-1, parseAPLExpression("(1÷3) cmp 1"))
+        assertSimpleNumber(1, parseAPLExpression("1 cmp (1÷3)"))
+    }
+
+    @Test
+    fun compareBigIntAndRational() {
+        assertSimpleNumber(-1, parseAPLExpression("(100000000000000000000000001÷3) cmp 100000000000000000000000000"))
+        assertSimpleNumber(1, parseAPLExpression("100000000000000000000000000 cmp (100000000000000000000000001÷3)"))
+    }
+
+    @Test
+    fun compareBigInt() {
+        assertSimpleNumber(-1, parseAPLExpression("100000000000000000000000000 cmp 200000000000000000000000000"))
+        assertSimpleNumber(-1, parseAPLExpression("200000000000000000000000000 cmp 200000000000000000000000001"))
+        assertSimpleNumber(1, parseAPLExpression("200000000000000000000000000 cmp 100000000000000000000000000"))
+        assertSimpleNumber(1, parseAPLExpression("200000000000000000000000001 cmp 200000000000000000000000000"))
+        assertSimpleNumber(0, parseAPLExpression("200000000000000000000000000 cmp 200000000000000000000000000"))
+        assertSimpleNumber(0, parseAPLExpression("299999999999999999999999999 cmp 299999999999999999999999999"))
+    }
+
+    @Test
+    fun compareRational() {
+        assertSimpleNumber(-1, parseAPLExpression("(100000000000000000000000000÷3) cmp (200000000000000000000000000÷3)"))
+        assertSimpleNumber(-1, parseAPLExpression("(200000000000000000000000000÷3) cmp (200000000000000000000000001÷3)"))
+        assertSimpleNumber(1, parseAPLExpression("(200000000000000000000000000÷3) cmp (100000000000000000000000000÷3)"))
+        assertSimpleNumber(1, parseAPLExpression("(200000000000000000000000001÷3) cmp (200000000000000000000000000÷3)"))
+        assertSimpleNumber(0, parseAPLExpression("(200000000000000000000000001÷3) cmp (200000000000000000000000001÷3)"))
+    }
+
+    @Test
+    fun compareBigIntToDouble() {
+        assertSimpleNumber(1, parseAPLExpression("2.1 cmp (int:asBigint 2)"))
+        assertSimpleNumber(-1, parseAPLExpression("(int:asBigint 2) cmp 2.1"))
+        assertSimpleNumber(0, parseAPLExpression("(int:asBigint 2) cmp 2.0"))
+    }
+
+    @Test
+    fun compareRationalToDouble() {
+        assertSimpleNumber(1, parseAPLExpression("1.6 cmp (3÷2)"))
+        assertSimpleNumber(-1, parseAPLExpression("(3÷2) cmp 1.6"))
+        assertSimpleNumber(0, parseAPLExpression("1.5 cmp (3÷2)"))
+    }
 }
