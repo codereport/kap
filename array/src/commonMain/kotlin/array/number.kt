@@ -15,6 +15,14 @@ abstract class APLNumber : APLSingleValue() {
 
     abstract fun isComplex(): Boolean
 
+    open fun asBinary(pos: Position? = null): Int {
+        return when (val l = asLong(pos)) {
+            0L -> 0
+            1L -> 1
+            else -> throwAPLException(KAPOverflowException("Value must be 0 or 1: ${l}"))
+        }
+    }
+
     open fun asInt(pos: Position? = null): Int {
         val l = asLong(pos)
         return if (l >= Int.MIN_VALUE && l <= Int.MAX_VALUE) {
@@ -24,7 +32,7 @@ abstract class APLNumber : APLSingleValue() {
         }
     }
 
-    override fun asBoolean(pos: Position?) = asInt(pos) != 0
+    override fun asBoolean(pos: Position?) = asLong(pos) != 0L
 
     open fun asBigInt(): BigInt = throwAPLException(APLIllegalArgumentException("Value cannot be converted to bigint: ${formatted(FormatStyle.PLAIN)}"))
     open fun asRational(): Rational = throwAPLException(APLIllegalArgumentException("Value cannot be converted to rational: ${formatted(FormatStyle.PLAIN)}"))

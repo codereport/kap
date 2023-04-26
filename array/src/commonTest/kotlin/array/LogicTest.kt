@@ -259,4 +259,18 @@ class LogicTest : APLTest() {
             parseAPLExpression("¯1⍱0")
         }
     }
+
+    @Test
+    fun nandBigint() {
+        parseAPLExpression("(int:asBigint 1) ⍲ (int:asBigint 0)").let { result ->
+            assertSimpleNumber(1, result)
+        }
+    }
+
+    @Test
+    fun norBigint() {
+        parseAPLExpression("(int:asBigint 1) ⍱ (int:asBigint 1)").let { result ->
+            assertSimpleNumber(0, result)
+        }
+    }
 }

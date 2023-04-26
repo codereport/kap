@@ -1073,8 +1073,9 @@ class NandAPLFunction : APLFunctionDescriptor {
                 a,
                 b,
                 { x, y -> opLong(x, y).makeAPLNumber() },
-                { x, y -> opDouble(x, y).makeAPLNumber() },
-                { _, _ -> throwIllegalArgument() })
+                { x, y -> opLong(x.toLong(), y.toLong()).makeAPLNumber() },
+                { _, _ -> throwIllegalArgument() },
+                fnBigint = { x, y -> opBigint(x, y).makeAPLNumber() })
         }
 
         private fun opLong(a: Long, b: Long) = when {
@@ -1085,16 +1086,12 @@ class NandAPLFunction : APLFunctionDescriptor {
             else -> throwIllegalArgument()
         }
 
-        private fun opDouble(a: Double, b: Double): Long {
-            val x0 = a.toLong()
-            val y0 = b.toLong()
-            return when {
-                x0 == 0L && y0 == 0L -> 1L
-                x0 == 0L && y0 == 1L -> 1L
-                x0 == 1L && y0 == 0L -> 1L
-                x0 == 1L && y0 == 1L -> 0L
-                else -> throwIllegalArgument()
-            }
+        private fun opBigint(a: BigInt, b: BigInt) = when {
+            a == BigIntConstants.ZERO && b == BigIntConstants.ZERO -> 1L
+            a == BigIntConstants.ZERO && b == BigIntConstants.ONE -> 1L
+            a == BigIntConstants.ONE && b == BigIntConstants.ZERO -> 1L
+            a == BigIntConstants.ONE && b == BigIntConstants.ONE -> 0L
+            else -> throwIllegalArgument()
         }
 
         override fun combine2ArgLong(a: Long, b: Long) = opLong(a, b)
@@ -1121,8 +1118,9 @@ class NorAPLFunction : APLFunctionDescriptor {
                 a,
                 b,
                 { x, y -> opLong(x, y).makeAPLNumber() },
-                { x, y -> opDouble(x, y).makeAPLNumber() },
-                { _, _ -> throwIllegalArgument() })
+                { x, y -> opLong(x.toLong(), y.toLong()).makeAPLNumber() },
+                { _, _ -> throwIllegalArgument() },
+                fnBigint = { x, y -> opBigint(x, y).makeAPLNumber() })
         }
 
         private fun opLong(x: Long, y: Long): Long {
@@ -1135,14 +1133,12 @@ class NorAPLFunction : APLFunctionDescriptor {
             }
         }
 
-        private fun opDouble(x: Double, y: Double): Long {
-            val x0 = x.toLong()
-            val y0 = y.toLong()
+        private fun opBigint(x: BigInt, y: BigInt): Long {
             return when {
-                x0 == 0L && y0 == 0L -> 1L
-                x0 == 0L && y0 == 1L -> 0L
-                x0 == 1L && y0 == 0L -> 0L
-                x0 == 1L && y0 == 1L -> 0L
+                x == BigIntConstants.ZERO && y == BigIntConstants.ZERO -> 1L
+                x == BigIntConstants.ZERO && y == BigIntConstants.ONE -> 0L
+                x == BigIntConstants.ONE && y == BigIntConstants.ZERO -> 0L
+                x == BigIntConstants.ONE && y == BigIntConstants.ONE -> 0L
                 else -> throwIllegalArgument()
             }
         }
