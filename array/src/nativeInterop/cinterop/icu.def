@@ -7,6 +7,6 @@ linkerOpts.linux = -L/usr/lib64 -L/usr/lib/x86_64-linux-gnu -licui18n -licuuc -l
 
 ---
 
-static inline bool icu_u_success(UErrorCode code) {
+static inline int icu_u_success(UErrorCode code) {
     return U_SUCCESS(code);
 }
