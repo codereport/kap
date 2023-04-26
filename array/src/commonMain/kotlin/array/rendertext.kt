@@ -3,6 +3,45 @@ package array.rendertext
 import array.*
 import kotlin.math.max
 
+/*
+Example multi-dimensional rendering alternatives:
+
+      ⍕@(⊂1 1 1 1)⊢2 2 2 2⍴⍳8
+┌┌┌→──┐
+↓↓↓0 1│
+│││2 3│
+││└+──┤
+││┌→──┤
+││↓4 5│
+│││6 7│
+│└└~──┤
+│┌┌→──┤
+│↓↓0 1│
+│││2 3│
+││└~──┤
+││┌→──┤
+││↓4 5│
+│││6 7│
+└└└~──┘
+
+ Alternative version:
+
+┌┌┌→──┐
+↓↓↓0 1│
+│││2 3│
+││├→──┤
+││↓4 5│
+│││6 7│
+│├├→──┤
+│↓↓0 1│
+│││2 3│
+││├→──┤
+││↓4 5│
+│││6 7│
+└└└───┘
+
+ */
+
 class String2D {
     private val content: List<List<String>>
     private val width: Int
