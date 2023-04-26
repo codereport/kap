@@ -18,7 +18,8 @@ enum class APLValueType(val typeName: String) {
     LIST("list"),
     MAP("map"),
     INTERNAL("internal"),
-    RATIONAL("rational")
+    RATIONAL("rational"),
+    OBJECT("object")
 }
 
 enum class FormatStyle {
@@ -129,6 +130,8 @@ abstract class APLValue {
     open fun unwrapDeferredValue(): APLValue = this
 
     abstract fun compareEquals(reference: APLValue): Boolean
+
+    open val kapClass: KapClass? = null
 
     open fun compare(reference: APLValue, pos: Position? = null): Int {
         fun throwError(): Nothing {
@@ -1069,6 +1072,7 @@ abstract class AbstractDelegatedValue : APLValue() {
     override fun formattedAsCodeRequiresParens() = value.formattedAsCodeRequiresParens()
     override fun ensureNumberOrNull() = value.ensureNumberOrNull()
     override fun asHtml(buf: Appendable) = value.asHtml(buf)
+    override val kapClass: KapClass? get() = value.kapClass
 }
 
 open class DelegatedValue(delegate: APLValue) : AbstractDelegatedValue() {

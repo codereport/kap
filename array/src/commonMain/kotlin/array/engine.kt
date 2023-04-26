@@ -244,6 +244,8 @@ class Engine(numComputeEngines: Int? = null) {
     private val modules = ArrayList<KapModule>()
     private val exportedSingleCharFunctions = HashSet<String>()
 
+    val classManager = ClassManager(this)
+
     val rootEnvironment = Environment("root", null)
     var standardOutput: CharacterOutput = NullCharacterOutput()
     var standardInput: CharacterProvider = NullCharacterProvider()
@@ -409,6 +411,8 @@ class Engine(numComputeEngines: Int? = null) {
         // function aliases                             
         functionAliases[coreNamespace.internAndExport("*")] = coreNamespace.internAndExport("⋆")
         functionAliases[coreNamespace.internAndExport("~")] = coreNamespace.internAndExport("∼")
+
+        classManager.init()
 
         platformInit(this)
 
