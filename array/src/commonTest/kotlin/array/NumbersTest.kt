@@ -595,4 +595,48 @@ class NumbersTest : APLTest() {
                 result)
         }
     }
+
+    @Test
+    fun squareRootBigint() {
+        parseAPLExpression("√(int:asBigint 15) (int:asBigint ¯15)").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearDouble(3.872983346207417),
+                    NearComplex(Complex(2.3715183290419594e-16, 3.872983346207417))),
+                result)
+        }
+    }
+
+    @Test
+    fun nthRootBigint() {
+        parseAPLExpression("3√(int:asBigint 15) (int:asBigint ¯15)").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearDouble(2.46621207433047),
+                    NearComplex(Complex(1.2331060371652354, 2.1358023074901036))),
+                result)
+        }
+    }
+
+    @Test
+    fun squareRootRational() {
+        parseAPLExpression("√ (3÷5) (¯3÷5)").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearDouble(0.7745966692414834),
+                    NearComplex(Complex(4.743036658083919e-17, 0.7745966692414834))),
+                result)
+        }
+    }
+
+    @Test
+    fun nthRootRational() {
+        parseAPLExpression("(11÷10) √ (3÷5) (¯3÷5)").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearDouble(0.6285203136088378),
+                    NearComplex(Complex(-0.6030608246816601, 0.17707463497979534))),
+                result)
+        }
+    }
 }

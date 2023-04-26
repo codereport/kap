@@ -989,31 +989,33 @@ class SqrtAPLFunction : APLFunctionDescriptor {
             return singleArgNumericRelationOperation(
                 pos,
                 a,
-                { x -> if (x < 0) x.toDouble().pow(COMPLEX_HALF).makeAPLNumber() else sqrt(x.toDouble()).makeAPLNumber() },
-                { x -> if (x < 0) x.pow(COMPLEX_HALF).makeAPLNumber() else sqrt(x).makeAPLNumber() },
-                { x -> x.pow(COMPLEX_HALF).makeAPLNumber() })
+                { x -> sqrtDouble(x.toDouble()) },
+                { x -> sqrtDouble(x) },
+                { x -> x.pow(COMPLEX_HALF).makeAPLNumber() },
+                fnBigInt = { x -> sqrtDouble(x.toDouble()) },
+                fnRational = { x -> sqrtDouble(x.toDouble()) })
         }
+
+        private fun sqrtDouble(x: Double) = if (x < 0) x.pow(COMPLEX_HALF).makeAPLNumber() else sqrt(x).makeAPLNumber()
 
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
             return numericRelationOperation(
                 pos,
                 a,
                 b,
-                { x, y ->
-                    if (y < 0) {
-                        y.toDouble().pow(x.toDouble().toComplex().reciprocal()).makeAPLNumber()
-                    } else {
-                        y.toDouble().pow(1.0 / x.toDouble()).makeAPLNumber()
-                    }
-                },
-                { x, y ->
-                    if (y < 0) {
-                        y.pow(x.toComplex().reciprocal()).makeAPLNumber()
-                    } else {
-                        y.pow(1.0 / x).makeAPLNumber()
-                    }
-                },
-                { x, y -> y.pow(1.0 / x).makeAPLNumber() })
+                { x, y -> nthRootDouble(x.toDouble(), y.toDouble()) },
+                { x, y -> nthRootDouble(x, y) },
+                { x, y -> y.pow(1.0 / x).makeAPLNumber() },
+                fnBigint = { x, y -> nthRootDouble(x.toDouble(), y.toDouble()) },
+                fnRational = { x, y -> nthRootDouble(x.toDouble(), y.toDouble()) })
+        }
+
+        private fun nthRootDouble(x: Double, y: Double): APLNumber {
+            return if (y < 0) {
+                y.pow(x.toComplex().reciprocal()).makeAPLNumber()
+            } else {
+                y.pow(1.0 / x).makeAPLNumber()
+            }
         }
 
         override val name1Arg get() = "square root"
