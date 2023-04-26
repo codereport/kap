@@ -119,8 +119,8 @@ internal fun linuxBigIntRem(result: mpz_t, a: mpz_t, b: mpz_t) {
 actual operator fun BigInt.compareTo(other: BigInt): Int {
     val result = mpz_cmp!!(inner, other.inner)
     return when {
-        result < 0 -> -1
         result > 0 -> 1
+        result < 0 -> -1
         else -> 0
     }
 }
