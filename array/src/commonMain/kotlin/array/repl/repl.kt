@@ -23,29 +23,33 @@ fun runRepl(args: Array<String>, defaultLibPath: String? = null, init: ((Engine)
         argParser.printHelp()
         return
     }
-    val keyboardInput = makeKeyboardInput()
-    val engine = Engine()
-    if (init != null) {
-        init(engine)
-    }
-    engine.standardOutput = object : CharacterOutput {
-        override fun writeString(s: String) {
-            print(s)
-        }
-    }
-    val libPath = argResult["lib-path"] ?: defaultLibPath
-    if (libPath != null) {
-        val libPathType = fileType(libPath)
-        if (libPathType != null && libPathType === FileNameType.DIRECTORY) {
-            engine.addLibrarySearchPath(libPath)
-        } else {
-            println("Warning: ${libPath} is not a directory, ignoring")
-        }
-    }
-    if (!argResult.containsKey("no-standard-lib")) {
-        engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
-    }
     try {
+        val keyboardInput = makeKeyboardInput()
+        val engine = Engine()
+        if (init != null) {
+            init(engine)
+        }
+        engine.standardOutput = object : CharacterOutput {
+            override fun writeString(s: String) {
+                print(s)
+            }
+        }
+        val libPath = argResult["lib-path"] ?: defaultLibPath
+        if (libPath != null) {
+            val libPathType = fileType(libPath)
+            if (libPathType != null && libPathType === FileNameType.DIRECTORY) {
+                engine.addLibrarySearchPath(libPath)
+            } else {
+                println("Warning: ${libPath} is not a directory, ignoring")
+            }
+        }
+        if (!argResult.containsKey("no-standard-lib")) {
+            try {
+                engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
+            } catch (e: APLGenericException) {
+                throw ReplFailedException("Error loading standard library", e)
+            }
+        }
         argResult["load"]?.let { file ->
             val sourceLocation = if (file == "-") {
                 StdinSourceLocation(engine)
@@ -57,7 +61,11 @@ fun runRepl(args: Array<String>, defaultLibPath: String? = null, init: ((Engine)
                     else -> throw ReplFailedException("Not a file: ${file}")
                 }
             }
-            engine.parseAndEval(sourceLocation).collapse()
+            try {
+                engine.parseAndEval(sourceLocation).collapse()
+            } catch (e: APLGenericException) {
+                throw ReplFailedException("Error loading file: ${file}", e)
+            }
         }
 
         if (!argResult.containsKey("no-repl")) {
@@ -66,17 +74,35 @@ fun runRepl(args: Array<String>, defaultLibPath: String? = null, init: ((Engine)
                 val line = keyboardInput.readString(prompt) ?: break
                 val stringTrimmed = line.trim()
                 if (stringTrimmed != "") {
-                    val result = engine.parseAndEval(StringSourceLocation(line))
-                    println(result.formatted(FormatStyle.PRETTY))
+                    try {
+                        val result = engine.parseAndEval(StringSourceLocation(line)).collapse()
+                        println(result.formatted(FormatStyle.PRETTY))
+                    } catch (e: APLGenericException) {
+                        println(e.formattedError())
+                    }
                 }
             }
         }
-    } catch (e: APLGenericException) {
-        println(e.formattedError())
+    } catch (e: ReplFailedException) {
+        println(e.formatted())
     }
 }
 
-class ReplFailedException(message: String) : Exception(message)
+class ReplFailedException(message: String, cause: Exception? = null) : Exception(message, cause) {
+    fun formatted(): String {
+        val buf = StringBuilder()
+        buf.append(message)
+        cause?.let { c ->
+            buf.append(":\n")
+            if (c is APLGenericException) {
+                buf.append(c.formattedError())
+            } else {
+                buf.append(c.message)
+            }
+        }
+        return buf.toString()
+    }
+}
 
 class StdinSourceLocation(val engine: Engine) : SourceLocation {
     override fun sourceText(): String {
