@@ -1,6 +1,8 @@
 package array
 
 import array.complex.Complex
+import com.dhsdevelopments.mpbignum.Rational
+import com.dhsdevelopments.mpbignum.make
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
 
@@ -33,6 +35,30 @@ class LogicTest : APLTest() {
     }
 
     @Test
+    fun andTestWithArrayBigint() {
+        val src =
+            """
+            |(int:asBigint 1) (int:asBigint 1) (int:asBigint 0) (int:asBigint 0) ∧ `
+            |           (int:asBigint 0) (int:asBigint 1) (int:asBigint 1) (int:asBigint 0)
+            |""".trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertDimension(dimensionsOfSize(4), result)
+            assertArrayContent(arrayOf(InnerBigIntOrLong(0), InnerBigIntOrLong(1), InnerBigIntOrLong(0), InnerBigIntOrLong(0)), result)
+        }
+    }
+
+    @Test
+    fun leastCommonMultipleBigints() {
+        assertBigIntOrLong(0, parseAPLExpression("(int:asBigint 0)∧(int:asBigint 0)"))
+        assertBigIntOrLong(6, parseAPLExpression("(int:asBigint 2)∧(int:asBigint 3)"))
+        assertBigIntOrLong(6, parseAPLExpression("(int:asBigint 2)∧(int:asBigint 3)"))
+        assertBigIntOrLong(12, parseAPLExpression("(int:asBigint 4)∧(int:asBigint 6)"))
+        assertBigIntOrLong(-6, parseAPLExpression("(int:asBigint 2)∧(int:asBigint ¯3)"))
+        assertBigIntOrLong(-6, parseAPLExpression("(int:asBigint ¯2)∧(int:asBigint 3)"))
+        assertBigIntOrLong(6, parseAPLExpression("(int:asBigint ¯2)∧(int:asBigint ¯3)"))
+    }
+
+    @Test
     fun leastCommonMultipleDouble() {
         assertDoubleWithRange(Pair(22.799, 22.801), parseAPLExpression("1.2∧3.8"))
     }
@@ -48,6 +74,11 @@ class LogicTest : APLTest() {
         assertSimpleComplex(Complex(-141.0, 75.0), parseAPLExpression("9J30∧1J5"))
         assertSimpleComplex(Complex(-6.0, 18.0), parseAPLExpression("3J6∧2J2"))
         assertSimpleComplex(Complex(4.0, 18.0), parseAPLExpression("3J5∧4J18"))
+    }
+
+    @Test
+    fun leastCommonMultipleRational() {
+        assertRational(Rational.make(535, 2), parseAPLExpression("(10÷8)∧(107÷10)"))
     }
 
     @Test
@@ -67,6 +98,22 @@ class LogicTest : APLTest() {
     }
 
     @Test
+    fun orTestBigints() {
+        assertBigIntOrLong(0, parseAPLExpression("(int:asBigint 0)∨(int:asBigint 0)"))
+        assertBigIntOrLong(1, parseAPLExpression("(int:asBigint 0)∨(int:asBigint 1)"))
+        assertBigIntOrLong(1, parseAPLExpression("(int:asBigint 1)∨(int:asBigint 0)"))
+        assertBigIntOrLong(1, parseAPLExpression("(int:asBigint 1)∨(int:asBigint 1)"))
+    }
+
+    @Test
+    fun greatestCommonDenominatorBigints() {
+        assertBigIntOrLong(1, parseAPLExpression("(int:asBigint 3)∨(int:asBigint 8)"))
+        assertBigIntOrLong(4, parseAPLExpression("(int:asBigint 4)∨(int:asBigint 8)"))
+        assertBigIntOrLong(4, parseAPLExpression("(int:asBigint 4)∨(int:asBigint 16)"))
+        assertBigIntOrLong(2, parseAPLExpression("(int:asBigint 6)∨(int:asBigint 16)"))
+    }
+
+    @Test
     fun greatestCommonDenominatorDouble() {
         assertDoubleWithRange(Pair(0.199, 0.201), parseAPLExpression("10.4∨4.2"))
         assertDoubleWithRange(Pair(0.199, 0.201), parseAPLExpression("6.2∨3.2"))
@@ -78,6 +125,11 @@ class LogicTest : APLTest() {
         assertSimpleComplex(Complex(9.0, 2000.0), parseAPLExpression("9J2000∨¯11973J6054"))
         // (⊂(⍕p) , "∨" , ⍕z) , ((p←y×3J3) ∨ z←(y←3J8)×16J2)
         assertSimpleComplex(Complex(11.0, 5.0), parseAPLExpression("¯15J33∨32J134"))
+    }
+
+    @Test
+    fun greatestCommonDenominatorRational() {
+        assertRational(Rational.make(1, 30), parseAPLExpression("(31÷10)∨(10÷6)"))
     }
 
     @Test

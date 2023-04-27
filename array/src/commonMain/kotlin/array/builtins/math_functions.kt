@@ -361,6 +361,9 @@ class AddAPLFunction : APLFunctionDescriptor {
         override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue) =
             inversibleStructuralUnder1Arg(this, baseFn, context, a)
 
+        override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue =
+            inversibleStructuralUnder2Arg(this, baseFn, context, a, b)
+
         private val subFn by lazy { SubAPLFunction().make(pos) }
         override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             return subFn.eval2Arg(context, b, a, axis)
@@ -434,6 +437,9 @@ class SubAPLFunction : APLFunctionDescriptor {
         override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?) =
             addFn.eval2Arg(context, a, b, axis)
 
+        override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue =
+            inversibleStructuralUnder2Arg(this, baseFn, context, a, b)
+
         override fun identityValue() = APLLONG_0
         override fun deriveBitwise() = BitwiseXorFunction()
 
@@ -493,6 +499,9 @@ class MulAPLFunction : APLFunctionDescriptor {
         override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
             return divFn.eval2Arg(context, a, b, axis)
         }
+
+        override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue =
+            inversibleStructuralUnder2Arg(this, baseFn, context, a, b)
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_LONG or OPTIMISATION_FLAG_1ARG_DOUBLE or OPTIMISATION_FLAG_2ARG_LONG_LONG or OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
 
@@ -558,6 +567,9 @@ class DivAPLFunction : APLFunctionDescriptor {
 
         override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?) =
             mulFn.eval2Arg(context, b, a, axis)
+
+        override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue =
+            inversibleStructuralUnder2Arg(this, baseFn, context, a, b)
 
         override fun identityValue() = APLLONG_1
 
@@ -1044,14 +1056,32 @@ class AndAPLFunction : APLFunctionDescriptor {
                         else -> (x * (y / floatGcd(x, y))).makeAPLNumber()
                     }
                 },
-                { x, y -> (y * (x / complexGcd(x, y))).nearestGaussian().makeAPLNumber() })
+                { x, y -> (y * (x / complexGcd(x, y))).nearestGaussian().makeAPLNumber() },
+                fnBigint = { x, y -> opBigint(x, y) },
+                fnRational = { x, y -> opRational(x, y) })
         }
 
         private fun opLong(x: Long, y: Long): Long {
             return when {
                 x == 0L || y == 0L -> 0L
                 x == 1L && x == 1L -> 1L
-                else -> (x * (y / integerGcd(x, y)))
+                else -> x * (y / integerGcd(x, y))
+            }
+        }
+
+        private fun opBigint(x: BigInt, y: BigInt): APLValue {
+            return when {
+                x == BigIntConstants.ZERO || y == BigIntConstants.ZERO -> APLLONG_0
+                x == BigIntConstants.ONE && x == BigIntConstants.ONE -> APLLONG_1
+                else -> (x * (y / x.gcd(y))).makeAPLNumber()
+            }
+        }
+
+        private fun opRational(x: Rational, y: Rational): APLValue {
+            return when {
+                x == Rational.ZERO || y == Rational.ZERO -> APLLONG_0
+                x == Rational.ONE && y == Rational.ONE -> APLLONG_1
+                else -> (x * (y / rationalGcd(x, y))).makeAPLNumber()
             }
         }
 
@@ -1199,6 +1229,24 @@ fun floatGcd(a: Double, b: Double): Double {
     }
 }
 
+fun rationalGcd(a: Rational, b: Rational): Rational {
+    var a1 = a.absoluteValue
+    var b1 = b.absoluteValue
+    if (b1 < a1) {
+        val tmp = b1
+        b1 = a1
+        a1 = tmp
+    }
+    while (true) {
+        if (a1.signum() == 0) {
+            return b1
+        }
+        val r = b1.rem(a1)
+        b1 = a1
+        a1 = r
+    }
+}
+
 fun complexGcd(a: Complex, b: Complex): Complex {
     var a1 = a.nearestGaussian()
     var b1 = b.nearestGaussian()
@@ -1222,12 +1270,15 @@ fun complexGcd(a: Complex, b: Complex): Complex {
 class OrAPLFunction : APLFunctionDescriptor {
     class OrAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine2Arg(a: APLNumber, b: APLNumber): APLValue {
-            return numericRelationOperation(pos,
+            return numericRelationOperation(
+                pos,
                 a,
                 b,
                 { x, y -> opLong(x, y).makeAPLNumber() },
                 { x, y -> opDouble(x, y).makeAPLNumber() },
-                { x, y -> complexGcd(x, y).makeAPLNumber() })
+                { x, y -> complexGcd(x, y).makeAPLNumber() },
+                fnBigint = { x, y -> x.gcd(y).makeAPLNumber() },
+                fnRational = { x, y -> opRational(x, y) })
         }
 
         private fun opLong(x: Long, y: Long) = when {
@@ -1242,6 +1293,13 @@ class OrAPLFunction : APLFunctionDescriptor {
             (x == 0.0 || x == 1.0) && y == 1.0 -> 1.0
             x == 1.0 && (y == 0.0 || y == 1.0) -> 1.0
             else -> floatGcd(x, y)
+        }
+
+        private fun opRational(x: Rational, y: Rational): APLValue = when {
+            x == Rational.ZERO && y == Rational.ZERO -> APLLONG_0
+            (x == Rational.ZERO || x == Rational.ONE) && y == Rational.ONE -> APLLONG_1
+            x == Rational.ONE && (y == Rational.ZERO || y == Rational.ONE) -> APLLONG_1
+            else -> rationalGcd(x, y).makeAPLNumber()
         }
 
         override fun combine2ArgLong(a: Long, b: Long) = opLong(a, b)
