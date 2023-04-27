@@ -113,15 +113,11 @@ class RationalStandard(numeratorInt: BigInt, denominatorInt: BigInt, isNormalise
     }
 
     override fun ceil(): BigInt {
-        println("ceil: ${this}")
         return if (denominator == BigIntConstants.ONE) {
-            println("1")
             numerator
         } else if (numerator < BigIntConstants.ZERO) {
-            println("2")
             numerator / denominator
         } else {
-            println("3")
             numerator / denominator + BigIntConstants.ONE
         }
     }

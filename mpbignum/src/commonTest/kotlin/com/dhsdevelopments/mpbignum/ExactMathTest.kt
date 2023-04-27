@@ -250,4 +250,35 @@ class ExactMathTest {
         val b = 1L
         assertEquals(Long.MIN_VALUE, mulExactWrapped(a, b))
     }
+
+    @Test
+    fun largeMultiplicationNoOverflow() {
+        val a = 0x7fffffffL
+        val b = 0x7fffffffL
+        assertEquals(0x3fffffff00000001L, mulExactWrapped(a, b))
+    }
+
+    @Test
+    fun largeMultiplicationOverflow0() {
+        val a = 0xffffffffL
+        val b = 0xfffffffeL
+        try {
+            mulExactWrapped(a, b)
+            fail("call to mulExactWrapped should throw an exception")
+        } catch (e: LongExpressionOverflow) {
+            assertEquals("fffffffd00000002", e.result.toString(16))
+        }
+    }
+
+    @Test
+    fun largeMultiplicationOverflow1() {
+        val a = 0x100000000L
+        val b = 0x100000000L
+        try {
+            mulExactWrapped(a, b)
+            fail("call to mulExactWrapped should throw an exception")
+        } catch (e: LongExpressionOverflow) {
+            assertEquals("10000000000000000", e.result.toString(16))
+        }
+    }
 }

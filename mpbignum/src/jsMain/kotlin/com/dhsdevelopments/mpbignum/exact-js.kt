@@ -23,24 +23,26 @@ actual inline fun subExact(a: Long, b: Long): Long {
 }
 
 actual inline fun mulExact(a: Long, b: Long): Long {
-    if (a > 0) {
-        if (b > 0) {
-            if (a > Long.MAX_VALUE / b) {
-                throw ArithmeticException()
+    if ((a or b) and -0x80000000 != 0L) {
+        if (a > 0) {
+            if (b > 0) {
+                if (a > Long.MAX_VALUE / b) {
+                    throw ArithmeticException()
+                }
+            } else {
+                if (b < Long.MIN_VALUE / a) {
+                    throw ArithmeticException()
+                }
             }
         } else {
-            if (b < Long.MIN_VALUE / a) {
-                throw ArithmeticException()
-            }
-        }
-    } else {
-        if (b > 0) {
-            if (a < Long.MIN_VALUE / b) {
-                throw ArithmeticException()
-            }
-        } else {
-            if (a != 0L && b < Long.MAX_VALUE / a) {
-                throw ArithmeticException()
+            if (b > 0) {
+                if (a < Long.MIN_VALUE / b) {
+                    throw ArithmeticException()
+                }
+            } else {
+                if (a != 0L && b < Long.MAX_VALUE / a) {
+                    throw ArithmeticException()
+                }
             }
         }
     }
@@ -69,7 +71,7 @@ actual inline fun subExactWrapped(a: Long, b: Long): Long {
 }
 
 actual inline fun mulExactWrapped(a: Long, b: Long): Long {
-    if ((a or b) and 0xffffffff != 0L) {
+    if ((a or b) and -0x80000000 != 0L) {
         if (a > 0) {
             if (b > 0) {
                 if (a > Long.MAX_VALUE / b) {
