@@ -94,7 +94,7 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
                 SplitPane.setResizableWithParent(p, false)
                 p.center = rightDtPane.pane
             })
-            setDividerPositions(0.0, 0.75)
+            setDividerPositions(0.0, 1.0)
         }
 
         bottomDtPane = DetachablePaneWrapper()
