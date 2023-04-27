@@ -12,7 +12,7 @@ class UserDefinedClass(override val name: Symbol) : KapClass
 
 class ClassManager(val engine: Engine) {
     val systemArrayClass by lazy { SystemClass(engine.internSymbol("array", engine.coreNamespace)) }
-    val registeredClasses = HashMap<Symbol, KapClass>()
+    val registeredClasses: MutableMap<Symbol, KapClass> = HashMap()
 
     fun registerClass(cl: UserDefinedClass) {
         registeredClasses.put(cl.name, cl)
