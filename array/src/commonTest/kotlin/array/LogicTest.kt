@@ -60,7 +60,15 @@ class LogicTest : APLTest() {
 
     @Test
     fun leastCommonMultipleDouble() {
-        assertDoubleWithRange(Pair(22.799, 22.801), parseAPLExpression("1.2∧3.8"))
+        assertNearDouble(NearDouble(22.8), parseAPLExpression("1.2∧3.8"))
+        assertNearDouble(NearDouble(2.0), parseAPLExpression("1∧2.0÷3"))
+    }
+
+    @Test
+    fun andDouble() {
+        parseAPLExpression("1.0 1.0 0.0 0.0 ∧ 1.0 0.0 1.0 0.0").let { result ->
+            assert1DArray(arrayOf(InnerDouble(1.0), InnerDouble(0.0), InnerDouble(0.0), InnerDouble(0.0)), result)
+        }
     }
 
     @Test
@@ -90,6 +98,13 @@ class LogicTest : APLTest() {
     }
 
     @Test
+    fun orDouble() {
+        parseAPLExpression("1.0 1.0 0.0 0.0 ∨ 1.0 0.0 1.0 0.0").let { result ->
+            assert1DArray(arrayOf(InnerDouble(1.0), InnerDouble(1.0), InnerDouble(1.0), InnerDouble(0.0)), result)
+        }
+    }
+
+    @Test
     fun greatestCommonDenominatorIntegers() {
         assertSimpleNumber(1, parseAPLExpression("3∨8"))
         assertSimpleNumber(4, parseAPLExpression("4∨8"))
@@ -115,8 +130,8 @@ class LogicTest : APLTest() {
 
     @Test
     fun greatestCommonDenominatorDouble() {
-        assertDoubleWithRange(Pair(0.199, 0.201), parseAPLExpression("10.4∨4.2"))
-        assertDoubleWithRange(Pair(0.199, 0.201), parseAPLExpression("6.2∨3.2"))
+        assertNearDouble(NearDouble(0.2), parseAPLExpression("10.4∨4.2"))
+        assertNearDouble(NearDouble(0.2), parseAPLExpression("6.2∨3.2"))
     }
 
     @Test

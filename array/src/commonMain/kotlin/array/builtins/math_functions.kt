@@ -1051,8 +1051,9 @@ class AndAPLFunction : APLFunctionDescriptor {
                 { x, y -> opLong(x, y).makeAPLNumber() },
                 { x, y ->
                     when {
-                        x == 0.0 || y == 0.0 -> APLLONG_0
-                        x == 1.0 || y == 1.0 -> APLLONG_1
+                        x == 0.0 && (y == 0.0 || y == 1.0) -> APLDOUBLE_0
+                        (x == 0.0 || x == 1.0) && y == 0.0 -> APLDOUBLE_0
+                        x == 1.0 && y == 1.0 -> APLDOUBLE_1
                         else -> (x * (y / floatGcd(x, y))).makeAPLNumber()
                     }
                 },
@@ -1066,6 +1067,15 @@ class AndAPLFunction : APLFunctionDescriptor {
                 x == 0L || y == 0L -> 0L
                 x == 1L && x == 1L -> 1L
                 else -> x * (y / integerGcd(x, y))
+            }
+        }
+
+        private fun opDouble(x: Double, y: Double): Double {
+            return when {
+                x == 0.0 && (y == 0.0 || y == 1.0) -> 0.0
+                (x == 0.0 || x == 1.0) && y == 0.0 -> 0.0
+                x == 1.0 && y == 1.0 -> 1.0
+                else -> (x * (y / floatGcd(x, y)))
             }
         }
 
@@ -1086,10 +1096,11 @@ class AndAPLFunction : APLFunctionDescriptor {
         }
 
         override fun combine2ArgLong(a: Long, b: Long) = opLong(a, b)
+        override fun combine2ArgDouble(a: Double, b: Double) = opDouble(a, b)
         override fun deriveBitwise() = BitwiseAndFunction()
         override fun identityValue() = APLLONG_1
 
-        override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_2ARG_LONG_LONG)
+        override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_2ARG_LONG_LONG or OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
 
         override val name2Arg get() = "and"
     }
@@ -1214,6 +1225,9 @@ fun integerGcd(m: Long, n: Long): Long {
 }
 
 fun floatGcd(a: Double, b: Double): Double {
+    if (!a.isFinite() || !b.isFinite()) {
+        throw ArithmeticException("gcd on non-finite doubles")
+    }
     var a1 = a.absoluteValue
     var b1 = b.absoluteValue
     if (b1 < a1) {
@@ -1275,7 +1289,14 @@ class OrAPLFunction : APLFunctionDescriptor {
                 a,
                 b,
                 { x, y -> opLong(x, y).makeAPLNumber() },
-                { x, y -> opDouble(x, y).makeAPLNumber() },
+                { x, y ->
+                    when {
+                        x == 0.0 && y == 0.0 -> APLDOUBLE_0
+                        (x == 0.0 || x == 1.0) && y == 1.0 -> APLDOUBLE_1
+                        x == 1.0 && (y == 0.0 || y == 1.0) -> APLDOUBLE_1
+                        else -> floatGcd(x, y).makeAPLNumber()
+                    }
+                },
                 { x, y -> complexGcd(x, y).makeAPLNumber() },
                 fnBigint = { x, y -> x.gcd(y).makeAPLNumber() },
                 fnRational = { x, y -> opRational(x, y) })
@@ -1303,11 +1324,12 @@ class OrAPLFunction : APLFunctionDescriptor {
         }
 
         override fun combine2ArgLong(a: Long, b: Long) = opLong(a, b)
+        override fun combine2ArgDouble(a: Double, b: Double) = opDouble(a, b)
 
         override fun identityValue() = APLLONG_0
         override fun deriveBitwise() = BitwiseOrFunction()
 
-        override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_2ARG_LONG_LONG)
+        override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_2ARG_LONG_LONG or OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
 
         override val name1Arg get() = "or"
     }
