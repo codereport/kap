@@ -49,9 +49,11 @@ class StackTrace {
             }
             @Suppress("UNUSED_ANONYMOUS_PARAMETER")
             val listener = ChangeListener<StackTraceRow> { observable, oldValue, newValue ->
-                val entryPos = newValue.entry.pos
-                if (entryPos != null) {
-                    client.highlightSourceLocation(entryPos, newValue.message)
+                if (newValue != null) {
+                    val entryPos = newValue.entry.pos
+                    if (entryPos != null) {
+                        client.highlightSourceLocation(entryPos, newValue.message)
+                    }
                 }
             }
             controller.stackTraceTable.selectionModel.selectedItemProperty().addListener(listener)
