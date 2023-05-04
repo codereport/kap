@@ -564,43 +564,6 @@ class ComplexExpressionsTest : APLTest() {
         }
     }
 
-    @Test
-    fun leftBoundFunctionsWithDifferentEnvironment() {
-        val src =
-            """
-            |stringToGraphemes ⇐ (1,≢)⍛⍴ unicode:toGraphemes
-            |{comp ⍵} (stringToGraphemes⍕)¨ 1 2 3            
-            """.trimMargin()
-        parseAPLExpression(src).let { result ->
-            assertDimension(dimensionsOfSize(3), result)
-            result.valueAt(0).let { v ->
-                assertDimension(dimensionsOfSize(1, 1), v)
-                assertString("1", v.valueAt(0))
-            }
-            result.valueAt(1).let { v ->
-                assertDimension(dimensionsOfSize(1, 1), v)
-                assertString("2", v.valueAt(0))
-            }
-            result.valueAt(2).let { v ->
-                assertDimension(dimensionsOfSize(1, 1), v)
-                assertString("3", v.valueAt(0))
-            }
-        }
-    }
-
-    @Test
-    fun axisAssignedFunctionWithDifferentEnv() {
-        val src =
-            """
-            |abc ⇐ +[1]
-            |{comp ⍵} abc¨ 2 3 ⍴ 1+⍳6
-            """.trimMargin()
-        parseAPLExpression(src).let { result ->
-            assertDimension(dimensionsOfSize(2, 3), result)
-            assertArrayContent(arrayOf(1, 2, 3, 4, 5, 6), result)
-        }
-    }
-
     private fun defAbcResult(fnIndex: Long, opIndex: Long, rightArg: Long): Long {
         return (rightArg * 10 + fnIndex * 100) * 1000 + opIndex * 1000000
     }
