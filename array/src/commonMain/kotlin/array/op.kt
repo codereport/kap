@@ -38,18 +38,20 @@ fun parseFunctionForOperatorRightArg(parser: APLParser): Either<Pair<APLFunction
         return Either.Left(Pair(updated, pos))
     }
 
+    fun makeInstantiation() = FunctionInstantiation(pos, parser.currentEnvironment())
+
     return when (token) {
         is Symbol -> {
-            val fn = parser.lookupFunction(token)
+            val fn = parser.lookupFunction(token, ::makeInstantiation)
             if (fn == null) {
                 parser.tokeniser.pushBackToken(tokenWithPos)
                 Either.Right(Pair(token, pos))
             } else {
-                makeFunctionResult(fn.make(FunctionInstantiation(pos.withCallerName(token.symbolName), parser.currentEnvironment())))
+                makeFunctionResult(fn)
             }
         }
         is OpenFnDef -> {
-            makeFunctionResult(parser.parseFnDefinition().make(FunctionInstantiation(pos, parser.currentEnvironment())))
+            makeFunctionResult(parser.parseFnDefinition().make(makeInstantiation()))
         }
         is OpenParen -> {
             val holder = parser.parseExprToplevel(CloseParen)
@@ -59,7 +61,7 @@ fun parseFunctionForOperatorRightArg(parser: APLParser): Either<Pair<APLFunction
             makeFunctionResult(holder.fn)
         }
         is ApplyToken -> {
-            makeFunctionResult(parser.parseApplyDefinition().make(FunctionInstantiation(pos, parser.currentEnvironment())))
+            makeFunctionResult(parser.parseApplyDefinition().make(makeInstantiation()))
         }
         else -> {
             parser.tokeniser.pushBackToken(tokenWithPos)
