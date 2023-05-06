@@ -40,9 +40,7 @@ class ScopeTest : APLTest() {
             """.trimMargin()
         parseAPLExpression(src).let { result ->
             assertDimension(dimensionsOfSize(1, 1), result)
-            result.valueAt(0).let { v ->
-                assertString("1", v)
-            }
+            assertString("1", result.valueAt(0))
         }
     }
 

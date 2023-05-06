@@ -1,6 +1,7 @@
 package array
 
 import array.FunctionCallChain.Chain2
+import array.ParseResultHolder.InstrParseResult.Companion.makeFromList
 import array.syntax.processCustomSyntax
 import array.syntax.processDefsyntax
 import array.syntax.processDefsyntaxSub
@@ -11,7 +12,19 @@ import kotlin.contracts.contract
 sealed class ParseResultHolder(val lastToken: TokenWithPosition) {
     val pos: Position get() = lastToken.pos
 
-    class InstrParseResult(val instr: Instruction, lastToken: TokenWithPosition) : ParseResultHolder(lastToken)
+    class InstrParseResult(val instr: Instruction, lastToken: TokenWithPosition) : ParseResultHolder(lastToken) {
+        companion object {
+            fun ParseResultHolder.InstrParseResult.Companion.makeFromList(statementList: List<Instruction>, lastToken: TokenWithPosition): ParseResultHolder {
+                val instr = when (statementList.size) {
+                    0 -> throw IllegalStateException("Empty statement list")
+                    1 -> statementList[0]
+                    else -> InstructionList(statementList)
+                }
+                return InstrParseResult(instr, lastToken)
+            }
+        }
+    }
+
     class FnParseResult(val fn: APLFunction, lastToken: TokenWithPosition) : ParseResultHolder(lastToken)
     class EmptyParseResult(lastToken: TokenWithPosition) : ParseResultHolder(lastToken)
 }
@@ -97,7 +110,10 @@ class Environment(
     /** A list of destinations that code in this environment can return to */
     val returnTargets = ArrayList<FunctionInstantiation>()
 
+    /** A list of variable bindings in this environment */
     val bindings = ArrayList<EnvironmentBinding>()
+
+    /** Function definitions that are local to this environment */
     private val localFunctions = HashMap<Symbol, APLFunctionDescriptor>()
 
     init {
@@ -252,8 +268,7 @@ class APLParser(val tokeniser: TokenGenerator) {
             if (holder.lastToken.token == endToken) {
                 return when (statementList.size) {
                     0 -> ParseResultHolder.InstrParseResult(EmptyValueMarker(holder.pos), holder.lastToken)
-                    1 -> ParseResultHolder.InstrParseResult(statementList[0], holder.lastToken)
-                    else -> ParseResultHolder.InstrParseResult(InstructionList(statementList), holder.lastToken)
+                    else -> ParseResultHolder.InstrParseResult.makeFromList(statementList, holder.lastToken)
                 }
             } else {
                 throwIfInvalidToken(holder)
@@ -403,15 +418,69 @@ class APLParser(val tokeniser: TokenGenerator) {
         return LiteralAPLNullValue(pos)
     }
 
-    private fun processShortFormFn(pos: Position, sym: Symbol): ParseResultHolder {
-        val holder = parseValue()
-        if (holder !is ParseResultHolder.FnParseResult) {
-            throw ParseException("Right side of the arrow must be a function", pos)
+    class UpdateLocalFunctionInstruction(
+        val fn: APLFunction,
+        pos: Position,
+        val relatedInstructions: List<Instruction> = emptyList(),
+        val storageRef: StackStorageRef,
+        val env: Environment
+    ) : Instruction(pos) {
+        override fun evalWithContext(context: RuntimeContext): APLValue {
+            return withLinkedContext(env, "localCall: ${storageRef.name}", pos) {
+                relatedInstructions.asReversed().forEach { instr ->
+                    instr.evalWithContext(context)
+                }
+                val v = LambdaValue(fn, currentStack().currentFrame())
+                context.setVar(storageRef, v)
+                APLNullValue.APL_NULL_INSTANCE
+            }
         }
-        val (closureFn, instructions) = holder.fn.computeClosure(this)
-        currentEnvironment().registerLocalFunction(sym, RelocalisedFunctionDescriptor(closureFn))
-        val resultInstrs = instructions.asReversed() + LiteralAPLNullValue(pos)
-        return ParseResultHolder.InstrParseResult(InstructionList(resultInstrs), holder.lastToken)
+
+        override fun children() = relatedInstructions
+    }
+
+    class LocalCallDescriptor(val storageRef: StackStorageRef) : APLFunctionDescriptor {
+        inner class LocalCallImpl(instantiation: FunctionInstantiation) : NoAxisAPLFunction(instantiation) {
+            override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+                return resolveFn().eval1Arg(context, a, axis)
+            }
+
+            override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+                return resolveFn().eval2Arg(context, a, b, axis)
+            }
+
+            private fun resolveFn(): APLFunction {
+                val v = currentStack().findStorage(storageRef).value() ?: throw IllegalStateException("Local function ref unset")
+                if (v !is LambdaValue) {
+                    throwAPLException(IncompatibleTypeException("Cannot evaluate values of type: ${v.aplValueType.typeName}", pos))
+                }
+                return v.makeClosure()
+            }
+        }
+
+        override fun make(instantiation: FunctionInstantiation): APLFunction {
+            return LocalCallImpl(instantiation)
+        }
+    }
+
+    private fun processShortFormFn(pos: Position, sym: Symbol): ParseResultHolder {
+        withEnvironment {
+            val holder = parseValue()
+            if (holder !is ParseResultHolder.FnParseResult) {
+                throw ParseException("Right side of the arrow must be a function", pos)
+            }
+            val (closureFn, instructions) = holder.fn.computeClosure(this)
+            val fnSym = tokeniser.engine.createAnonymousSymbol()
+            val fnBinding = currentEnvironment().bindLocal(fnSym)
+            val ref = StackStorageRef(fnBinding)
+            val instr = UpdateLocalFunctionInstruction(closureFn, pos, instructions, ref, currentEnvironment())
+            currentEnvironment().parent!!.registerLocalFunction(sym, LocalCallDescriptor(ref))
+            currentEnvironment().markCanEscape()
+            return ParseResultHolder.InstrParseResult(instr, holder.lastToken)
+        }
+//        currentEnvironment().registerLocalFunction(sym, RelocalisedFunctionDescriptor(closureFn))
+//        val resultInstrs = instructions.asReversed() + LiteralAPLNullValue(pos)
+//        return ParseResultHolder.InstrParseResult(InstructionList(resultInstrs), holder.lastToken)
     }
 
     private fun registerDefinedUserFunction(definedUserFunction: DefinedUserFunction) {
@@ -777,13 +846,13 @@ class APLParser(val tokeniser: TokenGenerator) {
     }
 
     private fun processLambda(pos: Position): EvalLambdaFnx {
-        val (token, pos2) = tokeniser.nextTokenWithPosition()
+        val (token, tokenPos) = tokeniser.nextTokenWithPosition()
         val fn = when (token) {
             is OpenFnDef -> {
                 parseFnDefinition().make(FunctionInstantiation(pos, currentEnvironment()))
             }
             is Symbol -> {
-                val fnDefinition = lookupFunction(token) ?: throw ParseException("Symbol is not a valid function", pos)
+                val fnDefinition = lookupFunction(token) ?: throw ParseException("Symbol is not a valid function", tokenPos)
                 fnDefinition.make(FunctionInstantiation(pos, currentEnvironment()))
             }
             is OpenParen -> {
@@ -793,7 +862,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                 }
                 holder.fn
             }
-            else -> throw UnexpectedToken(token, pos2)
+            else -> throw UnexpectedToken(token, tokenPos)
         }
         val (closureFn, relatedInstructions) = fn.computeClosure(this)
         currentEnvironment().markCanEscape()
