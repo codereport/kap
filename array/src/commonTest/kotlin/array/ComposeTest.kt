@@ -437,11 +437,41 @@ class ComposeTest : APLTest() {
     }
 
     @Test
-    fun leftBindWithClosure() {
+    fun leftBindWithClosure0() {
         val src = """
             |i ← 0
             |a ⇐ 5 { ⍺+⍵+i←io:print i+1 }
             |(a 1) + (a 2)
+        """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assertSimpleNumber(16, result)
+            assertEquals("12", out)
+        }
+    }
+
+    @Test
+    fun leftBindWithClosure1() {
+        val src = """
+            |i ← 0
+            |a ⇐ 5 { ⍺+⍵+i←io:print i+1 }
+            |{
+            |  (a 1) + (a 2)
+            |} 0
+        """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assertSimpleNumber(16, result)
+            assertEquals("12", out)
+        }
+    }
+
+    @Test
+    fun leftBindWithClosure2() {
+        val src = """
+            |i ← 0
+            |{
+            |  a ⇐ 5 { ⍺+⍵+i←io:print i+1 }
+            |  (a 1) + (a 2)
+            |} 0
         """.trimMargin()
         parseAPLExpressionWithOutput(src).let { (result, out) ->
             assertSimpleNumber(16, result)
