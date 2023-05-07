@@ -426,12 +426,15 @@ class APLParser(val tokeniser: TokenGenerator) {
         val env: Environment
     ) : Instruction(pos) {
         override fun evalWithContext(context: RuntimeContext): APLValue {
-//            return withLinkedContext(env, "localCall: ${storageRef.name}", pos) {
-            relatedInstructions.asReversed().forEach { instr ->
-                instr.evalWithContext(context)
+            val res: LambdaValue
+            withLinkedContext(env, "localCall: ${storageRef.name}", pos) {
+                relatedInstructions.asReversed().forEach { instr ->
+                    instr.evalWithContext(context)
+                }
+                res = LambdaValue(fn, currentStack().currentFrame())
+                APLNullValue.APL_NULL_INSTANCE
             }
-            val v = LambdaValue(fn, currentStack().currentFrame())
-            context.setVar(storageRef, v)
+            context.setVar(storageRef, res)
             return APLNullValue.APL_NULL_INSTANCE
 //            }
         }
@@ -439,45 +442,25 @@ class APLParser(val tokeniser: TokenGenerator) {
         override fun children() = relatedInstructions
     }
 
-//    class LocalCallDescriptor(val storageRef: StackStorageRef) : APLFunctionDescriptor {
-//        inner class LocalCallImpl(instantiation: FunctionInstantiation) : NoAxisAPLFunction(instantiation) {
-//            override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-//                return resolveFn().eval1Arg(context, a, axis)
-//            }
-//
-//            override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-//                return resolveFn().eval2Arg(context, a, b, axis)
-//            }
-//
-//            private fun resolveFn(): APLFunction {
-//                val v = currentStack().findStorage(storageRef).value() ?: throw IllegalStateException("Local function ref unset")
-//                if (v !is LambdaValue) {
-//                    throwAPLException(IncompatibleTypeException("Cannot evaluate values of type: ${v.aplValueType.typeName}", pos))
-//                }
-//                return v.makeClosure()
-//            }
-//        }
-//
-//        override fun make(instantiation: FunctionInstantiation): APLFunction {
-//            return LocalCallImpl(instantiation)
-//        }
-//    }
-
     class LocalFunctionCall(binding: EnvironmentBinding, instantiation: FunctionInstantiation) : APLFunction(instantiation) {
         private val storageRef = StackStorageRef(binding)
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            return findFnInstance(context).eval1Arg(context, a, axis)
+            return findFnInstance().eval1Arg(context, a, axis)
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            return findFnInstance(context).eval2Arg(context, a, b, axis)
+            return findFnInstance().eval2Arg(context, a, b, axis)
         }
 
-        private fun findFnInstance(context: RuntimeContext): APLFunction {
+        private fun findFnInstance(): APLFunction {
             val v = currentStack().findStorage(storageRef).value() ?: throw IllegalStateException("Local function ref not assigned")
             assertx(v is LambdaValue) { "Local function is not a lambda" }
             return v.makeClosure()
+        }
+
+        override fun capturedEnvironments(): List<Environment> {
+            return listOf(storageRef.binding.environment)
         }
     }
 
@@ -485,20 +468,21 @@ class APLParser(val tokeniser: TokenGenerator) {
         val holder: ParseResultHolder
         val closureFn: APLFunction
         val instructions: List<Instruction>
-//        val env: Environment
-//        withEnvironment {
-        holder = parseValue()
-        if (holder !is ParseResultHolder.FnParseResult) {
-            throw ParseException("Right side of the arrow must be a function", pos)
+        val env: Environment
+        withEnvironment {
+            holder = parseValue()
+            if (holder !is ParseResultHolder.FnParseResult) {
+                throw ParseException("Right side of the arrow must be a function", pos)
+            }
+            val res = holder.fn.computeClosure(this)
+            closureFn = res.first
+            instructions = res.second
+            env = currentEnvironment()
+            env.markCanEscape() // not really?
         }
-        val res = holder.fn.computeClosure(this)
-        closureFn = res.first
-        instructions = res.second
-//            env = currentEnvironment()
-//        }
         val fnBinding = currentEnvironment().bindLocal(tokeniser.engine.createAnonymousSymbol())
         val ref = StackStorageRef(fnBinding)
-        val instr = UpdateLocalFunctionInstruction(closureFn, pos, instructions, ref, currentEnvironment())
+        val instr = UpdateLocalFunctionInstruction(closureFn, pos, instructions, ref, env)
         currentEnvironment().registerLocalFunction(sym, fnBinding)
         currentEnvironment().markCanEscape()
         return ParseResultHolder.InstrParseResult(instr, holder.lastToken)
@@ -664,12 +648,22 @@ class APLParser(val tokeniser: TokenGenerator) {
     }
 
     fun lookupFunction(name: Symbol, makeInstantiation: () -> FunctionInstantiation): APLFunction? {
-        environments.asReversed().forEach { env ->
-            val binding = env.findLocalFunction(name)
-            if (binding != null) {
-                return LocalFunctionCall(currentEnvironment().bindRemote(tokeniser.engine.createAnonymousSymbol(), binding), makeInstantiation())
-            }
+        fun makeLocalFunctionCall(binding: EnvironmentBinding) = LocalFunctionCall(binding, makeInstantiation())
+
+        val curr = currentEnvironment()
+        curr.findLocalFunction(name)?.let { binding ->
+            return makeLocalFunctionCall(binding)
         }
+//        if (!curr.closed) {
+        for (env in environments.asReversed().rest()) {
+            env.findLocalFunction(name)?.let { binding ->
+                return makeLocalFunctionCall(currentEnvironment().bindRemote(tokeniser.engine.createAnonymousSymbol(), binding))
+            }
+//                if (env.closed) {
+//                    break
+//                }
+        }
+//        }
         return tokeniser.engine.getFunction(name)?.make(makeInstantiation())
     }
 
