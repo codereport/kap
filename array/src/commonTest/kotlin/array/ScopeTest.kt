@@ -46,6 +46,32 @@ class ScopeTest : APLTest() {
     }
 
     @Test
+    fun leftBoundFunctionsWithDifferentEnvironment2() {
+        val src =
+            """
+            |{
+            |  stringToGraphemes ⇐ (1,≢)⍛⍴ unicode:toGraphemes
+            |  {comp ⍵} (stringToGraphemes⍕)¨ 1 2 3
+            |} 0
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertDimension(dimensionsOfSize(3), result)
+            result.valueAt(0).let { v ->
+                assertDimension(dimensionsOfSize(1, 1), v)
+                assertString("1", v.valueAt(0))
+            }
+            result.valueAt(1).let { v ->
+                assertDimension(dimensionsOfSize(1, 1), v)
+                assertString("2", v.valueAt(0))
+            }
+            result.valueAt(2).let { v ->
+                assertDimension(dimensionsOfSize(1, 1), v)
+                assertString("3", v.valueAt(0))
+            }
+        }
+    }
+
+    @Test
     fun axisAssignedFunctionWithDifferentEnv0() {
         val src =
             """
@@ -134,6 +160,51 @@ class ScopeTest : APLTest() {
             // The unassigned variable in this case is abc which is not in scope, as user defined functions are always evaluated in
             // the root scope, regardless of where it is found in the source.
             parseAPLExpression(src)
+        }
+    }
+
+    @Test
+    fun axisAssignedFunctionWithDifferentEnv5() {
+        val src =
+            """
+            |abc ⇐ 10 20 30+[1]
+            |{comp ⍵} abc 2 3 ⍴ 1+⍳6
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertDimension(dimensionsOfSize(2, 3), result)
+            assertArrayContent(arrayOf(11, 22, 33, 14, 25, 36), result)
+        }
+    }
+
+    @Test
+    fun axisAssignedFunctionWithDifferentEnv6() {
+        val src =
+            """
+            |a ⇐ 'array≡typeof
+            |abc ⇐ 10 20+[1]
+            |∇ foo (v) {
+            |  abc v
+            |}
+            |{comp ⍵} foo 3 2 ⍴ 1+⍳6
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertDimension(dimensionsOfSize(3, 2), result)
+            assertArrayContent(arrayOf(11, 22, 13, 24, 15, 26), result)
+        }
+    }
+
+    @Test
+    fun axisAssignedFunctionWithDifferentEnv7() {
+        val src =
+            """
+            |{
+            |  abc ⇐ 10 20 30+[1]
+            |  {comp ⍵} abc 2 3 ⍴ 1+⍳6
+            |} 0
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertDimension(dimensionsOfSize(2, 3), result)
+            assertArrayContent(arrayOf(11, 22, 33, 14, 25, 36), result)
         }
     }
 }
