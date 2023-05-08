@@ -1,5 +1,7 @@
 package array
 
+import array.builtins.SaveStackCapable
+import array.builtins.SaveStackSupport
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -590,7 +592,7 @@ class ComplexExpressionsTest : APLTest() {
     }
 
     class AbcFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
-        class AbcFunctionDescriptorImpl(fn: APLFunction, pos: FunctionInstantiation) : APLFunction(pos, listOf(fn)) {
+        class AbcFunctionDescriptorImpl(fn: APLFunction, pos: FunctionInstantiation) : APLFunction(pos, listOf(fn)), SaveStackCapable by SaveStackSupport(fn) {
             private val fn get() = fns[0]
 
             override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {

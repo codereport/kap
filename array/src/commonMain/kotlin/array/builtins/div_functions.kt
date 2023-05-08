@@ -147,12 +147,10 @@ class AtLeaveScopeOperator : APLOperatorOneArg {
     class AtLeaveScopeFunctionDescriptor(val fn1Descriptor: APLFunction) : APLFunctionDescriptor {
         override fun make(instantiation: FunctionInstantiation): APLFunction {
             val fn = fn1Descriptor
-            return object : APLFunction(instantiation), SaveStackCapable by SaveStackSupport(fn) {
+            return object : APLFunction(instantiation) {
                 override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
                     currentStack().currentFrame().pushReleaseCallback {
-                        withPossibleSavedStack(savedStack(context)) {
-                            fn.eval1Arg(context, a, null)
-                        }
+                        fn.eval1Arg(context, a, null)
                     }
                     return a
                 }

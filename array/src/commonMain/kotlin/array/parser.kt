@@ -43,9 +43,7 @@ class ExternalStorageRef(var frameIndex: Int, var storageOffset: Int)
 
 class EnvironmentBinding(val environment: Environment, val name: Symbol, storage: StackStorageDescriptor) {
     private var storageInt: StackStorageDescriptor
-
     val storage get() = storageInt
-
     var frameIndex: Int = -1
 
     init {
@@ -59,19 +57,25 @@ class EnvironmentBinding(val environment: Environment, val name: Symbol, storage
     }
 
     private fun recomputeStorageIndex() {
-        var i = 0
-        var curr: Environment? = environment
-        while (curr != null) {
-            if (curr === storageInt.env) {
-                frameIndex = i
-                break
+        var newIndex = -1
+        if (environment.isRoot()) {
+            newIndex = -2
+        } else {
+            var i = 0
+            var curr: Environment? = environment
+            while (curr != null) {
+                if (curr === storageInt.env) {
+                    newIndex = i
+                    break
+                }
+                i++
+                curr = curr.parent
             }
-            i++
-            curr = curr.parent
+            if (newIndex == -1) {
+                throw IllegalStateException("storage descriptor not found in parent environments")
+            }
         }
-        if (frameIndex == -1) {
-            throw IllegalStateException("storage descriptor not found in parent environments")
-        }
+        frameIndex = newIndex
     }
 
     override fun toString(): String {
@@ -116,6 +120,9 @@ class Environment(
     /** Function definitions that are local to this environment */
     private val localFunctions = HashMap<Symbol, EnvironmentBinding>()
 
+    /** */
+    private val globalScopedLocalFunctions = HashMap<Symbol, UserFunction>()
+
     init {
         parent?.let { it.childEnvironments += this }
     }
@@ -126,6 +133,8 @@ class Environment(
     fun markCanEscape() {
         canEscape = true
     }
+
+    fun isRoot() = parent == null
 
     fun findBinding(sym: Symbol) = bindings.find { b -> b.name == sym }
 
@@ -151,12 +160,21 @@ class Environment(
         return bindings
     }
 
+    fun registerInProgressUserFunction(name: Symbol, userFn: UserFunction) {
+        assertx(!globalScopedLocalFunctions.containsKey(name)) { "Global scoped function already assigned to: ${name}" }
+        globalScopedLocalFunctions[name] = userFn
+    }
+
     fun registerLocalFunction(name: Symbol, userFn: EnvironmentBinding) {
         localFunctions[name] = userFn
     }
 
     fun findLocalFunction(name: Symbol): EnvironmentBinding? {
         return localFunctions[name]
+    }
+
+    fun findGlobalScopedLocalFunction(name: Symbol): UserFunction? {
+        return globalScopedLocalFunctions[name]
     }
 
     override fun toString() = "Environment[name=${name}, numBindings=${bindings.size}]"
@@ -436,7 +454,6 @@ class APLParser(val tokeniser: TokenGenerator) {
             }
             context.setVar(storageRef, res)
             return APLNullValue.APL_NULL_INSTANCE
-//            }
         }
 
         override fun children() = relatedInstructions
@@ -580,7 +597,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                         val leftFnBindings = leftArgs.map { sym -> env.bindLocal(sym) }
                         val rightFnBindings = rightArgs.map { sym -> env.bindLocal(sym) }
                         val inProcessUserFunction = UserFunction(name, leftFnBindings, rightFnBindings, DummyInstr(pos), env)
-//TODO:                        env.registerLocalFunction(name, inProcessUserFunction)
+                        env.registerInProgressUserFunction(name, inProcessUserFunction)
                         val instr = parseValueToplevel(CloseFnDef)
                         inProcessUserFunction.instr = instr
                         DefinedUserFunction(inProcessUserFunction, name, pos)
@@ -651,19 +668,29 @@ class APLParser(val tokeniser: TokenGenerator) {
         fun makeLocalFunctionCall(binding: EnvironmentBinding) = LocalFunctionCall(binding, makeInstantiation())
 
         val curr = currentEnvironment()
+        curr.findGlobalScopedLocalFunction(name)?.let { fn ->
+            return fn.make(makeInstantiation())
+        }
         curr.findLocalFunction(name)?.let { binding ->
             return makeLocalFunctionCall(binding)
         }
-//        if (!curr.closed) {
-        for (env in environments.asReversed().rest()) {
-            env.findLocalFunction(name)?.let { binding ->
+        if (!curr.isRoot()) {
+            if (!curr.closed) {
+                val parentEnvsExceptRoot = environments.subList(1, environments.size - 1).asReversed()
+                for (env in parentEnvsExceptRoot) {
+                    env.findLocalFunction(name)?.let { binding ->
+                        return makeLocalFunctionCall(currentEnvironment().bindRemote(tokeniser.engine.createAnonymousSymbol(), binding))
+                    }
+                    if (env.closed) {
+                        break
+                    }
+                }
+            }
+            // Even if we exited due to a closed parent environment, we still want to check the root
+            environments.first().findLocalFunction(name)?.let { binding ->
                 return makeLocalFunctionCall(currentEnvironment().bindRemote(tokeniser.engine.createAnonymousSymbol(), binding))
             }
-//                if (env.closed) {
-//                    break
-//                }
         }
-//        }
         return tokeniser.engine.getFunction(name)?.make(makeInstantiation())
     }
 

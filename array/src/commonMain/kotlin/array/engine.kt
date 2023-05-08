@@ -114,7 +114,7 @@ class StorageStack private constructor() {
     }
 
     fun findStorageFromFrameIndexAndOffset(frameIndex: Int, storageOffset: Int): VariableHolder {
-        val frame = stack[stack.size - frameIndex - 1]
+        val frame = stack[if (frameIndex == -2) 0 else stack.size - frameIndex - 1]
         return frame.storageList[storageOffset]
     }
 

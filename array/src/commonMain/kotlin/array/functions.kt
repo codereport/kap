@@ -417,9 +417,13 @@ class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction) 
         val binding = parser.currentEnvironment().bindLocal(sym)
         val (innerFn, relatedInstrs) = baseFn.computeClosure(parser)
         val ref = StackStorageRef(binding)
+        val list = ArrayList<Instruction>()
+        list.addAll(relatedInstrs)
+        list.add(AssignmentInstruction(arrayOf(ref), axis, pos))
+        val env = parser.currentEnvironment()
         return Pair(
-            AxisValAssignedFunctionAxisReader(innerFn, VariableRef(sym, ref, pos), parser.currentEnvironment()),
-            relatedInstrs + AssignmentInstruction(arrayOf(ref), axis, pos))
+            AxisValAssignedFunctionAxisReader(innerFn, VariableRef(sym, ref, pos), env),
+            list)
     }
 }
 

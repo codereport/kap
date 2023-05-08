@@ -1,6 +1,7 @@
 package array
 
 import kotlin.test.Test
+import kotlin.test.assertFailsWith
 
 class ScopeTest : APLTest() {
     @Test
@@ -106,9 +107,10 @@ class ScopeTest : APLTest() {
             |  {comp ⍵} foo 4 5 6
             |} 0
             """.trimMargin()
-        parseAPLExpression(src).let { result ->
-            assertDimension(dimensionsOfSize(3), result)
-            assertArrayContent(arrayOf(4, 5, 6), result)
+        assertFailsWith<VariableNotAssigned> {
+            // This fails with VariableNotAssigned because abc is not in scope, and is therefore parsed as a variable.
+            // This means that the following ¨ is not parsed as an operator because it's not prefixed by a function.
+            parseAPLExpression(src)
         }
     }
 
@@ -128,9 +130,10 @@ class ScopeTest : APLTest() {
             |  {comp ⍵} foo 4 5 6
             |} 0
             """.trimMargin()
-        parseAPLExpression(src).let { result ->
-            assertDimension(dimensionsOfSize(3), result)
-            assertArrayContent(arrayOf(4, 5, 6), result)
+        assertFailsWith<VariableNotAssigned> {
+            // The unassigned variable in this case is abc which is not in scope, as user defined functions are always evaluated in
+            // the root scope, regardless of where it is found in the source.
+            parseAPLExpression(src)
         }
     }
 }
