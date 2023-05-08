@@ -239,7 +239,7 @@ The over operator derives a function which, when called dyadically, calls the ri
 In other words, this operator can be thought of processing the arguments using A before acting on it using B.
 
 - `x A⍥B y` is evaluated as `(B x) A (B y)`
-- `A⍥B y` is evaluated as `A (x B y)`
+- `A⍥B y` is evaluated as `A B y`
 
 === Left-bound functions
 
