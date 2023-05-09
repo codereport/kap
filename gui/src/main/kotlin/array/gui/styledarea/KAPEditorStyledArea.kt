@@ -49,8 +49,7 @@ open class KAPEditorStyledArea<PS, SEG, S>(
 
         // Keymap
         extendedInput.keymap.forEach { e ->
-            val modifiers =
-                if (e.key.shift) arrayOf(KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN) else arrayOf(KeyCombination.ALT_DOWN)
+            val modifiers = if (e.key.shift) arrayOf(KeyCombination.ALT_DOWN, KeyCombination.SHIFT_DOWN) else arrayOf(KeyCombination.ALT_DOWN)
             val v = InputMap.consume(EventPattern.keyTyped(e.key.character, *modifiers), { replaceSelectionAndDisplay(e.value) })
             entries.add(v)
         }

@@ -66,6 +66,7 @@ class CalculationQueue(val engine: Engine) {
     private inner class EvalAPLRequest(
         val source: SourceLocation,
         val variableBindings: List<Pair<Pair<String, String>, APLValue>>?,
+        val preserveNamespace: Boolean = false,
         val callback: (Either<APLValue, Exception>) -> Unit
     ) : Request {
         override fun processRequest(engine: Engine) {
@@ -73,7 +74,15 @@ class CalculationQueue(val engine: Engine) {
                 val resolvedSymbols = variableBindings?.map { (k, v) ->
                     engine.internSymbol(k.second, engine.makeNamespace(k.first)) to v
                 }?.toMap()
-                val result = engine.parseAndEval(source, extraBindings = resolvedSymbols, allocateThreadLocals = false).collapse()
+
+                fun parseSrc() = engine.parseAndEval(source, extraBindings = resolvedSymbols, allocateThreadLocals = false).collapse()
+                val result = if (preserveNamespace) {
+                    engine.withSavedNamespace {
+                        parseSrc()
+                    }
+                } else {
+                    parseSrc()
+                }
                 Either.Left(result)
             } catch (e: InterruptedException) {
                 throw e
@@ -134,9 +143,10 @@ class CalculationQueue(val engine: Engine) {
     fun pushRequest(
         source: SourceLocation,
         variableBindings: List<Pair<Pair<String, String>, APLValue>>? = null,
+        preserveNamespace: Boolean = false,
         fn: (Either<APLValue, Exception>) -> Unit
     ): JobId {
-        return pushJobToQueue(EvalAPLRequest(source, variableBindings, fn))
+        return pushJobToQueue(EvalAPLRequest(source, variableBindings, preserveNamespace, fn))
     }
 
     fun pushReadVariableRequest(name: String, callback: (APLValue?) -> Unit): JobId {
