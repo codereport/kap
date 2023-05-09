@@ -1,6 +1,7 @@
 package array
 
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class ScopeTest : APLTest() {
@@ -206,5 +207,19 @@ class ScopeTest : APLTest() {
             assertDimension(dimensionsOfSize(2, 3), result)
             assertArrayContent(arrayOf(11, 22, 33, 14, 25, 36), result)
         }
+    }
+
+    @Test
+    fun leftBoundFunctionInDfn() {
+        val src =
+            """
+            |foo ⇐ { a ← λ{ 1 2 3 +[io:print 1] ⍵ } ◊ io:print 2 ◊ a }
+            |io:print 3
+            |⍞(foo 0) 2 3 ⍴ 1+⍳6
+            """.trimMargin()
+        val (result, out) = parseAPLExpressionWithOutput(src)
+        assertDimension(dimensionsOfSize(2, 3), result)
+        assertArrayContent(arrayOf(2, 4, 6, 5, 7, 9), result)
+        assertEquals("321", out)
     }
 }
