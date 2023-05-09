@@ -137,21 +137,10 @@ actual fun BigInt.Companion.of(value: Long): BigInt {
     return BigInt.of(value.toString())
 }
 
-inline fun NativePlacement.allocString(s: String): CArrayPointer<ByteVar> {
-    val utf = s.encodeToByteArray()
-    val buf = allocArray<ByteVar>(utf.size + 1)
-    utf.forEachIndexed { i, value ->
-        buf[i] = value
-    }
-    buf[utf.size] = 0
-    return buf
-}
-
 actual fun BigInt.Companion.of(s: String): BigInt {
     val result = MpzWrapper.allocMpzWrapper()
     memScoped {
-        val buf = allocString(s)
-        val res = mpz_set_str!!(result.value, buf, 10)
+        val res = mpz_set_str!!(result.value, s.cstr.ptr, 10)
         if (res != 0) {
             throw NumberFormatException("Invalid number format: ${s}, result: ${res}")
         }

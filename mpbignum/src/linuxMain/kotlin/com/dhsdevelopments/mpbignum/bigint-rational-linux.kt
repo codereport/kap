@@ -37,8 +37,7 @@ class LinuxRational(val value: mpq_t) : Rational {
         fun make(s: String): LinuxRational {
             val m0 = memScoped {
                 val m = nativeHeap.allocMpqStruct()
-                val buf = this.allocString(s)
-                val res = mpq_set_str!!(m, buf, 10)
+                val res = mpq_set_str!!(m, s.cstr.ptr, 10)
                 if (res != 0) {
                     mpq_clear!!(m)
                     nativeHeap.free(m)
