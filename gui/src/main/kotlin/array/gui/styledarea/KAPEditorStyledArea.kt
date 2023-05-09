@@ -140,7 +140,7 @@ open class KAPEditorStyledArea<PS, SEG, S>(
 
     fun replaceSelectionAndDisplay(s: String) {
         replaceSelection(s)
-        showBottomParagraphAtTop()
+//        showBottomParagraphAtTop()
     }
 
     fun clearStyles() {

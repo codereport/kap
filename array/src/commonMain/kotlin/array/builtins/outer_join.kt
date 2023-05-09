@@ -7,7 +7,8 @@ open class OuterJoinResult(
     val a: APLValue,
     val b: APLValue,
     val fn: APLFunction,
-    val pos: Position
+    val pos: Position,
+    val savedStack: StorageStack.StorageStackFrame?
 ) : APLArray() {
     final override val dimensions: Dimensions
     protected val divisor: Int
@@ -27,9 +28,11 @@ open class OuterJoinResult(
     }
 
     override fun valueAt(p: Int): APLValue {
-        val aPosition = p / divisor
-        val bPosition = p % divisor
-        return fn.eval2Arg(context, if (aScalar) a else a.valueAt(aPosition), if (bScalar) b else b.valueAt(bPosition), null)
+        return withPossibleSavedStack(savedStack) {
+            val aPosition = p / divisor
+            val bPosition = p % divisor
+            fn.eval2Arg(context, if (aScalar) a else a.valueAt(aPosition), if (bScalar) b else b.valueAt(bPosition), null)
+        }
     }
 }
 
@@ -38,8 +41,9 @@ class OuterJoinResultLong(
     a: APLValue,
     b: APLValue,
     fn: APLFunction,
-    pos: Position
-) : OuterJoinResult(context, a, b, fn, pos) {
+    pos: Position,
+    savedStack: StorageStack.StorageStackFrame?
+) : OuterJoinResult(context, a, b, fn, pos, savedStack) {
     override val specialisedType get() = ArrayMemberType.LONG
 
     init {
@@ -47,9 +51,11 @@ class OuterJoinResultLong(
     }
 
     override fun valueAtLong(p: Int, pos: Position?): Long {
-        val aPosition = p / divisor
-        val bPosition = p % divisor
-        return fn.eval2ArgLongLong(context, a.valueAtLong(aPosition, pos), b.valueAtLong(bPosition, pos), null)
+        return withPossibleSavedStack(savedStack) {
+            val aPosition = p / divisor
+            val bPosition = p % divisor
+            fn.eval2ArgLongLong(context, a.valueAtLong(aPosition, pos), b.valueAtLong(bPosition, pos), null)
+        }
     }
 }
 
@@ -58,8 +64,9 @@ class OuterJoinResultDouble(
     a: APLValue,
     b: APLValue,
     fn: APLFunction,
-    pos: Position
-) : OuterJoinResult(context, a, b, fn, pos) {
+    pos: Position,
+    savedStack: StorageStack.StorageStackFrame?
+) : OuterJoinResult(context, a, b, fn, pos, savedStack) {
     override val specialisedType get() = ArrayMemberType.DOUBLE
 
     init {
@@ -67,9 +74,11 @@ class OuterJoinResultDouble(
     }
 
     override fun valueAtDouble(p: Int, pos: Position?): Double {
-        val aPosition = p / divisor
-        val bPosition = p % divisor
-        return fn.eval2ArgDoubleDouble(context, a.valueAtDouble(aPosition, pos), b.valueAtDouble(bPosition, pos), null)
+        return withPossibleSavedStack(savedStack) {
+            val aPosition = p / divisor
+            val bPosition = p % divisor
+            fn.eval2ArgDoubleDouble(context, a.valueAtDouble(aPosition, pos), b.valueAtDouble(bPosition, pos), null)
+        }
     }
 }
 
@@ -146,31 +155,31 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
 
 
     class OuterJoinFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescriptor {
-        class OuterJoinFunctionImpl(pos: FunctionInstantiation, fn: APLFunction) : NoAxisAPLFunction(pos, listOf(fn)) {
+        class OuterJoinFunctionImpl(pos: FunctionInstantiation, fn: APLFunction) : NoAxisAPLFunction(pos, listOf(fn)),
+                SaveStackCapable by SaveStackSupport(fn) {
             override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
                 val sta = a.specialisedType
                 val stb = b.specialisedType
                 return when {
                     sta === ArrayMemberType.LONG && stb === ArrayMemberType.LONG && fn.optimisationFlags.is2ALongLong -> {
-                        OuterJoinResultLong(context, a, b, fn, pos)
+                        OuterJoinResultLong(context, a, b, fn, pos, savedStack(context))
                     }
                     sta === ArrayMemberType.DOUBLE && stb === ArrayMemberType.DOUBLE && fn.optimisationFlags.is2ADoubleDouble -> {
-                        OuterJoinResultDouble(context, a, b, fn, pos)
+                        OuterJoinResultDouble(context, a, b, fn, pos, savedStack(context))
                     }
-                    else -> OuterJoinResult(context, a, b, fn, pos)
+                    else -> OuterJoinResult(context, a, b, fn, pos, savedStack(context))
                 }
             }
 
             override fun copy(fns: List<APLFunction>) = OuterJoinFunctionImpl(instantiation, fns[0])
 
-            val fn = fns[0]
+            val fn get() = fns[0]
 
             override val name2Arg get() = "outer product"
         }
 
         override fun make(instantiation: FunctionInstantiation): APLFunction {
             return OuterJoinFunctionImpl(instantiation, fnInner)
-
         }
     }
 

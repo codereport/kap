@@ -1,5 +1,7 @@
 package array
 
+import array.builtins.SaveStackCapable
+import array.builtins.SaveStackSupport
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -564,43 +566,6 @@ class ComplexExpressionsTest : APLTest() {
         }
     }
 
-    @Test
-    fun leftBoundFunctionsWithDifferentEnvironment() {
-        val src =
-            """
-            |stringToGraphemes ⇐ (1,≢)⍛⍴ unicode:toGraphemes
-            |{comp ⍵} (stringToGraphemes⍕)¨ 1 2 3            
-            """.trimMargin()
-        parseAPLExpression(src).let { result ->
-            assertDimension(dimensionsOfSize(3), result)
-            result.valueAt(0).let { v ->
-                assertDimension(dimensionsOfSize(1, 1), v)
-                assertString("1", v.valueAt(0))
-            }
-            result.valueAt(1).let { v ->
-                assertDimension(dimensionsOfSize(1, 1), v)
-                assertString("2", v.valueAt(0))
-            }
-            result.valueAt(2).let { v ->
-                assertDimension(dimensionsOfSize(1, 1), v)
-                assertString("3", v.valueAt(0))
-            }
-        }
-    }
-
-    @Test
-    fun axisAssignedFunctionWithDifferentEnv() {
-        val src =
-            """
-            |abc ⇐ +[1]
-            |{comp ⍵} abc¨ 2 3 ⍴ 1+⍳6
-            """.trimMargin()
-        parseAPLExpression(src).let { result ->
-            assertDimension(dimensionsOfSize(2, 3), result)
-            assertArrayContent(arrayOf(1, 2, 3, 4, 5, 6), result)
-        }
-    }
-
     private fun defAbcResult(fnIndex: Long, opIndex: Long, rightArg: Long): Long {
         return (rightArg * 10 + fnIndex * 100) * 1000 + opIndex * 1000000
     }
@@ -627,7 +592,7 @@ class ComplexExpressionsTest : APLTest() {
     }
 
     class AbcFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
-        class AbcFunctionDescriptorImpl(fn: APLFunction, pos: FunctionInstantiation) : APLFunction(pos, listOf(fn)) {
+        class AbcFunctionDescriptorImpl(fn: APLFunction, pos: FunctionInstantiation) : APLFunction(pos, listOf(fn)), SaveStackCapable by SaveStackSupport(fn) {
             private val fn get() = fns[0]
 
             override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {

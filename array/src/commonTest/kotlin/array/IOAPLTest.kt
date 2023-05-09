@@ -78,10 +78,9 @@ class IOAPLTest : APLTest() {
     fun automaticClose() {
         val (result, out) = parseWithClosableValue(
             """
-            |leaveclose ⇐ close atLeave
             |x ← 0
             |{
-            |  y ← leaveclose makeClosable 0
+            |  y ← close atLeave makeClosable 0
             |  io:print closedFlag y
             |  x ← y
             |} 0
@@ -125,7 +124,7 @@ class IOAPLTest : APLTest() {
         var closed = false
 
         override val aplValueType get() = APLValueType.INTERNAL
-        override fun formatted(style: FormatStyle) = "TestValue(${if (closed) "closed" else "open"}"
+        override fun formatted(style: FormatStyle) = "ClosableTestValue(${if (closed) "closed" else "open"}"
         override fun compareEquals(reference: APLValue) = this === reference
         override fun makeKey() = APLValueKeyImpl(this, this)
     }

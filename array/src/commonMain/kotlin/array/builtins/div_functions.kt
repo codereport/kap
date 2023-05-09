@@ -144,15 +144,14 @@ class UnwindProtectAPLFunction : APLFunctionDescriptor {
 class AtLeaveScopeOperator : APLOperatorOneArg {
     override fun combineFunction(fn: APLFunction, pos: FunctionInstantiation) = AtLeaveScopeFunctionDescriptor(fn)
 
-    class AtLeaveScopeFunctionDescriptor(val fn1Descriptor: APLFunction) : APLFunctionDescriptor {
+    class AtLeaveScopeFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
         override fun make(instantiation: FunctionInstantiation): APLFunction {
-            val fn = fn1Descriptor
-            return object : APLFunction(instantiation), SaveStackCapable by SaveStackSupport(fn) {
+            return object : APLFunction(instantiation, listOf(fn)) {
+                val fn get() = fns[0]
+
                 override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
                     currentStack().currentFrame().pushReleaseCallback {
-                        withPossibleSavedStack(savedStack(context)) {
-                            fn.eval1Arg(context, a, null)
-                        }
+                        fn.eval1Arg(context, a, null)
                     }
                     return a
                 }

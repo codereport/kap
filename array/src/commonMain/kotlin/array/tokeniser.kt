@@ -120,6 +120,7 @@ class Namespace(val name: String) {
 
 class Symbol(val symbolName: String, val namespace: Namespace) : Token(), Comparable<Symbol> {
     override fun toString() = "Symbol[name=${nameWithNamespace}]"
+
     override fun compareTo(other: Symbol): Int {
         return if (namespace.name != other.namespace.name) {
             namespace.name.compareTo(other.namespace.name)
@@ -130,7 +131,7 @@ class Symbol(val symbolName: String, val namespace: Namespace) : Token(), Compar
 
     override fun formatted() = nameWithNamespace
 
-    val nameWithNamespace = "${namespace.name}:${symbolName}"
+    val nameWithNamespace get() = "${namespace.name}:${symbolName}"
 }
 
 class StringToken(val value: String) : Token() {
