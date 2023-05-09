@@ -32,7 +32,7 @@ class MpzWrapper(val value: mpz_t) {
     }
 }
 
-internal inline fun NativePlacement.allocMpzStruct(): mpz_t = allocArray<__mpz_struct>(sizeOf<__mpz_struct>()).also { v -> mpz_init!!(v) }
+internal inline fun NativePlacement.allocMpzStruct(): mpz_t = allocArray<__mpz_struct>(1).also { v -> mpz_init!!(v) }
 
 actual value class BigInt actual constructor(actual val impl: Any) {
     override fun toString(): String {

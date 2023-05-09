@@ -4,7 +4,7 @@ import gmp.*
 import kotlinx.cinterop.*
 import kotlin.native.internal.createCleaner
 
-internal inline fun NativePlacement.allocMpqStruct(): mpq_t = allocArray<__mpq_struct>(sizeOf<__mpq_struct>()).also { v -> mpq_init!!(v) }
+internal inline fun NativePlacement.allocMpqStruct(): mpq_t = allocArray<__mpq_struct>(1).also { v -> mpq_init!!(v) }
 
 class LinuxRational(val value: mpq_t) : Rational {
 
