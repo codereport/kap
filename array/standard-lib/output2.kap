@@ -18,15 +18,15 @@ isArray ⇐ 'array≡typeof
 isChar ⇐ 'char≡typeof
 
 ∇ isAplString (v) {
-  if (1≢≢⍴v) { →0 }
+  (1≢≢⍴v) → 0
   ~0∊'char=typeof¨v
 }
 
 ⍝ Convert a plain 1D string to a grapheme array
 stringToGraphemes ⇐ (1,≢)⍛⍴ unicode:toGraphemes
 
-⍝ Testcase
-⍝ alignCells (stringToGraphemes⍕)¨ 2 3 ⍴ 1 1234
+⍝ Replace 0 with a space in the input array
+zSpc ⇐ { (0≡¨⍵) % ⍵ @\s }
 
 ⍝ Given a 2D array of grapheme arrays, return a new array where each cell is
 ⍝ right-aligned to the maximum width of all cells in each column, and top-aligned
@@ -46,14 +46,18 @@ stringToGraphemes ⇐ (1,≢)⍛⍴ unicode:toGraphemes
 
 ∇ renderArray (v) {
   r ← ¯1 (↑¯1↑⍴v) ⍴ v
-  alignCells (stringToGraphemes⍕)¨ r
+  alignCells r
+}
+
+∇ renderString {
+  zSpc ⊃unicode:toGraphemes¨ (@\n≠)⍛⊂ ⍵
 }
 
 ∇ prettyPrintToChars (v) {
   when {
     (isChar(v))      { renderChar v }
-    (isAplString(v)) { renderString v }
+    (isAplString(v)) { renderString @",v,@" }
     (isArray(v))     { renderArray v }
-    (1)              { stringToGraphemes ⍕v }
+    (1)              { renderString ⍕v }
   }
 }

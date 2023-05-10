@@ -165,6 +165,12 @@ abstract class APLTest {
         assertEquals(expected, valueString, "Expected '${expected}', got: '${valueString}'${suffix}")
     }
 
+    fun assertChar(code: Int, value: APLValue, message: String? = null) {
+        val suffix = if (message != null) ": ${message}" else ""
+        assertTrue(value is APLChar)
+        assertEquals(code, value.value)
+    }
+
     fun assertAPLNull(value: APLValue) {
         assertDimension(dimensionsOfSize(0), value)
         assertEquals(0, value.dimensions[0])

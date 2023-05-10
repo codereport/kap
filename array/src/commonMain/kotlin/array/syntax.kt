@@ -83,7 +83,7 @@ abstract class FunctionSyntaxRule(private val variable: EnvironmentBinding) : Sy
             throw UnexpectedToken(token, pos)
         }
         val fnDefinition = if (allocateEnvironment()) {
-            parser.parseFnDefinitionNewEnvironment(endToken = endToken(), name = "function syntax rule")
+            parser.parseFnDefinitionNewEnvironment(endToken = endToken(), name = "function syntax rule: ${variable.name.nameWithNamespace}")
         } else {
             parser.parseFnDefinitionSameEnvironment(endToken = endToken())
         }
@@ -242,9 +242,9 @@ private fun processRepeat(parser: APLParser): SyntaxRule {
 }
 
 fun processDefsyntaxSub(parser: APLParser, pos: Position) {
-    parser.withEnvironment("defsyntaxsub") {
-        val tokeniser = parser.tokeniser
-        val name = tokeniser.nextTokenWithType<Symbol>()
+    val tokeniser = parser.tokeniser
+    val name = tokeniser.nextTokenWithType<Symbol>()
+    parser.withEnvironment("defsyntaxsub: ${name.nameWithNamespace}") {
         val rulesList = processPairs(parser)
         tokeniser.nextTokenWithType<OpenFnDef>()
         val instr = parser.parseValueToplevel(CloseFnDef)
@@ -253,9 +253,9 @@ fun processDefsyntaxSub(parser: APLParser, pos: Position) {
 }
 
 fun processDefsyntax(parser: APLParser, pos: Position): Instruction {
-    parser.withEnvironment("defsyntax") {
-        val tokeniser = parser.tokeniser
-        val triggerSymbol = tokeniser.nextTokenWithType<Symbol>()
+    val tokeniser = parser.tokeniser
+    val triggerSymbol = tokeniser.nextTokenWithType<Symbol>()
+    parser.withEnvironment("defsyntax: ${triggerSymbol.nameWithNamespace}") {
         val rulesList = processPairs(parser)
         tokeniser.nextTokenWithType<OpenFnDef>()
         val instr = parser.parseValueToplevel(CloseFnDef)

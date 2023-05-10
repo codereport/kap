@@ -361,7 +361,7 @@ class LeftAssignedFunction(
     }
 
     override fun computeClosure(parser: APLParser): Pair<APLFunction, List<Instruction>> {
-        val sym = parser.tokeniser.engine.createAnonymousSymbol()
+        val sym = parser.tokeniser.engine.createAnonymousSymbol("leftAssignedFunction")
         val binding = parser.currentEnvironment().bindLocal(sym)
         val (innerFn, relatedInstrs) = underlying.computeClosure(parser)
         val ref = StackStorageRef(binding)
@@ -413,7 +413,7 @@ class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction) 
     }
 
     override fun computeClosure(parser: APLParser): Pair<APLFunction, List<Instruction>> {
-        val sym = parser.tokeniser.engine.createAnonymousSymbol()
+        val sym = parser.tokeniser.engine.createAnonymousSymbol("axisFn")
         val binding = parser.currentEnvironment().bindLocal(sym)
         val (innerFn, relatedInstrs) = baseFn.computeClosure(parser)
         val ref = StackStorageRef(binding)

@@ -39,7 +39,7 @@ class StackStorageRef(val binding: EnvironmentBinding) {
     val storageOffset get() = binding.storage.index
 }
 
-class ExternalStorageRef(var frameIndex: Int, var storageOffset: Int)
+class ExternalStorageRef(var frameIndex: Int, var storageOffset: Int, val envForDebugging: Environment)
 
 class EnvironmentBinding(val environment: Environment, val name: Symbol, storage: StackStorageDescriptor) {
     private var storageInt: StackStorageDescriptor
@@ -58,7 +58,7 @@ class EnvironmentBinding(val environment: Environment, val name: Symbol, storage
 
     private fun recomputeStorageIndex() {
         var newIndex = -1
-        if (environment.isRoot()) {
+        if (storage.env.isRoot()) {
             newIndex = -2
         } else {
             var i = 0
@@ -497,7 +497,8 @@ class APLParser(val tokeniser: TokenGenerator) {
             env = currentEnvironment()
             env.markCanEscape() // not really?
         }
-        val fnBinding = currentEnvironment().bindLocal(tokeniser.engine.createAnonymousSymbol())
+        val fnBinding =
+            currentEnvironment().bindLocal(tokeniser.engine.createAnonymousSymbol("short form function: ${sym.nameWithNamespace}"))
         val ref = StackStorageRef(fnBinding)
         val instr = UpdateLocalFunctionInstruction(closureFn, pos, instructions, ref, env)
         currentEnvironment().registerLocalFunction(sym, fnBinding)
@@ -679,7 +680,10 @@ class APLParser(val tokeniser: TokenGenerator) {
                 val parentEnvsExceptRoot = environments.subList(1, environments.size - 1).asReversed()
                 for (env in parentEnvsExceptRoot) {
                     env.findLocalFunction(name)?.let { binding ->
-                        return makeLocalFunctionCall(currentEnvironment().bindRemote(tokeniser.engine.createAnonymousSymbol(), binding))
+                        return makeLocalFunctionCall(
+                            currentEnvironment().bindRemote(
+                                tokeniser.engine.createAnonymousSymbol("local function: ${name.nameWithNamespace}"),
+                                binding))
                     }
                     if (env.closed) {
                         break
@@ -688,7 +692,10 @@ class APLParser(val tokeniser: TokenGenerator) {
             }
             // Even if we exited due to a closed parent environment, we still want to check the root
             environments.first().findLocalFunction(name)?.let { binding ->
-                return makeLocalFunctionCall(currentEnvironment().bindRemote(tokeniser.engine.createAnonymousSymbol(), binding))
+                return makeLocalFunctionCall(
+                    currentEnvironment().bindRemote(
+                        tokeniser.engine.createAnonymousSymbol("root function: ${name.nameWithNamespace}"),
+                        binding))
             }
         }
         return tokeniser.engine.getFunction(name)?.make(makeInstantiation())

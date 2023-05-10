@@ -32,7 +32,7 @@ private fun Environment.rewriteForEscape() {
     val a = bindingsBeyondIndex(this, 0)
     val b = a.groupBy { it.storage }
     b.forEach { (k, v) ->
-        val copiedStorage = ExternalStorageRef(depthOfEnv(this, k.env), k.index)
+        val copiedStorage = ExternalStorageRef(if (k.env.isRoot()) -2 else depthOfEnv(this, k.env), k.index, k.env)
         val storageDescriptor = StackStorageDescriptor(this, storageList.size + externalStorageList.size, "copied from: ${k.comment}")
         externalStorageList.add(copiedStorage)
         v.forEach { b ->
