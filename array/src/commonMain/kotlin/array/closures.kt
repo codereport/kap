@@ -1,16 +1,9 @@
 package array
 
-private fun bindingsBeyondIndex(env: Environment, level: Int): List<EnvironmentBinding> {
+private fun crossEscapeBindings(env: Environment, level: Int): List<EnvironmentBinding> {
     val l = env.localBindings().filter { b -> b.frameIndex > level }.toMutableList()
-//        val l = ArrayList<EnvironmentBinding>()
-//        val loc = localBindings()
-//        for(b in loc) {
-//            if(b.frameIndex > level) {
-//                l.add(b)
-//            }
-//        }
     env.childEnvironments.forEach { c ->
-        val inner = bindingsBeyondIndex(c, level + 1)
+        val inner = crossEscapeBindings(c, level + 1)
         l += inner
     }
     return l
@@ -29,10 +22,10 @@ fun depthOfEnv(baseEnv: Environment, env: Environment): Int {
 }
 
 private fun Environment.rewriteForEscape() {
-    val a = bindingsBeyondIndex(this, 0)
+    val a = crossEscapeBindings(this, 0)
     val b = a.groupBy { it.storage }
     b.forEach { (k, v) ->
-        val copiedStorage = ExternalStorageRef(depthOfEnv(this, k.env), k.index)
+        val copiedStorage = ExternalStorageRef(if (k.env.isRoot()) -2 else depthOfEnv(this, k.env), k.index, k.env)
         val storageDescriptor = StackStorageDescriptor(this, storageList.size + externalStorageList.size, "copied from: ${k.comment}")
         externalStorageList.add(copiedStorage)
         v.forEach { b ->
@@ -65,5 +58,14 @@ fun Environment.escapeAnalysis() {
 }
 
 fun Environment.freeVariableRefs(): List<EnvironmentBinding> {
-    return bindingsBeyondIndex(this, 0)
+    val result = ArrayList<EnvironmentBinding>()
+    fun recurse(env: Environment, level: Int) {
+        val l = env.localBindings().filter { b -> (!isRoot() && b.frameIndex == -2) || b.frameIndex > level }.toMutableList()
+        result.addAll(l)
+        env.childEnvironments.forEach { c ->
+            recurse(c, level + 1)
+        }
+    }
+    recurse(this, 0)
+    return result
 }

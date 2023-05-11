@@ -141,7 +141,7 @@ class SourceEditor(val client: Client) {
 
     fun runClicked() {
         val source = EditorSourceLocation(this, styledArea.document.text)
-        client.evalSource(source)
+        client.evalSource(source, preserveNamespace = true)
     }
 
     private fun processSave(): Boolean {
@@ -233,20 +233,13 @@ class SourceEditorStyledArea(
 
     override fun addInputMappings(entries: MutableList<InputMap<out Event>>) {
         entries.add(InputMap.consume(EventPattern.keyPressed(KeyCode.ENTER, KeyCombination.CONTROL_DOWN), { sourceEditor.runClicked() }))
-        entries.add(InputMap.consume(
-            EventPattern.keyPressed(KeyCode.F, KeyCombination.CONTROL_DOWN),
-            { caretSelectionBind.moveToNextChar() }))
-        entries.add(InputMap.consume(
-            EventPattern.keyPressed(KeyCode.B, KeyCombination.CONTROL_DOWN),
-            { caretSelectionBind.moveToPrevChar() }))
+        entries.add(InputMap.consume(EventPattern.keyPressed(KeyCode.F, KeyCombination.CONTROL_DOWN), { caretSelectionBind.moveToNextChar() }))
+        entries.add(InputMap.consume(EventPattern.keyPressed(KeyCode.B, KeyCombination.CONTROL_DOWN), { caretSelectionBind.moveToPrevChar() }))
         entries.add(InputMap.consume(EventPattern.keyPressed(KeyCode.P, KeyCombination.CONTROL_DOWN), { moveToPrevLine() }))
         entries.add(InputMap.consume(EventPattern.keyPressed(KeyCode.N, KeyCombination.CONTROL_DOWN), { moveToNextLine() }))
-        entries.add(InputMap.consume(
-            EventPattern.keyPressed(KeyCode.A, KeyCombination.CONTROL_DOWN),
-            { caretSelectionBind.moveToParStart() }))
-        entries.add(InputMap.consume(
-            EventPattern.keyPressed(KeyCode.E, KeyCombination.CONTROL_DOWN),
-            { caretSelectionBind.moveToParEnd() }))
+        entries.add(InputMap.consume(EventPattern.keyPressed(KeyCode.A, KeyCombination.CONTROL_DOWN), { caretSelectionBind.moveToParStart() }))
+        entries.add(InputMap.consume(EventPattern.keyPressed(KeyCode.E, KeyCombination.CONTROL_DOWN), { caretSelectionBind.moveToParEnd() }))
+        entries.add(InputMap.consume(EventPattern.keyPressed(KeyCode.D, KeyCombination.CONTROL_DOWN), { delSingleCharacter() }))
     }
 
     private fun moveToNextLine() {
@@ -262,6 +255,15 @@ class SourceEditorStyledArea(
         if (n > 0) {
             val p = paragraphs[n - 1]
             caretSelectionBind.moveTo(n - 1, min(caretSelectionBind.columnPosition, p.length()))
+        }
+    }
+
+    private fun delSingleCharacter() {
+        val n = currentParagraph
+        val p = paragraphs[n]
+        val pos = caretSelectionBind.anchorColPosition
+        if (pos < p.length()) {
+            deleteText(n, pos, n, pos + 1)
         }
     }
 

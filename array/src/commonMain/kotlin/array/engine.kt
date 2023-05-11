@@ -134,7 +134,7 @@ class StorageStack private constructor() {
                 } else {
                     val ref = externalStorageList[i - localStorageSize]
                     // We don't subtract 1 from stackIndex here because at this point the element has not been added to the stack yet
-                    val stackIndex = stack.size - ref.frameIndex
+                    val stackIndex = if (ref.frameIndex == -2) 0 else stack.size - ref.frameIndex
                     val frame = stack[stackIndex]
                     frame.storageList[ref.storageOffset]
                 }
@@ -509,7 +509,7 @@ class Engine(numComputeEngines: Int? = null) {
     fun getFunction(name: Symbol) = functions[resolveAlias(name)]
     fun getOperator(name: Symbol) = operators[resolveAlias(name)]
 
-    fun createAnonymousSymbol() = Symbol("<anonymous>", anonymousSymbolNamespace)
+    fun createAnonymousSymbol(name: String? = null) = Symbol(if (name == null) "<anonymous>" else "<anonymous: ${name}>", anonymousSymbolNamespace)
 
     fun parse(source: SourceLocation): Instruction {
         TokenGenerator(this, source).use { tokeniser ->
@@ -558,7 +558,8 @@ class Engine(numComputeEngines: Int? = null) {
         }
     }
 
-    fun internSymbol(name: String, namespace: Namespace? = null): Symbol = (namespace ?: currentNamespace).internSymbol(name)
+    fun internSymbol(name: String, namespace: Namespace? = null): Symbol =
+        (namespace ?: currentNamespace).internSymbol(name)
 
     fun makeNamespace(name: String, overrideDefaultImport: Boolean = false): Namespace {
         return namespaces.getOrPut(name) {
@@ -656,8 +657,7 @@ class Engine(numComputeEngines: Int? = null) {
     }
 
     inline fun <reified T : APLValue> callClosableHandler(value: T, pos: Position) {
-        val handler =
-            closableHandlers[value::class] ?: throw APLEvalException("Value cannot be closed: ${value.formatted(FormatStyle.PLAIN)}", pos)
+        val handler = closableHandlers[value::class] ?: throw APLEvalException("Value cannot be closed: ${value.formatted(FormatStyle.PLAIN)}", pos)
         @Suppress("UNCHECKED_CAST")
         (handler as ClosableHandler<T>).close(value)
     }

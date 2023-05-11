@@ -294,8 +294,8 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
         }
     }
 
-    fun evalSource(source: SourceLocation) {
-        calculationQueue.pushRequest(source) { result ->
+    fun evalSource(source: SourceLocation, preserveNamespace: Boolean = false) {
+        calculationQueue.pushRequest(source, preserveNamespace = preserveNamespace) { result ->
             if (result is Either.Right) {
                 result.value.printStackTrace()
             }
