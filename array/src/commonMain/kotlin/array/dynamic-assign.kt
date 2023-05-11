@@ -8,8 +8,8 @@ fun APLParser.processDynamicAssignment(pos: Position, leftArgs: List<Instruction
     if (dest !is VariableRef) {
         throw IncompatibleTypeParseException("Dynamic assignment only works for single variables", pos)
     }
-    val (holder, parsedEnv) = withEnvironment("dynamic assignment") {
-        Pair(parseValue(), currentEnvironment())
+    val (holder, parsedEnv) = withEnvironment("dynamic assignment") { env ->
+        Pair(parseValue(), env)
     }
     return when (holder) {
         is ParseResultHolder.InstrParseResult -> makeDynamicAssignInstruction(this, dest, holder, parsedEnv)
@@ -25,8 +25,7 @@ private fun makeDynamicAssignInstruction(
     dest: VariableRef,
     holder: ParseResultHolder.InstrParseResult,
     parsedEnv: Environment
-)
-        : ParseResultHolder.InstrParseResult {
+): ParseResultHolder.InstrParseResult {
 
     val env = parser.currentEnvironment()
     env.markCanEscape()
@@ -103,7 +102,7 @@ class DynamicAssignmentInstruction(
             vars.forEach { stackRef ->
                 val depth = depthOfEnv(stackRef.binding.environment, env)
                 val storage = currentStack().findStorageFromFrameIndexAndOffset(
-                    stackRef.frameIndex - depth,
+                    if (stackRef.frameIndex == -2) -2 else stackRef.frameIndex - depth,
                     stackRef.storageOffset)
                 val innerListener = VariableUpdateListener { newValue, _ ->
                     processUpdate(newValue)

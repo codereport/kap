@@ -39,7 +39,7 @@ class StackStorageRef(val binding: EnvironmentBinding) {
     val storageOffset get() = binding.storage.index
 }
 
-class ExternalStorageRef(var frameIndex: Int, var storageOffset: Int, val envForDebugging: Environment)
+class ExternalStorageRef(var frameIndex: Int, var storageOffset: Int, @Suppress("unused") val envForDebugging: Environment)
 
 class EnvironmentBinding(val environment: Environment, val name: Symbol, storage: StackStorageDescriptor) {
     private var storageInt: StackStorageDescriptor

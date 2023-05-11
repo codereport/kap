@@ -183,7 +183,7 @@ class DynAssignTest : APLTest() {
     }
 
     @Test
-    fun dynamicAssignWithSideEffects() {
+    fun dynamicAssignWithSideEffects0() {
         val src =
             """
             |a ← 1
@@ -192,6 +192,25 @@ class DynAssignTest : APLTest() {
             |a ← 3
             |io:print b
             |io:print b
+            """.trimMargin()
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assertSimpleNumber(23, result)
+            assertEquals("12132323", out)
+        }
+    }
+
+    @Test
+    fun dynamicAssignWithSideEffects1() {
+        val src =
+            """
+            |{
+            |  a ← 1
+            |  b dynamicequal 20+io:print a
+            |  io:print b
+            |  a ← 3
+            |  io:print b
+            |  io:print b
+            |} 0
             """.trimMargin()
         parseAPLExpressionWithOutput(src).let { (result, out) ->
             assertSimpleNumber(23, result)
