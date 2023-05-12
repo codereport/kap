@@ -280,16 +280,15 @@ class RhoAPLFunction : APLFunctionDescriptor {
                             val contentSize = bDimensions.contentSize()
                             val total = dimensionsArray.filter { it >= 0 }.reduceWithInitial(1) { o0, o1 -> o0 * o1 }
                             IntArray(v.size) { index ->
-                                if (index == calcPos) {
-                                    if (contentSize % total != 0) {
+                                when {
+                                    index != calcPos -> dimensionsArray[index]
+                                    total == 0 -> 0
+                                    contentSize % total != 0 ->
                                         throwAPLException(
                                             InvalidDimensionsException(
                                                 "Invalid size of right argument: ${contentSize}. Should be divisible by ${total}.",
                                                 pos))
-                                    }
-                                    contentSize / total
-                                } else {
-                                    dimensionsArray[index]
+                                    else -> contentSize / total
                                 }
                             }
                         }

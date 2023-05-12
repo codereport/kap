@@ -348,4 +348,32 @@ class ReshapeTest : APLTest() {
             assert1DArray(arrayOf(0, 1), result)
         }
     }
+
+    @Test
+    fun reshapeEmptyArrayWithCalculatedDimension0() {
+        parseAPLExpression("¯1 3 ⍴ ⍬").let { result ->
+            assertDimension(dimensionsOfSize(0, 3), result)
+        }
+    }
+
+    @Test
+    fun reshapeEmptyArrayWithCalculatedDimension1() {
+        parseAPLExpression("3 ¯1 ⍴ ⍬").let { result ->
+            assertDimension(dimensionsOfSize(3, 0), result)
+        }
+    }
+
+    @Test
+    fun reshapeEmptyArrayWithCalculatedDimension2() {
+        parseAPLExpression("3 3 ¯1 2 2⍴ ⍬").let { result ->
+            assertDimension(dimensionsOfSize(3, 3, 0, 2, 2), result)
+        }
+    }
+
+    @Test
+    fun reshapeEmptyArrayWithMultipleCalculatedDimensions() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("3 3 ¯1 ¯1 2⍴ ⍬")
+        }
+    }
 }
