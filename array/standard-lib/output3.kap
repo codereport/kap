@@ -1,0 +1,83 @@
+namespace("o3")
+
+⍝ ┌┌┌→──┐
+⍝ ↓↓↓0 1│
+⍝ │││2 3│
+⍝ ││├→──┤
+⍝ ││↓4 5│
+⍝ │││6 7│
+⍝ │├├→──┤
+⍝ │↓↓0 1│
+⍝ │││2 3│
+⍝ ││├→──┤
+⍝ ││↓4 5│
+⍝ │││6 7│
+⍝ └└└───┘
+
+isArray ⇐ 'array≡typeof
+isChar ⇐ 'char≡typeof
+
+isNumber ⇐ { (typeof ⍵) ∊ 'integer 'float 'complex 'rational }
+
+⍝ Replace 0 with a space in the input array
+zSpc ⇐ { (0≡¨⍵) % ⍵ @\s }
+
+∇ isAplString (v) {
+  (1≢≢⍴v) → 0
+  ~0∊'char=typeof¨v
+}
+
+∇ toHex {
+  "0123456789ABCDEF" ⊇⍨ {⍵ ⫽⍨ ~×\0=⍵} (6 ⍴ 16) ⊤ ⍵
+}
+
+∇ renderChar ch {
+  n ← ch-@\0
+  ch ← if ((n ≥ 33) ∧ (n ≤ 126)) {
+    @@ , ch
+  } else {
+    "@\\u" , toHex n
+  }
+  1 ¯1 ⍴ ch
+}
+
+∇ renderString {
+  zSpc ⊃ (@\n≠)⍛⊂ @",⍵,@"
+}
+
+∇ alignCells (v) {
+  if (2≢≢⍴v) { throw "alignCells requires the argument to have rank 2" }
+
+  ⍝ The width of each column is the maximum width of any cell
+  colWidths ← ⌈⌿ (↑↓⍴)¨v
+  ⍝ Pad each cell to the correct width
+  xAligned ← ((⍴v) ⍴ colWidths) {((≢⍵) (⍺-↑↓⍴⍵) ⍴ @\s),⍵}¨ v
+
+  ⍝ Likewise for the heights
+  rowHeights ← ⌈/ ≢¨xAligned
+  yAligned ← (⍉ (⌽ ⍴ xAligned) ⍴ rowHeights) {⍵ ,[0] ((⍺-≢⍵) (↑↓⍴⍵)) ⍴ @\s}¨ xAligned
+}
+
+∇ renderArray v0 {
+  aligned ← alignCells ¯1 (↑¯1↑⍴v0) ⍴ v0
+  (nRows nCols) ← ⍴ aligned
+  f ← ({⊂@│ , (⊃⍪/{⍺,@\s,⍵}/⍵) , @│}⍤2) (¯1 , (¯2↑⍴v0)) ⍴ aligned
+
+  w ← ↑↓⍴↑f
+  top ← 1 ¯1 ⍴ "┌→" , ((¯3+w) ⍴ @─) ,"┐"
+  bottom ← 1 ¯1 ⍴ "└" , ((¯2+w) ⍴ @─) ,"┘"
+  separator ← 1 ¯1 ⍴ "├→" , ((¯3+w) ⍴ @─) , "┤"
+  {top⍪⍵⍪bottom} ↑ ⍪⌿⍪ ¯1↓ , f ,[0.5] ⊂separator
+}
+
+∇ format (v) { 1 }
+
+∇ format (v) {
+  when {
+    (isNumber v)    { 1 ¯1 ⍴ ⍕v }
+    (isChar v)      { renderChar v }
+    (isAplString v) { renderString v }
+    (isArray v)     { renderArray format¨ v }
+    (1)             { throw "Unsupported type: ",⍕typeof v }
+  }
+}

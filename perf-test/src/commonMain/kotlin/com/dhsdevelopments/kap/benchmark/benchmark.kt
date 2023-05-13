@@ -59,6 +59,14 @@ private fun benchmarkMultipleCall(): BenchmarkTestCase {
     return BenchmarkTestCase("multiple call", srcString)
 }
 
+private fun benchmarkFormatter(): BenchmarkTestCase {
+    val srcString = """
+        |use("output3.kap")
+        |o3:format 200 20 ⍴ 10 100 "foo" (2 2 ⍴ ⍳10)
+    """.trimMargin()
+    return BenchmarkTestCase("formatter", srcString)
+}
+
 class TestCaseResults(val name: String, val results: List<Long>) {
     fun avg() = results.sum() / results.size.toDouble()
     fun max() = results.max()
@@ -108,7 +116,8 @@ fun runAllTests(name: String, libPath: String, reportPath: String, reportName: S
         throw IllegalStateException("Report directory is a file: ${reportPath}")
     }
 
-    val tests = listOf(benchmarkPrimes(), benchmarkVarLookupScope(), contribBench(), simpleSum(), benchmarkMultipleCall())
+    //val tests = listOf(benchmarkPrimes(), benchmarkVarLookupScope(), contribBench(), simpleSum(), benchmarkMultipleCall())
+    val tests = listOf(benchmarkFormatter())
     println("Running tests: ${name}")
     val results = ArrayList<TestCaseResults>()
     tests.forEach { testcase ->

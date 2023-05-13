@@ -852,16 +852,13 @@ class APLParser(val tokeniser: TokenGenerator) {
         }
     }
 
-    private fun processSingleCharDeclaration(exported: Boolean) {
+    private fun processSingleCharDeclaration() {
         val (stringToken, stringPos) = tokeniser.nextTokenAndPosWithType<StringToken>()
         val codepointList = stringToken.value.asCodepointList()
         if (codepointList.size != 1) {
             throw IllegalDeclaration("singleChar declaration argument must be a string of length 1", stringPos)
         }
-        tokeniser.registerSingleCharFunction(stringToken.value)
-        if (exported) {
-            tokeniser.engine.registerExportedSingleCharFunction(stringToken.value)
-        }
+        tokeniser.engine.registerExportedSingleCharFunction(stringToken.value)
     }
 
     private fun processDeclare() {
@@ -872,8 +869,7 @@ class APLParser(val tokeniser: TokenGenerator) {
             throw IllegalDeclaration("Declaration name must be a keyword", symPosition)
         }
         when (sym.symbolName) {
-            "singleChar" -> processSingleCharDeclaration(false)
-            "singleCharExported" -> processSingleCharDeclaration(true)
+            "singleCharExported" -> processSingleCharDeclaration()
             "export" -> processExport()
             "local" -> processLocal()
             else -> throw IllegalDeclaration("Unknown declaration name: ${sym.nameWithNamespace}")

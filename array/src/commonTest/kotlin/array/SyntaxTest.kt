@@ -263,7 +263,7 @@ class SyntaxTest : APLTest() {
     fun customSingleCharSymbols() {
         val result = parseAPLExpression(
             """
-            |declare(:singleChar "a")
+            |declare(:singleCharExported "a")
             |a←1
             |b←2
             |bb←3

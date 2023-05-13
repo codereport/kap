@@ -194,7 +194,6 @@ data class TokenWithPosition(val token: Token, val pos: Position)
 
 class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeCloseable {
     private val content = PushBackCharacterProvider(contentArg)
-    private val singleCharFunctions: MutableSet<String>
     private val pushBackList = ArrayList<TokenWithPosition>()
 
     private val charToTokenMap = hashMapOf(
@@ -215,22 +214,6 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
         ";" to ListSeparator,
         "«" to LeftForkToken,
         "»" to RightForkToken)
-
-    init {
-        singleCharFunctions = hashSetOf(
-            "!", "#", "%", "&", "*", "+", ",", "-", "/", "<", "=", ">", "?", "^", "|",
-            "~", "¨", "×", "÷", "↑", "→", "↓", "∊", "∘", "∧", "∨", "∩", "∪", "∼", "≠", "≡",
-            "≢", "≤", "≥", "⊂", "⊃", "⊖", "⊢", "⊣", "⊤", "⊥", "⋆", "⌈", "⌊", "⌶", "⌷", "⌹",
-            "⌻", "⌽", "⌿", "⍀", "⍉", "⍋", "⍎", "⍒", "⍕", "⍙", "⍞", "⍟", "⍠", "⍣", "⍤", "⍥",
-            "⍨", "⍪", "⍫", "⍱", "⍲", "⍳", "⍴", "⍵", "⍶", "⍷", "⍸", "⍹", "⍺", "◊",
-            "○", "$", "¥", "χ", "\\", ".", "∵", "⍓", "⫽", "⑊", "⊆", "⍥", "∥", "⍛", "˝", "⍢",
-            "√")
-    }
-
-    fun registerSingleCharFunction(name: String) {
-        assertx(name.asCodepointList().size == 1) { "registering single char function which is not single char: ${name}" }
-        singleCharFunctions.add(name)
-    }
 
     fun peekToken(): Token {
         val res = nextTokenWithPosition()
@@ -288,7 +271,7 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
 
         return mkpos(
             when {
-                singleCharFunctions.contains(charToString(ch)) -> {
+                engine.charIsSingleCharExported(charToString(ch)) -> {
                     val name = charToString(ch)
                     engine.currentNamespace.findSymbolInImports(name) ?: engine.internSymbol(name, engine.currentNamespace)
                 }

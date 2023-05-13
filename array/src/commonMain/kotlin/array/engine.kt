@@ -242,7 +242,7 @@ class Engine(numComputeEngines: Int? = null) {
     private val customSyntaxEntries = HashMap<Symbol, CustomSyntax>()
     private val librarySearchPaths = ArrayList<String>()
     private val modules = ArrayList<KapModule>()
-    private val exportedSingleCharFunctions = HashSet<String>()
+    private val exportedSingleCharFunctions = initSingleCharFunctionList()
 
     val classManager = ClassManager(this)
 
@@ -421,6 +421,19 @@ class Engine(numComputeEngines: Int? = null) {
         addModule(RegexpModule())
     }
 
+    private fun initSingleCharFunctionList(): MutableSet<String> {
+        return hashSetOf(
+            "!", "#", "%", "&", "*", "+", ",", "-", "/", "<", "=", ">", "?", "^", "|",
+            "~", "¨", "×", "÷", "↑", "→", "↓", "∊", "∘", "∧", "∨", "∩", "∪", "∼", "≠", "≡",
+            "≢", "≤", "≥", "⊂", "⊃", "⊖", "⊢", "⊣", "⊤", "⊥", "⋆", "⌈", "⌊", "⌶", "⌷", "⌹",
+            "⌻", "⌽", "⌿", "⍀", "⍉", "⍋", "⍎", "⍒", "⍕", "⍙", "⍞", "⍟", "⍠", "⍣", "⍤", "⍥",
+            "⍨", "⍪", "⍫", "⍱", "⍲", "⍳", "⍴", "⍵", "⍶", "⍷", "⍸", "⍹", "⍺", "◊",
+            "○", "$", "¥", "χ", "\\", ".", "∵", "⍓", "⫽", "⑊", "⊆", "⍥", "∥", "⍛", "˝", "⍢",
+            "√")
+    }
+
+    fun charIsSingleCharExported(ch: String) = exportedSingleCharFunctions.contains(ch)
+
     fun close() {
         backgroundDispatcher.close()
     }
@@ -513,9 +526,6 @@ class Engine(numComputeEngines: Int? = null) {
 
     fun parse(source: SourceLocation): Instruction {
         TokenGenerator(this, source).use { tokeniser ->
-            exportedSingleCharFunctions.forEach { token ->
-                tokeniser.registerSingleCharFunction(token)
-            }
             val parser = APLParser(tokeniser)
             return parser.parseValueToplevel(EndOfFile)
         }
@@ -531,9 +541,6 @@ class Engine(numComputeEngines: Int? = null) {
             throw IllegalArgumentException("extra bindings is not supported at the moment")
         }
         TokenGenerator(this, source).use { tokeniser ->
-            exportedSingleCharFunctions.forEach { token ->
-                tokeniser.registerSingleCharFunction(token)
-            }
             val parser = APLParser(tokeniser)
             val instr = parser.parseValueToplevel(EndOfFile)
             rootEnvironment.escapeAnalysis()
