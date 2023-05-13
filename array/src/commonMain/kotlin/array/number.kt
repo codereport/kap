@@ -172,7 +172,7 @@ class APLRational(val value: Rational) : APLWideNumber() {
     override fun asDouble(pos: Position?) = value.toDouble()
 
     override fun asLong(pos: Position?): Long {
-        TODO("conversion to long not implemented")
+        throwAPLException(APLEvalException("conversion to long not implemented: ${value}", pos))
     }
 
     override fun asComplex() = value.toDouble().toComplex()
