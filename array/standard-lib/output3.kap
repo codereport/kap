@@ -27,6 +27,11 @@ zSpc ⇐ { (0≡¨⍵) % ⍵ @\s }
   ~0∊'char=typeof¨v
 }
 
+∇ isEnclosedArray {
+  (0≠≢⍴⍵) → 0
+  ⍵≢⊃⍵
+}
+
 ∇ toHex {
   "0123456789ABCDEF" ⊇⍨ {⍵ ⫽⍨ ~×\0=⍵} (6 ⍴ 16) ⊤ ⍵
 }
@@ -67,17 +72,50 @@ zSpc ⇐ { (0≡¨⍵) % ⍵ @\s }
   top ← 1 ¯1 ⍴ "┌→" , ((¯3+w) ⍴ @─) ,"┐"
   bottom ← 1 ¯1 ⍴ "└" , ((¯2+w) ⍴ @─) ,"┘"
   separator ← 1 ¯1 ⍴ "├→" , ((¯3+w) ⍴ @─) , "┤"
-  {top⍪⍵⍪bottom} ↑ ⍪⌿⍪ ¯1↓ , f ,[0.5] ⊂separator
+  res ← {top⍪⍵⍪bottom} ↑ ⍪⌿⍪ ¯1↓ , f ,[0.5] ⊂separator
+
+  ⍝ To draw the layers to the left, first determine the number of layers and their sizes.
+  ds ← ¯2↓⍴v0
+
+  ⍝ Compute the number of layer indicators for each layer
+  layerPos ← ×\⌽ ds
+
+  makeVerticalLayer ⇐ {
+    ⍝ Split content in groups of size ⍵, and compute height of each group
+    sizes ← (+/≢¨⍤1) ¯1 ⍵ ⍴ f
+    ⍝ Create a sequence of vertical bars according to the sizes,
+    ⍝ and end with a split symbol. Finally remove the last instance.
+    coverage ← ¯1+⍵
+    centre ← ¯1↓↑,/ {( (⍵+coverage) ⍴ @│) , @├}¨ sizes
+    ⍪ ↑ ,/ @┌ , centre , @└
+  }
+
+  ⍝ This should be avoidable
+  if ((,0) ≡ ⍴ layerPos) {
+    res
+  } else {
+    (↑,/ makeVerticalLayer¨ ⌽layerPos) , res
+  }
+}
+
+∇ withBorder {
+  (nRows nCols) ← ⍴⍵
+  horizLine ← nCols ⍴ @─
+  top ← "┌" , horizLine , "┐"
+  bottom ← "└" , horizLine , "┘"
+  top ⍪ (@│ , ⍵ , @│) ⍪ bottom
 }
 
 ∇ format (v) { 1 }
 
 ∇ format (v) {
+  v←v
   when {
-    (isNumber v)    { 1 ¯1 ⍴ ⍕v }
-    (isChar v)      { renderChar v }
-    (isAplString v) { renderString v }
-    (isArray v)     { renderArray format¨ v }
-    (1)             { throw "Unsupported type: ",⍕typeof v }
+    (isNumber v)        { 1 ¯1 ⍴ ⍕v }
+    (isChar v)          { renderChar v }
+    (isAplString v)     { renderString v }
+    (isEnclosedArray v) { withBorder format ⊃v }
+    (isArray v)         { renderArray format¨ v }
+    (1)                 { throw "Unsupported type: ",⍕typeof v }
   }
 }
