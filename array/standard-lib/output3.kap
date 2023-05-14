@@ -99,11 +99,8 @@ zSpc ⇐ { (0≡¨⍵) % ⍵ @\s }
 }
 
 ∇ withBorder {
-  (nRows nCols) ← ⍴⍵
-  horizLine ← nCols ⍴ @─
-  top ← "┌" , horizLine , "┐"
-  bottom ← "└" , horizLine , "┘"
-  top ⍪ (@│ , ⍵ , @│) ⍪ bottom
+  nCols ← ↑↓⍴⍵
+  (1 nCols 1 ⫽ "┌─┐") ⍪ (@│ , ⍵ , @│) ⍪ (1 nCols 1 ⫽ "└─┘")
 }
 
 ∇ format (v) { 1 }
