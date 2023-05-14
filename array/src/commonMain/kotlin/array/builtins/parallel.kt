@@ -4,7 +4,7 @@ import kotlin.math.ceil
 import kotlin.math.min
 
 class ParallelWrappedException(val exceptions: List<Throwable>, pos: Position? = null) :
-        APLEvalException("Wrapped exceptions. Primary: ${exceptions[0].message}", pos) {
+    APLEvalException("Wrapped exceptions. Primary: ${exceptions[0].message}", pos) {
     fun primaryException() = exceptions[0]
 }
 
@@ -159,10 +159,11 @@ private class ParallelHandler(val derived: ParallelSupported, val numTasksWeight
         private fun evalTaskList(context: RuntimeContext, parallelTaskList: ParallelTaskList): APLValue {
             val engine = context.engine
             val dispatcher = context.engine.backgroundDispatcher
+            val rootFrame = currentStack().stack[0]
             val tasks = parallelTaskList.tasks.map { task ->
                 dispatcher.start {
                     engine.inComputeThread.value = true
-                    engine.withThreadLocalAssigned {
+                    engine.withThreadLocalAssigned(listOf(rootFrame)) {
                         task.computeResult(context)
                     }
                 }

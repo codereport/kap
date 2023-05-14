@@ -82,7 +82,7 @@ class StorageStack private constructor() {
         stack.add(StorageStackFrame(env, "root", null))
     }
 
-    private constructor(prevStack: List<StorageStackFrame>) : this() {
+    constructor(prevStack: List<StorageStackFrame>) : this() {
         stack.addAll(prevStack)
     }
 
@@ -619,11 +619,11 @@ class Engine(numComputeEngines: Int? = null) {
     }
 
     @OptIn(ExperimentalContracts::class)
-    inline fun <T> withThreadLocalAssigned(fn: () -> T): T {
+    inline fun <T> withThreadLocalAssigned(newStack: List<StorageStack.StorageStackFrame>? = null, fn: () -> T): T {
         contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
         val oldStack = threadLocalStorageStackRef.value
         assertx(oldStack == null) { "Overriding old stack" }
-        threadLocalStorageStackRef.value = StorageStack(rootEnvironment)
+        threadLocalStorageStackRef.value = if (newStack == null) StorageStack(rootEnvironment) else StorageStack(newStack)
         try {
             return fn()
         } finally {

@@ -103,4 +103,18 @@ class ParallelTest : APLTest() {
             }
         }
     }
+
+    @Test
+    fun parallelWithLocalFn() {
+        parseAPLExpression("a ⇐ { 1+⍵ } ◊ a¨∥ 10 20 30 40 50").let { result ->
+            assert1DArray(arrayOf(11, 21, 31, 41, 51), result)
+        }
+    }
+
+    @Test
+    fun parallelWithLocalFnScope() {
+        parseAPLExpression("{ a ⇐ { 1+⍵ } ◊ a¨∥ 10 20 30 40 50 } 0").let { result ->
+            assert1DArray(arrayOf(11, 21, 31, 41, 51), result)
+        }
+    }
 }
