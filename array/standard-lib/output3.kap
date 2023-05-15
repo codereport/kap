@@ -16,6 +16,7 @@ namespace("o3")
 
 isArray ⇐ 'array≡typeof
 isChar ⇐ 'char≡typeof
+isSymbol ⇐ 'symbol≡typeof
 
 isNumber ⇐ { (typeof ⍵) ∊ 'integer 'float 'complex 'rational }
 
@@ -50,6 +51,14 @@ zSpc ⇐ { (0≡¨⍵) % ⍵ @\s }
   zSpc ⊃ (@\n≠)⍛⊂ @",⍵,@"
 }
 
+∇ renderNumber (n) {
+  1 ¯1 ⍴ ⍕n
+}
+
+∇ renderSymbol (sym) {
+  1 ¯1 ⍴ ⍕sym
+}
+
 ∇ alignCells (v) {
   if (2≢≢⍴v) { throw "alignCells requires the argument to have rank 2" }
 
@@ -64,55 +73,87 @@ zSpc ⇐ { (0≡¨⍵) % ⍵ @\s }
 }
 
 ∇ renderArray v0 {
-  aligned ← alignCells ¯1 (↑¯1↑⍴v0) ⍴ v0
+  aligned ← alignCells ¯1 (↑⌽⍴v0) ⍴ v0
   (nRows nCols) ← ⍴ aligned
-  f ← ({⊂@│ , (⊃⍪/{⍺,@\s,⍵}/⍵) , @│}⍤2) (¯1 , (¯2↑⍴v0)) ⍴ aligned
+  f ← ({⊂ (⊃⍪/{⍺,@\s,⍵}/⍵) , @│}⍤2) (¯1 , (¯2↑1,⍴v0)) ⍴ aligned
 
   w ← ↑↓⍴↑f
-  top ← 1 ¯1 ⍴ "┌→" , ((¯3+w) ⍴ @─) ,"┐"
-  bottom ← 1 ¯1 ⍴ "└" , ((¯2+w) ⍴ @─) ,"┘"
-  separator ← 1 ¯1 ⍴ "├→" , ((¯3+w) ⍴ @─) , "┤"
+
+  top ← 1 ¯1 ⍴ "→" , ((w-2) ⍴ @─) ,"┐"
+  bottom ← 1 ¯1 ⍴ ((w-1) ⍴ @─) ,"┘"
+  separator ← 1 ¯1 ⍴ "→" , ((w-2) ⍴ @─) , "┤"
   res ← {top⍪⍵⍪bottom} ↑ ⍪⌿⍪ ¯1↓ , f ,[0.5] ⊂separator
 
   ⍝ To draw the layers to the left, first determine the number of layers and their sizes.
   ds ← ¯2↓⍴v0
 
   ⍝ Compute the number of layer indicators for each layer
-  layerPos ← ×\⌽ ds
+  layerPos ← ⌽1,×\ds
 
   makeVerticalLayer ⇐ {
     ⍝ Split content in groups of size ⍵, and compute height of each group
-    sizes ← (+/≢¨⍤1) ¯1 ⍵ ⍴ f
+    sizes ← +/≢¨ ¯1 ⍵ ⍴ f
     ⍝ Create a sequence of vertical bars according to the sizes,
     ⍝ and end with a split symbol. Finally remove the last instance.
-    coverage ← ¯1+⍵
-    centre ← ¯1↓↑,/ {( (⍵+coverage) ⍴ @│) , @├}¨ sizes
+    coverage ← ⍵-1
+    vertArrow ← ⍺ ⌷ "│↓"
+    centre ← ¯1↓↑,/ {( vertArrow , (⍵+coverage-1) ⍴ @│) , @├}¨ sizes
     ⍪ ↑ ,/ @┌ , centre , @└
   }
 
-  ⍝ This should be avoidable
-  if ((,0) ≡ ⍴ layerPos) {
-    res
-  } else {
-    (↑,/ makeVerticalLayer¨ ⌽layerPos) , res
-  }
+  verticalAxisIndicator ← ((0⌈¯1+≢layerPos) ⍴ 0) , (1≠≢⍴v0)
+  (↑,/ verticalAxisIndicator makeVerticalLayer¨ layerPos) , res
 }
 
-∇ withBorder {
+singleLineSyms ← "┌┐└┘─│"
+doubleLineSyms ← "╔╗╚╝═║"
+
+withBorder ⇐ {
   nCols ← ↑↓⍴⍵
-  (1 nCols 1 ⫽ "┌─┐") ⍪ (@│ , ⍵ , @│) ⍪ (1 nCols 1 ⫽ "└─┘")
+  (1 nCols 1 ⫽ 0 4 1 ⊇ ⍺) ⍪ (⍺[5] , ⍵ , ⍺[5]) ⍪ (1 nCols 1 ⫽ 2 4 3 ⊇ ⍺)
 }
 
-∇ format (v) { 1 }
+format ⇐ { throw "Forward declaration" }
 
-∇ format (v) {
-  v←v
+renderArrayOrString ⇐ {
+  v←⍵
   when {
-    (isNumber v)        { 1 ¯1 ⍴ ⍕v }
-    (isChar v)          { renderChar v }
     (isAplString v)     { renderString v }
-    (isEnclosedArray v) { withBorder format ⊃v }
-    (isArray v)         { renderArray format¨ v }
-    (1)                 { throw "Unsupported type: ",⍕typeof v }
+    (isEnclosedArray v) { singleLineSyms withBorder format ⊃v }
+    (1)                 { renderArray format ¨v }
   }
+}
+
+∇ renderMap {
+  1 ¯1 ⍴ "[map size:",(⍕mapSize ⍵),"]"
+}
+
+renderList ⇐ {
+  aligned ← { alignCells ¯1 (↑⌽⍴⍵) ⍴ ⍵ } format¨ fromList ⍵
+  ⍝ Height of the first cell (all cells have the same height)
+  h ← ↑⍴↑aligned
+  withSeparators ← @║ , (⊃,/ ¯1↓ , (⍉aligned) , ⊂⍪ h ⍴ @│) , @║
+  top ← @╔ , (↑,/ ¯1↓ ,(⍉ (@═ ⍴⍨ ↑⌽⍴)¨ aligned) , @╤) , @╗
+  bottom ← @╚ , (↑,/ ¯1↓ ,(⍉ (@═ ⍴⍨ ↑⌽⍴)¨ aligned) , @╧) , @╝
+  top ⍪ withSeparators ⍪ bottom
+} 
+
+typeToFormatter ← map `
+        'integer  λrenderNumber `
+        'float    λrenderNumber `
+        'complex  λrenderNumber `
+        'rational λrenderNumber `
+        'array    λrenderArrayOrString `
+        'char     λrenderChar `
+        'symbol   λrenderSymbol `
+        'map      λrenderMap `
+        'list     λrenderList
+
+format ⇐ {
+  v←⍵
+  renderer ← typeToFormatter[typeof v]
+  if (⍬≡renderer) {
+    throw "Unsupported type: ",⍕typeof v
+  }
+  ⍞renderer v
 }

@@ -342,6 +342,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("mapPut", MapPutAPLFunction())
         registerNativeFunction("mapRemove", MapRemoveAPLFunction())
         registerNativeFunction("mapToArray", MapKeyValuesFunction())
+        registerNativeFunction("mapSize", MapSizeFunction())
 
         // io functions
         registerNativeFunction("read", ReadFunction(), "io")

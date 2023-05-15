@@ -128,3 +128,14 @@ class MapKeyValuesFunction : APLFunctionDescriptor {
 
     override fun make(instantiation: FunctionInstantiation) = MapKeyValuesFunctionImpl(instantiation)
 }
+
+class MapSizeFunction : APLFunctionDescriptor {
+    class MapSizeFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val map = ensureMap(a, pos)
+            return map.content.size.makeAPLNumber()
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = MapSizeFunctionImpl(instantiation)
+}

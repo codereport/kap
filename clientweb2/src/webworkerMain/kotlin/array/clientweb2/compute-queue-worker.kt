@@ -22,6 +22,7 @@ fun loadLibraries() {
         "standard-lib/math.kap",
         "standard-lib/io.kap",
         "standard-lib/output.kap",
+        "standard-lib/output3.kap",
         "standard-lib/time.kap",
         "standard-lib/regex.kap")
 }

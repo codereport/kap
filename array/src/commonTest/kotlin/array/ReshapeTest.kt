@@ -376,4 +376,25 @@ class ReshapeTest : APLTest() {
             parseAPLExpression("3 3 ¯1 ¯1 2⍴ ⍬")
         }
     }
+
+    @Test
+    fun reshapeWithSingleCalculatedDimension0() {
+        parseAPLExpression("¯1 ⍴ 1 2 3 4").let { result ->
+            assert1DArray(arrayOf(1, 2, 3, 4), result)
+        }
+    }
+
+    @Test
+    fun reshapeWithSingleCalculatedDimension1() {
+        parseAPLExpression("(,¯1) ⍴ 1 2 3 4").let { result ->
+            assert1DArray(arrayOf(1, 2, 3, 4), result)
+        }
+    }
+
+    @Test
+    fun reshapeWithSingleNegativeValue() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("¯2 ⍴ 1 2 3 4")
+        }
+    }
 }

@@ -1,6 +1,6 @@
 use("structure.kap")
 use("math.kap")
 use("io.kap")
-use("output.kap")
+use("output3.kap")
 use("time.kap")
 use("regex.kap")

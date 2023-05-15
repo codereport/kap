@@ -28,6 +28,13 @@ class TakeTest : APLTest() {
     }
 
     @Test
+    fun dropFromEmpty() {
+        parseAPLExpression("↓⍬").let { result ->
+            assertAPLNull(result)
+        }
+    }
+
+    @Test
     fun testTakeSimple() {
         val result = parseAPLExpression("↑1 2 3 4")
         assertTrue(result.isScalar())

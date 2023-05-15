@@ -14,7 +14,9 @@ sealed class ParseResultHolder(val lastToken: TokenWithPosition) {
 
     class InstrParseResult(val instr: Instruction, lastToken: TokenWithPosition) : ParseResultHolder(lastToken) {
         companion object {
-            fun ParseResultHolder.InstrParseResult.Companion.makeFromList(statementList: List<Instruction>, lastToken: TokenWithPosition): ParseResultHolder {
+            fun ParseResultHolder.InstrParseResult.Companion.makeFromList(
+                statementList: List<Instruction>,
+                lastToken: TokenWithPosition): ParseResultHolder {
                 val instr = when (statementList.size) {
                     0 -> throw IllegalStateException("Empty statement list")
                     1 -> statementList[0]
@@ -207,7 +209,11 @@ class APLParser(val tokeniser: TokenGenerator) {
     }
 
     @OptIn(ExperimentalContracts::class)
-    inline fun <T> withEnvironment(name: String? = null, closed: Boolean = false, returnTarget: Boolean = false, fn: (Environment) -> T): T {
+    inline fun <T> withEnvironment(
+        name: String? = null,
+        closed: Boolean = false,
+        returnTarget: Boolean = false,
+        fn: (Environment) -> T): T {
         contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
         val env = pushEnvironment(name, closed = closed, returnTarget = returnTarget)
         try {
@@ -375,7 +381,10 @@ class APLParser(val tokeniser: TokenGenerator) {
     private fun makeLeftBindFunction(leftArgs: List<Instruction>, baseFn: APLFunction): LeftAssignedFunction {
         val firstArgPos = leftArgs[0].pos
         val resultList = makeResultList(leftArgs) ?: throw IllegalStateException("Result list is null")
-        return LeftAssignedFunction(baseFn, resultList, baseFn.instantiation.updatePos { it.copy(line = firstArgPos.line, col = firstArgPos.col) })
+        return LeftAssignedFunction(
+            baseFn,
+            resultList,
+            baseFn.instantiation.updatePos { it.copy(line = firstArgPos.line, col = firstArgPos.col) })
     }
 
     private fun processAssignment(pos: Position, leftArgs: List<Instruction>): ParseResultHolder.InstrParseResult {
@@ -498,15 +507,13 @@ class APLParser(val tokeniser: TokenGenerator) {
             env.markCanEscape() // not really?
         }
         val fnBinding =
-            currentEnvironment().bindLocal(tokeniser.engine.createAnonymousSymbol("short form function: ${sym.nameWithNamespace}"))
+            currentEnvironment().findLocalFunction(sym)
+                ?: currentEnvironment().bindLocal(tokeniser.engine.createAnonymousSymbol("short form function: ${sym.nameWithNamespace}"))
         val ref = StackStorageRef(fnBinding)
         val instr = UpdateLocalFunctionInstruction(closureFn, pos, instructions, ref, env)
         currentEnvironment().registerLocalFunction(sym, fnBinding)
         currentEnvironment().markCanEscape()
         return ParseResultHolder.InstrParseResult(instr, holder.lastToken)
-//        currentEnvironment().registerLocalFunction(sym, RelocalisedFunctionDescriptor(closureFn))
-//        val resultInstrs = instructions.asReversed() + LiteralAPLNullValue(pos)
-//        return ParseResultHolder.InstrParseResult(InstructionList(resultInstrs), holder.lastToken)
     }
 
     private fun registerDefinedUserFunction(definedUserFunction: DefinedUserFunction) {
@@ -594,15 +601,16 @@ class APLParser(val tokeniser: TokenGenerator) {
             when (nameSymbols.size) {
                 1 -> {
                     // Parse like a normal function definition
-                    val definedUserFunction = withEnvironment("function0: ${name.nameWithNamespace}", closed = true, returnTarget = true) { env ->
-                        val leftFnBindings = leftArgs.map { sym -> env.bindLocal(sym) }
-                        val rightFnBindings = rightArgs.map { sym -> env.bindLocal(sym) }
-                        val inProcessUserFunction = UserFunction(name, leftFnBindings, rightFnBindings, DummyInstr(pos), env)
-                        env.registerInProgressUserFunction(name, inProcessUserFunction)
-                        val instr = parseValueToplevel(CloseFnDef)
-                        inProcessUserFunction.instr = instr
-                        DefinedUserFunction(inProcessUserFunction, name, pos)
-                    }
+                    val definedUserFunction =
+                        withEnvironment("function0: ${name.nameWithNamespace}", closed = true, returnTarget = true) { env ->
+                            val leftFnBindings = leftArgs.map { sym -> env.bindLocal(sym) }
+                            val rightFnBindings = rightArgs.map { sym -> env.bindLocal(sym) }
+                            val inProcessUserFunction = UserFunction(name, leftFnBindings, rightFnBindings, DummyInstr(pos), env)
+                            env.registerInProgressUserFunction(name, inProcessUserFunction)
+                            val instr = parseValueToplevel(CloseFnDef)
+                            inProcessUserFunction.instr = instr
+                            DefinedUserFunction(inProcessUserFunction, name, pos)
+                        }
                     registerDefinedUserFunction(definedUserFunction)
                 }
                 2 -> {
@@ -898,7 +906,8 @@ class APLParser(val tokeniser: TokenGenerator) {
                 parseFnDefinition().make(FunctionInstantiation(pos, currentEnvironment()))
             }
             is Symbol -> {
-                lookupFunction(token) { FunctionInstantiation(pos, currentEnvironment()) } ?: throw ParseException("Symbol is not a valid function", tokenPos)
+                lookupFunction(token) { FunctionInstantiation(pos, currentEnvironment()) }
+                    ?: throw ParseException("Symbol is not a valid function", tokenPos)
             }
             is OpenParen -> {
                 val holder = parseExprToplevel(CloseParen)
@@ -922,7 +931,10 @@ class APLParser(val tokeniser: TokenGenerator) {
         }
     }
 
-    fun parseFnDefinitionNewEnvironment(endToken: Token = CloseFnDef, name: String = "declared function", returnTarget: Boolean = true): DeclaredFunction {
+    fun parseFnDefinitionNewEnvironment(
+        endToken: Token = CloseFnDef,
+        name: String = "declared function",
+        returnTarget: Boolean = true): DeclaredFunction {
         val engine = tokeniser.engine
         withEnvironment(name, returnTarget = returnTarget) { env ->
             val leftBinding = env.bindLocal(engine.internSymbol("⍺", engine.coreNamespace))

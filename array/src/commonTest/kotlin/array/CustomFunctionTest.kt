@@ -1166,4 +1166,20 @@ Monadic single arg:          ∇            (foo) x          {
             assertSimpleNumber(7, result)
         }
     }
+
+    @Test
+    fun redefineLocalFunction() {
+        val src =
+            """
+            |foo ⇐ { 1 + ⍵ }
+            |∇ bar (x) {
+            |  foo 100+x
+            |}
+            |foo ⇐ { 21 + ⍵ }
+            |bar 300
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertSimpleNumber(421, result)
+        }
+    }
 }

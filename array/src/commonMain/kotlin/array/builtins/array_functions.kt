@@ -247,7 +247,12 @@ class RhoAPLFunction : APLFunctionDescriptor {
                 return EnclosedAPLValue.make(b.arrayify().valueAt(0))
             } else {
                 val d1 = if (d.size == 0) {
-                    dimensionsOfSize(v.ensureNumber(pos).asInt())
+                    val s = v.ensureNumber(pos).asInt()
+                    when {
+                        s == -1 -> dimensionsOfSize(b.dimensions.contentSize())
+                        s < 0 -> throwAPLException(InvalidDimensionsException("Attempt to reshape to dimension with negative size: ${s}", pos))
+                        else -> dimensionsOfSize(s)
+                    }
                 } else {
                     val dimensionsArray = IntArray(v.size) { v.valueAtInt(it, pos) }
                     var calculatedIndex: Int? = null
@@ -949,7 +954,8 @@ class TakeAPLFunction : APLFunctionDescriptor {
 
 class DropArrayValue(val selection: IntArray, val source: APLValue, val pos: Position) : APLArray() {
     private val sourceDimensions = source.dimensions
-    override val dimensions = Dimensions(selection.mapIndexed { index, v -> max(0, sourceDimensions[index] - v.absoluteValue) }.toIntArray())
+    override val dimensions =
+        Dimensions(selection.mapIndexed { index, v -> max(0, sourceDimensions[index] - v.absoluteValue) }.toIntArray())
     private val dimensionsMultipliers = dimensions.multipliers()
 
     override fun valueAt(p: Int): APLValue {
@@ -984,9 +990,6 @@ class DropResultValueOneArg(val a: APLValue, val pos: Position) : APLArray() {
 
     init {
         val d = a.dimensions
-        if (d.size != 1) {
-            throwAPLException(APLIllegalArgumentException("Expected 1-dimensional array. Dimensions: ${d}", pos))
-        }
         dimensions = dimensionsOfSize(d[0] - 1)
     }
 
@@ -1003,7 +1006,12 @@ class DropResultValueOneArg(val a: APLValue, val pos: Position) : APLArray() {
 class DropAPLFunction : APLFunctionDescriptor {
     class DropAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            return DropResultValueOneArg(a, pos)
+            val d = a.dimensions
+            return when {
+                d.size != 1 -> throwAPLException(APLIllegalArgumentException("Expected 1-dimensional array. Dimensions: ${d}", pos))
+                d[0] == 0 -> APLNullValue.APL_NULL_INSTANCE
+                else -> DropResultValueOneArg(a, pos)
+            }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
