@@ -26,6 +26,7 @@ value class Dimensions(val dimensions: IntArray) {
     operator fun get(i: Int) = dimensions[i]
     fun contentSize() = if (dimensions.isEmpty()) 1 else dimensions.reduce { a, b -> a * b }
     fun isEmpty() = dimensions.isEmpty()
+    fun isNullDimensions() = dimensions.size == 1 && dimensions[0] == 0
     fun compareEquals(other: Dimensions) = Arrays.equals(dimensions, other.dimensions)
 
     fun insert(pos: Int, newValue: Int): Dimensions {

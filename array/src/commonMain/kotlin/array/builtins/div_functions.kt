@@ -47,9 +47,20 @@ class SystemParameterNotFound(val name: Symbol, pos: Position? = null) : APLEval
 class SystemParameterFunction : APLFunctionDescriptor {
     class SystemParameterFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            return findSystemParameter(context, a).lookupValue()
+        }
+
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            val param = findSystemParameter(context, a)
+            val b0 = b.collapse()
+            param.updateValue(b0, pos)
+            return b0
+        }
+
+        private fun findSystemParameter(context: RuntimeContext, a: APLValue): SystemParameterProvider {
             val name = a.ensureSymbol(pos).value
-            val result = context.engine.systemParameters[name] ?: throwAPLException(SystemParameterNotFound(name, pos))
-            return result.lookupValue()
+            val param = context.engine.systemParameters[name] ?: throwAPLException(SystemParameterNotFound(name, pos))
+            return param
         }
     }
 

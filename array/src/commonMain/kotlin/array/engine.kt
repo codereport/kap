@@ -222,6 +222,7 @@ fun currentStack() = threadLocalStorageStackRef.value ?: throw IllegalStateExcep
 
 interface SystemParameterProvider {
     fun lookupValue(): APLValue
+    fun updateValue(newValue: APLValue, pos: Position): Unit = throwAPLException(UnmodifiableSystemParameterException(pos))
 }
 
 class ConstantStringSystemParameterProvider(val value: String) : SystemParameterProvider {
@@ -241,8 +242,10 @@ class Engine(numComputeEngines: Int? = null) {
     private val customSyntaxSubEntries = HashMap<Symbol, CustomSyntax>()
     private val customSyntaxEntries = HashMap<Symbol, CustomSyntax>()
     private val librarySearchPaths = ArrayList<String>()
-    private val modules = ArrayList<KapModule>()
+    val modules = ArrayList<KapModule>()
     private val exportedSingleCharFunctions = initSingleCharFunctionList()
+
+    var customRenderer: LambdaValue? = null
 
     val classManager = ClassManager(this)
 
@@ -415,6 +418,8 @@ class Engine(numComputeEngines: Int? = null) {
 
         classManager.init()
 
+        systemParameters[standardSymbols.renderer] = CustomRendererParameter(this)
+
         platformInit(this)
 
         addModule(UnicodeModule())
@@ -462,6 +467,10 @@ class Engine(numComputeEngines: Int? = null) {
     fun addModule(module: KapModule) {
         module.init(this)
         modules.add(module)
+    }
+
+    inline fun <reified T : KapModule> findModule(): T? {
+        return modules.filterIsInstance<T>().firstOrNull()
     }
 
     fun addLibrarySearchPath(path: String) {
@@ -536,7 +545,8 @@ class Engine(numComputeEngines: Int? = null) {
         source: SourceLocation,
         extraBindings: Map<Symbol, APLValue>? = null,
         allocateThreadLocals: Boolean = true,
-        collapseResult: Boolean = true
+        collapseResult: Boolean = true,
+        formatResult: Boolean = false
     ): APLValue {
         if (extraBindings != null) {
             throw IllegalArgumentException("extra bindings is not supported at the moment")
@@ -547,11 +557,17 @@ class Engine(numComputeEngines: Int? = null) {
             rootEnvironment.escapeAnalysis()
 
             fun evalInstrs(): APLValue {
-                val result = instr.evalWithContext(RuntimeContext(this))
-                return if (collapseResult) {
+                val context = RuntimeContext(this)
+                val result = instr.evalWithContext(context)
+                val collapsedResult = if (collapseResult || formatResult) {
                     result.collapse()
                 } else {
                     result
+                }
+                return if (formatResult) {
+                    renderResult(context, result)
+                } else {
+                    collapsedResult
                 }
             }
 
@@ -562,6 +578,20 @@ class Engine(numComputeEngines: Int? = null) {
             } else {
                 recomputeRootFrame()
                 evalInstrs()
+            }
+        }
+    }
+
+    private fun renderResult(context: RuntimeContext, result: APLValue): APLValue {
+        val rendererFn = customRenderer
+        return if (rendererFn == null) {
+            val parts = result.formatted(FormatStyle.PRETTY).split("\n")
+            APLArrayImpl(dimensionsOfSize(parts.size), Array(parts.size) { i -> APLString(parts[i].asCodepointList().toIntArray()) })
+        } else {
+            try {
+                rendererFn.makeClosure().eval1Arg(context, result, null)
+            } catch (e: APLEvalException) {
+                throwAPLException(APLEvalException("Error while rendering result: ${e.message}", e.pos, e))
             }
         }
     }
@@ -826,5 +856,6 @@ interface KapModule {
 
 class StandardSymbols(val engine: Engine) {
     val platform by lazy { engine.internSymbol("platform", engine.coreNamespace) }
+    val renderer by lazy { engine.internSymbol("renderer", engine.coreNamespace) }
     val nullKeyword by lazy { engine.internSymbol("null", engine.keywordNamespace) }
 }

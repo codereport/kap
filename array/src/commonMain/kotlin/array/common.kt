@@ -85,6 +85,7 @@ class ArraySizeException(d: IntArray, pos: Position? = null) :
 class StructuralUnderNotSupported(pos: Position? = null) : APLEvalException("under not supported for function", pos)
 class CircularDynamicAssignment(pos: Position? = null) : APLEvalException("Circular dynamic assignment", pos)
 class ListOutOfBounds(message: String, pos: Position? = null) : APLEvalException(message, pos)
+class UnmodifiableSystemParameterException(pos: Position? = null) : APLEvalException("System parameter cannot be modified", pos)
 
 open class ParseException(message: String, pos: Position? = null) : APLGenericException(message, pos)
 class UnexpectedSymbol(ch: Int, pos: Position? = null) :
