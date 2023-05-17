@@ -60,9 +60,9 @@ fun initQueue() {
     self.onmessage = { event ->
         val request = Json.decodeFromString<EvalRequest>(event.data as String)
         val result = try {
-            val value = engine.parseAndEval(StringSourceLocation(request.src)).collapse()
+            val value = engine.parseAndEval(StringSourceLocation(request.src), formatResult = request.resultType.requiresFormatting).collapse()
             when (request.resultType) {
-                ResultType.FORMATTED_PRETTY -> StringResponse(value.formatted(FormatStyle.PRETTY))
+                ResultType.FORMATTED_PRETTY -> StringResponse(formatResultToStrings(value).joinToString("\n"))
                 ResultType.FORMATTED_READABLE -> StringResponse(value.formatted(FormatStyle.READABLE))
                 ResultType.JS -> DataResponse(formatValueToJs(value))
             }

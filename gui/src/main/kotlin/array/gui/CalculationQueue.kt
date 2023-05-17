@@ -21,19 +21,17 @@ class CalculationQueue(val engine: Engine) {
 
     private fun computeLoop() {
         try {
-            engine.withThreadLocalAssigned {
-                while (!Thread.interrupted()) {
-                    val job = queue.take()
-                    synchronized(lock) {
-                        engine.clearInterrupted()
-                        currentJob = job
-                    }
-                    job.request.processRequest(engine)
-                    synchronized(lock) {
-                        currentJob = null
-                    }
-                    fireTaskCompletedHandlers()
+            while (!Thread.interrupted()) {
+                val job = queue.take()
+                synchronized(lock) {
+                    engine.clearInterrupted()
+                    currentJob = job
                 }
+                job.request.processRequest(engine)
+                synchronized(lock) {
+                    currentJob = null
+                }
+                fireTaskCompletedHandlers()
             }
         } catch (e: InterruptedException) {
             println("Closing calculation queue")
@@ -78,6 +76,7 @@ class CalculationQueue(val engine: Engine) {
 
                 fun parseSrc() =
                     engine.parseAndEval(source, extraBindings = resolvedSymbols, formatResult = !inhibitRenderer).collapse()
+
                 val result = if (preserveNamespace) {
                     engine.withSavedNamespace {
                         parseSrc()

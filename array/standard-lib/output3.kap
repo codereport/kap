@@ -113,11 +113,17 @@ withBorder ⇐ {
   (1 nCols 1 ⫽ 0 4 1 ⊇ ⍺) ⍪ (⍺[5] , ⍵ , ⍺[5]) ⍪ (1 nCols 1 ⫽ 2 4 3 ⊇ ⍺)
 }
 
+renderEmpty ⇐ {
+  2 3 ⍴ "┌⊖┐└─┘"
+}
+
 format ⇐ { throw "Forward declaration" }
 
 renderArrayOrString ⇐ {
   v←⍵
   when {
+    ((,0)≡⍴v)           { 1 1 ⍴ "⍬" }
+    (0=×/⍴v)            { renderEmpty v }
     (isAplString v)     { renderString v }
     (isEnclosedArray v) { singleLineSyms withBorder format ⊃v }
     (1)                 { renderArray format ¨v }
@@ -152,8 +158,5 @@ typeToFormatter ← map `
 format ⇐ {
   v←⍵
   renderer ← typeToFormatter[typeof v]
-  if (⍬≡renderer) {
-    throw "Unsupported type: ",⍕typeof v
-  }
-  ⍞renderer v
+  ⍞((⍬≡renderer) ⌷ renderer λ{1 ¯1 ⍴ ⍕typeof ⍵}) v
 }

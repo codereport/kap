@@ -9,10 +9,10 @@ import kotlinx.serialization.Serializable
 
 
 @Serializable
-enum class ResultType {
-    FORMATTED_PRETTY,
-    FORMATTED_READABLE,
-    JS
+enum class ResultType(val requiresFormatting: Boolean) {
+    FORMATTED_PRETTY(true),
+    FORMATTED_READABLE(false),
+    JS(false)
 }
 
 @Serializable

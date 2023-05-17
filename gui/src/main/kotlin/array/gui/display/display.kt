@@ -36,36 +36,9 @@ fun makeKapValueDoc(
     style: TextStyle,
     parStyle: ParStyle
 ): ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle>? {
-//            val newDoc = ReadOnlyStyledDocumentBuilder(segOps, parStyle)
-//                .addParagraph(
-//                    mutableListOf(
-//                        StyledSegment(ValueRenderer.makeContent(client, value), style)))
-//                .addParagraph(EditorContent.makeBlank(), style)
-//                .build()
-
-
     val newDoc = ReadOnlyStyledDocumentBuilder(segOps, parStyle)
-    val d = value.dimensions
-    if (d.size == 2) {
-        // This is a two-dimensional array of characters
-        var i = 0
-        repeat(d[0]) {
-            val buf = StringBuilder()
-            repeat(d[1]) {
-                val ch = value.valueAt(i++)
-                assertx(ch is APLChar)
-                buf.appendCodePoint(ch.value)
-            }
-            newDoc.addParagraph(EditorContent.makeString(buf.toString()), style)
-        }
-    } else if (d.size == 1) {
-        // This is a one-dimensional array of strings
-        repeat(d[0]) { i ->
-            val s = value.valueAt(i).toStringValue()
-            newDoc.addParagraph(EditorContent.makeString(s), style)
-        }
-    } else {
-        throw IllegalArgumentException("Invalid result format: ${value.dimensions}")
+    formatResultToStrings(value).forEach { s ->
+        newDoc.addParagraph(EditorContent.makeString(s), style)
     }
     return newDoc.addParagraph(EditorContent.makeBlank(), style).build()
 }
