@@ -1,6 +1,5 @@
 package array
 
-import kotlin.test.Ignore
 import kotlin.test.Test
 
 class UseTest : APLTest() {
@@ -25,15 +24,25 @@ class UseTest : APLTest() {
         }
     }
 
-    @Ignore
     @Test
-    fun includeSeparateParseCalls() {
+    fun includeSeparateParseCalls0() {
         val engine = Engine()
         engine.parseAndEval(StringSourceLocation("use(\"test-data/include-test/include-test0.kap\")")).let { result ->
             assertSimpleNumber(1, result)
         }
         engine.parseAndEval(StringSourceLocation("a")).let { result ->
             assertSimpleNumber(1, result)
+        }
+    }
+
+    @Test
+    fun includeSeparateParseCalls1() {
+        val engine = Engine()
+        engine.parseAndEval(StringSourceLocation("use(\"test-data/include-test/include-test3.kap\")")).let { result ->
+            assertSimpleNumber(1, result)
+        }
+        engine.parseAndEval(StringSourceLocation("foo 1")).let { result ->
+            assertSimpleNumber(3, result)
         }
     }
 }

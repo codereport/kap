@@ -56,12 +56,11 @@ fun initQueue() {
             self.postMessage(Json.encodeToString(message))
         }
     }
-    threadLocalStorageStackRef.value = StorageStack(engine.rootEnvironment)
-    engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"), allocateThreadLocals = false)
+    engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
     self.onmessage = { event ->
         val request = Json.decodeFromString<EvalRequest>(event.data as String)
         val result = try {
-            val value = engine.parseAndEval(StringSourceLocation(request.src), allocateThreadLocals = false).collapse()
+            val value = engine.parseAndEval(StringSourceLocation(request.src)).collapse()
             when (request.resultType) {
                 ResultType.FORMATTED_PRETTY -> StringResponse(value.formatted(FormatStyle.PRETTY))
                 ResultType.FORMATTED_READABLE -> StringResponse(value.formatted(FormatStyle.READABLE))

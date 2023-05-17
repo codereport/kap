@@ -77,7 +77,7 @@ class CalculationQueue(val engine: Engine) {
                 }?.toMap()
 
                 fun parseSrc() =
-                    engine.parseAndEval(source, extraBindings = resolvedSymbols, allocateThreadLocals = false, formatResult = !inhibitRenderer).collapse()
+                    engine.parseAndEval(source, extraBindings = resolvedSymbols, formatResult = !inhibitRenderer).collapse()
                 val result = if (preserveNamespace) {
                     engine.withSavedNamespace {
                         parseSrc()

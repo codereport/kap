@@ -277,24 +277,22 @@ class DynAssignTest : APLTest() {
     @Test
     fun circularDependencyClearRef() {
         val engine = Engine()
-        engine.withThreadLocalAssigned {
-            val src =
-                """
+        val src =
+            """
             |a ← 1
             |b dynamicequal a+1
             |a dynamicequal b+2
             |b
             """.trimMargin()
-            assertFailsWith<CircularDynamicAssignment> {
-                engine.parseAndEval(StringSourceLocation(src), allocateThreadLocals = false)
-            }
-            engine.parseAndEval(StringSourceLocation("a b"), allocateThreadLocals = false).let { result ->
-                assertDimension(dimensionsOfSize(2), result)
-                // The result is null because when a circularity is detected the value is reset to ⍬. This added
-                // to a number is ⍬.
-                assertAPLNull(result.valueAt(0))
-                assertAPLNull(result.valueAt(1))
-            }
+        assertFailsWith<CircularDynamicAssignment> {
+            engine.parseAndEval(StringSourceLocation(src))
+        }
+        engine.parseAndEval(StringSourceLocation("a b")).let { result ->
+            assertDimension(dimensionsOfSize(2), result)
+            // The result is null because when a circularity is detected the value is reset to ⍬. This added
+            // to a number is ⍬.
+            assertAPLNull(result.valueAt(0))
+            assertAPLNull(result.valueAt(1))
         }
     }
 
@@ -351,39 +349,37 @@ class DynAssignTest : APLTest() {
     @Test
     fun multipleEvaluations() {
         val engine = Engine()
-        engine.withThreadLocalAssigned {
-            engine.parseAndEval(StringSourceLocation("a ← 1"), allocateThreadLocals = false).let { result ->
-                tryGc()
-                assertSimpleNumber(1, result)
-            }
-            engine.parseAndEval(StringSourceLocation("b dynamicequal a+20"), allocateThreadLocals = false).let { result ->
-                tryGc()
-                assertSimpleNumber(21, result)
-            }
-            engine.parseAndEval(StringSourceLocation("c dynamicequal b+200"), allocateThreadLocals = false).let { result ->
-                tryGc()
-                assertSimpleNumber(221, result)
-            }
-            engine.parseAndEval(StringSourceLocation("d dynamicequal c+2000"), allocateThreadLocals = false).let { result ->
-                tryGc()
-                assertSimpleNumber(2221, result)
-            }
-            engine.parseAndEval(StringSourceLocation("a ← 3"), allocateThreadLocals = false).let { result ->
-                tryGc()
-                assertSimpleNumber(3, result)
-            }
-            engine.parseAndEval(StringSourceLocation("d"), allocateThreadLocals = false).let { result ->
-                tryGc()
-                assertSimpleNumber(2223, result)
-            }
-            engine.parseAndEval(StringSourceLocation("a ← 8"), allocateThreadLocals = false).let { result ->
-                tryGc()
-                assertSimpleNumber(8, result)
-            }
-            engine.parseAndEval(StringSourceLocation("d"), allocateThreadLocals = false).let { result ->
-                tryGc()
-                assertSimpleNumber(2228, result)
-            }
+        engine.parseAndEval(StringSourceLocation("a ← 1")).let { result ->
+            tryGc()
+            assertSimpleNumber(1, result)
+        }
+        engine.parseAndEval(StringSourceLocation("b dynamicequal a+20")).let { result ->
+            tryGc()
+            assertSimpleNumber(21, result)
+        }
+        engine.parseAndEval(StringSourceLocation("c dynamicequal b+200")).let { result ->
+            tryGc()
+            assertSimpleNumber(221, result)
+        }
+        engine.parseAndEval(StringSourceLocation("d dynamicequal c+2000")).let { result ->
+            tryGc()
+            assertSimpleNumber(2221, result)
+        }
+        engine.parseAndEval(StringSourceLocation("a ← 3")).let { result ->
+            tryGc()
+            assertSimpleNumber(3, result)
+        }
+        engine.parseAndEval(StringSourceLocation("d")).let { result ->
+            tryGc()
+            assertSimpleNumber(2223, result)
+        }
+        engine.parseAndEval(StringSourceLocation("a ← 8")).let { result ->
+            tryGc()
+            assertSimpleNumber(8, result)
+        }
+        engine.parseAndEval(StringSourceLocation("d")).let { result ->
+            tryGc()
+            assertSimpleNumber(2228, result)
         }
     }
 }

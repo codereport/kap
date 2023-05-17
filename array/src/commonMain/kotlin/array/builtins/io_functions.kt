@@ -111,8 +111,10 @@ class LoadFunction : APLFunctionDescriptor {
             val requestedFile = a.toStringValue(pos)
             val file = context.engine.resolveLibraryFile(requestedFile) ?: requestedFile
             val engine = context.engine
-            engine.withSavedNamespace {
-                return engine.parseAndEval(FileSourceLocation(file), allocateThreadLocals = false)
+            return engine.withSavedNamespace {
+                withThreadLocalsUnassigned {
+                    engine.parseAndEval(FileSourceLocation(file))
+                }
             }
         }
     }

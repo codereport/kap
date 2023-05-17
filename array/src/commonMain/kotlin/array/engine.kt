@@ -78,8 +78,8 @@ private const val ANONYMOUS_SYMBOL_NAMESPACE_NAME = "anonymous"
 class StorageStack private constructor() {
     val stack = ArrayList<StorageStackFrame>()
 
-    constructor(env: Environment) : this() {
-        stack.add(StorageStackFrame(env, "root", null))
+    constructor(rootFrame: StorageStackFrame) : this() {
+        stack.add(rootFrame)
     }
 
     constructor(prevStack: List<StorageStackFrame>) : this() {
@@ -89,7 +89,7 @@ class StorageStack private constructor() {
     fun copy() = StorageStack(stack)
 
     inline fun withStackFrame(environment: Environment, name: String, pos: Position, crossinline fn: (StorageStackFrame) -> APLValue): APLValue {
-        val frame = StorageStackFrame(environment, name, pos)
+        val frame = StorageStackFrame(this, environment, name, pos)
         stack.add(frame)
         var result: APLValue
         @Suppress("LiftReturnOrAssignment")
@@ -120,26 +120,14 @@ class StorageStack private constructor() {
 
     fun currentFrame() = stack.last()
 
-    inner class StorageStackFrame(val environment: Environment, val name: String, val pos: Position?) {
-        var storageList: Array<VariableHolder>
+    class StorageStackFrame private constructor(val environment: Environment, val name: String, val pos: Position?, var storageList: Array<VariableHolder>) {
         private var releaseCallbacks: MutableList<() -> Unit>? = null
 
-        init {
-            val localStorageSize = environment.storageList.size
-            val externalStorageList = environment.externalStorageList
-            val externalStorageSize = externalStorageList.size
-            storageList = Array(localStorageSize + externalStorageSize) { i ->
-                if (i < localStorageSize) {
-                    VariableHolder()
-                } else {
-                    val ref = externalStorageList[i - localStorageSize]
-                    // We don't subtract 1 from stackIndex here because at this point the element has not been added to the stack yet
-                    val stackIndex = if (ref.frameIndex == -2) 0 else stack.size - ref.frameIndex
-                    val frame = stack[stackIndex]
-                    frame.storageList[ref.storageOffset]
-                }
-            }
-        }
+        constructor(stack: StorageStack, environment: Environment, name: String, pos: Position?)
+                : this(environment, name, pos, computeStorageList(stack, environment))
+
+        constructor(environment: Environment)
+                : this(environment, "root", null, computeRootFrame(environment))
 
         fun pushReleaseCallback(callback: () -> Unit) {
             val list = releaseCallbacks
@@ -167,6 +155,28 @@ class StorageStack private constructor() {
     }
 
     data class StackFrameDescription(val name: String, val pos: Position?)
+}
+
+private inline fun computeStorageList(stack: StorageStack, environment: Environment): Array<VariableHolder> {
+    val localStorageSize = environment.storageList.size
+    val externalStorageList = environment.externalStorageList
+    val externalStorageSize = externalStorageList.size
+    return Array(localStorageSize + externalStorageSize) { i ->
+        if (i < localStorageSize) {
+            VariableHolder()
+        } else {
+            val ref = externalStorageList[i - localStorageSize]
+            // We don't subtract 1 from stackIndex here because at this point the element has not been added to the stack yet
+            val stackIndex = if (ref.frameIndex == -2) 0 else stack.stack.size - ref.frameIndex
+            val frame = stack.stack[stackIndex]
+            frame.storageList[ref.storageOffset]
+        }
+    }
+}
+
+private fun computeRootFrame(env: Environment): Array<VariableHolder> {
+    assertx(env.externalStorageList.isEmpty()) { "Root frame should not have external refs" }
+    return Array(env.storageList.size) { VariableHolder() }
 }
 
 @OptIn(ExperimentalContracts::class)
@@ -250,6 +260,7 @@ class Engine(numComputeEngines: Int? = null) {
     val classManager = ClassManager(this)
 
     val rootEnvironment = Environment("root", null)
+    val rootStackFrame = StorageStack.StorageStackFrame(rootEnvironment)
     var standardOutput: CharacterOutput = NullCharacterOutput()
     var standardInput: CharacterProvider = NullCharacterProvider()
 
@@ -544,7 +555,6 @@ class Engine(numComputeEngines: Int? = null) {
     fun parseAndEval(
         source: SourceLocation,
         extraBindings: Map<Symbol, APLValue>? = null,
-        allocateThreadLocals: Boolean = true,
         collapseResult: Boolean = true,
         formatResult: Boolean = false
     ): APLValue {
@@ -556,7 +566,8 @@ class Engine(numComputeEngines: Int? = null) {
             val instr = parser.parseValueToplevel(EndOfFile)
             rootEnvironment.escapeAnalysis()
 
-            fun evalInstrs(): APLValue {
+            withThreadLocalAssigned {
+                recomputeRootFrame()
                 val context = RuntimeContext(this)
                 val result = instr.evalWithContext(context)
                 val collapsedResult = if (collapseResult || formatResult) {
@@ -569,15 +580,6 @@ class Engine(numComputeEngines: Int? = null) {
                 } else {
                     collapsedResult
                 }
-            }
-
-            return if (allocateThreadLocals) {
-                withThreadLocalAssigned {
-                    evalInstrs()
-                }
-            } else {
-                recomputeRootFrame()
-                evalInstrs()
             }
         }
     }
@@ -650,11 +652,11 @@ class Engine(numComputeEngines: Int? = null) {
     }
 
     @OptIn(ExperimentalContracts::class)
-    inline fun <T> withThreadLocalAssigned(newStack: List<StorageStack.StorageStackFrame>? = null, fn: () -> T): T {
+    inline fun <T> withThreadLocalAssigned(fn: () -> T): T {
         contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
         val oldStack = threadLocalStorageStackRef.value
         assertx(oldStack == null) { "Overriding old stack" }
-        threadLocalStorageStackRef.value = if (newStack == null) StorageStack(rootEnvironment) else StorageStack(newStack)
+        threadLocalStorageStackRef.value = StorageStack(rootStackFrame)
         try {
             return fn()
         } finally {
@@ -669,7 +671,7 @@ class Engine(numComputeEngines: Int? = null) {
         if (currentStack().stack.size != 1) {
             throw IllegalStateException("Attempt to recompute the root frame without an empty stack")
         }
-        val frame = currentStack().stack[0]
+        val frame = rootStackFrame
         if (rootEnvironment.externalStorageList.isNotEmpty()) {
             throw IllegalStateException("External storage list for the root environment is not empty")
         }

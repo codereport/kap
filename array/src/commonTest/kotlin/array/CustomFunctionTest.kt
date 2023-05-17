@@ -277,7 +277,7 @@ class CustomFunctionTest : APLTest() {
 
     @Test
     fun simpleFork1() {
-        parseAPLExpression("f ⇐ ⊣⊢, ⋄ 1 f 2").let { result ->
+        parseAPLExpression("f ⇐ ⊣«⊢», ⋄ 1 f 2").let { result ->
             assertDimension(dimensionsOfSize(2), result)
             assertArrayContent(arrayOf(1, 2), result)
         }

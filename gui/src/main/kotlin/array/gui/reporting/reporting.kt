@@ -52,8 +52,7 @@ class ReportingClient {
                 val src = "${formulaResult.name} dynamicequal (${formulaResult.expr}) ◊ '${formulaResult.name}"
                 println("Creating binding using expression: ${src}")
                 val result = engine.parseAndEval(
-                    StringSourceLocation(src),
-                    allocateThreadLocals = false)
+                    StringSourceLocation(src))
                 if (result !is APLSymbol) {
                     println("Result is not an APLSymbol: ${result}")
                     return

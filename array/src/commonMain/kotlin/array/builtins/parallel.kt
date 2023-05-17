@@ -159,11 +159,10 @@ private class ParallelHandler(val derived: ParallelSupported, val numTasksWeight
         private fun evalTaskList(context: RuntimeContext, parallelTaskList: ParallelTaskList): APLValue {
             val engine = context.engine
             val dispatcher = context.engine.backgroundDispatcher
-            val rootFrame = currentStack().stack[0]
             val tasks = parallelTaskList.tasks.map { task ->
                 dispatcher.start {
                     engine.inComputeThread.value = true
-                    engine.withThreadLocalAssigned(listOf(rootFrame)) {
+                    engine.withThreadLocalAssigned {
                         task.computeResult(context)
                     }
                 }
