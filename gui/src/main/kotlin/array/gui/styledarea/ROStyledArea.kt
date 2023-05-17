@@ -3,7 +3,7 @@ package array.gui.styledarea
 import array.APLValue
 import array.assertx
 import array.gui.Client
-import array.gui.display.ValueRenderer
+import array.gui.display.makeKapValueDoc
 import array.gui.settings.ReturnBehaviour
 import javafx.application.Platform
 import javafx.scene.Node
@@ -257,12 +257,7 @@ class ROStyledArea(
 
     fun appendAPLValueEnd(value: APLValue, style: TextStyle, parStyle: ParStyle = ParStyle()) {
         withUpdateEnabled {
-            val newDoc = ReadOnlyStyledDocumentBuilder(segOps, parStyle)
-                .addParagraph(
-                    mutableListOf(
-                        StyledSegment(ValueRenderer.makeContent(client, value), style)))
-                .addParagraph(EditorContent.makeBlank(), style)
-                .build()
+            val newDoc = makeKapValueDoc(segOps, value, style, parStyle)
             val inputPos = findInputStartEnd()
             insert(inputPos.promptStartPos, newDoc)
         }

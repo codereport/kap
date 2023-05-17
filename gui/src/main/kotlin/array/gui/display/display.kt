@@ -5,6 +5,7 @@ import array.gui.Client
 import array.gui.ClientRenderContext
 import array.gui.arrayedit.ArrayEditor
 import array.gui.styledarea.EditorContent
+import array.gui.styledarea.ParStyle
 import array.gui.styledarea.StringEditorContentEntry
 import array.gui.styledarea.TextStyle
 import array.rendertext.renderStringValueOptionalQuotes
@@ -23,8 +24,53 @@ import javafx.scene.input.MouseButton
 import javafx.scene.layout.*
 import javafx.scene.paint.Color
 import javafx.scene.text.Text
+import org.fxmisc.richtext.model.ReadOnlyStyledDocument
+import org.fxmisc.richtext.model.ReadOnlyStyledDocumentBuilder
+import org.fxmisc.richtext.model.TextOps
 import java.util.*
 import kotlin.reflect.KClass
+
+fun makeKapValueDoc(
+    segOps: TextOps<EditorContent, TextStyle>,
+    value: APLValue,
+    style: TextStyle,
+    parStyle: ParStyle
+): ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle>? {
+//            val newDoc = ReadOnlyStyledDocumentBuilder(segOps, parStyle)
+//                .addParagraph(
+//                    mutableListOf(
+//                        StyledSegment(ValueRenderer.makeContent(client, value), style)))
+//                .addParagraph(EditorContent.makeBlank(), style)
+//                .build()
+
+
+    val newDoc = ReadOnlyStyledDocumentBuilder(segOps, parStyle)
+    val d = value.dimensions
+    if (d.size == 2) {
+        // This is a two-dimensional array of characters
+        var i = 0
+        repeat(d[0]) {
+            val buf = StringBuilder()
+            repeat(d[1]) {
+                val ch = value.valueAt(i++)
+                assertx(ch is APLChar)
+                buf.appendCodePoint(ch.value)
+            }
+            newDoc.addParagraph(EditorContent.makeString(buf.toString()), style)
+        }
+    } else if (d.size == 1) {
+        // This is a one-dimensional array of strings
+        repeat(d[0]) { i ->
+            val s = value.valueAt(i).toStringValue()
+            newDoc.addParagraph(EditorContent.makeString(s), style)
+        }
+    } else {
+        throw IllegalArgumentException("Invalid result format: ${value.dimensions}")
+    }
+    return newDoc.addParagraph(EditorContent.makeBlank(), style).build()
+}
+
+////////////////////////////////////////////////////////////////////////////////////
 
 interface ValueRenderer {
     val value: APLValue

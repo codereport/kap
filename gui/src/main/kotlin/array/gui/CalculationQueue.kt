@@ -67,6 +67,7 @@ class CalculationQueue(val engine: Engine) {
         val source: SourceLocation,
         val variableBindings: List<Pair<Pair<String, String>, APLValue>>?,
         val preserveNamespace: Boolean = false,
+        val inhibitRenderer: Boolean = true,
         val callback: (Either<APLValue, Exception>) -> Unit
     ) : Request {
         override fun processRequest(engine: Engine) {
@@ -75,7 +76,8 @@ class CalculationQueue(val engine: Engine) {
                     engine.internSymbol(k.second, engine.makeNamespace(k.first)) to v
                 }?.toMap()
 
-                fun parseSrc() = engine.parseAndEval(source, extraBindings = resolvedSymbols, allocateThreadLocals = false).collapse()
+                fun parseSrc() =
+                    engine.parseAndEval(source, extraBindings = resolvedSymbols, allocateThreadLocals = false, formatResult = !inhibitRenderer).collapse()
                 val result = if (preserveNamespace) {
                     engine.withSavedNamespace {
                         parseSrc()
@@ -96,7 +98,8 @@ class CalculationQueue(val engine: Engine) {
         }
     }
 
-    private inner class ReadVariableRequest(val name: String, val callback: (APLValue?) -> Unit) : Request {
+    private inner class ReadVariableRequest(
+        val name: String, val callback: (APLValue?) -> Unit) : Request {
         override fun processRequest(engine: Engine) {
             val sym = engine.currentNamespace.findSymbol(name, includePrivate = true)
             val result = if (sym == null) {
@@ -118,7 +121,7 @@ class CalculationQueue(val engine: Engine) {
             engine.recomputeRootFrame()
             val stack = currentStack()
             if (stack.stack.size != 1) {
-                throw IllegalStateException("Attempt tp write to a variable with active frames")
+                throw IllegalStateException("Attempt to write to a variable with active frames")
             }
             val storage = stack.findStorage(StackStorageRef(binding))
             storage.updateValue(value)
@@ -146,7 +149,7 @@ class CalculationQueue(val engine: Engine) {
         preserveNamespace: Boolean = false,
         fn: (Either<APLValue, Exception>) -> Unit
     ): JobId {
-        return pushJobToQueue(EvalAPLRequest(source, variableBindings, preserveNamespace, fn))
+        return pushJobToQueue(EvalAPLRequest(source, variableBindings, preserveNamespace, false, fn))
     }
 
     fun pushReadVariableRequest(name: String, callback: (APLValue?) -> Unit): JobId {
