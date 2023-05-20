@@ -39,6 +39,13 @@ class ConcatenateTest : APLTest() {
     }
 
     @Test
+    fun scalarWithScalarAndInvalidAxis() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("1 ,[1] 2")
+        }
+    }
+
+    @Test
     fun twoDimensionalConcat() {
         parseAPLExpression("(4 5 ⍴ ⍳20) , 1000+⍳4").let { result ->
             assertDimension(dimensionsOfSize(4, 6), result)
@@ -305,9 +312,106 @@ class ConcatenateTest : APLTest() {
     }
 
     @Test
-    fun contatenateOverInvalidAxis() {
+    fun contatenateOverInvalidAdditionalAxis() {
         assertFailsWith<IllegalAxisException> {
             parseAPLExpression("0 ,[1.5] 0")
+        }
+    }
+
+    @Test
+    fun concatenateInvalidAxis0() {
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("(2 2 ⍴ ⍳4) ,[2] (2 2 ⍴ 100+⍳4)")
+        }
+    }
+
+    @Test
+    fun concatenateInvalidAxis1() {
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("1 2 3 ,[1] 6 7 8")
+        }
+    }
+
+    @Test
+    fun concatenateNegativeAxis() {
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("(2 2 ⍴ ⍳4) ,[¯1] (2 2 ⍴ 100+⍳4)")
+        }
+    }
+
+    @Test
+    fun concatenateReduceSimple() {
+        parseAPLExpression(",/ 1 2 3 4 5 6 7 8").let { result ->
+            assertDimension(emptyDimensions(), result)
+            val v = result.disclose()
+            assert1DArray(arrayOf(1, 2, 3, 4, 5, 6, 7, 8), v)
+        }
+    }
+
+    @Test
+    fun concatenateReduceInnerArrays() {
+        parseAPLExpression(",/ (1 2 3) (4 5 6) (7 8) 9 10 ((11 12) (13 14 15 16)) 17 18").let { result ->
+            assertDimension(emptyDimensions(), result)
+            val v = result.disclose()
+            assert1DArray(arrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10, Inner1D(arrayOf(11, 12)), Inner1D(arrayOf(13, 14, 15, 16)), 17, 18), v)
+        }
+    }
+
+    @Test
+    fun concatenateReduce2DArrayContent() {
+        parseAPLExpression(",/ (3 2 ⍴ ⍳6) 2 (3 4 ⍴ 100+⍳12)").let { result ->
+            assertDimension(emptyDimensions(), result)
+            val v = result.disclose()
+            assertDimension(dimensionsOfSize(3, 7), v)
+            assertArrayContent(arrayOf(0, 1, 2, 100, 101, 102, 103, 2, 3, 2, 104, 105, 106, 107, 4, 5, 2, 108, 109, 110, 111), v)
+        }
+    }
+
+    @Test
+    fun concatenateReduce2DHorizontal() {
+        parseAPLExpression(",/ 2 4 ⍴ (2 3 ⍴ ⍳6) 1000 (2 5 ⍴ ⍳100)").let { result ->
+            assertDimension(dimensionsOfSize(2), result)
+            result.valueAt(0).let { v ->
+                assertDimension(dimensionsOfSize(2, 12), v)
+                assertArrayContent(arrayOf(0, 1, 2, 1000, 0, 1, 2, 3, 4, 0, 1, 2, 3, 4, 5, 1000, 5, 6, 7, 8, 9, 3, 4, 5), v)
+            }
+            result.valueAt(1).let { v ->
+                assertDimension(dimensionsOfSize(2, 10), v)
+                assertArrayContent(arrayOf(1000, 0, 1, 2, 3, 4, 0, 1, 2, 1000, 1000, 5, 6, 7, 8, 9, 3, 4, 5, 1000), v)
+            }
+        }
+    }
+
+    @Test
+    fun concatenateReduce2DVertical() {
+        parseAPLExpression("⍪/ 2 3 ⍴ (2 2 ⍴ ⍳6) 1000 (2 2 ⍴ 10+⍳100) 2").let { result ->
+            assertDimension(dimensionsOfSize(2), result)
+            result.valueAt(0).let { v ->
+                assertDimension(dimensionsOfSize(5, 2), v)
+                assertArrayContent(arrayOf(0, 1, 2, 3, 1000, 1000, 10, 11, 12, 13), v)
+            }
+            result.valueAt(1).let { v ->
+                assertDimension(dimensionsOfSize(4, 2), v)
+                assertArrayContent(arrayOf(2, 2, 0, 1, 2, 3, 1000, 1000), v)
+            }
+        }
+    }
+
+    @Test
+    fun concatenateReduce1DSimpleWithEmptyArrays() {
+        parseAPLExpression(",/1 2 3 ⍬ 4").let { result ->
+            assertDimension(emptyDimensions(), result)
+            val v = result.disclose()
+            assert1DArray(arrayOf(1, 2, 3, 4), v)
+        }
+    }
+
+    @Test
+    fun concatenateReduce1DWithEmptyArrays() {
+        parseAPLExpression(",/(1 2 3) ⍬ 4 5 6 (7 8)").let { result ->
+            assertDimension(emptyDimensions(), result)
+            val v = result.disclose()
+            assert1DArray(arrayOf(1, 2, 3, 4, 5, 6, 7, 8), v)
         }
     }
 

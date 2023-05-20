@@ -97,8 +97,7 @@ fun defaultReduceImpl(
     stepLength: Int,
     pos: Position,
     savedStack: StorageStack.StorageStackFrame?
-)
-        : APLValue {
+): APLValue {
     val engine = context.engine
     var curr = arg.valueAt(offset)
     withPossibleSavedStack(savedStack) {

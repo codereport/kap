@@ -545,7 +545,14 @@ abstract class ConcatenateAPLFunctionImpl(pos: FunctionInstantiation) : APLFunct
             return a2
         }
 
+        if (axis < 0 || axis >= da.size) {
+            throwAPLException(IllegalAxisException(axis, da, pos))
+        }
+
         if (da.size == 1 && db.size == 1) {
+            if (axis != 0) {
+                throwAPLException(IllegalAxisException(axis, emptyDimensions(), pos))
+            }
             return Concatenated1DArrays(a2, b2)
         }
 
