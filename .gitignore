@@ -31,6 +31,7 @@
 /.gradle
 /gui/build
 /gui/out
+/gui2/build
 /array/build
 /clientweb/build
 /clientweb2/build
