@@ -16,8 +16,7 @@ class CustomRendererParameter(val engine: Engine) : SystemParameterProvider {
     }
 }
 
-fun formatResultToStrings(value: APLValue): List<String> {
-    val result = ArrayList<String>()
+fun formatResult(value: APLValue, fn: (String) -> Unit) {
     val d = value.dimensions
     when (d.size) {
         2 -> {
@@ -31,19 +30,24 @@ fun formatResultToStrings(value: APLValue): List<String> {
                     val code = ch.value
                     buf.append(charToString(code))
                 }
-                result.add(buf.toString())
+                fn(buf.toString())
             }
         }
         1 -> {
             // This is a one-dimensional array of strings
             repeat(d[0]) { i ->
                 val s = value.valueAt(i).toStringValue()
-                result.add(s)
+                fn(s)
             }
         }
         else -> {
             throw IllegalArgumentException("Invalid result format: ${value.dimensions}")
         }
     }
+}
+
+fun formatResultToStrings(value: APLValue): List<String> {
+    val result = ArrayList<String>()
+    formatResult(value, result::add)
     return result
 }

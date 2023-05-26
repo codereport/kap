@@ -131,7 +131,7 @@ abstract class APLValue {
 
     abstract fun compareEquals(reference: APLValue): Boolean
 
-    open val kapClass: KapClass? = null
+    open val kapClass: KapClass? get() = null
 
     open fun compare(reference: APLValue, pos: Position? = null): Int {
         fun throwError(): Nothing {

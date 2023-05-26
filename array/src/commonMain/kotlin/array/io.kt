@@ -210,7 +210,7 @@ expect fun openInputFile(name: String): ByteProvider
 expect fun openInputCharFile(name: String): CharacterProvider
 expect fun openOutputCharFile(name: String): CharacterConsumer
 
-interface CharacterOutput {
+fun interface CharacterOutput {
     fun writeString(s: String)
 }
 
