@@ -3,20 +3,50 @@ package com.dhsdevelopments.kap.gui2
 import array.*
 import org.fife.ui.rtextarea.RDocument
 import org.fife.ui.rtextarea.RTextArea
+import java.awt.Font
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
-import javax.swing.text.AttributeSet
-import javax.swing.text.BadLocationException
-import javax.swing.text.DocumentFilter
+import javax.swing.text.*
 import javax.swing.text.Position
 
-class ReplPanel(val computeQueue: ComputeQueue) : RTextArea() {
+class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : RTextArea() {
     init {
+        font = fontIn.deriveFont(18.0f)
         val doc = ReplDoc()
-        computeQueue.addStandardOutputListener(StdoutListener(doc::appendToOutput))
         document = doc
+
+        doc.documentFilter = ReplFilter()
+
+        computeQueue.addStandardOutputListener(StdoutListener(::appendToOutput))
         setCaretPosition(doc.length)
         addKeyListener(ReplKeyListener())
+    }
+
+    val replDoc = document as ReplDoc
+
+    fun appendToOutput(s: String) {
+        // This is run in the calculation thread, but it's safe thanks to swing documents being thread safe
+        withNoCursorMovementAndEditable {
+            insert(s, replDoc.outputPos.offset - 1)
+        }
+    }
+
+    fun <T> withNoCursorMovementAndEditable(fn: () -> T): T {
+        val editorCaret = caret as DefaultCaret
+        val oldUpdatePolicy = editorCaret.updatePolicy
+        editorCaret.updatePolicy = DefaultCaret.ALWAYS_UPDATE
+        try {
+            return replDoc.withUpdateAllowed {
+                fn()
+            }
+        } finally {
+            editorCaret.updatePolicy = oldUpdatePolicy
+        }
+    }
+
+    fun editedText(): String {
+        val pos = replDoc.startEditPosition()
+        return this.getText(pos, document.length - pos)
     }
 
     private fun sendToInterpreter(text: String) {
@@ -37,15 +67,16 @@ class ReplPanel(val computeQueue: ComputeQueue) : RTextArea() {
             buf.append(s)
             buf.append("\n")
         }
-        (document as ReplDoc).appendToOutput(buf.toString())
+        appendToOutput(buf.toString())
     }
 
+    @Suppress("USELESS_IS_CHECK")
     private fun formatAndAddErrorToDoc(value: Exception) {
         val message = when (value) {
             is APLGenericException -> value.formattedError()
             else -> value.message ?: "no description"
         }
-        (document as ReplDoc).appendToOutput(message)
+        appendToOutput(message)
     }
 
     private fun evalExpression(engine: Engine, text: String): Either<APLValue, Exception> {
@@ -60,9 +91,11 @@ class ReplPanel(val computeQueue: ComputeQueue) : RTextArea() {
     inner class ReplKeyListener : KeyAdapter() {
         override fun keyPressed(e: KeyEvent) {
             if (e.keyChar == '\n') {
-                val text = (document as ReplDoc).editedText()
+                val text = editedText()
                 println("Text: '${text}'")
+                appendToOutput("    ${text}\n")
                 sendToInterpreter(text)
+                e.consume()
             }
         }
     }
@@ -77,24 +110,8 @@ class ReplDoc : RDocument() {
     init {
         val promptText = "> "
         insertString(0, promptText, null)
-        outputPos = content.createPosition(0)
-        startEditAreaMark = content.createPosition(promptText.length - 1)
-        documentFilter = ReplFilter()
-    }
-
-    fun appendToOutput(s: String) {
-        // This is run in the calculation thread, but it's safe thanks to swing documents being thread safe
-        withUpdateAllowed {
-            val before = outputPos.offset
-            insertString(outputPos.offset, s, null)
-            val after = outputPos.offset
-            println("BEFORE:$before after adding ${s.length}, AFTER:$after")
-        }
-    }
-
-    fun editedText(): String {
-        val pos = startEditPosition()
-        return this.getText(pos, length - pos)
+        outputPos = createPosition(1)
+        startEditAreaMark = createPosition(promptText.length - 1)
     }
 
     fun startEditPosition() = startEditAreaMark.offset + 1
