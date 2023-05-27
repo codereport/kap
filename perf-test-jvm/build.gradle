@@ -1,0 +1,34 @@
+plugins {
+    id 'application'
+    id 'org.jetbrains.kotlin.jvm'
+}
+
+repositories {
+    mavenCentral()
+    maven { url 'https://kotlin.bintray.com/kotlinx' }
+}
+
+compileKotlin {
+    kotlinOptions {
+        jvmTarget = "17"
+        freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+    }
+}
+
+compileTestKotlin {
+    kotlinOptions {
+        jvmTarget = "17"
+        freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+    }
+}
+
+dependencies {
+    implementation "org.jetbrains.kotlin:kotlin-stdlib-jdk8"
+    implementation "org.jetbrains.kotlin:kotlin-reflect"
+    implementation project(':perf-test')
+}
+
+run {
+}
+
+mainClassName = 'com.dhsdevelopments.kap.benchmark.jvm.Main'

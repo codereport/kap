@@ -33,7 +33,7 @@ private fun benchmarkVarLookupScope(): BenchmarkTestCase {
     // New stack: 0.9316
     // Storage list in array: 0.9357000000000001
     // Standalone stack allocation: 0.9074
-    return BenchmarkTestCase("var lookup scope", "{ a←⍵ ◊ {a+⍺+⍵}/⍳10000000 } 4")
+    return BenchmarkTestCase("var lookup scope", "{ a←⍵ ◊ {a+⍺+⍵}/⍳1000000 } 4")
 }
 
 private fun contribBench(): BenchmarkTestCase {
@@ -92,18 +92,18 @@ fun benchmarkSrc(name: String, srcString: String, libPath: String): TestCaseResu
     val engine = Engine()
     engine.addLibrarySearchPath(libPath)
     engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
+    val warmupIterations = 5
     val iterations = 10
-    repeat(iterations) {
-        val result = engine.parseAndEval(StringSourceLocation(srcString))
-        result.collapse()
-    }
     val results = ArrayList<Long>()
-    repeat(iterations) {
+    repeat(warmupIterations + iterations) { i ->
         val elapsed = measureTimeMillis {
             val result = engine.parseAndEval(StringSourceLocation(srcString))
             result.collapse()
         }
-        results.add(elapsed)
+        if (i >= warmupIterations) {
+            results.add(elapsed)
+        }
+        println("Result${if (i < warmupIterations) " (warmup)" else ""}: ${elapsed}")
     }
     return TestCaseResults(name, results)
 }
@@ -116,7 +116,7 @@ fun runAllTests(name: String, libPath: String, reportPath: String, reportName: S
         throw IllegalStateException("Report directory is a file: ${reportPath}")
     }
 
-    //val tests = listOf(benchmarkPrimes(), benchmarkVarLookupScope(), contribBench(), simpleSum(), benchmarkMultipleCall())
+//    val tests = listOf(benchmarkPrimes(), benchmarkVarLookupScope(), contribBench(), simpleSum(), benchmarkMultipleCall(), benchmarkFormatter())
     val tests = listOf(benchmarkFormatter())
     println("Running tests: ${name}")
     val results = ArrayList<TestCaseResults>()

@@ -10,3 +10,9 @@ repositories {
     mavenCentral()
     maven { url 'https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven' }
 }
+
+task runBenchmark {
+    dependsOn "perf-test-jvm:run"
+    dependsOn "perf-test:runReleaseExecutableLinux"
+    dependsOn "perf-test:jsNodeRun"
+}

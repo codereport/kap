@@ -1,4 +1,6 @@
-package com.dhsdevelopments.kap.benchmark
+package com.dhsdevelopments.kap.benchmark.jvm
+
+import com.dhsdevelopments.kap.benchmark.runAllTests
 
 /*
 Baseline:
@@ -18,6 +20,11 @@ simple sum: avg=205.1, median=204.5, min=203, max=215, stddev=1.0001341848511105
 multiple call: avg=132.0, median=131.0, min=130, max=134, stddev=1.000040173665031
 */
 
-fun main() {
-    runAllTests("jvm", "array/standard-lib", "benchmark-reports", "unnamed")
+class Main {
+    companion object {
+        @JvmStatic
+        fun main(args: Array<String>) {
+            runAllTests("jvm", "../array/standard-lib", "../benchmark-reports", "unnamed")
+        }
+    }
 }

@@ -40,6 +40,7 @@
 /client-java/build
 /mpbignum/build
 /perf-test/build
+/perf-test-jvm/build
 
 /*.hprof
 /website/src/orchid/resources/pages/*.html
