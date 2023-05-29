@@ -21,7 +21,7 @@
             '⍪⍪\ntable\ncatenate first/laminate', '⍴⍴\nshape\nreshape', '⌽⌽\nreverse\nrotate', '⊖⊖\nreverse first\nrotate first',
             '⍉⍉\ntranspose\nreorder axes', ' ', '¨¨\nEach', '⍨⍨\nConstant\nSelf\nSwap', '⍣⍣\nRepeat\nUntil', '..\nOuter Product', '⌻⌻\nInner product',
             '∘∘\nBind\nBeside', '⍛⍛\nBind left', '⍤⍤\nRank\nAtop', '⍥⍥\nOver', '⍢⍢\nUnder', '∵∵\nDerive bitwise', '∥∥\nDerive parallel', ' ', 'λλ\nLAMBDA', '⍞⍞\nAPPLY',
-            '⍎⍎\nparse string', '⍕⍕\nformat', ' ', '««\nLeft fork', '»»/nRight fork', '⋄⋄\nSTATEMENT SEPARATOR', '⍝⍝\nCOMMENT', '→→\nRETURN\nRETURN CONDITIONALLY', '⍵⍵\nRIGHT ARGUMENT', '⍺⍺\nLEFT ARGUMENT', '∇∇\nDefine function',
+            '⍎⍎\nparse string', '⍕⍕\nformat', ' ', '««\nLeft fork', '»»\nRight fork', '⋄⋄\nSTATEMENT SEPARATOR', '⍝⍝\nCOMMENT', '→→\nRETURN\nRETURN CONDITIONALLY', '⍵⍵\nRIGHT ARGUMENT', '⍺⍺\nLEFT ARGUMENT', '∇∇\nDefine function',
             '⍓⍓\nrecursion\nRecursion', ' ', '¯¯\nNEGATIVE', '⍬⍬\nEMPTY NUMERIC VECTOR', '∆∆\nIDENTIFIER CHARACTER', '⍙⍙\nIDENTIFIER CHARACTER']
         , bqk = ' =1234567890-qwertyuiop\\asdfghjkl;\'zxcvbnm,./`[]+!@#$%^&*()_QWERTYUIOP|ASDFGHJKL:"ZXCVBNM<>?~{}'.replace(/∙/g, '')
         , bqv = '`÷¨¯<≤=≥>≠∨∧×q⍵∊⍴~↑↓⍳○*⊢∙⍺⌈⌊_∇∆∘⍓⎕⍎⍕∙⊂⊃∩∪⊥⊤|⍝⍀⌿⋄←→⌹⌶⍫⍒⍋⌽⍉⊖⍟⍱⍲!Q⍹⍷√⍨Y⇐⍸⍥⍣⊣⍶∵D⍛⍢⍙⍤⌻⌷≡≢⊆⊇Cλ«»∥⍪⑊⫽⌺⍞⍬'.replace(/∙/g, '')
