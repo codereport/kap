@@ -1,8 +1,10 @@
+@file:OptIn(ExperimentalForeignApi::class)
+
 package com.dhsdevelopments.mpbignum
 
 import gmp.*
 import kotlinx.cinterop.*
-import kotlin.native.internal.createCleaner
+import kotlin.native.ref.createCleaner
 
 internal inline fun NativePlacement.allocMpqStruct(): mpq_t = allocArray<__mpq_struct>(1).also { v -> mpq_init!!(v) }
 
@@ -118,7 +120,7 @@ class LinuxRational(val value: mpq_t) : Rational {
     }
 
     override fun div(other: Rational): Rational {
-        if (mpq_cmp_si_wrap((other as LinuxRational).value, 0, 1) == 0) {
+        if (mpq_cmp_si_wrap((other as LinuxRational).value, 0, 1U) == 0) {
             throw ArithmeticException("Division by zero")
         }
         return basicOperation(other) { result, a, b ->
@@ -248,7 +250,7 @@ class LinuxRational(val value: mpq_t) : Rational {
     override fun ceil(): BigInt {
         val num = numerator
         val den = denominator
-        return if (mpz_cmp_si_wrap(den.inner, 1) == 0) {
+        return if (mpz_cmp_si_wrap(den.inner, 1U) == 0) {
             num
         } else {
             val res = MpzWrapper.allocMpzWrapper()
@@ -260,7 +262,7 @@ class LinuxRational(val value: mpq_t) : Rational {
     override fun floor(): BigInt {
         val num = numerator
         val den = denominator
-        return if (mpz_cmp_si_wrap(den.inner, 1) == 0) {
+        return if (mpz_cmp_si_wrap(den.inner, 1U) == 0) {
             num
         } else {
             val res = MpzWrapper.allocMpzWrapper()
@@ -274,7 +276,7 @@ class LinuxRational(val value: mpq_t) : Rational {
             val num = numerator.inner
             val den = denominator.inner
             return when {
-                mpz_cmp_si_wrap(den, 1) == 0 -> {
+                mpz_cmp_si_wrap(den, 1U) == 0 -> {
                     mpzToLong(num)
                 }
                 else -> {

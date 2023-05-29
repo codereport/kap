@@ -281,7 +281,15 @@ fun engineAvailableCallback(worker: Worker) {
     topElement.appendChild(outer)
 
     val inputField = findElement<HTMLTextAreaElement>("input")
-    configureAPLInputForField(inputField) { sendCommandFromField(worker) }
+//    configureAPLInputForField(inputField) { sendCommandFromField(worker) }
+    inputField.onkeypress = { event ->
+        if (event.key == "Enter") {
+            event.preventDefault()
+            sendCommandFromField(worker)
+        }
+        Unit
+    }
+
     val button = findElement<HTMLButtonElement>("send-button")
     button.onclick = { sendCommandFromField(worker) }
 

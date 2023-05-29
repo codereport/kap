@@ -166,9 +166,8 @@ abstract class APLTest {
     }
 
     fun assertChar(code: Int, value: APLValue, message: String? = null) {
-        val suffix = if (message != null) ": ${message}" else ""
-        assertTrue(value is APLChar)
-        assertEquals(code, value.value)
+        assertTrue(value is APLChar, message)
+        assertEquals(code, value.value, message)
     }
 
     fun assertAPLNull(value: APLValue) {

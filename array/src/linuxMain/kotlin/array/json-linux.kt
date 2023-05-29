@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalForeignApi::class)
+
 package array.json
 
 import array.*
@@ -14,7 +16,7 @@ actual fun parseJsonToAPL(input: CharacterProvider): APLValue {
     }
     memScoped {
         val error = alloc<json_error_t>()
-        val root = json_loads(buf.toString(), 0, error.ptr)
+        val root = json_loads(buf.toString(), 0U, error.ptr)
         if (root == null) {
             throw JsonParseException("Error parsing JSON: ${error.text.toKString()}")
         }

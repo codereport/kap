@@ -103,7 +103,7 @@ fun benchmarkSrc(name: String, srcString: String, libPath: String): TestCaseResu
         if (i >= warmupIterations) {
             results.add(elapsed)
         }
-        println("Result${if (i < warmupIterations) " (warmup)" else ""}: ${elapsed}")
+//        println("Result${if (i < warmupIterations) " (warmup)" else ""}: ${elapsed}")
     }
     return TestCaseResults(name, results)
 }
@@ -116,8 +116,7 @@ fun runAllTests(name: String, libPath: String, reportPath: String, reportName: S
         throw IllegalStateException("Report directory is a file: ${reportPath}")
     }
 
-//    val tests = listOf(benchmarkPrimes(), benchmarkVarLookupScope(), contribBench(), simpleSum(), benchmarkMultipleCall(), benchmarkFormatter())
-    val tests = listOf(benchmarkFormatter())
+    val tests = listOf(benchmarkPrimes(), benchmarkVarLookupScope(), contribBench(), simpleSum(), benchmarkMultipleCall(), benchmarkFormatter())
     println("Running tests: ${name}")
     val results = ArrayList<TestCaseResults>()
     tests.forEach { testcase ->

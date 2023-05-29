@@ -1,6 +1,6 @@
 package array
 
-import kotlin.jvm.Volatile
+import kotlin.concurrent.Volatile
 
 class MTSafeArrayList<T>() : AbstractMutableList<T>() {
     @Volatile

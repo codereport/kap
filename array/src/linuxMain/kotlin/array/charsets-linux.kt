@@ -1,7 +1,10 @@
+@file:OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
+
 package array
 
 import icu.UCharVar
 import kotlinx.cinterop.*
+import kotlin.experimental.ExperimentalNativeApi
 
 actual fun isLetter(codepoint: Int): Boolean {
     return icu.u_isUAlphabetic!!(codepoint).toBoolean()

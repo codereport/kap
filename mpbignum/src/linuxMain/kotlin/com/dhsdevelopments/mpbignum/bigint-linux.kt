@@ -1,8 +1,10 @@
+@file:OptIn(ExperimentalForeignApi::class)
+
 package com.dhsdevelopments.mpbignum
 
 import gmp.*
 import kotlinx.cinterop.*
-import kotlin.native.internal.createCleaner
+import kotlin.native.ref.createCleaner
 
 class MpzWrapper(val value: mpz_t) {
     companion object {

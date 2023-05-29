@@ -1,10 +1,14 @@
+@file:OptIn(ExperimentalNativeApi::class, ExperimentalForeignApi::class)
+
 package array
 
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.cinterop.alloc
 import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.ptr
 import platform.posix.*
-import kotlin.native.concurrent.AtomicReference
+import kotlin.concurrent.AtomicReference
+import kotlin.experimental.ExperimentalNativeApi
 import kotlin.native.ref.WeakReference
 import kotlin.reflect.KClass
 
@@ -28,7 +32,7 @@ class LinuxMPAtomicRefArray<T>(size: Int) : MPAtomicRefArray<T> {
 
     override fun compareAndExchange(index: Int, expected: T?, newValue: T?): T? {
         val reference = content[index]
-        return reference.compareAndSwap(expected, newValue)
+        return reference.compareAndExchange(expected, newValue)
     }
 }
 

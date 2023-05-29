@@ -3,11 +3,11 @@ package array
 import array.builtins.*
 import array.json.JsonAPLModule
 import array.syntax.CustomSyntax
+import kotlin.concurrent.Volatile
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.jvm.JvmInline
-import kotlin.jvm.Volatile
 import kotlin.reflect.KClass
 
 /**

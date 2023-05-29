@@ -1,7 +1,10 @@
+@file:OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
+
 package array
 
 import kotlinx.cinterop.*
 import platform.posix.*
+import kotlin.experimental.ExperimentalNativeApi
 
 actual class StringCharacterProvider actual constructor(private val s: String) : CharacterProvider {
     private var pos = 0
@@ -187,7 +190,7 @@ actual fun currentDirectory(): String {
 
 actual fun createDirectory(path: String) {
     memScoped {
-        val result = mkdir(path, 511) // rwxrwxrwx
+        val result = mkdir(path, 511U) // rwxrwxrwx
         if (result == -1) {
             translateErrno(errno)
         }
