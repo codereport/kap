@@ -183,30 +183,38 @@ fun configureAPLInputForField(inputField: HTMLTextAreaElement, returnCallback: (
     }
 
     inputField.onkeypress = { event ->
-        val currState = getKeyState()
-        when {
-            event.key == "Enter" -> {
-                event.preventDefault()
-                updateKeyState(false)
-                if (event.shiftKey) {
-                    insertString("\n")
-                } else {
-                    returnCallback()
-                }
-            }
-            !currState && event.key == INPUT_PREFIX_SYM -> {
-                event.preventDefault()
-                updateKeyState(true)
-            }
-            currState -> {
-                updateKeyState(false)
-                val sym = if (event.key == " ") INPUT_PREFIX_SYM else Keymap.lookup(event.key)
-                if (sym != null) {
-                    event.preventDefault()
-                    insertString(sym)
-                }
+        if (event.key == "Enter") {
+            event.preventDefault()
+            if (event.shiftKey) {
+                insertString("\n")
+            } else {
+                returnCallback()
             }
         }
+//        val currState = getKeyState()
+//        when {
+//            event.key == "Enter" -> {
+//                event.preventDefault()
+//                updateKeyState(false)
+//                if (event.shiftKey) {
+//                    insertString("\n")
+//                } else {
+//                    returnCallback()
+//                }
+//            }
+//            !currState && event.key == INPUT_PREFIX_SYM -> {
+//                event.preventDefault()
+//                updateKeyState(true)
+//            }
+//            currState -> {
+//                updateKeyState(false)
+//                val sym = if (event.key == " ") INPUT_PREFIX_SYM else Keymap.lookup(event.key)
+//                if (sym != null) {
+//                    event.preventDefault()
+//                    insertString(sym)
+//                }
+//            }
+//        }
         Unit
     }
 }
@@ -281,14 +289,7 @@ fun engineAvailableCallback(worker: Worker) {
     topElement.appendChild(outer)
 
     val inputField = findElement<HTMLTextAreaElement>("input")
-//    configureAPLInputForField(inputField) { sendCommandFromField(worker) }
-    inputField.onkeypress = { event ->
-        if (event.key == "Enter") {
-            event.preventDefault()
-            sendCommandFromField(worker)
-        }
-        Unit
-    }
+    configureAPLInputForField(inputField) { sendCommandFromField(worker) }
 
     val button = findElement<HTMLButtonElement>("send-button")
     button.onclick = { sendCommandFromField(worker) }
