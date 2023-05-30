@@ -215,6 +215,7 @@ class EncloseAPLFunction : APLFunctionDescriptor {
         }
 
         override val name1Arg get() = "enclose"
+        override val name2Arg get() = "partitioned enclose"
     }
 
     override fun make(instantiation: FunctionInstantiation) = EncloseAPLFunctionImpl(instantiation)

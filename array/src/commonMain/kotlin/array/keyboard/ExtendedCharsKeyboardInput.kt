@@ -6,7 +6,7 @@ class ExtendedCharsKeyboardInput {
     init {
         keymap = hashMapOf(
             // First row
-            makeKeyDescriptor("`") to "◊",
+            makeKeyDescriptor("`") to "⋄",
             makeKeyDescriptor("1") to "¨", makeKeyDescriptor("!", Flag.SHIFT) to "⌶",
             makeKeyDescriptor("2") to "¯", makeKeyDescriptor("@", Flag.SHIFT) to "⍫",
             makeKeyDescriptor("3") to "<", makeKeyDescriptor("#", Flag.SHIFT) to "⍒",
