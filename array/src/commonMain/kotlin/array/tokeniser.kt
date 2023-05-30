@@ -525,7 +525,7 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
         private fun isNegationSign(ch: Int) = ch == '¯'.code
         private fun isQuoteChar(ch: Int) = ch == '"'.code
         private fun isCommentChar(ch: Int) = ch == '⍝'.code
-        private fun isSymbolStartChar(ch: Int) = isLetter(ch) || ch == '_'.code || ch == ':'.code
+        private fun isSymbolStartChar(ch: Int) = isLetter(ch) || ch == '_'.code || ch == ':'.code || ch == '∆'.code || ch == '⍙'.code
         private fun isSymbolContinuation(ch: Int) = isSymbolStartChar(ch) || isDigit(ch)
         private fun isNumericConstituent(ch: Int) =
             isDigit(ch) || isNegationSign(ch) || ch == '.'.code || ch == 'j'.code || ch == 'J'.code

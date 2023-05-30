@@ -26,6 +26,35 @@ class TokenGeneratorTest {
     }
 
     @Test
+    fun testMultipleTokensSpecialChars() {
+        val gen = makeGenerator("foo bar test abc test ∆ ⍙ a∆ a⍙ ∆b ⍙b x∆y x⍙y")
+        val expectedTokens = arrayOf("foo", "bar", "test", "abc", "test", "∆", "⍙", "a∆", "a⍙", "∆b", "⍙b", "x∆y", "x⍙y")
+        expectedTokens.forEach { name ->
+            val token = gen.nextToken()
+            assertTokenIsSymbol(gen, token, name, gen.engine.initialNamespace.name)
+        }
+        assertSame(EndOfFile, gen.nextToken())
+    }
+
+    @Test
+    fun testArgSymbols() {
+        val gen = makeGenerator("⍵ ⍺ ⍺x ⍵x qz⍺x⍵zq")
+        val expectedTokens = arrayOf("⍵", "⍺", "⍺", "x", "⍵", "x", "qz", "⍺", "x", "⍵", "zq")
+        assertTokenIsSymbol(gen, gen.nextToken(), "⍵", gen.engine.coreNamespace.name)
+        assertTokenIsSymbol(gen, gen.nextToken(), "⍺", gen.engine.coreNamespace.name)
+        assertTokenIsSymbol(gen, gen.nextToken(), "⍺", gen.engine.coreNamespace.name)
+        assertTokenIsSymbol(gen, gen.nextToken(), "x", gen.engine.initialNamespace.name)
+        assertTokenIsSymbol(gen, gen.nextToken(), "⍵", gen.engine.coreNamespace.name)
+        assertTokenIsSymbol(gen, gen.nextToken(), "x", gen.engine.initialNamespace.name)
+        assertTokenIsSymbol(gen, gen.nextToken(), "qz", gen.engine.initialNamespace.name)
+        assertTokenIsSymbol(gen, gen.nextToken(), "⍺", gen.engine.coreNamespace.name)
+        assertTokenIsSymbol(gen, gen.nextToken(), "x", gen.engine.initialNamespace.name)
+        assertTokenIsSymbol(gen, gen.nextToken(), "⍵", gen.engine.coreNamespace.name)
+        assertTokenIsSymbol(gen, gen.nextToken(), "zq", gen.engine.initialNamespace.name)
+        assertSame(EndOfFile, gen.nextToken())
+    }
+
+    @Test
     fun testMultipleSpaces() {
         val gen = makeGenerator("     foo       bar     test        ")
         val expectedTokens = arrayOf("foo", "bar", "test")
@@ -373,7 +402,8 @@ class TokenGeneratorTest {
             |1 2 `
             |3 `
             |4
-            """.trimMargin())
+            """.trimMargin()
+        )
         gen.nextToken().let { token ->
             assertTrue(token is ParsedLong)
             assertEquals(1, token.value)
@@ -399,7 +429,8 @@ class TokenGeneratorTest {
             """
             |1 `4 5
             |6
-            """.trimMargin())
+            """.trimMargin()
+        )
         gen.nextToken().let { token ->
             assertTrue(token is ParsedLong)
             assertEquals(1, token.value)
@@ -508,7 +539,8 @@ class TokenGeneratorTest {
             """
             |aa bb
             |cccc dddd
-            """.trimMargin())
+            """.trimMargin()
+        )
         gen.nextTokenWithPosition().let { (token, pos) ->
             assertTokenIsSymbol(gen, token, "aa", gen.engine.initialNamespace.name)
             assertPosition(0, 0, 0, 2, pos)
@@ -535,7 +567,8 @@ class TokenGeneratorTest {
             """
             |aa bb `
             |cc dd
-            """.trimMargin())
+            """.trimMargin()
+        )
         gen.nextTokenWithPosition().let { (token, pos) ->
             assertTokenIsSymbol(gen, token, "aa", gen.engine.initialNamespace.name)
             assertPosition(0, 0, 0, 2, pos)
@@ -560,7 +593,8 @@ class TokenGeneratorTest {
         val gen =
             makeGenerator(
                 "1234567891234567891234567890 ¯22222234567891234567891234567890 9223372036854775807 " +
-                        "9223372036854775808 ¯9223372036854775808 ¯9223372036854775809")
+                        "9223372036854775808 ¯9223372036854775808 ¯9223372036854775809"
+            )
         gen.nextToken().let { token ->
             assertTrue(token is ParsedBigInt)
             assertEquals(BigInt.of("1234567891234567891234567890"), token.value)
