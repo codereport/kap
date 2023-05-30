@@ -1,10 +1,11 @@
-@file:OptIn(ExperimentalForeignApi::class)
+@file:OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 
 package com.dhsdevelopments.mpbignum
 
 import gmp.*
 import kotlinx.cinterop.*
-import kotlin.native.ref.createCleaner
+import kotlin.experimental.ExperimentalNativeApi
+import kotlin.native.internal.createCleaner
 
 class MpzWrapper(val value: mpz_t) {
     companion object {
@@ -27,7 +28,6 @@ class MpzWrapper(val value: mpz_t) {
     }
 
     @Suppress("unused")
-    @OptIn(ExperimentalStdlibApi::class)
     private val cleaner = createCleaner(value) { obj ->
         mpz_clear!!(obj)
         nativeHeap.free(obj)
