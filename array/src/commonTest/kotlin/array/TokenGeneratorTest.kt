@@ -39,7 +39,6 @@ class TokenGeneratorTest {
     @Test
     fun testArgSymbols() {
         val gen = makeGenerator("⍵ ⍺ ⍺x ⍵x qz⍺x⍵zq")
-        val expectedTokens = arrayOf("⍵", "⍺", "⍺", "x", "⍵", "x", "qz", "⍺", "x", "⍵", "zq")
         assertTokenIsSymbol(gen, gen.nextToken(), "⍵", gen.engine.coreNamespace.name)
         assertTokenIsSymbol(gen, gen.nextToken(), "⍺", gen.engine.coreNamespace.name)
         assertTokenIsSymbol(gen, gen.nextToken(), "⍺", gen.engine.coreNamespace.name)
