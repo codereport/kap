@@ -8,8 +8,11 @@ repositories {
     maven { url 'https://kotlin.bintray.com/kotlinx' }
 }
 
+def webclientModuleAttr = Attribute.of('com.dhsdevelopments.webclientAttr', String)
+
 kotlin {
     js("webworker", IR) {
+        attributes.attribute(webclientModuleAttr, 'webworker')
         binaries.executable()
         browser {
             commonWebpackConfig {
@@ -23,6 +26,7 @@ kotlin {
         }
     }
     js("jsclient", IR) {
+        attributes.attribute(webclientModuleAttr, 'jsclient')
         binaries.executable()
         browser {
             webpackTask {
