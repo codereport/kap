@@ -1923,3 +1923,17 @@ class CaseFunction : APLFunctionDescriptor {
 
     override fun make(instantiation: FunctionInstantiation) = CaseFunctionImpl(instantiation)
 }
+
+class AssignPrototypeFunction : APLFunctionDescriptor {
+    class AssignPrototypeFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            return OverriddenPrototypeValue(b, a)
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = AssignPrototypeFunctionImpl(instantiation)
+}
+
+class OverriddenPrototypeValue(inner: APLValue, val prototype: APLValue) : DelegatedValue(inner) {
+    override fun defaultValue() = prototype
+}
