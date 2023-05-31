@@ -1731,7 +1731,7 @@ class ParseNumberFunction : APLFunctionDescriptor {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val s = a.toStringValue(pos)
 
-            fun throwParseError(): Nothing = throwAPLException(APLEvalException("Value cannot be parsed as a number: '${s}", pos))
+            fun throwParseError(): Nothing = throwAPLException(APLEvalException("Value cannot be parsed as a number: '${s}'", pos))
 
             val intMatch = INTEGER_PATTERN.matchEntire(s)
             if (intMatch != null) {

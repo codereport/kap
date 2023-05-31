@@ -1,9 +1,10 @@
-@file:OptIn(ExperimentalForeignApi::class)
+@file:OptIn(ExperimentalForeignApi::class, ExperimentalNativeApi::class)
 
 package com.dhsdevelopments.mpbignum
 
 import gmp.*
 import kotlinx.cinterop.*
+import kotlin.experimental.ExperimentalNativeApi
 import kotlin.native.ref.createCleaner
 
 internal inline fun NativePlacement.allocMpqStruct(): mpq_t = allocArray<__mpq_struct>(1).also { v -> mpq_init!!(v) }
