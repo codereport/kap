@@ -490,7 +490,7 @@ This returns the following:
 
 [cols="^1,^1,^1",width=10]
 |===
-|0 |5 |10
+|4 |9 |14
 |===
 
 === Finding the dimensionality of an array
