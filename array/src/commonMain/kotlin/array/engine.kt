@@ -394,6 +394,8 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("acos", AcosAPLFunction(), "math")
         registerNativeFunction("atan", AtanAPLFunction(), "math")
         registerNativeFunction("√", SqrtAPLFunction())
+        registerNativeFunction("gcd", GcdAPLFunction(), "math")
+        registerNativeFunction("lcm", LcmAPLFunction(), "math")
 
         // metafunctions
         registerNativeFunction("typeof", TypeofFunction())
