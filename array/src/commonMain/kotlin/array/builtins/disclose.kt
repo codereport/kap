@@ -221,7 +221,7 @@ class EncloseAPLFunction : APLFunctionDescriptor {
     override fun make(instantiation: FunctionInstantiation) = EncloseAPLFunctionImpl(instantiation)
 }
 
-class DisclosedArrayValue(value: APLValue) : APLArray() {
+class DisclosedArrayValue(value: APLValue, val innerDefault: APLValue) : APLArray() {
     private val valueInt = value.collapseFirstLevel()
     override val dimensions: Dimensions
 
@@ -256,18 +256,18 @@ class DisclosedArrayValue(value: APLValue) : APLArray() {
         return if (innerIndex == 0) {
             when {
                 d.size == 0 -> v.disclose()
-                d.contentSize() == 0 -> v.defaultValue()
+                d.contentSize() == 0 -> innerDefault
                 else -> v.valueAt(0)
             }
         } else if (d.size == 0) {
-            v.defaultValue()
+            innerDefault
         } else {
             val position = newDimensionsMultipliers.positionFromIndex(innerIndex)
             val n = position.size - d.size
             for (i in position.indices) {
                 val size = if (i < n) 1 else d[i - n]
                 if (position[i] >= size) {
-                    return v.defaultValue()
+                    return innerDefault
                 }
             }
             val updatedPosition = if (position.size == d.size) {
@@ -318,8 +318,8 @@ class DiscloseAPLFunction : APLFunctionDescriptor {
             val v = a.unwrapDeferredValue()
             return when {
                 v.isScalar() -> processScalarValue(a, axis)
-                axis == null -> DisclosedArrayValue(v)
-                else -> processAxis(v, a, axis)
+                axis == null -> DisclosedArrayValue(v, a.defaultValue())
+                else -> processAxis(v, a, axis, a.defaultValue())
             }
         }
 
@@ -333,8 +333,8 @@ class DiscloseAPLFunction : APLFunctionDescriptor {
             return if (a is APLSingleValue) a else a.valueAt(0)
         }
 
-        private fun processAxis(v: APLValue, a: APLValue, axis: APLValue): TransposedAPLValue {
-            val z1 = DisclosedArrayValue(v)
+        private fun processAxis(v: APLValue, a: APLValue, axis: APLValue, defaultValue: APLValue): TransposedAPLValue {
+            val z1 = DisclosedArrayValue(v, defaultValue)
             val z1Dimensions = z1.dimensions
             val maxAxis = z1Dimensions.size - a.dimensions.size
             val axisInt = makeAxisIntArray(axis, maxAxis)
@@ -413,7 +413,7 @@ class DiscloseAPLFunction : APLFunctionDescriptor {
             return when {
                 v is APLSingleValue -> v
                 v.isScalar() -> v.valueAt(0)
-                else -> DisclosedArrayValue(v)
+                else -> DisclosedArrayValue(v, value.defaultValue())
             }
 
         }

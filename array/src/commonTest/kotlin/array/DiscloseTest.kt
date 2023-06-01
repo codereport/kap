@@ -328,4 +328,12 @@ class DiscloseTest : APLTest() {
                 result)
         }
     }
+
+    @Test
+    fun discloseWithPrototype() {
+        parseAPLExpression("⊃ 9 int:proto (10 11) (2 1 3)").let { result ->
+            assertDimension(dimensionsOfSize(2, 3), result)
+            assertArrayContent(arrayOf(10, 11, 9, 2, 1, 3), result)
+        }
+    }
 }

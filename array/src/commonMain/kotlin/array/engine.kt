@@ -402,7 +402,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("isLocallyBound", IsLocallyBoundFunction())
         registerNativeFunction("comp", CompFunction())
         registerNativeFunction("sysparam", SystemParameterFunction())
-        registerNativeFunction("proto", AssignPrototypeFunction())
+        registerNativeFunction("proto", AssignPrototypeFunction(), "int")
 
         // operators
         registerNativeOperator("¨", ForEachOp())
