@@ -2,6 +2,8 @@ package array
 
 import array.FunctionCallChain.Chain2
 import array.ParseResultHolder.InstrParseResult.Companion.makeFromList
+import array.builtins.BooleanAndFunction
+import array.builtins.BooleanOrFunction
 import array.syntax.processCustomSyntax
 import array.syntax.processDefsyntax
 import array.syntax.processDefsyntaxSub
@@ -301,7 +303,7 @@ class APLParser(val tokeniser: TokenGenerator) {
     }
 
     private fun parseList(): ParseResultHolder {
-        val firstValue = parseValue()
+        val firstValue = parseBooleanExpression()
         if (firstValue.lastToken.token == ListSeparator) {
             if (firstValue is ParseResultHolder.FnParseResult) {
                 throw ParseException("Function expressions can't be part of a list", firstValue.pos)
@@ -327,6 +329,35 @@ class APLParser(val tokeniser: TokenGenerator) {
         } else {
             return firstValue
         }
+    }
+
+    private val booleanFunctionsMap = mapOf(
+        AndToken to BooleanAndFunction(),
+        OrToken to BooleanOrFunction())
+
+    private fun parseBooleanExpression(): ParseResultHolder {
+        fun mkInstr(v: ParseResultHolder): Instruction {
+            return when (v) {
+                is ParseResultHolder.EmptyParseResult -> throw ParseException("Empty expression was passed as an argument to a boolean function", v.pos)
+                is ParseResultHolder.FnParseResult -> throw ParseException("Function expression cannot be an argument to a boolean function", v.pos)
+                is ParseResultHolder.InstrParseResult -> v.instr
+            }
+        }
+
+        val leftValue = parseValue()
+        var curr = leftValue
+        while (booleanFunctionsMap.containsKey(curr.lastToken.token)) {
+            val a = mkInstr(curr)
+            val rightValue = parseValue()
+            val b = mkInstr(rightValue)
+            val fn = booleanFunctionsMap[curr.lastToken.token]!!.make(
+                FunctionInstantiation(
+                    leftValue.lastToken.pos, currentEnvironment()))
+            val newInstr = FunctionCall2Arg(fn, a, b, rightValue.lastToken.pos)
+            curr = ParseResultHolder.InstrParseResult(newInstr, rightValue.lastToken)
+        }
+
+        return curr
     }
 
     private fun processFn(
@@ -398,17 +429,6 @@ class APLParser(val tokeniser: TokenGenerator) {
                 lvalueReader.makeInstruction(holder.instr, holder.pos), holder.lastToken)
             is ParseResultHolder.FnParseResult -> throw IllegalContextForFunction(holder.pos)
             is ParseResultHolder.EmptyParseResult -> throw ParseException("No right-side value in assignment instruction", pos)
-        }
-    }
-
-    class RelocalisedFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
-        class RelocalisedFunctionImpl(fn: APLFunction, pos: FunctionInstantiation) : DelegatedAPLFunctionImpl(pos, listOf(fn)) {
-            override fun innerImpl() = fns[0]
-            override fun copy(fns: List<APLFunction>) = RelocalisedFunctionImpl(fns[0], instantiation)
-        }
-
-        override fun make(instantiation: FunctionInstantiation): APLFunction {
-            return RelocalisedFunctionImpl(fn, instantiation)
         }
     }
 
@@ -1016,6 +1036,8 @@ class APLParser(val tokeniser: TokenGenerator) {
             CloseBracket,
             ListSeparator,
             Newline,
-            RightForkToken)
+            RightForkToken,
+            AndToken,
+            OrToken)
     }
 }

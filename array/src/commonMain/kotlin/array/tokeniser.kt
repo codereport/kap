@@ -39,6 +39,8 @@ object DeclareToken : Token()
 object LeftForkToken : Token()
 object RightForkToken : Token()
 object DynassignToken : Token()
+object AndToken : Token()
+object OrToken : Token()
 
 class Namespace(val name: String) {
     private val lock = MPLock()
@@ -542,7 +544,9 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
             "defsyntax" to DefsyntaxToken,
             "use" to IncludeToken,
             "declare" to DeclareToken,
-            "dynamicequal" to DynassignToken)
+            "dynamicequal" to DynassignToken,
+            "or" to OrToken,
+            "and" to AndToken)
 
         private fun collectSymbol(
             firstChar: Int,
