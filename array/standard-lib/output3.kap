@@ -24,13 +24,11 @@ isNumber ⇐ { (typeof ⍵) ∊ 'integer 'float 'complex 'rational }
 zSpc ⇐ { (0≡¨⍵) % ⍵ @\s }
 
 ∇ isAplString (v) {
-  (1≢≢⍴v) → 0
-  ~0∊'char=typeof¨v
+  1=≢⍴v and ~0∊'char=typeof¨v
 }
 
 ∇ isEnclosedArray {
-  (0≠≢⍴⍵) → 0
-  ⍵≢⊃⍵
+  0=≢⍴⍵ and ⍵≢⊃⍵
 }
 
 ∇ toHex {
@@ -39,24 +37,28 @@ zSpc ⇐ { (0≡¨⍵) % ⍵ @\s }
 
 ∇ renderChar ch {
   n ← ch-@\0
-  ch ← if ((n ≥ 33) ∧ (n ≤ 126)) {
+  ch ← if ((n ≥ 33) and (n ≤ 126)) {
     @@ , ch
   } else {
     "@\\u" , toHex n
   }
-  1 ¯1 ⍴ ch
+  <ch
 }
 
 ∇ renderString {
   zSpc ⊃ (@\n≠)⍛⊂ @",⍵,@"
 }
 
+∇ renderString2 {
+  (@\n≠)⍛⊂ @",⍵,@"
+}
+
 ∇ renderNumber (n) {
-  1 ¯1 ⍴ ⍕n
+  <⍕n
 }
 
 ∇ renderSymbol (sym) {
-  1 ¯1 ⍴ ⍕sym
+  <⍕sym
 }
 
 ∇ alignCells (v) {
@@ -79,9 +81,9 @@ zSpc ⇐ { (0≡¨⍵) % ⍵ @\s }
 
   w ← ↑↓⍴↑f
 
-  top ← 1 ¯1 ⍴ "→" , ((w-2) ⍴ @─) ,"┐"
-  bottom ← 1 ¯1 ⍴ ((w-1) ⍴ @─) ,"┘"
-  separator ← 1 ¯1 ⍴ "→" , ((w-2) ⍴ @─) , "┤"
+  top ← < "→" , ((w-2) ⍴ @─) ,"┐"
+  bottom ← < ((w-1) ⍴ @─) ,"┘"
+  separator ← < "→" , ((w-2) ⍴ @─) , "┤"
   res ← {top⍪⍵⍪bottom} ↑ ⍪⌿⍪ ¯1↓ , f ,[0.5] ⊂separator
 
   ⍝ To draw the layers to the left, first determine the number of layers and their sizes.
@@ -131,7 +133,7 @@ renderArrayOrString ⇐ {
 }
 
 ∇ renderMap {
-  1 ¯1 ⍴ "[map size:",(⍕mapSize ⍵),"]"
+  < ⍴ "[map size:",(⍕mapSize ⍵),"]"
 }
 
 renderList ⇐ {
