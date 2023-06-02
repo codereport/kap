@@ -107,6 +107,8 @@ class IllegalDeclaration(message: String, pos: Position? = null) : ParseExceptio
 class InvalidFunctionRedefinition(name: Symbol, pos: Position? = null) :
         ParseException("Function cannot be redefined: ${name.nameWithNamespace}", pos)
 
+class InvalidOperatorArgument(name: Symbol, pos: Position? = null) : ParseException("Operator without left function: ${name.symbolName}", pos)
+
 class ReturnValue(val value: APLValue, val returnEnvironment: Environment, pos: Position? = null) : APLEvalException("Target stack frame is not available", pos)
 
 @OptIn(ExperimentalContracts::class)

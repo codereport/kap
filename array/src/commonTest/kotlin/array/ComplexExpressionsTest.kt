@@ -189,8 +189,7 @@ class ComplexExpressionsTest : APLTest() {
 
     @Test
     fun operatorInParenShouldFail() {
-        // TODO: This should probably be a parse error. Being able to have a variable with the same name as an operator can be confusing.
-        assertFailsWith<VariableNotAssigned> {
+        assertFailsWith<InvalidOperatorArgument> {
             parseAPLExpression("1 2 3 +(¨) 4 5 6")
         }
     }

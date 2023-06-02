@@ -134,9 +134,7 @@ class ScopeTest : APLTest() {
             |  {comp ⍵} foo 4 5 6
             |} 0
             """.trimMargin()
-        assertFailsWith<VariableNotAssigned> {
-            // This fails with VariableNotAssigned because abc is not in scope, and is therefore parsed as a variable.
-            // This means that the following ¨ is not parsed as an operator because it's not prefixed by a function.
+        assertFailsWith<InvalidOperatorArgument> {
             parseAPLExpression(src)
         }
     }

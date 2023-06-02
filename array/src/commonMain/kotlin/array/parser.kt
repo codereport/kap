@@ -771,6 +771,8 @@ class APLParser(val tokeniser: TokenGenerator) {
                         val fn = lookupFunction(token) { FunctionInstantiation(pos.withCallerName(token.symbolName), currentEnvironment()) }
                         if (fn != null) {
                             return processFn(fn, leftArgs)
+                        } else if (tokeniser.engine.getOperator(token) != null) {
+                            throw InvalidOperatorArgument(token, pos)
                         } else {
                             leftArgs.add(makeVariableRef(token, pos))
                         }
