@@ -1,5 +1,6 @@
 package array
 
+import array.complex.Complex
 import kotlin.test.Test
 
 class TrigFunctionsTest : APLTest() {
@@ -17,6 +18,49 @@ class TrigFunctionsTest : APLTest() {
             assertComplexWithRange(Pair(1.609437911, 1.609437913), Pair(2.214297435, 2.214297437), result.valueAt(7))
             assertComplexWithRange(Pair(1.763180261, 1.763180263), Pair(-1.030376828, -1.030376826), result.valueAt(8))
             assertComplexWithRange(Pair(6.941136738, 6.941136740), Pair(-1.668636477, -1.668636475), result.valueAt(9))
+        }
+    }
+
+    @Test
+    fun logBigintArgument() {
+        parseAPLExpression("⍟int:asBigint 10").let { result ->
+            assertNearDouble(NearDouble(2.302585092994046), result)
+        }
+    }
+
+    @Test
+    fun logRationalArgument() {
+        parseAPLExpression("⍟(7÷6)").let { result ->
+            assertNearDouble(NearDouble(0.15415067982725836), result)
+        }
+    }
+
+    @Test
+    fun logBaseTest() {
+        parseAPLExpression("3⍟4 9 100 ¯12 1j3 2.9").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearDouble(1.261859507),
+                    NearDouble(2.0),
+                    NearDouble(4.191806549),
+                    NearComplex(Complex(2.261859507, 2.859600867)),
+                    NearComplex(Complex(1.047951637, 1.136930458)),
+                    NearDouble(0.9691414778)),
+                result)
+        }
+    }
+
+    @Test
+    fun logBaseBigint() {
+        parseAPLExpression("3 ⍟ int:asBigint 8").let { result ->
+            assertNearDouble(NearDouble(1.892789261), result)
+        }
+    }
+
+    @Test
+    fun logBaseRational() {
+        parseAPLExpression("9⍟(1÷200)").let { result ->
+            assertNearDouble(NearDouble(-2.411368151), result)
         }
     }
 
@@ -51,6 +95,20 @@ class TrigFunctionsTest : APLTest() {
     }
 
     @Test
+    fun sinBigint() {
+        parseAPLExpression("math:sin int:asBigint 2").let { result ->
+            assertNearDouble(NearDouble(0.9092974268256817), result)
+        }
+    }
+
+    @Test
+    fun sinRational() {
+        parseAPLExpression("math:sin (4÷3)").let { result ->
+            assertNearDouble(NearDouble(0.9719379013633127), result)
+        }
+    }
+
+    @Test
     fun cosRealArgument() {
         parseAPLExpression("math:cos 0 1 0.5 ¯0.5 0.2 ¯0.1 2 3 4 5 ¯1 ¯2 ¯5").let { result ->
             assertDoubleWithRange(Pair(1.0, 1.0), result.valueAt(0))
@@ -77,6 +135,20 @@ class TrigFunctionsTest : APLTest() {
             assertComplexWithRange(Pair(1.588999750, 1.588999752), Pair(0.7236743232, 0.7236743234), result.valueAt(4))
             assertComplexWithRange(Pair(-0.5073724394, -0.5073724392), Pair(0.08646487683, 0.08646487685), result.valueAt(5))
             assertComplexWithRange(Pair(0.4558659925, 0.4558659927), Pair(-0.08926934486, -0.08926934482), result.valueAt(6))
+        }
+    }
+
+    @Test
+    fun cosBigint() {
+        parseAPLExpression("math:cos int:asBigint 2").let { result ->
+            assertNearDouble(NearDouble(-0.4161468365471424), result)
+        }
+    }
+
+    @Test
+    fun cosRational() {
+        parseAPLExpression("math:cos (5÷3)").let { result ->
+            assertNearDouble(NearDouble(-0.09572354801437566), result)
         }
     }
 }

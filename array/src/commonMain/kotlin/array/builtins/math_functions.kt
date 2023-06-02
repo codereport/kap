@@ -891,7 +891,9 @@ class LogAPLFunction : APLFunctionDescriptor {
                 a,
                 { x -> if (x < 0) x.toDouble().toComplex().ln().makeAPLNumber() else ln(x.toDouble()).makeAPLNumber() },
                 { x -> if (x < 0) x.toComplex().ln().makeAPLNumber() else ln(x).makeAPLNumber() },
-                { x -> x.ln().makeAPLNumber() })
+                { x -> x.ln().makeAPLNumber() },
+                fnBigInt = { x -> if (x < 0) x.toDouble().toComplex().ln().makeAPLNumber() else ln(x.toDouble()).makeAPLNumber() },
+                fnRational = { x -> if (x < 0) x.toDouble().toComplex().ln().makeAPLNumber() else ln(x.toDouble()).makeAPLNumber() })
         }
 
         override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
@@ -907,7 +909,21 @@ class LogAPLFunction : APLFunctionDescriptor {
                     }
                 },
                 { x, y -> if (x < 0 || y < 0) y.toComplex().log(x.toComplex()).makeAPLNumber() else log(y, x).makeAPLNumber() },
-                { x, y -> y.log(x).makeAPLNumber() })
+                { x, y -> y.log(x).makeAPLNumber() },
+                fnBigint = { x, y ->
+                    if (x < 0 || y < 0) {
+                        y.toDouble().toComplex().log(x.toDouble()).makeAPLNumber()
+                    } else {
+                        log(y.toDouble(), x.toDouble()).makeAPLNumber()
+                    }
+                },
+                fnRational = { x, y ->
+                    if (x < 0 || y < 0) {
+                        y.toDouble().toComplex().log(x.toDouble()).makeAPLNumber()
+                    } else {
+                        log(y.toDouble(), x.toDouble()).makeAPLNumber()
+                    }
+                })
         }
 
         private val powerFn by lazy { PowerAPLFunction().make(pos) }
@@ -935,7 +951,9 @@ class SinAPLFunction : APLFunctionDescriptor {
                 a,
                 { x -> sin(x.toDouble()).makeAPLNumber() },
                 { x -> sin(x).makeAPLNumber() },
-                { x -> complexSin(x).makeAPLNumber() })
+                { x -> complexSin(x).makeAPLNumber() },
+                fnBigInt = { x -> sin(x.toDouble()).makeAPLNumber() },
+                fnRational = { x -> sin(x.toDouble()).makeAPLNumber() })
         }
 
         override val name1Arg get() = "sin"
@@ -952,7 +970,9 @@ class CosAPLFunction : APLFunctionDescriptor {
                 a,
                 { x -> cos(x.toDouble()).makeAPLNumber() },
                 { x -> cos(x).makeAPLNumber() },
-                { x -> complexCos(x).makeAPLNumber() })
+                { x -> complexCos(x).makeAPLNumber() },
+                fnBigInt = { x -> cos(x.toDouble()).makeAPLNumber() },
+                fnRational = { x -> cos(x.toDouble()).makeAPLNumber() })
         }
     }
 
