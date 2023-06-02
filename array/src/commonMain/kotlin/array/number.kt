@@ -134,6 +134,7 @@ class APLBigInt(val value: BigInt) : APLWideNumber() {
     override fun isComplex() = false
     override fun asBigInt() = value
     override fun asRational() = Rational.make(value, BigIntConstants.ONE)
+    override fun asBoolean(pos: Position?) = value != BigIntConstants.ZERO
 
     override val aplValueType: APLValueType get() = APLValueType.INTEGER
 
@@ -178,6 +179,7 @@ class APLRational(val value: Rational) : APLWideNumber() {
     override fun asComplex() = value.toDouble().toComplex()
     override fun isComplex() = false
     override fun asRational() = value
+    override fun asBoolean(pos: Position?) = value != Rational.ZERO
 
     override val aplValueType: APLValueType get() = APLValueType.RATIONAL
 

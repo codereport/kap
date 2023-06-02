@@ -378,3 +378,13 @@ class ReturnFunction : APLFunctionDescriptor {
         return null
     }
 }
+
+class ToBooleanFunction : APLFunctionDescriptor {
+    class ToBooleanFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            return if (a.asBoolean(pos)) APLLONG_1 else APLLONG_0
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = ToBooleanFunctionImpl(instantiation)
+}

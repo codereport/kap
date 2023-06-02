@@ -385,6 +385,8 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeOperator("atLeave", AtLeaveScopeOperator())
         registerNativeFunction("toList", ToListFunction())
         registerNativeFunction("fromList", FromListFunction())
+        registerNativeFunction("proto", AssignPrototypeFunction(), "int")
+        registerNativeFunction("toBoolean", ToBooleanFunction())
 
         // maths
         registerNativeFunction("sin", SinAPLFunction(), "math")
@@ -402,7 +404,6 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("isLocallyBound", IsLocallyBoundFunction())
         registerNativeFunction("comp", CompFunction())
         registerNativeFunction("sysparam", SystemParameterFunction())
-        registerNativeFunction("proto", AssignPrototypeFunction(), "int")
 
         // operators
         registerNativeOperator("¨", ForEachOp())
