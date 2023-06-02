@@ -2,6 +2,7 @@ package array
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
 
 class AndOrtest : APLTest() {
     @Test
@@ -49,6 +50,48 @@ class AndOrtest : APLTest() {
         parseAPLExpressionWithOutput("io:print 0 or io:print 0").let { (result, out) ->
             assertSimpleNumber(0, result)
             assertEquals("00", out)
+        }
+    }
+
+    @Test
+    fun invalidSyntax0() {
+        assertFailsWith<ParseException> {
+            parseAPLExpression("and 1")
+        }
+    }
+
+    @Test
+    fun invalidSyntax1() {
+        assertFailsWith<ParseException> {
+            parseAPLExpression("1 and")
+        }
+    }
+
+    @Test
+    fun invalidSyntax2() {
+        assertFailsWith<ParseException> {
+            parseAPLExpression("and")
+        }
+    }
+
+    @Test
+    fun invalidSyntax3() {
+        assertFailsWith<ParseException> {
+            parseAPLExpression("or 1")
+        }
+    }
+
+    @Test
+    fun invalidSyntax4() {
+        assertFailsWith<ParseException> {
+            parseAPLExpression("1 or")
+        }
+    }
+
+    @Test
+    fun invalidSyntax5() {
+        assertFailsWith<ParseException> {
+            parseAPLExpression("or")
         }
     }
 }
