@@ -107,23 +107,23 @@ class FlowControlTest : APLTest() {
     }
 
     @Test
-    fun testIfWithArrayArgumentFalse() {
+    fun testIfWithArrayArgumentTrue() {
         parseAPLExpression("if (,0) { 10 } else { 20 }", true).let { result ->
-            assertSimpleNumber(20, result)
+            assertSimpleNumber(10, result)
         }
     }
 
     @Test
     fun testIfWithArrayArgumentMultiValue() {
         parseAPLExpression("if (1 1 1 1) { 10 } else { 20 }", true).let { result ->
-            assertSimpleNumber(20, result)
+            assertSimpleNumber(10, result)
         }
     }
 
     @Test
-    fun testIfWithArrayArgumentMultiValueFalse() {
+    fun testIfWithArrayArgumentMultiValueTrue() {
         parseAPLExpression("if (0 0 0 0 0 0 0) { 10 } else { 20 }", true).let { result ->
-            assertSimpleNumber(20, result)
+            assertSimpleNumber(10, result)
         }
     }
 
