@@ -18,6 +18,14 @@ kotlin {
 //                linkerOpts = ["-licui18n", "-licuuc", "-licudata"]
             }
         }
+        compilations.main.kotlinOptions {
+            freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+            apiVersion = "1.9"
+        }
+        compilations.test.kotlinOptions {
+            freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+            apiVersion = "1.9"
+        }
     }
 
     sourceSets {

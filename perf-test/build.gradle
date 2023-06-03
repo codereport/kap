@@ -12,10 +12,12 @@ kotlin {
         compilations.main.kotlinOptions {
             jvmTarget = "17"
             freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+            apiVersion = "1.9"
         }
         compilations.test.kotlinOptions {
             jvmTarget = "17"
             freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+            apiVersion = "1.9"
         }
     }
     js(IR) {
@@ -35,9 +37,11 @@ kotlin {
     linuxX64("linux") {
         compilations.main.kotlinOptions {
             freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+            apiVersion = "1.9"
         }
         compilations.test.kotlinOptions {
             freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+            apiVersion = "1.9"
         }
         binaries {
             executable {

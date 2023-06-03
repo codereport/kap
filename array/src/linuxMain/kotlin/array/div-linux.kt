@@ -2,10 +2,7 @@
 
 package array
 
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.alloc
-import kotlinx.cinterop.memScoped
-import kotlinx.cinterop.ptr
+import kotlinx.cinterop.*
 import platform.posix.*
 import kotlin.concurrent.AtomicReference
 import kotlin.experimental.ExperimentalNativeApi
@@ -53,7 +50,7 @@ actual fun currentTime(): Long {
     memScoped {
         val value = alloc<timeval>()
         if (gettimeofday(value.ptr, null) != 0) {
-            throw RuntimeException("Error getting time: ${strerror(errno)}")
+            throw RuntimeException("Error getting time: ${strerror(errno)?.toKString() ?: "null error"}")
         }
         return (value.tv_sec * 1000) + (value.tv_usec / 1000)
     }

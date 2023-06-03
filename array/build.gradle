@@ -79,10 +79,12 @@ kotlin {
         compilations.main.kotlinOptions {
             jvmTarget = "17"
             freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+            apiVersion = "1.9"
         }
         compilations.test.kotlinOptions {
             jvmTarget = "17"
             freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+            apiVersion = "1.9"
         }
     }
     js(IR) {
@@ -106,10 +108,12 @@ kotlin {
         }
         compilations.main.kotlinOptions {
             freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+            apiVersion = "1.9"
         }
         compilations.test.kotlinOptions {
 //            freeCompilerArgs = ["-linker-options", findIcuLibs()]
             freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"
+            apiVersion = "1.9"
         }
     }
 
