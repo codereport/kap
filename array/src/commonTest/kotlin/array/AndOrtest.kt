@@ -29,6 +29,7 @@ class AndOrtest : APLTest() {
     @Test
     fun precedenceTest1() {
         assertSimpleNumber(1, parseAPLExpression("1+0 and 1+0 or 0"))
+        assertSimpleNumber(1, parseAPLExpression("2+0 and 1+0 or 0"))
     }
 
     @Test
