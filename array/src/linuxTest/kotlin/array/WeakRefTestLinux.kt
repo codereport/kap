@@ -9,7 +9,7 @@ class WeakRefTestLinux {
     @Test
     fun simpleWeakRef() {
         val v = makeWeakStringArray()
-        kotlin.native.internal.GC.collect()
+        kotlin.native.runtime.GC.collect()
         val a = v.value
         assertNull(a)
     }
