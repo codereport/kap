@@ -38,7 +38,7 @@ class AndOrtest : APLTest() {
     }
 
     @Test
-    fun shortCircuitTest0() {
+    fun shortCircuitTestOr0() {
         parseAPLExpressionWithOutput("io:print 1 or io:print 0").let { (result, out) ->
             assertSimpleNumber(1, result)
             assertEquals("1", out)
@@ -46,10 +46,26 @@ class AndOrtest : APLTest() {
     }
 
     @Test
-    fun shortCircuitTest1() {
+    fun shortCircuitTestOr1() {
         parseAPLExpressionWithOutput("io:print 0 or io:print 0").let { (result, out) ->
             assertSimpleNumber(0, result)
             assertEquals("00", out)
+        }
+    }
+
+    @Test
+    fun shortCircuitTestAnd0() {
+        parseAPLExpressionWithOutput("io:print 1 and io:print 0").let { (result, out) ->
+            assertSimpleNumber(0, result)
+            assertEquals("10", out)
+        }
+    }
+
+    @Test
+    fun shortCircuitTestAnd1() {
+        parseAPLExpressionWithOutput("io:print 0 and io:print 0").let { (result, out) ->
+            assertSimpleNumber(0, result)
+            assertEquals("0", out)
         }
     }
 
