@@ -114,16 +114,10 @@ kotlin {
                 implementation kotlin('test-annotations-common')
             }
         }
-//        jsMain {
-//            dependencies {
-//                implementation "dev.fritz2:core:$fritz2Version"
-//            }
-//        }
-//        jsTest {
-//        }
         jsclientMain {
             dependencies {
                 implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-html', version: '0.7.3'
+                implementation npm('chart.js', '4.3.0')
             }
         }
         webworkerMain {

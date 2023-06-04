@@ -170,3 +170,7 @@ td.kapNumber {
     left: 40px;
     z-index: -40;
 }
+
+.output-chart {
+    width: 600px;
+}

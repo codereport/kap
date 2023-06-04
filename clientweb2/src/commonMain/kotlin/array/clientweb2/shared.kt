@@ -1,12 +1,15 @@
 package array.clientweb2
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
+import kotlinx.serialization.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.SerializersModuleCollector
+import kotlinx.serialization.modules.overwriteWith
+import kotlin.reflect.KClass
 
 ///////////////////////////////////////////////
 // Worker communication structures
 ///////////////////////////////////////////////
-
 
 @Serializable
 enum class ResultType(val requiresFormatting: Boolean) {
@@ -50,6 +53,13 @@ data class OutputDescriptor(val text: String) : ResponseMessage()
 @Serializable
 @SerialName("avail")
 data class EngineStartedDescriptor(val text: String) : ResponseMessage()
+
+@Serializable
+@SerialName("additionaloutput")
+data class AdditionalOutput(val content: AdditionalOutputData) : ResponseMessage()
+
+@Serializable
+sealed class AdditionalOutputData
 
 ///////////////////////////////////////////////
 // JSON representation of KAP datatypes

@@ -24,7 +24,8 @@ fun loadLibraries() {
         "standard-lib/output.kap",
         "standard-lib/output3.kap",
         "standard-lib/time.kap",
-        "standard-lib/regex.kap")
+        "standard-lib/regex.kap"
+    )
 }
 
 private fun loadLibFiles(vararg names: String) {
@@ -47,15 +48,16 @@ private fun loadLibFiles(vararg names: String) {
 }
 
 fun initQueue() {
+    println("Starting listener: self = ${self}")
     val engine = Engine()
     engine.addLibrarySearchPath("standard-lib")
-    println("Starting listener: self = ${self}")
+    val sendMessageFn = { msg: ResponseMessage -> self.postMessage(Json.encodeToString(msg)) }
     engine.standardOutput = object : CharacterOutput {
         override fun writeString(s: String) {
-            val message: ResponseMessage = OutputDescriptor(s)
-            self.postMessage(Json.encodeToString(message))
+            sendMessageFn(OutputDescriptor(s))
         }
     }
+    engine.addModule(ChartModule(sendMessageFn))
     engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
     self.onmessage = { event ->
         val request = Json.decodeFromString<EvalRequest>(event.data as String)

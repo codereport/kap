@@ -1,6 +1,5 @@
 package array.clientweb2
 
-import array.keyboard.ExtendedCharsKeyboardInput
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.html.*
@@ -16,32 +15,27 @@ external fun encodeURIComponent(text: String): String
 
 var useHtmlValueRenderer: Boolean = false
 
-object Keymap {
-    private val map = HashMap<String, String>()
-
-    init {
-        val keyboard = ExtendedCharsKeyboardInput()
-        keyboard.keymap.forEach { (k, v) ->
-            map[k.character] = v
-        }
-    }
-
-    fun lookup(ch: String) = map[ch]
-}
-
 private fun initWorker(): Worker {
     val worker = Worker("compute-queue-worker.js")
     worker.onmessage = { event ->
         println("eventdata: ${event.data}")
+        console.log(event)
         when (val response = Json.decodeFromString<ResponseMessage>(event.data as String)) {
             is EvalResponse -> addResponseToResultHistory(response)
             is ExceptionDescriptor -> addExceptionResultToResultHistory(response)
             is EvalExceptionDescriptor -> addEvalExceptionResultToResultHistory(response)
             is OutputDescriptor -> processOutput(response.text)
             is EngineStartedDescriptor -> engineAvailableCallback(worker)
+            is AdditionalOutput -> processAdditionalOutput(response)
         }
     }
     return worker
+}
+
+private fun processAdditionalOutput(response: AdditionalOutput) {
+    when (val content = response.content) {
+        is ChartOutput -> displayChart(content)
+    }
 }
 
 class CurrentOutput(val node: HTMLDivElement) {
@@ -65,6 +59,13 @@ class CurrentOutput(val node: HTMLDivElement) {
             }
         }
     }
+
+    fun appendNode(newNode: HTMLElement) {
+        inProgressNode = null
+//        val n = createDiv("output-result-element").also { n -> node.appendChild(n) }
+//        n.appendChild(newNode)
+        node.appendChild(newNode)
+    }
 }
 
 private fun clearCurrentOutput() {
@@ -73,13 +74,16 @@ private fun clearCurrentOutput() {
 
 private var currentOutput: CurrentOutput? = null
 
-private fun processOutput(text: String) {
-    val curr = currentOutput ?: createDiv("current-output").let { n ->
+fun findCurrentOutput(): CurrentOutput {
+    return currentOutput ?: createDiv("current-output").let { n ->
         n.classList.add("output-result-outer")
         findResultHistoryNode().appendChild(n)
         CurrentOutput(n).also { c -> currentOutput = c }
     }
-    curr.appendText(text)
+}
+
+private fun processOutput(text: String) {
+    findCurrentOutput().appendText(text)
 }
 
 private fun findResultHistoryNode(): HTMLDivElement {
@@ -224,6 +228,7 @@ inline fun <reified T : HTMLElement> findElement(id: String): T {
 }
 
 fun createDiv(className: String? = null) = createElementWithClassName("div", className) as HTMLDivElement
+fun createCanvas(className: String? = null) = createElementWithClassName("canvas", className) as HTMLCanvasElement
 
 fun createElementWithClassName(type: String, className: String?): HTMLElement {
     val element = document.createElement(type)
