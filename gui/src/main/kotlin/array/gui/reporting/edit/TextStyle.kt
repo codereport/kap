@@ -72,8 +72,7 @@ data class TextStyle(
                 val backgroundColour = OPT_COLOR_CODEC.decode(input).orElse(null)
                 return TextStyle(
                     bold = bold(bius), italic = italic(bius), underline = underline(bius), strikethrough = strikethrough(bius),
-                    fontSize = fontSize, fontFamily = fontFamily, textColour = textColour, backgroundColour = backgroundColour
-                )
+                    fontSize = fontSize, fontFamily = fontFamily, textColour = textColour, backgroundColour = backgroundColour)
             }
 
             private fun encodeBoldItalicUnderlineStrikethrough(s: TextStyle): Int {

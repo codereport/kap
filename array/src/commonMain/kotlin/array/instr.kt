@@ -299,11 +299,7 @@ class AssignmentInstruction(val variableList: Array<StackStorageRef>, val instr:
             variableList.size == 1 -> context.setVar(variableList[0], v)
             v.dimensions.size != 1 -> throwAPLException(APLEvalException("Destructuring assignment requires rank-1 value", pos))
             variableList.size != v.size -> throwAPLException(
-                APLEvalException(
-                    "Destructuring assignment expected ${variableList.size} results, got: ${v.size}",
-                    pos
-                )
-            )
+                APLEvalException("Destructuring assignment expected ${variableList.size} results, got: ${v.size}", pos))
             else -> {
                 variableList.forEachIndexed { i, binding ->
                     context.setVar(binding, v.valueAt(i))

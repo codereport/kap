@@ -401,8 +401,7 @@ class TokenGeneratorTest {
             |1 2 `
             |3 `
             |4
-            """.trimMargin()
-        )
+            """.trimMargin())
         gen.nextToken().let { token ->
             assertTrue(token is ParsedLong)
             assertEquals(1, token.value)
@@ -428,8 +427,7 @@ class TokenGeneratorTest {
             """
             |1 `4 5
             |6
-            """.trimMargin()
-        )
+            """.trimMargin())
         gen.nextToken().let { token ->
             assertTrue(token is ParsedLong)
             assertEquals(1, token.value)
@@ -538,8 +536,7 @@ class TokenGeneratorTest {
             """
             |aa bb
             |cccc dddd
-            """.trimMargin()
-        )
+            """.trimMargin())
         gen.nextTokenWithPosition().let { (token, pos) ->
             assertTokenIsSymbol(gen, token, "aa", gen.engine.initialNamespace.name)
             assertPosition(0, 0, 0, 2, pos)
@@ -566,8 +563,7 @@ class TokenGeneratorTest {
             """
             |aa bb `
             |cc dd
-            """.trimMargin()
-        )
+            """.trimMargin())
         gen.nextTokenWithPosition().let { (token, pos) ->
             assertTokenIsSymbol(gen, token, "aa", gen.engine.initialNamespace.name)
             assertPosition(0, 0, 0, 2, pos)
@@ -592,8 +588,7 @@ class TokenGeneratorTest {
         val gen =
             makeGenerator(
                 "1234567891234567891234567890 ¯22222234567891234567891234567890 9223372036854775807 " +
-                        "9223372036854775808 ¯9223372036854775808 ¯9223372036854775809"
-            )
+                        "9223372036854775808 ¯9223372036854775808 ¯9223372036854775809")
         gen.nextToken().let { token ->
             assertTrue(token is ParsedBigInt)
             assertEquals(BigInt.of("1234567891234567891234567890"), token.value)

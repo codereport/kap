@@ -10,11 +10,7 @@ interface APLOperator {
 interface APLOperatorOneArg : APLOperator {
     override fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: FunctionInstantiation): APLFunction {
         return combineFunction(currentFn, opPos).make(
-            FunctionInstantiation(
-                opPos.pos.copy(
-                    line = currentFn.pos.line,
-                    col = currentFn.pos.col), opPos.env)
-        )
+            FunctionInstantiation(opPos.pos.copy(line = currentFn.pos.line, col = currentFn.pos.col), opPos.env))
     }
 
     fun combineFunction(fn: APLFunction, pos: FunctionInstantiation): APLFunctionDescriptor
@@ -199,7 +195,7 @@ class UserDefinedOperatorTwoArg(
     }
 
     abstract inner class APLUserDefinedOperatorFunction(leftFn: APLFunction, extraFns: List<APLFunction>, pos: FunctionInstantiation) :
-            NoAxisAPLFunction(pos, listOf(leftFn) + extraFns) {
+        NoAxisAPLFunction(pos, listOf(leftFn) + extraFns) {
         private val leftOperatorRef = StackStorageRef(leftOpBinding)
         private val rightOperatorRef = StackStorageRef(rightOpBinding)
         private val leftArgsRef = leftArgs.map(::StackStorageRef)
@@ -234,14 +230,14 @@ class UserDefinedOperatorTwoArg(
     }
 
     inner class FnCall(leftFn: APLFunction, rightFn: APLFunction, pos: FunctionInstantiation) :
-            APLUserDefinedOperatorFunction(leftFn, listOf(rightFn), pos), SaveStackCapable by SaveStackSupport(leftFn, rightFn) {
+        APLUserDefinedOperatorFunction(leftFn, listOf(rightFn), pos), SaveStackCapable by SaveStackSupport(leftFn, rightFn) {
 
         override fun mkArg(context: RuntimeContext) = LambdaValue(rightFn, currentStack().currentFrame())
         private val rightFn = fns[1]
     }
 
     inner class ValueCall(leftFn: APLFunction, val argInstr: Instruction, pos: FunctionInstantiation) :
-            APLUserDefinedOperatorFunction(leftFn, emptyList(), pos), SaveStackCapable by SaveStackSupport(leftFn) {
+        APLUserDefinedOperatorFunction(leftFn, emptyList(), pos), SaveStackCapable by SaveStackSupport(leftFn) {
 
         override fun mkArg(context: RuntimeContext) = argInstr.evalWithContext(context)
     }

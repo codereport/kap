@@ -59,8 +59,7 @@ class FoldableStyledArea : GenericStyledArea<ParStyle, Segment, TextStyle>(
             applyStyle: BiConsumer<in TextExt, TextStyle>): Node {
             return seg.getSegment().unify(
                 { text -> StyledTextArea.createStyledTextNode(text, seg.getStyle(), applyStyle) },
-                LinkedImage::createNode
-            )
+                LinkedImage::createNode)
         }
 
         private fun nodeFactory(): Function<StyledSegment<Segment, TextStyle>, Node> {

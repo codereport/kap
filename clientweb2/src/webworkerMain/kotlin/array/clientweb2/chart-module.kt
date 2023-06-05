@@ -19,8 +19,7 @@ class LineChartFunction : APLFunctionDescriptor {
             val (horizontalAxisLabels, datasets) = when (d.size) {
                 1 -> Pair(
                     Array(d[0]) { i -> labels?.labels?.get(0)?.get(i)?.title ?: i.toString() },
-                    arrayOf(DatasetDouble("unnamed", DoubleArray(d[0]) { i -> a.valueAtDouble(i, pos) }))
-                )
+                    arrayOf(DatasetDouble("unnamed", DoubleArray(d[0]) { i -> a.valueAtDouble(i, pos) })))
                 2 -> {
                     val axis0Labels = labels?.labels?.get(0)
                     val axis1Labels = labels?.labels?.get(1)

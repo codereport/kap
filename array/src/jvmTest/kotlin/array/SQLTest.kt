@@ -166,8 +166,7 @@ class SQLTest : APLTest() {
                 |c ← sql:connect "jdbc:sqlite::memory:"
                 |statement ← c sql:prepare "select a, b from foo where a = ?"
                 |result ← statement sql:queryPrepared ,5
-                """.trimMargin()
-            )
+                """.trimMargin())
         }
     }
 
@@ -179,8 +178,7 @@ class SQLTest : APLTest() {
                 |c ← sql:connect "jdbc:sqlite::memory:"
                 |statement ← c sql:prepare "update foo set a = 1 where a = ?"
                 |result ← statement sql:updatePrepared ,5
-                """.trimMargin()
-            )
+                """.trimMargin())
         }
     }
 }
