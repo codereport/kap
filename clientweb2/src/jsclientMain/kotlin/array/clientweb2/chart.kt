@@ -57,7 +57,12 @@ fun displayLineChart(content: LineChartDescriptor) {
     findCurrentOutput().appendNode(element)
 
     val descriptor: dynamic = js("{}")
-    descriptor.type = "line"
+    descriptor.type = when (content.subtype) {
+        LineChartSubtype.LINE -> "line"
+        LineChartSubtype.BAR -> "pie"
+        LineChartSubtype.DOUGHNUT -> "doughnut"
+        LineChartSubtype.PIE -> "pie"
+    }
     descriptor.data = makeData(content)
     console.log(descriptor)
     Chart(canvas, descriptor)
