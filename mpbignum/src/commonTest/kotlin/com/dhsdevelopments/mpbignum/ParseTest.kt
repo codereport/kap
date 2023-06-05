@@ -130,6 +130,15 @@ class ParseTest {
     }
 
     @Test
+    fun convertFromDoubleStandard() {
+        assertEquals(BigInt.of(1), BigInt.of(1.0))
+        assertEquals(BigInt.of(1), BigInt.of(1.1))
+        assertEquals(BigInt.of(0), BigInt.of(0.0))
+        assertEquals(BigInt.of(-2), BigInt.of(-2.2))
+        assertEquals(BigInt.of(-200000), BigInt.of(-200000.9999999))
+    }
+
+    @Test
     fun convertFromDoubleFloor() {
         assertEquals(BigInt.of(1), BigInt.fromDoubleFloor(1.0))
         assertEquals(BigInt.of(1), BigInt.fromDoubleFloor(1.1))
