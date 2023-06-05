@@ -341,39 +341,73 @@ class ScalarTest : APLTest() {
 
     @Test
     fun testCeiling() {
-        assertSimpleDouble(2.0, parseAPLExpression("⌈1.4"))
-        assertSimpleDouble(3.0, parseAPLExpression("⌈2.9"))
-        assertSimpleDouble(-3.0, parseAPLExpression("⌈¯3.1"))
-        assertSimpleNumber(9, parseAPLExpression("⌈9"))
-        assertSimpleComplex(Complex(4.0, 6.0), parseAPLExpression("⌈4.1J5.2"))
-        assertSimpleComplex(Complex(91.0, 2.0), parseAPLExpression("⌈90.8J1.9"))
-        assertSimpleComplex(Complex(-1.0, -5.0), parseAPLExpression("⌈¯1.8J¯4.82"))
-        assertSimpleComplex(Complex(-10.0, -40.0), parseAPLExpression("⌈¯10.1J¯40.1"))
+        assertBigIntOrLong(2, parseAPLExpression("⌈1.4"))
+        assertBigIntOrLong(3, parseAPLExpression("⌈2.9"))
+        assertBigIntOrLong(-3, parseAPLExpression("⌈¯3.1"))
+        assertBigIntOrLong(9, parseAPLExpression("⌈9"))
         assertBigIntOrLong("9", parseAPLExpression("⌈50÷6"))
         assertBigIntOrLong("-16", parseAPLExpression("⌈¯50÷3"))
         assertSimpleNumber(3, parseAPLExpression("⌈3"))
         assertSimpleNumber(-3, parseAPLExpression("⌈¯3"))
         assertBigIntOrLong("3", parseAPLExpression("⌈ int:asBigint 3"))
         assertBigIntOrLong("-3", parseAPLExpression("⌈ int:asBigint ¯3"))
+        assertBigIntOrLong("4503599627370494", parseAPLExpression("⌈4503599627370494.0"))
+    }
+
+    @Test
+    fun ceilOnComplexShouldFail() {
+        assertFailsWith<APLIncompatibleDomainsException> {
+            parseAPLExpression("⌈1j2")
+        }
     }
 
     @Test
     fun testFloor() {
-        assertSimpleDouble(5.0, parseAPLExpression("⌊5.9"))
-        assertSimpleDouble(3.0, parseAPLExpression("⌊3.1"))
-        assertSimpleDouble(-6.0, parseAPLExpression("⌊¯5.1"))
-        assertSimpleDouble(-9.0, parseAPLExpression("⌊¯8.9"))
-        assertSimpleComplex(Complex(1.0, 4.0), parseAPLExpression("⌊1.1J3.9"))
-        assertSimpleComplex(Complex(2.0, 3.0), parseAPLExpression("⌊1.9J3.9"))
-        assertSimpleComplex(Complex(-2.0, -7.0), parseAPLExpression("⌊¯1.3J¯7.0"))
-        assertSimpleComplex(Complex(-4.0, -6.0), parseAPLExpression("⌊-4.1J5.2"))
-        assertSimpleComplex(Complex(1.0, 9.0), parseAPLExpression("⌊1.01J9.9"))
+        assertBigIntOrLong(5, parseAPLExpression("⌊5.9"))
+        assertBigIntOrLong(3, parseAPLExpression("⌊3.1"))
+        assertBigIntOrLong(-6, parseAPLExpression("⌊¯5.1"))
+        assertBigIntOrLong(-9, parseAPLExpression("⌊¯8.9"))
         assertBigIntOrLong("8", parseAPLExpression("⌊50÷6"))
         assertBigIntOrLong("-17", parseAPLExpression("⌊¯50÷3"))
         assertSimpleNumber(3, parseAPLExpression("⌊3"))
         assertSimpleNumber(-3, parseAPLExpression("⌊¯3"))
         assertBigIntOrLong("3", parseAPLExpression("⌊ int:asBigint 3"))
         assertBigIntOrLong("-3", parseAPLExpression("⌊ int:asBigint ¯3"))
+        assertBigIntOrLong("4503599627370494", parseAPLExpression("⌊4503599627370494.0"))
+    }
+
+    @Test
+    fun floorOnComplexShouldFail() {
+        assertFailsWith<APLIncompatibleDomainsException> {
+            parseAPLExpression("⌊1j2")
+        }
+    }
+
+    @Test
+    fun testComplexCeiling() {
+        assertSimpleDouble(2.0, parseAPLExpression("ceilc 1.4"))
+        assertSimpleDouble(3.0, parseAPLExpression("ceilc 2.9"))
+        assertSimpleDouble(-3.0, parseAPLExpression("ceilc ¯3.1"))
+        assertSimpleNumber(9, parseAPLExpression("ceilc 9"))
+        assertBigIntOrLong("9", parseAPLExpression("⌈50÷6"))
+        assertSimpleComplex(Complex(4.0, 6.0), parseAPLExpression("ceilc 4.1J5.2"))
+        assertSimpleComplex(Complex(91.0, 2.0), parseAPLExpression("ceilc 90.8J1.9"))
+        assertSimpleComplex(Complex(-1.0, -5.0), parseAPLExpression("ceilc ¯1.8J¯4.82"))
+        assertSimpleComplex(Complex(-10.0, -40.0), parseAPLExpression("ceilc ¯10.1J¯40.1"))
+    }
+
+    @Test
+    fun testComplexFloor() {
+        assertSimpleDouble(5.0, parseAPLExpression("floorc 5.9"))
+        assertSimpleDouble(-6.0, parseAPLExpression("floorc ¯5.1"))
+        assertBigIntOrLong("8", parseAPLExpression("floorc 50÷6"))
+        assertBigIntOrLong("-17", parseAPLExpression("floorc ¯50÷3"))
+        assertSimpleNumber(3, parseAPLExpression("floorc 3"))
+        assertSimpleComplex(Complex(1.0, 4.0), parseAPLExpression("floorc 1.1J3.9"))
+        assertSimpleComplex(Complex(2.0, 3.0), parseAPLExpression("floorc 1.9J3.9"))
+        assertSimpleComplex(Complex(-2.0, -7.0), parseAPLExpression("floorc ¯1.3J¯7.0"))
+        assertSimpleComplex(Complex(-4.0, -6.0), parseAPLExpression("floorc -4.1J5.2"))
+        assertSimpleComplex(Complex(1.0, 9.0), parseAPLExpression("floorc 1.01J9.9"))
     }
 
     @Test
@@ -407,7 +441,7 @@ class ScalarTest : APLTest() {
 
     @Test
     fun floorConvertsComplexToDouble() {
-        val result = parseAPLExpression("⌊3.4J0.01")
+        val result = parseAPLExpression("floorc 3.4J0.01")
         val v = result.unwrapDeferredValue()
         assertTrue(v is APLDouble, "expected APLDouble, actual type: ${v::class.simpleName}")
         assertSimpleDouble(3.0, v)

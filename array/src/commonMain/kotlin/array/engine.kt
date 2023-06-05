@@ -349,6 +349,8 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("⊆", PartitionedEncloseFunction())
         registerNativeFunction("cmp", CompareObjectsFunction())
         registerNativeFunction("→", ReturnFunction())
+        registerNativeFunction("floorc", ComplexFloorFunction())
+        registerNativeFunction("ceilc", ComplexCeilFunction())
 
         // hash tables
         registerNativeFunction("map", MapAPLFunction())
@@ -404,6 +406,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("isLocallyBound", IsLocallyBoundFunction())
         registerNativeFunction("comp", CompFunction())
         registerNativeFunction("sysparam", SystemParameterFunction())
+        registerNativeFunction("internalValueInfo", InternalValueInfoFunction(), "int")
 
         // operators
         registerNativeOperator("¨", ForEachOp())
