@@ -34,6 +34,7 @@ sealed class ParseResultHolder(val lastToken: TokenWithPosition) {
 }
 
 class StackStorageDescriptor(val env: Environment, val index: Int, val comment: String) {
+    var isConst: Boolean = false
     override fun toString() = "StackStorageDescriptor[comment=${comment}]"
 }
 
@@ -882,6 +883,13 @@ class APLParser(val tokeniser: TokenGenerator) {
         }
     }
 
+    private fun processConst() {
+        parseSymbolOrSymbolList { sym ->
+            val binding = findEnvironmentBinding(sym)
+            binding.storage.isConst = true
+        }
+    }
+
     private fun processSingleCharDeclaration() {
         val (stringToken, stringPos) = tokeniser.nextTokenAndPosWithType<StringToken>()
         val codepointList = stringToken.value.asCodepointList()
@@ -902,6 +910,7 @@ class APLParser(val tokeniser: TokenGenerator) {
             "singleCharExported" -> processSingleCharDeclaration()
             "export" -> processExport()
             "local" -> processLocal()
+            "const" -> processConst()
             else -> throw IllegalDeclaration("Unknown declaration name: ${sym.nameWithNamespace}")
         }
         tokeniser.nextTokenWithType<CloseParen>()

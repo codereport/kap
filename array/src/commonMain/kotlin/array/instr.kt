@@ -120,6 +120,9 @@ class VariableRef(val name: Symbol, val storageRef: StackStorageRef, pos: Positi
     override fun deriveLvalueReader(): LvalueReader {
         return object : LvalueReader {
             override fun makeInstruction(rightArgs: Instruction, pos: Position): Instruction {
+                if (storageRef.binding.storage.isConst) {
+                    throw AssignmentToConstantException(storageRef.binding.name, pos)
+                }
                 return AssignmentInstruction(arrayOf(storageRef), rightArgs, pos)
             }
         }
@@ -298,7 +301,9 @@ class AssignmentInstruction(val variableList: Array<StackStorageRef>, val instr:
             variableList.size != v.size -> throwAPLException(
                 APLEvalException(
                     "Destructuring assignment expected ${variableList.size} results, got: ${v.size}",
-                    pos))
+                    pos
+                )
+            )
             else -> {
                 variableList.forEachIndexed { i, binding ->
                     context.setVar(binding, v.valueAt(i))
@@ -354,7 +359,7 @@ class EvalLambdaFnx(val fn: APLFunction, pos: Position, val relatedInstructions:
 
 sealed class FunctionCallChain(pos: FunctionInstantiation, fns: List<APLFunction>) : APLFunction(pos, fns) {
     class Chain2(pos: FunctionInstantiation, fn0: APLFunction, fn1: APLFunction) :
-            FunctionCallChain(pos, listOf(fn0, fn1)) {
+        FunctionCallChain(pos, listOf(fn0, fn1)) {
         val fn0 get() = fns[0]
         val fn1 get() = fns[1]
 

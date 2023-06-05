@@ -109,6 +109,9 @@ class InvalidFunctionRedefinition(name: Symbol, pos: Position? = null) :
 
 class InvalidOperatorArgument(name: Symbol, pos: Position? = null) : ParseException("Operator without left function: ${name.symbolName}", pos)
 
+class AssignmentToConstantException(name: Symbol, pos: Position? = null) :
+    ParseException("Assignment to constant variable: ${name.nameWithNamespace}", pos)
+
 class ReturnValue(val value: APLValue, val returnEnvironment: Environment, pos: Position? = null) : APLEvalException("Target stack frame is not available", pos)
 
 @OptIn(ExperimentalContracts::class)

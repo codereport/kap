@@ -136,4 +136,59 @@ class AssignmentTest : APLTest() {
     fun assignmentWithAddition1() {
         assert1DArray(arrayOf(2, 12), parseAPLExpression("b ((b←2) + 10)"))
     }
+
+    @Test
+    fun readConstValue() {
+        val src = """
+            |a ← 1
+            |declare(:const a)
+            |a
+        """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertSimpleNumber(1, result)
+        }
+    }
+
+    @Test
+    fun updateableConstValue() {
+        val src = """
+            |a ← 1
+            |foo ⇐ {
+            |  a ← ⍵
+            |}
+            |declare(:const a)
+            |foo 2
+            |a
+        """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertSimpleNumber(2, result)
+        }
+    }
+
+    @Test
+    fun assignmentToConst() {
+        val src = """
+            |a ← 1
+            |declare(:const a)
+            |a ← 2
+        """.trimMargin()
+        assertFailsWith<AssignmentToConstantException> {
+            parseAPLExpression(src)
+        }
+    }
+
+    @Test
+    fun assignmentToConstInFunction() {
+        val src = """
+            |a ← 1
+            |declare(:const a)
+            |foo ⇐ {
+            |  a ← 2
+            |}
+            |0
+        """.trimMargin()
+        assertFailsWith<AssignmentToConstantException> {
+            parseAPLExpression(src)
+        }
+    }
 }
