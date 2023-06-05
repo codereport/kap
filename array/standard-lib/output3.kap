@@ -133,7 +133,7 @@ renderArrayOrString ⇐ {
 }
 
 ∇ renderMap {
-  < ⍴ "[map size:",(⍕mapSize ⍵),"]"
+  < "[map size:",(⍕mapSize ⍵),"]"
 }
 
 renderList ⇐ {
@@ -160,7 +160,7 @@ typeToFormatter ← map `
 format ⇐ {
   v←⍵
   renderer ← typeToFormatter[typeof v]
-  ⍞((⍬≡renderer) ⌷ renderer λ{1 ¯1 ⍴ ⍕typeof ⍵}) v
+  ⍞((⍬≡renderer) ⌷ renderer λ{<⍕typeof ⍵}) v
 }
 
 'kap:renderer sysparam λformat
