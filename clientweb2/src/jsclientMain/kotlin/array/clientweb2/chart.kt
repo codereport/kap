@@ -59,7 +59,7 @@ fun displayLineChart(content: LineChartDescriptor) {
     val descriptor: dynamic = js("{}")
     descriptor.type = when (content.subtype) {
         LineChartSubtype.LINE -> "line"
-        LineChartSubtype.BAR -> "pie"
+        LineChartSubtype.BAR -> "bar"
         LineChartSubtype.DOUGHNUT -> "doughnut"
         LineChartSubtype.PIE -> "pie"
     }
