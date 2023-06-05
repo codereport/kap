@@ -5,7 +5,7 @@ package com.dhsdevelopments.mpbignum
 import gmp.*
 import kotlinx.cinterop.*
 import kotlin.experimental.ExperimentalNativeApi
-import kotlin.native.internal.createCleaner
+import kotlin.native.ref.createCleaner
 
 class MpzWrapper(val value: mpz_t) {
     companion object {
@@ -148,6 +148,12 @@ actual fun BigInt.Companion.of(s: String): BigInt {
         }
         return BigInt(result)
     }
+}
+
+actual fun BigInt.Companion.of(value: Double): BigInt {
+    val result = MpzWrapper.allocMpzWrapper()
+    mpz_set_d!!(result.value, value)
+    return BigInt(result)
 }
 
 actual infix fun BigInt.and(other: BigInt) = basicOperation(other) { result, a, b -> mpz_and!!(result, a, b) }

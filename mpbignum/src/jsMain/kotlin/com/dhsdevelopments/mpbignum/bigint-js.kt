@@ -1,5 +1,8 @@
 package com.dhsdevelopments.mpbignum
 
+import kotlin.math.ceil
+import kotlin.math.floor
+
 class BigIntWrapper(val value: dynamic) {
     override fun equals(other: Any?): Boolean {
         if (other !is BigIntWrapper) {
@@ -114,13 +117,15 @@ actual operator fun BigInt.compareTo(other: BigInt): Int {
 }
 
 actual fun BigInt.Companion.of(value: Short): BigInt {
-    val stringified = value.toString()
-    return BigInt.of(stringified)
+    @Suppress("UNUSED_VARIABLE")
+    val a = value.toInt()
+    return makeFromJs(js("BigInt(a)"))
 }
 
 actual fun BigInt.Companion.of(value: Int): BigInt {
-    val stringified = value.toString()
-    return BigInt.of(stringified)
+    @Suppress("UNUSED_VARIABLE")
+    val a = value
+    return makeFromJs(js("BigInt(a)"))
 }
 
 actual fun BigInt.Companion.of(value: Long): BigInt {
@@ -137,6 +142,12 @@ actual fun BigInt.Companion.of(s: String): BigInt {
     @Suppress("UNUSED_VARIABLE")
     val stringified = s
     return makeFromJs(js("BigInt(stringified)"))
+}
+
+actual fun BigInt.Companion.of(value: Double): BigInt {
+    @Suppress("UNUSED_VARIABLE")
+    val a = value
+    return makeFromJs(js("BigInt(a-(a%1))"))
 }
 
 actual infix fun BigInt.and(other: BigInt): BigInt {

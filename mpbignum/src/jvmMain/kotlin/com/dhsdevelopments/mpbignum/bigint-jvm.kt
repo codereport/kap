@@ -61,6 +61,10 @@ actual infix fun BigInt.or(other: BigInt): BigInt {
     return BigInt(inner or other.inner)
 }
 
+actual fun BigInt.Companion.of(value: Double): BigInt {
+    return BigInt(value.toBigDecimal().toBigInteger())
+}
+
 actual infix fun BigInt.xor(other: BigInt): BigInt {
     return BigInt(inner xor other.inner)
 }

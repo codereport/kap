@@ -34,6 +34,7 @@ expect fun BigInt.Companion.of(value: Short): BigInt
 expect fun BigInt.Companion.of(value: Int): BigInt
 expect fun BigInt.Companion.of(value: Long): BigInt
 expect fun BigInt.Companion.of(s: String): BigInt
+expect fun BigInt.Companion.of(value: Double): BigInt
 
 operator fun BigInt.plus(other: Int) = this + BigInt.of(other)
 operator fun Int.plus(other: BigInt) = BigInt.of(this) + other
@@ -105,3 +106,21 @@ fun max(a: BigInt, b: BigInt) = if (a > b) a else a
 fun min(a: BigInt, b: BigInt) = if (a < b) a else b
 
 expect fun BigInt.rangeInLong(): Boolean
+
+fun BigInt.Companion.fromDoubleFloor(value: Double): BigInt {
+    val remainder = value.rem(1)
+    return if (remainder >= 0.0) {
+        BigInt.of(value)
+    } else {
+        BigInt.of(value) - 1
+    }
+}
+
+fun BigInt.Companion.fromDoubleCeil(value: Double): BigInt {
+    val remainder = value.rem(1)
+    return if (remainder <= 0.0) {
+        BigInt.of(value)
+    } else {
+        BigInt.of(value) + 1
+    }
+}

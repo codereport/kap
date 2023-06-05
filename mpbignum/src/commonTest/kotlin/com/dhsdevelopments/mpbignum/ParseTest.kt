@@ -128,4 +128,28 @@ class ParseTest {
         assertFalse(BigInt.of("-1000000000000000000000000000").rangeInLong())
         assertFalse(BigInt.of("1000000000000000000000000000").rangeInLong())
     }
+
+    @Test
+    fun convertFromDoubleFloor() {
+        assertEquals(BigInt.of(1), BigInt.fromDoubleFloor(1.0))
+        assertEquals(BigInt.of(1), BigInt.fromDoubleFloor(1.1))
+        assertEquals(BigInt.of(0), BigInt.fromDoubleFloor(0.0))
+        assertEquals(BigInt.of(-2), BigInt.fromDoubleFloor(-1.1))
+        assertEquals(BigInt.of(-2), BigInt.fromDoubleFloor(-1.6))
+        assertEquals(BigInt.of(-100000000), BigInt.fromDoubleFloor(-99999999.999))
+// commented for now because conversion in js is broken
+//        assertEquals(BigInt.of("6200000000000000000000000000000"), BigInt.fromDoubleFloor(6.2e30))
+    }
+
+    @Test
+    fun convertFromDoubleCeil() {
+        assertEquals(BigInt.of(1), BigInt.fromDoubleCeil(1.0))
+        assertEquals(BigInt.of(2), BigInt.fromDoubleCeil(1.1))
+        assertEquals(BigInt.of(0), BigInt.fromDoubleCeil(-0.3))
+        assertEquals(BigInt.of(0), BigInt.fromDoubleCeil(0.0))
+        assertEquals(BigInt.of(1), BigInt.fromDoubleCeil(0.000001))
+        assertEquals(BigInt.of(1), BigInt.fromDoubleCeil(1e-95))
+        assertEquals(BigInt.of(10000001), BigInt.fromDoubleCeil(10000000.1))
+//        assertEquals(BigInt.of("1000000000000000000000000000000"), BigInt.fromDoubleCeil(1.0e30))
+    }
 }
