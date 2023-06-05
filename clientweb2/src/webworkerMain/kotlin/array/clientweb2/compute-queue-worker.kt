@@ -20,6 +20,7 @@ fun loadLibraries() {
         "standard-lib/standard-lib.kap",
         "standard-lib/structure.kap",
         "standard-lib/math.kap",
+        "standard-lib/math-kap.kap",
         "standard-lib/io.kap",
         "standard-lib/output.kap",
         "standard-lib/output3.kap",

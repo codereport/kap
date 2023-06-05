@@ -27,8 +27,10 @@ class NumbersTest : APLTest() {
             assert1DArray(
                 arrayOf(
                     InnerBigIntOrLong("-10000000000000000000000000000000"),
-                    InnerBigIntOrLong("10000000000000000000000000000000")),
-                result)
+                    InnerBigIntOrLong("10000000000000000000000000000000")
+                ),
+                result
+            )
         }
     }
 
@@ -112,8 +114,10 @@ class NumbersTest : APLTest() {
             assert1DArray(
                 arrayOf(
                     NearDouble(1.6777216e-8),
-                    NearDouble(4722366.482869646)),
-                result)
+                    NearDouble(4722366.482869646)
+                ),
+                result
+            )
         }
     }
 
@@ -146,7 +150,9 @@ class NumbersTest : APLTest() {
                 arrayOf(
                     InnerBigIntOrLong("10000000000000000000000000000000"),
                     InnerBigIntOrLong("10000000000000000000000000000000"),
-                    InnerBigIntOrLong("0")), result)
+                    InnerBigIntOrLong("0")
+                ), result
+            )
         }
     }
 
@@ -158,8 +164,10 @@ class NumbersTest : APLTest() {
                     InnerRational(1, 9),
                     InnerRational(3, 2),
                     InnerRational(Rational.make("100000000000000000000000000000000000", "3")),
-                    InnerRational(Rational.make("1000000000000000000000000000000000000", "3"))),
-                result)
+                    InnerRational(Rational.make("1000000000000000000000000000000000000", "3"))
+                ),
+                result
+            )
         }
     }
 
@@ -242,8 +250,10 @@ class NumbersTest : APLTest() {
                     InnerBigIntOrLong("1"),
                     InnerBigIntOrLong("2"),
                     InnerBigIntOrLong("2"),
-                    InnerBigIntOrLong("3")),
-                result)
+                    InnerBigIntOrLong("3")
+                ),
+                result
+            )
         }
     }
 
@@ -286,8 +296,10 @@ class NumbersTest : APLTest() {
                     NearComplex(Complex(-2.0, 2.0)),
                     NearComplex(Complex(478.0, -621.0)),
                     NearComplex(Complex(-242.0, 702.0)),
-                    NearComplex(Complex(16.0, -16.0))),
-                result)
+                    NearComplex(Complex(16.0, -16.0))
+                ),
+                result
+            )
         }
     }
 
@@ -299,8 +311,10 @@ class NumbersTest : APLTest() {
                     NearDouble(2.718281828),
                     NearDouble(7.389056099),
                     NearDouble(20.08553692),
-                    NearDouble(0.00004539992976, 8)),
-                result)
+                    NearDouble(0.00004539992976, 8)
+                ),
+                result
+            )
         }
     }
 
@@ -397,7 +411,8 @@ class NumbersTest : APLTest() {
                     NearDouble(4593083.59, 2),
                     NearDouble(2.42396548, 4),
                     NearDouble(32.57809605, 4)
-                ), result)
+                ), result
+            )
         }
     }
 
@@ -413,7 +428,8 @@ class NumbersTest : APLTest() {
                     NearDouble(-0.1640610505, 4),
                     NearDouble(4.850957141, 4),
                     NearDouble(3.328347007, 4)
-                ), result)
+                ), result
+            )
         }
     }
 
@@ -473,7 +489,8 @@ class NumbersTest : APLTest() {
                     NearComplex(Complex(-48737.12032, 8780.542527)),
                     NearComplex(Complex(3.029684439, -0.7536373119)),
                     NearComplex(Complex(0.06167254732, 0.04814395987))
-                ), result)
+                ), result
+            )
         }
     }
 
@@ -482,7 +499,8 @@ class NumbersTest : APLTest() {
         parseAPLExpression("√4 2 10 1 0").let { result ->
             assert1DArray(
                 arrayOf(NearDouble(2.0), NearDouble(1.414213562), NearDouble(3.16227766), NearDouble(1.0), NearDouble(0.0)),
-                result)
+                result
+            )
         }
     }
 
@@ -494,8 +512,10 @@ class NumbersTest : APLTest() {
                     NearComplex(Complex(0.0, 1.0)),
                     NearComplex(Complex(0.0, 1.414213562)),
                     NearComplex(Complex(0.0, 2.236067977)),
-                    NearComplex(Complex(0.0, 351.3673292))),
-                result)
+                    NearComplex(Complex(0.0, 351.3673292))
+                ),
+                result
+            )
         }
     }
 
@@ -507,8 +527,10 @@ class NumbersTest : APLTest() {
                     NearComplex(Complex(0.5, 0.8660254038)),
                     NearComplex(Complex(0.6299605249, 1.091123636)),
                     NearComplex(Complex(0.8549879733, 1.48088261)),
-                    NearComplex(Complex(24.89684159, 43.12259457))),
-                result)
+                    NearComplex(Complex(24.89684159, 43.12259457))
+                ),
+                result
+            )
         }
     }
 
@@ -522,8 +544,10 @@ class NumbersTest : APLTest() {
                     NearDouble(111.1121056),
                     NearDouble(3.1144823),
                     NearDouble(99.37868685),
-                    NearDouble(1.409841949)),
-                result)
+                    NearDouble(1.409841949)
+                ),
+                result
+            )
         }
     }
 
@@ -537,8 +561,10 @@ class NumbersTest : APLTest() {
                     NearDouble(111.1121056),
                     NearDouble(3.1144823),
                     NearDouble(99.37868685),
-                    NearDouble(1.409841949)),
-                result)
+                    NearDouble(1.409841949)
+                ),
+                result
+            )
         }
     }
 
@@ -550,8 +576,10 @@ class NumbersTest : APLTest() {
                     NearComplex(Complex(0.0, 1.303840481)),
                     NearComplex(Complex(0.0, 100.001)),
                     NearComplex(Complex(0.0, 0.0316227766)),
-                    NearComplex(Complex(0.0, 3.082207001))),
-                result)
+                    NearComplex(Complex(0.0, 3.082207001))
+                ),
+                result
+            )
         }
     }
 
@@ -563,8 +591,10 @@ class NumbersTest : APLTest() {
                     NearComplex(Complex(0.0, 1.303840481)),
                     NearComplex(Complex(0.0, 100.001)),
                     NearComplex(Complex(0.0, 0.0316227766)),
-                    NearComplex(Complex(0.0, 3.082207001))),
-                result)
+                    NearComplex(Complex(0.0, 3.082207001))
+                ),
+                result
+            )
         }
     }
 
@@ -576,8 +606,10 @@ class NumbersTest : APLTest() {
                     NearComplex(Complex(0.5792387863, 1.782713677)),
                     NearComplex(Complex(1.082032803, 2.224120703)),
                     NearComplex(Complex(2.119650817, 2.870532607)),
-                    NearComplex(Complex(94.65947366, -180.6312599))),
-                result)
+                    NearComplex(Complex(94.65947366, -180.6312599))
+                ),
+                result
+            )
         }
     }
 
@@ -591,8 +623,10 @@ class NumbersTest : APLTest() {
                     NearComplex(Complex(-0.2054827018, 111.1119155)),
                     NearComplex(Complex(1.311722151, -2.824780522)),
                     NearComplex(Complex(-11.25047118, 98.73981111)),
-                    NearComplex(Complex(1.327491996, -0.4747834466))),
-                result)
+                    NearComplex(Complex(1.327491996, -0.4747834466))
+                ),
+                result
+            )
         }
     }
 
@@ -602,8 +636,10 @@ class NumbersTest : APLTest() {
             assert1DArray(
                 arrayOf(
                     NearDouble(3.872983346207417),
-                    NearComplex(Complex(2.3715183290419594e-16, 3.872983346207417))),
-                result)
+                    NearComplex(Complex(2.3715183290419594e-16, 3.872983346207417))
+                ),
+                result
+            )
         }
     }
 
@@ -613,8 +649,10 @@ class NumbersTest : APLTest() {
             assert1DArray(
                 arrayOf(
                     NearDouble(2.46621207433047),
-                    NearComplex(Complex(1.2331060371652354, 2.1358023074901036))),
-                result)
+                    NearComplex(Complex(1.2331060371652354, 2.1358023074901036))
+                ),
+                result
+            )
         }
     }
 
@@ -624,8 +662,10 @@ class NumbersTest : APLTest() {
             assert1DArray(
                 arrayOf(
                     NearDouble(0.7745966692414834),
-                    NearComplex(Complex(4.743036658083919e-17, 0.7745966692414834))),
-                result)
+                    NearComplex(Complex(4.743036658083919e-17, 0.7745966692414834))
+                ),
+                result
+            )
         }
     }
 
@@ -635,8 +675,17 @@ class NumbersTest : APLTest() {
             assert1DArray(
                 arrayOf(
                     NearDouble(0.6285203136088378),
-                    NearComplex(Complex(-0.6030608246816601, 0.17707463497979534))),
-                result)
+                    NearComplex(Complex(-0.6030608246816601, 0.17707463497979534))
+                ),
+                result
+            )
+        }
+    }
+
+    @Test
+    fun mathConstants() {
+        parseAPLExpression("math:pi", withStandardLib = true).let { result ->
+            assertNearDouble(NearDouble(3.14159265358979323846, 15), result)
         }
     }
 }
