@@ -1,11 +1,7 @@
 package array.clientweb2
 
-import kotlinx.serialization.*
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.SerializersModuleCollector
-import kotlinx.serialization.modules.overwriteWith
-import kotlin.reflect.KClass
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 
 ///////////////////////////////////////////////
 // Worker communication structures
@@ -19,7 +15,15 @@ enum class ResultType(val requiresFormatting: Boolean) {
 }
 
 @Serializable
-data class EvalRequest(val src: String, val resultType: ResultType)
+sealed class Request
+
+@Serializable
+@SerialName("evalrequest")
+data class EvalRequest(val src: String, val resultType: ResultType) : Request()
+
+@Serializable
+@SerialName("importrequest")
+data class ImportRequest(val varname: String, val data: JsKapValue) : Request()
 
 @Serializable
 data class PosDescriptor(val line: Int, val col: Int, val callerName: String?)

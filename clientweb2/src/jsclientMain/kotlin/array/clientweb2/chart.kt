@@ -1,48 +1,10 @@
 package array.clientweb2
 
-import kotlinx.serialization.json.*
-import org.w3c.dom.HTMLCanvasElement
 import org.w3c.dom.HTMLElement
 
 @JsModule("chart.js/auto")
 @JsNonModule
-external class Chart(element: HTMLElement, dat: dynamic)
-
-fun createTestChart() {
-    val element = findElement<HTMLCanvasElement>("chart-test")
-
-//    val data: dynamic = mapOf<String, dynamic>(
-//        "type" to "bar",
-//        "data" to mapOf<String, dynamic>(
-//            "datasets" to arrayOf<dynamic>(
-//                mapOf<String, dynamic>(
-//                    "label" to "Test data",
-//                    "data" to arrayOf(1, 2, 10, 11, 12, 21, 2, 3, 1, 3)))))
-
-    val data = buildJsonObject {
-        put("type", "bar")
-        putJsonObject("data") {
-            putJsonArray("labels") {
-                add("Foo")
-                add("Bar")
-            }
-            putJsonArray("datasets") {
-                addJsonObject {
-                    put("label", "Test data")
-                    putJsonArray("data") {
-                        arrayOf(1, 2).forEach(::add)
-                    }
-                }
-            }
-        }
-    }
-    println("==================FOO=========")
-    val s = data.toString()
-    console.log(s)
-    val d = JSON.parse<dynamic>(s)
-    console.log(d)
-    val x = Chart(element, d)
-}
+external class Chart(element: HTMLElement, data: dynamic)
 
 fun displayChart(chartOutput: ChartOutput) {
     when (val content = chartOutput.content) {

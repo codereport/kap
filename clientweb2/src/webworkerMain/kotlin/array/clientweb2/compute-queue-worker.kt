@@ -60,23 +60,44 @@ fun initQueue() {
     engine.addModule(ChartModule(sendMessageFn))
     engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
     self.onmessage = { event ->
-        val request = Json.decodeFromString<EvalRequest>(event.data as String)
-        val result = try {
-            val value = engine.parseAndEval(StringSourceLocation(request.src), formatResult = request.resultType.requiresFormatting).collapse()
-            when (request.resultType) {
-                ResultType.FORMATTED_PRETTY -> StringResponse(formatResultToStrings(value).joinToString("\n"))
-                ResultType.FORMATTED_READABLE -> StringResponse(value.formatted(FormatStyle.READABLE))
-                ResultType.JS -> DataResponse(formatValueToJs(value))
-            }
-        } catch (e: APLGenericException) {
-            EvalExceptionDescriptor(e.formattedError(), makePosDescriptor(e.pos))
-        } catch (e: Exception) {
-            ExceptionDescriptor(e.message ?: "empty")
+        console.log(event.data)
+        when (val request = Json.decodeFromString<Request>(event.data as String)) {
+            is EvalRequest -> processEvalRequest(engine, request)
+            is ImportRequest -> processImportRequest(engine, request)
         }
-        self.postMessage(Json.encodeToString(result))
     }
     val message: ResponseMessage = EngineStartedDescriptor("started")
     self.postMessage(Json.encodeToString(message))
+}
+
+private fun processEvalRequest(engine: Engine, request: EvalRequest) {
+    val result = try {
+        val value =
+            engine.parseAndEval(
+                StringSourceLocation(request.src),
+                formatResult = request.resultType.requiresFormatting)
+                .collapse()
+        when (request.resultType) {
+            ResultType.FORMATTED_PRETTY -> StringResponse(formatResultToStrings(value).joinToString("\n"))
+            ResultType.FORMATTED_READABLE -> StringResponse(value.formatted(FormatStyle.READABLE))
+            ResultType.JS -> DataResponse(formatValueToJs(value))
+        }
+    } catch (e: APLGenericException) {
+        EvalExceptionDescriptor(e.formattedError(), makePosDescriptor(e.pos))
+    } catch (e: Exception) {
+        ExceptionDescriptor(e.message ?: "empty")
+    }
+    self.postMessage(Json.encodeToString(result))
+}
+
+private fun processImportRequest(engine: Engine, request: ImportRequest) {
+    val sym = engine.currentNamespace.internSymbol(request.varname)
+    val env = engine.rootEnvironment
+    val binding = env.findBinding(sym) ?: env.bindLocal(sym)
+    engine.withThreadLocalAssigned {
+        engine.recomputeRootFrame()
+        engine.rootStackFrame.storageList[binding.storage.index].updateValue(formatJsToValue(request.data))
+    }
 }
 
 fun makePosDescriptor(pos: Position?): PosDescriptor? {

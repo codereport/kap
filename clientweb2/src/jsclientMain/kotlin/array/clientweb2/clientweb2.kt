@@ -151,7 +151,11 @@ private fun appendNodeToResultHistory(outer: HTMLElement) {
 private fun sendCommand(worker: Worker, command: String) {
     println("Sending command: '${command}'")
     val rendererSelectorValue: dynamic = document.getElementsByName("experimentalRender")[0]
-    worker.postMessage(Json.encodeToString(EvalRequest(command, if (rendererSelectorValue.checked) ResultType.JS else ResultType.FORMATTED_PRETTY)))
+    worker.postMessage(
+        Json.encodeToString(
+            EvalRequest(
+                command,
+                if (rendererSelectorValue.checked) ResultType.JS else ResultType.FORMATTED_PRETTY) as Request))
 }
 
 private fun sendCommandFromField(worker: Worker) {
@@ -243,7 +247,8 @@ fun getElementByIdOrFail(id: String): Element {
 }
 
 fun main() {
-    initWorker()
+    val worker = initWorker()
+    initFileUpload(worker)
 }
 
 /*

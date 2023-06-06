@@ -118,9 +118,13 @@ kotlin {
             dependencies {
                 implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-html', version: '0.7.3'
                 implementation npm('chart.js', '4.3.0')
+                implementation npm('xlsx', '0.18.5')
             }
         }
         webworkerMain {
+            dependencies {
+                implementation project(':mpbignum')
+            }
         }
         all {
             languageSettings.enableLanguageFeature("InlineClasses")
