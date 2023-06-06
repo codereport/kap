@@ -25,18 +25,13 @@ private fun processUpload(worker: Worker, event: Event) {
     }
 
     val file = files[0]!!
-    console.log("Got file: ${file.name}")
-    console.log(file)
     FileReader().let { reader ->
         reader.onload = { event ->
-            console.log("File loaded, will store in: ${varnameTrimmed}")
             val options = js("{}")
             options["dense"] = true
             val workbook = XLSX.read(reader.result, options)
-            console.log(workbook)
             val sheetList = workbook.Sheets
             val sheet = sheetList[objectKeys(sheetList)[0]]
-            console.log(sheet)
             worker.postMessage(Json.encodeToString(ImportRequest(varnameTrimmed, convertSheetToKap(sheet)) as Request))
         }
         reader.readAsArrayBuffer(file)

@@ -18,8 +18,6 @@ var useHtmlValueRenderer: Boolean = false
 private fun initWorker(): Worker {
     val worker = Worker("compute-queue-worker.js")
     worker.onmessage = { event ->
-        println("eventdata: ${event.data}")
-        console.log(event)
         when (val response = Json.decodeFromString<ResponseMessage>(event.data as String)) {
             is EvalResponse -> addResponseToResultHistory(response)
             is ExceptionDescriptor -> addExceptionResultToResultHistory(response)

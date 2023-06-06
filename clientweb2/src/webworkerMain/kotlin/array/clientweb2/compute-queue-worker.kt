@@ -60,7 +60,6 @@ fun initQueue() {
     engine.addModule(ChartModule(sendMessageFn))
     engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
     self.onmessage = { event ->
-        console.log(event.data)
         when (val request = Json.decodeFromString<Request>(event.data as String)) {
             is EvalRequest -> processEvalRequest(engine, request)
             is ImportRequest -> processImportRequest(engine, request)
