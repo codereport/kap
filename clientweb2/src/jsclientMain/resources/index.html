@@ -5,6 +5,18 @@
     <meta charset="UTF-8">
     <meta content="width=device-width, initial-scale=1" name="viewport">
     <link rel="stylesheet" href="clientweb2.css">
+    <script lang="javascript">
+        function openNav() {
+            document.getElementById("sidebar-wrapper").style.width = "250px";
+            // document.getElementById("main").style.marginLeft = "250px";
+        }
+
+        /* Set the width of the sidebar to 0 and the left margin of the page content to 0 */
+        function closeNav() {
+            document.getElementById("sidebar-wrapper").style.width = "0";
+            // document.getElementById("main").style.marginLeft = "0";
+        }
+    </script>
 </head>
 <body id="target">
 <p>
@@ -17,9 +29,29 @@
     a backquote, type backquote followed by space.
 </p>
 <!--<div style="width: 800px;"><canvas id="chart-test"></canvas></div>-->
+<div id="sidebar-wrapper" class="sidebar">
+    <a href="javascript:void(0)" class="close-button" onclick="closeNav()">&times;</a>
+    <h1>File import</h1>
+    <div>
+        <div><label for="import-destination">Variable:</label></div>
+        <input type="text" id="import-destination" value="foo">
+        <div><label for="import-type">Type:</label></div>
+        <select id="import-type">
+            <option value="csv">CSV</option>
+            <option value="xlsx">Excel</option>
+        </select>
+        <div><label for="import-file-input">File:</label></div>
+        <input type="file" id="import-file-input"/>
+        <div id="import-result"></div>
+    </div>
+    <h1>Options</h1>
+    <div>
+        <label for="experimental-render">Experimental renderer:</label>
+        <input type="checkbox" id="experimental-render">
+    </div>
+</div>
 <div>
-    <input type="file" id="file-input"/>
-    Variable: <input type="text" id="varname" value="foo">
+    <button class="open-button" onclick="openNav()">&#9776; Open Sidebar</button>
 </div>
 <div id="loading-message">
     Loading client

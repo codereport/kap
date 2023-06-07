@@ -4,14 +4,16 @@ import kotlinx.browser.document
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.w3c.dom.HTMLInputElement
+import org.w3c.dom.HTMLSelectElement
 import org.w3c.dom.Worker
 import org.w3c.dom.events.Event
+import org.w3c.files.File
 import org.w3c.files.FileReader
 import org.w3c.files.get
 import kotlin.math.max
 
 private fun processUpload(worker: Worker, event: Event) {
-    val varname = (document.getElementById("varname") as HTMLInputElement).value
+    val varname = (document.getElementById("import-destination") as HTMLInputElement).value
     if (varname.isBlank()) {
         console.log("No variable name")
         return
@@ -25,17 +27,33 @@ private fun processUpload(worker: Worker, event: Event) {
     }
 
     val file = files[0]!!
-    FileReader().let { reader ->
-        reader.onload = { event ->
-            val options = js("{}")
-            options["dense"] = true
-            val workbook = XLSX.read(reader.result, options)
-            val sheetList = workbook.Sheets
-            val sheet = sheetList[objectKeys(sheetList)[0]]
-            worker.postMessage(Json.encodeToString(ImportRequest(varnameTrimmed, convertSheetToKap(sheet)) as Request))
-        }
-        reader.readAsArrayBuffer(file)
+    val importType = (document.getElementById("import-type") as HTMLSelectElement).value
+    println("Import type: '$importType'")
+    when (importType) {
+        "csv" -> readCsvInput(worker, varnameTrimmed, file)
+        "xlsx" -> readXlsInput(worker, varnameTrimmed, file)
     }
+}
+
+fun readCsvInput(worker: Worker, varnameTrimmed: String, file: File) {
+    val reader = FileReader()
+    reader.onload = { event ->
+        worker.postMessage(Json.encodeToString(ImportCsvRequest(varnameTrimmed, reader.result) as Request))
+    }
+    reader.readAsText(file)
+}
+
+private fun readXlsInput(worker: Worker, varnameTrimmed: String, file: File) {
+    val reader = FileReader()
+    reader.onload = { event ->
+        val options = js("{}")
+        options["dense"] = true
+        val workbook = XLSX.read(reader.result, options)
+        val sheetList = workbook.Sheets
+        val sheet = sheetList[objectKeys(sheetList)[0]]
+        worker.postMessage(Json.encodeToString(ImportRequest(varnameTrimmed, convertSheetToKap(sheet)) as Request))
+    }
+    reader.readAsArrayBuffer(file)
 }
 
 private fun convertSheetToKap(sheet: Array<Array<dynamic>>): JsKapValue {
@@ -88,10 +106,10 @@ private fun xlsNumberToKap(s: String): JsKapValue {
 }
 
 fun initFileUpload(worker: Worker) {
-    document.getElementById("file-input")!!.addEventListener("change", { event -> processUpload(worker, event) })
+    document.getElementById("import-file-input")!!.addEventListener("change", { event -> processUpload(worker, event) })
 }
 
-private fun objectKeys(obj: dynamic): Array<String> {
+private fun objectKeys(@Suppress("UNUSED_PARAMETER") obj: dynamic): Array<String> {
     return js("Object.keys(obj)") as Array<String>
 }
 

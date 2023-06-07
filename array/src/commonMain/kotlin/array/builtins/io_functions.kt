@@ -1,6 +1,7 @@
 package array.builtins
 
 import array.*
+import array.csv.CsvParseException
 import array.csv.readCsv
 import array.csv.writeAPLArrayAsCsv
 
@@ -47,7 +48,10 @@ class PrintAPLFunction : APLFunctionDescriptor {
                 plainSym -> FormatStyle.PLAIN
                 prettySym -> FormatStyle.PRETTY
                 readSym -> FormatStyle.READABLE
-                else -> throwAPLException(APLIllegalArgumentException("Invalid print style: ${styleName.symbolName}", pos))
+                else -> throwAPLException(
+                    APLIllegalArgumentException(
+                        "Invalid print style: ${styleName.symbolName}",
+                        pos))
             }
             printValue(context, b, style)
             return b
@@ -79,7 +83,11 @@ class ReadCsvFunction : APLFunctionDescriptor {
     class ReadCsvFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             openInputCharFile(a.toStringValue(pos)).use { source ->
-                return readCsv(source)
+                try {
+                    return readCsv(source)
+                } catch (e: CsvParseException) {
+                    throwAPLException(APLEvalException("Error while pasing CSV: ${e.message}", pos))
+                }
             }
         }
     }
@@ -210,7 +218,11 @@ class ReaddirFunction : APLFunctionDescriptor {
 
         private fun parseOutputTypes(context: RuntimeContext, value: APLValue): List<OutputType> {
             val keywordToType =
-                OutputType.values().associateBy { outputType -> context.engine.internSymbol(outputType.selector, context.engine.keywordNamespace) }
+                OutputType.values().associateBy { outputType ->
+                    context.engine.internSymbol(
+                        outputType.selector,
+                        context.engine.keywordNamespace)
+                }
 
             val result = ArrayList<OutputType>()
             val asArray = value.arrayify()
@@ -224,7 +236,10 @@ class ReaddirFunction : APLFunctionDescriptor {
                 }
                 val found =
                     keywordToType[collapsed.value]
-                        ?: throwAPLException(APLIllegalArgumentException("Illegal selector: ${collapsed.value.nameWithNamespace}", pos))
+                        ?: throwAPLException(
+                            APLIllegalArgumentException(
+                                "Illegal selector: ${collapsed.value.nameWithNamespace}",
+                                pos))
                 result.add(found)
             }
             return result

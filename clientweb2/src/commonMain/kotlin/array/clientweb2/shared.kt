@@ -26,6 +26,10 @@ data class EvalRequest(val src: String, val resultType: ResultType) : Request()
 data class ImportRequest(val varname: String, val data: JsKapValue) : Request()
 
 @Serializable
+@SerialName("importcsv")
+data class ImportCsvRequest(val varname: String, val data: String) : Request()
+
+@Serializable
 data class PosDescriptor(val line: Int, val col: Int, val callerName: String?)
 
 @Serializable
@@ -34,6 +38,10 @@ sealed class ResponseMessage
 @Serializable
 @SerialName("exception")
 data class ExceptionDescriptor(val message: String) : ResponseMessage()
+
+@Serializable
+@SerialName("importresult")
+data class ImportResult(val message: String) : ResponseMessage()
 
 @Serializable
 @SerialName("evalexception")

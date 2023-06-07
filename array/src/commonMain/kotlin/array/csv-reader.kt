@@ -2,7 +2,7 @@ package array.csv
 
 import array.*
 
-class CsvParseException(msg: String, val line: Int, val col: Int) : APLEvalException("Error at ${line + 1}:${col + 1}: $msg")
+class CsvParseException(msg: String, val line: Int, val col: Int) : Exception("Error at ${line + 1}:${col + 1}: $msg")
 
 fun readCsv(source: CharacterProvider): APLValue {
     val rows = readRows(source)
@@ -47,7 +47,10 @@ private fun readRows(source: CharacterProvider): List<List<APLValue>> {
             val buf2 = StringBuilder()
             loop@ while (true) {
                 if (atEol()) {
-                    line = source.nextLine() ?: throwAPLException(CsvParseException("End of file in the middle of string", currLineNumber, pos))
+                    line = source.nextLine() ?: throw CsvParseException(
+                        "End of file in the middle of string",
+                        currLineNumber,
+                        pos)
                     pos = 0
                     buf2.append("\n")
                 }
@@ -55,7 +58,7 @@ private fun readRows(source: CharacterProvider): List<List<APLValue>> {
                     '\"' -> break@loop
                     '\\' -> {
                         if (atEol()) {
-                            throwAPLException(CsvParseException("Unterminated string", currLineNumber, pos))
+                            throw CsvParseException("Unterminated string", currLineNumber, pos)
                         } else {
                             buf2.append(line[pos++])
                         }
@@ -104,7 +107,7 @@ private fun readRows(source: CharacterProvider): List<List<APLValue>> {
                 if (!atEol()) {
                     val ch2 = line[pos++]
                     if (ch2 != ',') {
-                        throwAPLException(CsvParseException("Syntax error in CSV file", currLineNumber, pos))
+                        throw CsvParseException("Syntax error in CSV file", currLineNumber, pos)
                     }
                 }
             }

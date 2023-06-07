@@ -1,6 +1,8 @@
 package array.clientweb2
 
 import array.*
+import array.csv.CsvParseException
+import array.csv.readCsv
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -63,6 +65,7 @@ fun initQueue() {
         when (val request = Json.decodeFromString<Request>(event.data as String)) {
             is EvalRequest -> processEvalRequest(engine, request)
             is ImportRequest -> processImportRequest(engine, request)
+            is ImportCsvRequest -> processImportCsvRequest(engine, request)
         }
     }
     val message: ResponseMessage = EngineStartedDescriptor("started")
@@ -90,12 +93,36 @@ private fun processEvalRequest(engine: Engine, request: EvalRequest) {
 }
 
 private fun processImportRequest(engine: Engine, request: ImportRequest) {
-    val sym = engine.currentNamespace.internSymbol(request.varname)
+    importIntoVariable(engine, request.varname) {
+        formatJsToValue(request.data)
+    }
+}
+
+fun processImportCsvRequest(engine: Engine, request: ImportCsvRequest) {
+    importIntoVariable(engine, request.varname) {
+        try {
+            readCsv(StringCharacterProvider(request.data))
+        } catch (e: CsvParseException) {
+            throw ImportFailedException("Error importing CSV: ${e.message}")
+        }
+    }
+}
+
+class ImportFailedException(val responseMessage: String) : Exception("Import function failed: ${responseMessage}")
+
+private fun importIntoVariable(engine: Engine, varname: String, fn: () -> APLValue) {
+    val sym = engine.currentNamespace.internSymbol(varname)
     val env = engine.rootEnvironment
     val binding = env.findBinding(sym) ?: env.bindLocal(sym)
     engine.withThreadLocalAssigned {
         engine.recomputeRootFrame()
-        engine.rootStackFrame.storageList[binding.storage.index].updateValue(formatJsToValue(request.data))
+        val importResult = try {
+            engine.rootStackFrame.storageList[binding.storage.index].updateValue(fn())
+            ImportResult("Data imported into: ${varname}")
+        } catch (e: ImportFailedException) {
+            ImportResult(e.responseMessage)
+        }
+        self.postMessage(Json.encodeToString(importResult as ResponseMessage))
     }
 }
 

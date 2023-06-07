@@ -25,6 +25,7 @@ private fun initWorker(): Worker {
             is OutputDescriptor -> processOutput(response.text)
             is EngineStartedDescriptor -> engineAvailableCallback(worker)
             is AdditionalOutput -> processAdditionalOutput(response)
+            is ImportResult -> processImportException(response)
         }
     }
     return worker
@@ -110,6 +111,10 @@ private fun addExceptionResultToResultHistory(response: ExceptionDescriptor) {
     appendNodeToResultHistory(node)
 }
 
+fun processImportException(response: ImportResult) {
+    (document.getElementById("import-result") as HTMLDivElement).textContent = response.message
+}
+
 private fun addEvalExceptionResultToResultHistory(response: EvalExceptionDescriptor) {
     val node = document.create.div("exception-result") {
         +response.message
@@ -148,7 +153,7 @@ private fun appendNodeToResultHistory(outer: HTMLElement) {
 
 private fun sendCommand(worker: Worker, command: String) {
     println("Sending command: '${command}'")
-    val rendererSelectorValue: dynamic = document.getElementsByName("experimentalRender")[0]
+    val rendererSelectorValue: dynamic = document.getElementById("experimental-render")
     worker.postMessage(
         Json.encodeToString(
             EvalRequest(
@@ -268,12 +273,6 @@ fun engineAvailableCallback(worker: Worker) {
 
     val topElement = findElement<HTMLDivElement>("top")
     val outer = document.create.div {
-        div {
-            +"Use experimental new renderer: "
-            input(InputType.checkBox, name = "experimentalRender") {
-                checked = false
-            }
-        }
         div {
             createKeyboardHelp()
         }
