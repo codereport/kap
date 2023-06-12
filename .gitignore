@@ -1,5 +1,5 @@
 # Disable all of .idea
-.idea
+#.idea
 
 # User-specific content
 .idea/**/workspace.xml
