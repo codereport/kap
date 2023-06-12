@@ -44,6 +44,30 @@ class OperatorsTest : APLTest() {
     }
 
     @Test
+    fun catenateReduceDirect() {
+        parseAPLExpression("a ⇐ {,[1]/⍵} ⋄ ⊃ a (2 4 3 ⍴ ⍳100) (2 3 ⍴ 100+⍳100)").let { result ->
+            assertDimension(dimensionsOfSize(2, 5, 3), result)
+            assertArrayContent(
+                arrayOf(
+                    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 100, 101, 102,
+                    12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 103, 104, 105),
+                result)
+        }
+    }
+
+    @Test
+    fun catenateReduceWithArgument() {
+        parseAPLExpression("a ⇐ {,[⍺]/⍵} ⋄ ⊃ 1 a (2 4 3 ⍴ ⍳100) (2 3 ⍴ 100+⍳100)").let { result ->
+            assertDimension(dimensionsOfSize(2, 5, 3), result)
+            assertArrayContent(
+                arrayOf(
+                    0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 100, 101, 102,
+                    12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 103, 104, 105),
+                result)
+        }
+    }
+
+    @Test
     fun reduceWithFunctionAxis() {
         parseAPLExpression(",[0]/ (2 3 ⍴ 10+⍳6) (2 3 ⍴ 20+⍳6) (2 3 ⍴ 30+⍳6)").let { result ->
             assertTrue(result.isScalar())

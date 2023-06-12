@@ -77,7 +77,7 @@ class ReduceResult1Arg(
                     curr.makeAPLNumber()
                 }
                 else -> {
-                    fn.reduce(context, arg, sizeAlongAxis, stepLength, posInSrc, savedStack)
+                    fn.reduce(context, arg, sizeAlongAxis, stepLength, posInSrc, savedStack, null)
                 }
             }
         }
@@ -96,14 +96,15 @@ fun defaultReduceImpl(
     sizeAlongAxis: Int,
     stepLength: Int,
     pos: Position,
-    savedStack: StorageStack.StorageStackFrame?
+    savedStack: StorageStack.StorageStackFrame?,
+    functionAxis: APLValue?
 ): APLValue {
     val engine = context.engine
     var curr = arg.valueAt(offset)
     withPossibleSavedStack(savedStack) {
         for (i in 1 until sizeAlongAxis) {
             engine.checkInterrupted(pos)
-            curr = fn.eval2Arg(context, curr, arg.valueAt(i * stepLength + offset), null).collapse()
+            curr = fn.eval2Arg(context, curr, arg.valueAt(i * stepLength + offset), functionAxis).collapse()
         }
     }
     return curr

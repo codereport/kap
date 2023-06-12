@@ -1,8 +1,5 @@
 package array
 
-import array.builtins.SaveStackCapable
-import array.builtins.SaveStackSupport
-
 interface APLOperator {
     fun parseAndCombineFunctions(aplParser: APLParser, currentFn: APLFunction, opPos: FunctionInstantiation): APLFunction
 }
@@ -27,7 +24,8 @@ fun parseFunctionForOperatorRightArg(parser: APLParser): Either<Pair<APLFunction
     fun makeFunctionResult(fn: APLFunction): Either.Left<Pair<APLFunction, Position>> {
         val axis = parser.parseAxis()
         val updated = if (axis != null) {
-            AxisValAssignedFunctionDirect(fn, axis)
+            val env = parser.currentEnvironment()
+            AxisValAssignedFunctionDirect(fn, axis, if (env.subtreeHasLocalBindings()) env else null)
         } else {
             fn
         }

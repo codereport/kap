@@ -182,6 +182,21 @@ class Environment(
         return globalScopedLocalFunctions[name]
     }
 
+    /**
+     * Returns true if this or any of the child environments has any bindings.
+     */
+    fun subtreeHasLocalBindings(): Boolean {
+        if (bindings.isNotEmpty()) {
+            return true
+        }
+        childEnvironments.forEach { env ->
+            if (env.subtreeHasLocalBindings()) {
+                return true
+            }
+        }
+        return false
+    }
+
     override fun toString() = "Environment[name=${name}, numBindings=${bindings.size}]"
 }
 
@@ -413,10 +428,12 @@ class APLParser(val tokeniser: TokenGenerator) {
     private fun makeLeftBindFunction(leftArgs: List<Instruction>, baseFn: APLFunction): LeftAssignedFunction {
         val firstArgPos = leftArgs[0].pos
         val resultList = makeResultList(leftArgs) ?: throw IllegalStateException("Result list is null")
+        val env = currentEnvironment()
         return LeftAssignedFunction(
             baseFn,
             resultList,
-            baseFn.instantiation.updatePos { it.copy(line = firstArgPos.line, col = firstArgPos.col) })
+            baseFn.instantiation.updatePos { it.copy(line = firstArgPos.line, col = firstArgPos.col) },
+            if (env.subtreeHasLocalBindings()) env else null)
     }
 
     private fun processAssignment(pos: Position, leftArgs: List<Instruction>): ParseResultHolder.InstrParseResult {
@@ -986,7 +1003,8 @@ class APLParser(val tokeniser: TokenGenerator) {
         while (true) {
             val axis = parseAxis()
             if (axis != null) {
-                currentFn = AxisValAssignedFunctionDirect(currentFn, axis)
+                val env = currentEnvironment()
+                currentFn = AxisValAssignedFunctionDirect(currentFn, axis, if (env.subtreeHasLocalBindings()) env else null)
             }
             val readToken = tokeniser.nextTokenWithPosition()
             currToken = readToken

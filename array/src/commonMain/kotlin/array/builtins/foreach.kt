@@ -39,29 +39,6 @@ class ForEachResult2Arg(
     override val size get() = arg1.size
 }
 
-interface SaveStackCapable {
-    fun savedStack(context: RuntimeContext) = if (saveStack()) currentStack().currentFrame() else null
-    fun saveStack(): Boolean
-}
-
-class SaveStackSupport(vararg fn: APLFunction) : SaveStackCapable {
-    private var saveStack: Boolean = false
-
-    override fun saveStack() = saveStack
-
-    init {
-        computeCapturedEnvs(fn)
-    }
-
-    private fun computeCapturedEnvs(fns: Array<out APLFunction>) {
-        val capturedEnvs = fns.flatMap(APLFunction::allCapturedEnvironments)
-        if (capturedEnvs.isNotEmpty()) {
-            saveStack = capturedEnvs.isNotEmpty()
-            capturedEnvs.forEach(Environment::markCanEscape)
-        }
-    }
-}
-
 class ForEachFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescriptor {
     class ForEachFunctionImpl(pos: FunctionInstantiation, fn: APLFunction) : APLFunction(pos, listOf(fn)), ParallelSupported,
             SaveStackCapable by SaveStackSupport(fn) {

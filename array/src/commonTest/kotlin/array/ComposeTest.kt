@@ -610,6 +610,20 @@ class ComposeTest : APLTest() {
     }
 
     @Test
+    fun leftBindWithLocalFunction() {
+        parseAPLExpression("a ⇐ { (⍺+) ⍵ } ⋄ 3 a 1 2 3").let { result ->
+            assert1DArray(arrayOf(4, 5, 6), result)
+        }
+    }
+
+    @Test
+    fun leftBindWithLocalFunctionAndEach() {
+        parseAPLExpression("a ⇐ { (⍺+)¨ ⍵ } ⋄ 3 a 1 2 3").let { result ->
+            assert1DArray(arrayOf(4, 5, 6), result)
+        }
+    }
+
+    @Test
     fun leftBindInCompose() {
         parseAPLExpression("1 (+∘(3×)) 6").let { result ->
             assertSimpleNumber(19, result)

@@ -139,9 +139,10 @@ abstract class APLFunction(instantiation: FunctionInstantiation, val fns: List<A
         sizeAlongAxis: Int,
         stepLength: Int,
         offset: Int,
-        savedStack: StorageStack.StorageStackFrame?
+        savedStack: StorageStack.StorageStackFrame?,
+        functionAxis: APLValue?
     ): APLValue {
-        return defaultReduceImpl(this, context, arg, offset, sizeAlongAxis, stepLength, pos, savedStack)
+        return defaultReduceImpl(this, context, arg, offset, sizeAlongAxis, stepLength, pos, savedStack, functionAxis)
     }
 }
 
@@ -200,6 +201,29 @@ abstract class NoAxisAPLFunction(pos: FunctionInstantiation, fns: List<APLFuncti
         throwAPLException(InverseNotAvailable(pos))
 }
 
+interface SaveStackCapable {
+    fun savedStack(context: RuntimeContext) = if (saveStack()) currentStack().currentFrame() else null
+    fun saveStack(): Boolean
+}
+
+class SaveStackSupport(vararg fn: APLFunction) : SaveStackCapable {
+    private var saveStack: Boolean = false
+
+    override fun saveStack() = saveStack
+
+    init {
+        computeCapturedEnvs(fn)
+    }
+
+    private fun computeCapturedEnvs(fns: Array<out APLFunction>) {
+        val capturedEnvs = fns.flatMap(APLFunction::allCapturedEnvironments)
+        if (capturedEnvs.isNotEmpty()) {
+            saveStack = capturedEnvs.isNotEmpty()
+            capturedEnvs.forEach(Environment::markCanEscape)
+        }
+    }
+}
+
 abstract class DelegatedAPLFunctionImpl(pos: FunctionInstantiation, fns: List<APLFunction> = emptyList()) : APLFunction(pos, fns) {
     override fun evalArgsAndCall1Arg(context: RuntimeContext, rightArgs: Instruction) =
         innerImpl().evalArgsAndCall1Arg(context, rightArgs)
@@ -251,8 +275,15 @@ abstract class DelegatedAPLFunctionImpl(pos: FunctionInstantiation, fns: List<AP
 
     override fun capturedEnvironments() = innerImpl().capturedEnvironments()
 
-    override fun reduce(context: RuntimeContext, arg: APLValue, sizeAlongAxis: Int, stepLength: Int, offset: Int, savedStack: StorageStack.StorageStackFrame?) =
-        innerImpl().reduce(context, arg, sizeAlongAxis, stepLength, offset, savedStack)
+    override fun reduce(
+        context: RuntimeContext,
+        arg: APLValue,
+        sizeAlongAxis: Int,
+        stepLength: Int,
+        offset: Int,
+        savedStack: StorageStack.StorageStackFrame?,
+        functionAxis: APLValue?) =
+        innerImpl().reduce(context, arg, sizeAlongAxis, stepLength, offset, savedStack, functionAxis)
 
     @Suppress("LeakingThis")
     override val name1Arg = innerImpl().name1Arg
@@ -376,7 +407,9 @@ class LeftAssignedFunction(
     override val name1Arg get() = underlying.name2Arg
 }
 
-class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction) : NoAxisAPLFunction(baseFn.instantiation, listOf(baseFn)) {
+class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction, val axisBindEnv: Environment? = null) :
+    NoAxisAPLFunction(baseFn.instantiation, listOf(baseFn)) {
+
     private val baseFn get() = fns[0]
 
     override fun evalArgsAndCall1Arg(context: RuntimeContext, rightArgs: Instruction): APLValue {
@@ -412,6 +445,10 @@ class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction) 
         return baseFn.evalInverse2ArgA(context, a, b, axis.evalWithContext(context))
     }
 
+    override fun capturedEnvironments(): List<Environment> {
+        return if (axisBindEnv == null) emptyList() else listOf(axisBindEnv)
+    }
+
     override fun computeClosure(parser: APLParser): Pair<APLFunction, List<Instruction>> {
         val sym = parser.tokeniser.engine.createAnonymousSymbol("axisFn")
         val binding = parser.currentEnvironment().bindLocal(sym)
@@ -422,35 +459,10 @@ class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction) 
         list.add(AssignmentInstruction(arrayOf(ref), axis, pos))
         val env = parser.currentEnvironment()
         return Pair(
-            AxisValAssignedFunctionAxisReader(innerFn, VariableRef(sym, ref, pos), env),
+            AxisValAssignedFunctionDirect(innerFn, VariableRef(sym, ref, pos), env),
             list)
     }
-}
 
-class AxisValAssignedFunctionAxisReader(
-    baseFn: APLFunction, val axisReader: Instruction, val axisArgBindEnv: Environment
-) : NoAxisAPLFunction(baseFn.instantiation, listOf(baseFn)) {
-    private val baseFn get() = fns[0]
-
-    override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-        return baseFn.eval1Arg(context, a, axisReader.evalWithContext(context))
-    }
-
-    override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-        return baseFn.eval2Arg(context, a, b, axisReader.evalWithContext(context))
-    }
-
-    override fun evalInverse1Arg(context: RuntimeContext, a: APLValue): APLValue {
-        return baseFn.evalInverse1Arg(context, a, axisReader.evalWithContext(context))
-    }
-
-    override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-        return baseFn.evalInverse2ArgB(context, a, b, axisReader.evalWithContext(context))
-    }
-
-    override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-        return baseFn.evalInverse2ArgA(context, a, b, axisReader.evalWithContext(context))
-    }
-
-    override fun capturedEnvironments() = listOf(axisArgBindEnv)
+    override val name1Arg get() = baseFn.name1Arg
+    override val name2Arg get() = baseFn.name2Arg
 }

@@ -163,9 +163,11 @@ class Literal1DArray private constructor(val values: List<Instruction>, pos: Pos
                 is LiteralInteger -> {
                     collectLongValues(firstElement.value, values, firstElement.pos)
                 }
+
                 is LiteralDouble -> {
                     collectDoubleValues(firstElement.value, values, firstElement.pos)
                 }
+
                 else -> Literal1DArray(values, firstElement.pos)
             }
         }
@@ -300,6 +302,7 @@ class AssignmentInstruction(val variableList: Array<StackStorageRef>, val instr:
             v.dimensions.size != 1 -> throwAPLException(APLEvalException("Destructuring assignment requires rank-1 value", pos))
             variableList.size != v.size -> throwAPLException(
                 APLEvalException("Destructuring assignment expected ${variableList.size} results, got: ${v.size}", pos))
+
             else -> {
                 variableList.forEachIndexed { i, binding ->
                     context.setVar(binding, v.valueAt(i))
