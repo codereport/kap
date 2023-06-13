@@ -368,7 +368,7 @@ class ConcatenateTest : APLTest() {
     }
 
     @Test
-    fun concatenateReduce2DHorizontal() {
+    fun concatenateReduce2DHorizontal0() {
         parseAPLExpression(",/ 2 4 ⍴ (2 3 ⍴ ⍳6) 1000 (2 5 ⍴ ⍳100)").let { result ->
             assertDimension(dimensionsOfSize(2), result)
             result.valueAt(0).let { v ->
@@ -378,6 +378,25 @@ class ConcatenateTest : APLTest() {
             result.valueAt(1).let { v ->
                 assertDimension(dimensionsOfSize(2, 10), v)
                 assertArrayContent(arrayOf(1000, 0, 1, 2, 3, 4, 0, 1, 2, 1000, 1000, 5, 6, 7, 8, 9, 3, 4, 5, 1000), v)
+            }
+        }
+    }
+
+    @Test
+    fun concatenateReduce2DHorizontal1() {
+        parseAPLExpression(",/2 4 ⍴ 1 3 4 5 3 1000 (2 2 ⍴ 1000+⍳100) (2 3 2 ⍴ 10000+⍳100)").let { result ->
+            assertDimension(dimensionsOfSize(2), result)
+            result.valueAt(0).let { v ->
+                assertDimension(dimensionsOfSize(4), v)
+                assertArrayContent(arrayOf(1, 3, 4, 5), v)
+            }
+            result.valueAt(1).let { v ->
+                assertDimension(dimensionsOfSize(2, 3, 3), v)
+                assertArrayContent(
+                    arrayOf(
+                        3, 10000, 10001, 1000, 10002, 10003, 1001, 10004, 10005,
+                        1000, 10006, 10007, 1002, 10008, 10009, 1003, 10010, 10011),
+                    v)
             }
         }
     }
@@ -412,6 +431,36 @@ class ConcatenateTest : APLTest() {
             assertDimension(emptyDimensions(), result)
             val v = result.disclose()
             assert1DArray(arrayOf(1, 2, 3, 4, 5, 6, 7, 8), v)
+        }
+    }
+
+    @Test
+    fun concatenateReduceWithEnclosed() {
+        parseAPLExpression("⊃ ,/ (2 3 ⍴ ⍳4) (100 101) (102 103) (⊂1000 2000) (2 3 ⍴ 200+⍳6)").let { result ->
+            assertDimension(dimensionsOfSize(2, 9), result)
+            assertArrayContent(
+                arrayOf(
+                    0, 1, 2, 100, 102, Inner1D(arrayOf(1000, 2000)), 200, 201, 202,
+                    3, 0, 1, 101, 103, Inner1D(arrayOf(1000, 2000)), 203, 204, 205),
+                result)
+        }
+    }
+
+    @Test
+    fun concatenateScalarsWithArrayElement() {
+        parseAPLExpression(",/ 1 2 3 4 (100 101) 5 6 7 8").let { result ->
+            assertDimension(emptyDimensions(), result)
+            val v = result.valueAt(0)
+            assert1DArray(arrayOf(1, 2, 3, 4, 100, 101, 5, 6, 7, 8), v)
+        }
+    }
+
+    @Test
+    fun concatenateScalarsWithEnclosedArrayElement() {
+        parseAPLExpression(",/ 1 2 3 4 (⊂100 101) 5 6 7 8").let { result ->
+            assertDimension(emptyDimensions(), result)
+            val v = result.valueAt(0)
+            assert1DArray(arrayOf(1, 2, 3, 4, Inner1D(arrayOf(100, 101)), 5, 6, 7, 8), v)
         }
     }
 

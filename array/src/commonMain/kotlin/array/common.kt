@@ -184,11 +184,11 @@ class Arrays {
         }
 
         fun toString(values: Array<*>): String {
-            val buf = StringBuilder()
-            buf.append("[")
-            buf.append(values.asSequence().joinToString(", "))
-            buf.append("]")
-            return buf.toString()
+            return "[${values.joinToString(", ")}]"
+        }
+
+        fun toString(values: IntArray): String {
+            return "[${values.joinToString(", ")}]"
         }
     }
 }
