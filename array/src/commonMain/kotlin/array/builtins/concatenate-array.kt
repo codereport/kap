@@ -7,7 +7,7 @@ import kotlin.math.max
 
 class Concatenated1DArrays(private val a: APLValue, private val b: APLValue) : APLArray() {
     init {
-        assertx(a.rank == 1 && b.rank == 1)
+        require(a.rank == 1 && b.rank == 1) { "Both arguments must have rank 1. Left argument: ${a.dimensions}, Right argument: ${b.dimensions}" }
     }
 
     private val aSize = a.dimensions[0]
@@ -56,9 +56,7 @@ class Concatenated1DArrays(private val a: APLValue, private val b: APLValue) : A
                 if (labelsList == null) {
                     addNulls(n)
                 } else {
-                    labelsList.forEach { l ->
-                        newLabels.add(l)
-                    }
+                    labelsList.forEach(newLabels::add)
                 }
             }
         }
@@ -272,28 +270,11 @@ abstract class ConcatenateAPLFunctionImpl(pos: FunctionInstantiation) : APLFunct
             else -> defaultAxis(aDimensions, bDimensions)
         }
 
-//        val ad0: Dimensions
-//        val bd0: Dimensions
-//        when {
-//            aDimensions.size == bDimensions.size - 1 -> run { ad0 = aDimensions.insert(axis, 1); bd0 = bDimensions }
-//            bDimensions.size == aDimensions.size - 1 -> run { ad0 = aDimensions; bd0 = bDimensions.insert(axis, 1) }
-//            else -> throwAPLException(InvalidDimensionsException(aDimensions, bDimensions, pos))
-//        }
-
         // If the first element is undersized, conform the dimensions
-        val a0: APLValue
-        when {
-            aDimensions.size == 0 -> {
-                val resultDimensions = if (bDimensions.size == 0) dimensionsOfSize(1) else bDimensions.replace(axis, 1)
-                a0 = ResizedArrayImpls.makeResizedArray(resultDimensions, a)
-            }
-            aDimensions.size == bDimensions.size - 1 -> {
-                val resultDimensions = aDimensions.insert(axis, 1)
-                a0 = ResizedArrayImpls.makeResizedArray(resultDimensions, a)
-            }
-            else -> {
-                a0 = a
-            }
+        val a0 = when (aDimensions.size) {
+            0 -> ResizedArrayImpls.makeResizedArray(if (bDimensions.size == 0) dimensionsOfSize(1) else bDimensions.replace(axis, 1), a)
+            bDimensions.size - 1 -> ResizedArrayImpls.makeResizedArray(aDimensions.insert(axis, 1), a)
+            else -> a
         }
 
         val a0Dimensions = a0.dimensions
@@ -319,9 +300,6 @@ abstract class ConcatenateAPLFunctionImpl(pos: FunctionInstantiation) : APLFunct
             }
         })
 
-        //              |
-        //  0   1   2   3   4   5   6
-        //  3   0   1   2   4   5   6
         val result = ArrayList<APLValue>()
 
         var p = offset
@@ -506,9 +484,7 @@ class ConcatenateAPLFunctionFirstAxis : APLFunctionDescriptor {
 class ConcatenateAPLFunctionLastAxis : APLFunctionDescriptor {
     class ConcatenateAPLFunctionLastAxisImpl(pos: FunctionInstantiation) : ConcatenateAPLFunctionImpl(pos) {
         private class DelegatedAPLArrayValue(override val dimensions: Dimensions, val value: APLValue) : APLArray() {
-            override fun valueAt(p: Int): APLValue {
-                return value.valueAt(0)
-            }
+            override fun valueAt(p: Int) = value.valueAt(0)
         }
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
