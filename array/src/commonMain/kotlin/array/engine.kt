@@ -256,8 +256,16 @@ class Engine(numComputeEngines: Int? = null) {
     private val exportedSingleCharFunctions = initSingleCharFunctionList()
 
     var customRenderer: LambdaValue? = null
-
     val classManager = ClassManager(this)
+
+    /**
+     * Lock that protects the update listener list for any variable.
+     * This is a global lock rather than a lock on the [VariableHolder] itself
+     * in order to minimise the amount of work needed to initialise an instance
+     * of [VariableHolder]. Since registering listeners on variables is such
+     * a rare event, this is acceptable.
+     */
+    val updateListenerLock = MPLock()
 
     val rootEnvironment = Environment("root", null)
     val rootStackFrame = StorageStack.StorageStackFrame(rootEnvironment)
@@ -769,14 +777,13 @@ class VariableHolder {
     // is on the programmer. Listener registrations are outside the direct influence of the programmer, which
     // requires it to be thread-safe.
     private var listeners: MTSafeArrayList<VariableUpdateListener>? = null
-    private val listenerLock = MPLock()
 
     private fun fireListeners(newValue: APLValue, oldValue: APLValue?) {
         listeners?.forEach { listener -> listener.updated(newValue, oldValue) }
     }
 
-    fun registerListener(listener: VariableUpdateListener) {
-        listenerLock.withLocked {
+    fun registerListener(engine: Engine, listener: VariableUpdateListener) {
+        engine.updateListenerLock.withLocked {
             val listenersCopy = listeners
             val list = if (listenersCopy == null) {
                 val newListenerList = MTSafeArrayList<VariableUpdateListener>()

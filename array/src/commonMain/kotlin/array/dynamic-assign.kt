@@ -36,6 +36,7 @@ private fun makeDynamicAssignInstruction(
 }
 
 private class WeakRefVariableUpdateListener(
+    engine: Engine,
     private val debugName: String,
     val storage: VariableHolder,
     inner: VariableUpdateListener
@@ -43,7 +44,7 @@ private class WeakRefVariableUpdateListener(
     private val ref = MPWeakReference.make(inner)
 
     init {
-        storage.registerListener(this)
+        storage.registerListener(engine, this)
     }
 
     override fun updated(newValue: APLValue, oldValue: APLValue?) {
@@ -107,16 +108,14 @@ class DynamicAssignmentInstruction(
                 val innerListener = VariableUpdateListener { newValue, _ ->
                     processUpdate(newValue)
                 }
-                val listener = WeakRefVariableUpdateListener("TrackedDependency(ref=${stackRef.name})", storage, innerListener)
+                val listener = WeakRefVariableUpdateListener(context.engine, "TrackedDependency(ref=${stackRef.name})", storage, innerListener)
                 listenerMap[storage] = Pair(listener, innerListener)
             }
             listeners = listenerMap
 
             val innerDestListener = VariableUpdateListener { newValue, _ -> processDestinationUpdated(newValue) }
             destinationListener = Pair(
-                WeakRefVariableUpdateListener(
-                    "UpdateTracker(env=${env.name})",
-                    destinationHolder, innerDestListener), innerDestListener)
+                WeakRefVariableUpdateListener(context.engine, "UpdateTracker(env=${env.name})", destinationHolder, innerDestListener), innerDestListener)
         }
 
         private fun processDestinationUpdated(newValue: APLValue) {
