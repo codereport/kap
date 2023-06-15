@@ -573,8 +573,11 @@ class OverlayReplacementValue(
 }
 
 class TakeAPLFunction : APLFunctionDescriptor {
-    class TakeAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
-        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+    class TakeAPLFunctionImpl(pos: FunctionInstantiation) : APLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+            if (axis != null) {
+                throwAPLException(AxisNotSupported(pos))
+            }
             val v = a.unwrapDeferredValue()
             return when {
                 v is APLSingleValue -> v
@@ -584,29 +587,49 @@ class TakeAPLFunction : APLFunctionDescriptor {
             }
         }
 
-        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            val a0 = a.arrayify()
-            val aDimensions = a0.dimensions
-            val bDimensions = b.dimensions
-            if (aDimensions.size != 1) {
-                throwAPLException(InvalidDimensionsException("A must be a scalar or one-dimensional array", pos))
-            }
-            val numSelections = aDimensions[0]
-            if (numSelections > bDimensions.size) {
-                throwAPLException(InvalidDimensionsException("Size of A must be less than or equal to the rank of B", pos))
-            }
-            val selection = IntArray(bDimensions.size) { i ->
-                if (i < numSelections) {
-                    a0.valueAtInt(i, pos)
-                } else {
-                    bDimensions[i]
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            val selection = if (axis == null) {
+                val a0 = a.arrayify()
+                val aDimensions = a0.dimensions
+                val bDimensions = b.dimensions
+                if (aDimensions.size != 1) {
+                    throwAPLException(InvalidDimensionsException("A must be a scalar or one-dimensional array", pos))
+                }
+                val numSelections = aDimensions[0]
+                if (numSelections > bDimensions.size) {
+                    throwAPLException(InvalidDimensionsException("Size of A must be less than or equal to the rank of B", pos))
+                }
+                IntArray(bDimensions.size) { i ->
+                    if (i < numSelections) {
+                        a0.valueAtInt(i, pos)
+                    } else {
+                        bDimensions[i]
+                    }
+                }
+            } else {
+                val axisInt = axis.ensureNumber(pos).asInt()
+                val a0 = a.unwrapDeferredValue()
+                val a0Dimensions = a0.dimensions
+                val argInteger = when {
+                    a0Dimensions.size == 0 -> a0.ensureNumber(pos).asInt()
+                    a0Dimensions.size == 1 && a0Dimensions[0] == 1 -> a0.valueAt(0).ensureNumber(pos).asInt()
+                    else -> throwAPLException(APLIllegalArgumentException("When given an explicit axis, the left argument must be a single integer", pos))
+                }
+                val bDimensions = b.dimensions
+                ensureValidAxis(axisInt, bDimensions, pos)
+                IntArray(bDimensions.size) { i ->
+                    if (i == axisInt) {
+                        argInteger
+                    } else {
+                        bDimensions[i]
+                    }
                 }
             }
             return TakeArrayValue(selection, b, pos)
         }
 
         override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            val underValue = eval2Arg(context, a, b)
+            val underValue = eval2Arg(context, a, b, null)
             if (underValue !is TakeArrayValue) {
                 throw IllegalStateException("Result is not of the correct type. Type = ${underValue::class}")
             }
@@ -673,8 +696,11 @@ class DropResultValueOneArg(val a: APLValue, val pos: Position) : APLArray() {
 }
 
 class DropAPLFunction : APLFunctionDescriptor {
-    class DropAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
-        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+    class DropAPLFunctionImpl(pos: FunctionInstantiation) : APLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+            if (axis != null) {
+                throwAPLException(AxisNotSupported(pos))
+            }
             val d = a.dimensions
             return when {
                 d.size != 1 -> throwAPLException(APLIllegalArgumentException("Expected 1-dimensional array. Dimensions: ${d}", pos))
@@ -683,28 +709,42 @@ class DropAPLFunction : APLFunctionDescriptor {
             }
         }
 
-        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            val a0 = a.arrayify()
-            val aDimensions = a0.dimensions
-            if (aDimensions.size != 1) {
-                throwAPLException(InvalidDimensionsException("Left argument to drop must be a scalar or 1-dimensional array", pos))
-            }
-            val bDimensions = b.dimensions
-            if (aDimensions[0] > bDimensions.size) {
-                throwAPLException(InvalidDimensionsException("Size of A must be less than or equal to the rank of B", pos))
-            }
-            val axisArray = IntArray(bDimensions.size) { i ->
-                if (i < aDimensions[0]) {
-                    a0.valueAtInt(i, pos)
-                } else {
-                    0
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            val axisArray = if (axis == null) {
+                val a0 = a.arrayify()
+                val aDimensions = a0.dimensions
+                if (aDimensions.size != 1) {
+                    throwAPLException(InvalidDimensionsException("Left argument to drop must be a scalar or 1-dimensional array", pos))
                 }
+                val bDimensions = b.dimensions
+                if (aDimensions[0] > bDimensions.size) {
+                    throwAPLException(InvalidDimensionsException("Size of A must be less than or equal to the rank of B", pos))
+                }
+                IntArray(bDimensions.size) { i ->
+                    if (i < aDimensions[0]) {
+                        a0.valueAtInt(i, pos)
+                    } else {
+                        0
+                    }
+                }
+            } else {
+                val axisInt = axis.ensureNumber(pos).asInt()
+                val a0 = a.unwrapDeferredValue()
+                val a0Dimensions = a0.dimensions
+                val argInteger = when {
+                    a0Dimensions.size == 0 -> a0.ensureNumber(pos).asInt()
+                    a0Dimensions.size == 1 && a0Dimensions[0] == 1 -> a0.valueAt(0).ensureNumber(pos).asInt()
+                    else -> throwAPLException(APLIllegalArgumentException("When given an explicit axis, the left argument must be a single integer", pos))
+                }
+                val bDimensions = b.dimensions
+                ensureValidAxis(axisInt, bDimensions, pos)
+                IntArray(bDimensions.size) { i -> if (i == axisInt) argInteger else 0 }
             }
             return DropArrayValue(axisArray, b, pos)
         }
 
         override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue): APLValue {
-            val underValue = eval1Arg(context, a)
+            val underValue = eval1Arg(context, a, null)
             if (underValue !is DropResultValueOneArg) {
                 throw IllegalStateException("Result is not of the correct type. Type = ${underValue::class}")
             }
@@ -713,7 +753,7 @@ class DropAPLFunction : APLFunctionDescriptor {
         }
 
         override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            val underValue = eval2Arg(context, a, b)
+            val underValue = eval2Arg(context, a, b, null)
             if (underValue !is DropArrayValue) {
                 throw IllegalStateException("Result is not of the correct type. Type = ${underValue::class}")
             }

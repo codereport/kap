@@ -104,6 +104,52 @@ class TakeTest : APLTest() {
     }
 
     @Test
+    fun takeWithAxisFirst() {
+        parseAPLExpression("2 ↑[0] 5 4 ⍴ ⍳20").let { result ->
+            assertDimension(dimensionsOfSize(2, 4), result)
+            assertArrayContent(arrayOf(0, 1, 2, 3, 4, 5, 6, 7), result)
+        }
+    }
+
+    @Test
+    fun takeWithAxisLast() {
+        parseAPLExpression("2 ↑[1] 5 4 ⍴ ⍳20").let { result ->
+            assertDimension(dimensionsOfSize(5, 2), result)
+            assertArrayContent(arrayOf(0, 1, 4, 5, 8, 9, 12, 13, 16, 17), result)
+        }
+    }
+
+    @Test
+    fun takeFrom4DWithMiddleAxis() {
+        parseAPLExpression("2↑[1] 3 3 3 3 ⍴ ⍳100").let { result ->
+            assertDimension(dimensionsOfSize(3, 2, 3, 3), result)
+            assertArrayContent(
+                arrayOf(
+                    0, 1, 2, 3, 4, 5, 6, 7, 8,
+                    9, 10, 11, 12, 13, 14, 15, 16, 17,
+                    27, 28, 29, 30, 31, 32, 33, 34, 35,
+                    36, 37, 38, 39, 40, 41, 42, 43, 44,
+                    54, 55, 56, 57, 58, 59, 60, 61, 62,
+                    63, 64, 65, 66, 67, 68, 69, 70, 71),
+                result)
+        }
+    }
+
+    @Test
+    fun takeWithNegativeAxis() {
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("2 ↑[¯1] 5 4 ⍴ ⍳20")
+        }
+    }
+
+    @Test
+    fun takeWithNonexistentAxis() {
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("2 ↑[2] 5 4 ⍴ ⍳20")
+        }
+    }
+
+    @Test
     fun dropSingleDimension() {
         parseAPLExpression("2 ↓ 100 200 300 400 500 600 700 800").let { result ->
             assertDimension(dimensionsOfSize(6), result)
@@ -373,6 +419,51 @@ class TakeTest : APLTest() {
     fun dropExtraElements() {
         parseAPLExpression("3↓11 12").let { result ->
             assertDimension(dimensionsOfSize(0), result)
+        }
+    }
+
+    @Test
+    fun dropWithAxisFirst() {
+        parseAPLExpression("5 ↓[0] 7 5 ⍴ ⍳40").let { result ->
+            assertDimension(dimensionsOfSize(2, 5), result)
+            assertArrayContent(arrayOf(25, 26, 27, 28, 29, 30, 31, 32, 33, 34), result)
+        }
+    }
+
+    @Test
+    fun dropWithAxisLast() {
+        parseAPLExpression("5 ↓[1] 4 7 ⍴ ⍳100").let { result ->
+            assertDimension(dimensionsOfSize(4, 2), result)
+            assertArrayContent(arrayOf(5, 6, 12, 13, 19, 20, 26, 27), result)
+        }
+    }
+
+    @Test
+    fun dropFrom4DWithMiddleAxis() {
+        parseAPLExpression("2↓[1] 3 4 4 3 ⍴ 10+⍳100").let { result ->
+            assertDimension(dimensionsOfSize(3, 2, 4, 3), result)
+            assertArrayContent(
+                arrayOf(
+                    34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47, 48, 49, 50,
+                    51, 52, 53, 54, 55, 56, 57, 82, 83, 84, 85, 86, 87, 88, 89, 90, 91,
+                    92, 93, 94, 95, 96, 97, 98, 99, 100, 101, 102, 103, 104, 105, 30,
+                    31, 32, 33, 34, 35, 36, 37, 38, 39, 40, 41, 42, 43, 44, 45, 46, 47,
+                    48, 49, 50, 51, 52, 53),
+                result)
+        }
+    }
+
+    @Test
+    fun dropWithNegativeAxis() {
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("5 ↓[¯1] 4 7 ⍴ ⍳100")
+        }
+    }
+
+    @Test
+    fun dropWithNonexistentAxis() {
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("5 ↓[2] 4 7 ⍴ ⍳100")
         }
     }
 }
