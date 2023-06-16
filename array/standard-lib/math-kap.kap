@@ -49,7 +49,7 @@ namespace("kap")
       if (1 = rankB) {
         ,⌹⍪B
       } else {
-        if ((2 ≠ rankB) ∨ (0∊≥/⍴B)) {
+        if ((2 ≠ rankB) or (0∊≥/⍴B)) {
           throw "error"
         }
         (Q R) ← QR B
