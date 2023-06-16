@@ -47,7 +47,7 @@ namespace("kap")
       ÷B
     } else {
       if (1 = rankB) {
-        ⌹ ⍪B
+        ,⌹⍪B
       } else {
         if ((2 ≠ rankB) ∨ (0∊≥/⍴B)) {
           throw "error"

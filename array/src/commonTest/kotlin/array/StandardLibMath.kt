@@ -1,6 +1,5 @@
 package array
 
-import kotlin.test.Ignore
 import kotlin.test.Test
 
 class StandardLibMath : APLTest() {
@@ -19,7 +18,6 @@ class StandardLibMath : APLTest() {
         }
     }
 
-    @Ignore
     @Test
     fun testMatrixDivision() {
         parseAPLExpression("(4 4⍴12 1 4 10 ¯6 ¯5 4 7 ¯4 9 3 4 ¯2 ¯6 7 7)⌹93 81 93.5 120.5", true).let { result ->
