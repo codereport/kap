@@ -61,12 +61,15 @@ zSpc ⇐ { (0≡¨⍵) % ⍵ @\s }
   <⍕sym
 }
 
-∇ renderArray v0 {
-  q ← ¯1 (↑⌽⍴v0) ⍴ v0
-  colWidths ← ⌈⌿ (↑↓⍴)¨ q
-  rowHeights ← ⌈/ ≢¨ q
+∇ alignCells v {
+  colWidths ← ⌈⌿ (↑↓⍴)¨ v
+  rowHeights ← ⌈/ ≢¨ v
   ⍝ Pad each cell with spaces to align the sizes
-  aligned ← (rowHeights ,⌻ -1+colWidths) (zSpc↑)¨ q
+  (rowHeights ,⌻ -1+colWidths) (zSpc↑)¨ v
+}
+
+∇ renderArray v0 {
+  aligned ← alignCells ¯1 (↑⌽⍴v0) ⍴ v0
   ⍝ Concatenate the cells, add the right border and drop the leading space
   f ← (⍪/,/(¯1 , (¯2↑1,⍴v0)) ⍴ aligned) (0 1↓,)¨ @│
 
@@ -129,7 +132,7 @@ renderArrayOrString ⇐ {
 }
 
 renderList ⇐ {
-  aligned ← { alignCells ¯1 (↑⌽⍴⍵) ⍴ ⍵ } format¨ fromList ⍵
+  aligned ← { (0 1↓)¨ alignCells ¯1 (↑⌽⍴⍵) ⍴ ⍵ } format¨ fromList ⍵
   ⍝ Height of the first cell (all cells have the same height)
   h ← ↑⍴↑aligned
   withSeparators ← @║ , (⊃,/ ¯1↓ , (⍉aligned) , ⊂⍪ h ⍴ @│) , @║
