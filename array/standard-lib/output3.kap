@@ -61,23 +61,14 @@ zSpc ⇐ { (0≡¨⍵) % ⍵ @\s }
   <⍕sym
 }
 
-∇ alignCells (v) {
-  if (2≢≢⍴v) { throw "alignCells requires the argument to have rank 2" }
-
-  ⍝ The width of each column is the maximum width of any cell
-  colWidths ← ⌈⌿ (↑↓⍴)¨v
-  ⍝ Pad each cell to the correct width
-  xAligned ← ((⍴v) ⍴ colWidths) {((≢⍵) (⍺-↑↓⍴⍵) ⍴ @\s),⍵}¨ v
-
-  ⍝ Likewise for the heights
-  rowHeights ← ⌈/ ≢¨xAligned
-  yAligned ← (⍉ (⌽ ⍴ xAligned) ⍴ rowHeights) {⍵ ,[0] ((⍺-≢⍵) (↑↓⍴⍵)) ⍴ @\s}¨ xAligned
-}
-
 ∇ renderArray v0 {
-  aligned ← alignCells ¯1 (↑⌽⍴v0) ⍴ v0
-  (nRows nCols) ← ⍴ aligned
-  f ← ({⊂ (⊃⍪/,/0 1↓⍪@\s,[1.5] ⍵) , @│}⍤2) (¯1 , (¯2↑1,⍴v0)) ⍴ aligned
+  q ← ¯1 (↑⌽⍴v0) ⍴ v0
+  colWidths ← ⌈⌿ (↑↓⍴)¨ q
+  rowHeights ← ⌈/ ≢¨ q
+  ⍝ Pad each cell with spaces to align the sizes
+  aligned ← (rowHeights ,⌻ -1+colWidths) (zSpc↑)¨ q
+  ⍝ Concatenate the cells, add the right border and drop the leading space
+  f ← (⍪/,/(¯1 , (¯2↑1,⍴v0)) ⍴ aligned) (0 1↓,)¨ @│
 
   w ← ↑↓⍴↑f
 
@@ -85,6 +76,7 @@ zSpc ⇐ { (0≡¨⍵) % ⍵ @\s }
   bottom ← < ((w-1) ⍴ @─) ,"┘"
   separator ← < "→" , ((w-2) ⍴ @─) , "┤"
   res ← {top⍪⍵⍪bottom} ↑ ⍪⌿⍪ ¯1↓ , f ,[0.5] ⊂separator
+
 
   ⍝ To draw the layers to the left, first determine the number of layers and their sizes.
   ds ← ¯2↓⍴v0

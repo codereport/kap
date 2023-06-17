@@ -122,4 +122,9 @@ class OutputFormatterTest : APLTest() {
             """.trimMargin()
         parseAPLExpression(src, withStandardLib = true)
     }
+
+    @Test
+    fun singleElementArrayShouldNotFail() {
+        parseAPLExpression("o3:format ,1", withStandardLib = true)
+    }
 }

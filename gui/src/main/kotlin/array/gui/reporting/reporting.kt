@@ -111,7 +111,7 @@ class ReportingClient {
                         fn(current)
                     }
                 }
-                holder.registerListener { newValue, oldValue ->
+                holder.registerListener(engine) { newValue, oldValue ->
                     println("value updated: new=${newValue}, old=${oldValue}")
                     val result = newValue.collapse()
                     Platform.runLater {
