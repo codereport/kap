@@ -588,10 +588,11 @@ class TakeAPLFunction : APLFunctionDescriptor {
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            val b0 = b.arrayify()
             val selection = if (axis == null) {
                 val a0 = a.arrayify()
                 val aDimensions = a0.dimensions
-                val bDimensions = b.dimensions
+                val bDimensions = b0.dimensions
                 if (aDimensions.size != 1) {
                     throwAPLException(InvalidDimensionsException("A must be a scalar or one-dimensional array", pos))
                 }
@@ -615,7 +616,7 @@ class TakeAPLFunction : APLFunctionDescriptor {
                     a0Dimensions.size == 1 && a0Dimensions[0] == 1 -> a0.valueAt(0).ensureNumber(pos).asInt()
                     else -> throwAPLException(APLIllegalArgumentException("When given an explicit axis, the left argument must be a single integer", pos))
                 }
-                val bDimensions = b.dimensions
+                val bDimensions = b0.dimensions
                 ensureValidAxis(axisInt, bDimensions, pos)
                 IntArray(bDimensions.size) { i ->
                     if (i == axisInt) {
@@ -625,7 +626,7 @@ class TakeAPLFunction : APLFunctionDescriptor {
                     }
                 }
             }
-            return TakeArrayValue(selection, b, pos)
+            return TakeArrayValue(selection, b0, pos)
         }
 
         override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
@@ -710,13 +711,14 @@ class DropAPLFunction : APLFunctionDescriptor {
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            val b0 = b.arrayify()
             val axisArray = if (axis == null) {
                 val a0 = a.arrayify()
                 val aDimensions = a0.dimensions
                 if (aDimensions.size != 1) {
                     throwAPLException(InvalidDimensionsException("Left argument to drop must be a scalar or 1-dimensional array", pos))
                 }
-                val bDimensions = b.dimensions
+                val bDimensions = b0.dimensions
                 if (aDimensions[0] > bDimensions.size) {
                     throwAPLException(InvalidDimensionsException("Size of A must be less than or equal to the rank of B", pos))
                 }
@@ -736,11 +738,11 @@ class DropAPLFunction : APLFunctionDescriptor {
                     a0Dimensions.size == 1 && a0Dimensions[0] == 1 -> a0.valueAt(0).ensureNumber(pos).asInt()
                     else -> throwAPLException(APLIllegalArgumentException("When given an explicit axis, the left argument must be a single integer", pos))
                 }
-                val bDimensions = b.dimensions
+                val bDimensions = b0.dimensions
                 ensureValidAxis(axisInt, bDimensions, pos)
                 IntArray(bDimensions.size) { i -> if (i == axisInt) argInteger else 0 }
             }
-            return DropArrayValue(axisArray, b, pos)
+            return DropArrayValue(axisArray, b0, pos)
         }
 
         override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue): APLValue {

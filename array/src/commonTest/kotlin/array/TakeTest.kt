@@ -56,10 +56,31 @@ class TakeTest : APLTest() {
     }
 
     @Test
-    fun testScalar1() {
+    fun takeScalar1() {
         parseAPLExpression("↑⊂6 5").let { result ->
             assertDimension(dimensionsOfSize(2), result)
             assertArrayContent(arrayOf(6, 5), result)
+        }
+    }
+
+    @Test
+    fun takeScalar2() {
+        parseAPLExpression("1 ↑ 10").let { result ->
+            assert1DArray(arrayOf(10), result)
+        }
+    }
+
+    @Test
+    fun takeScalar3() {
+        parseAPLExpression("5 ↑ 10").let { result ->
+            assert1DArray(arrayOf(10, 0, 0, 0, 0), result)
+        }
+    }
+
+    @Test
+    fun takeScalar4() {
+        parseAPLExpression("0 ↑ 10").let { result ->
+            assertAPLNull(result)
         }
     }
 
@@ -168,6 +189,27 @@ class TakeTest : APLTest() {
                     38, 39, 74, 75, 76, 77, 78, 79, 14, 15, 16, 17, 18, 19, 54, 55, 56,
                     57, 58, 59, 94, 95, 96, 97, 98, 99
                 ), result)
+        }
+    }
+
+    @Test
+    fun dropScalar0() {
+        parseAPLExpression("5 ↓ 10").let { result ->
+            assertAPLNull(result)
+        }
+    }
+
+    @Test
+    fun dropScalar1() {
+        parseAPLExpression("¯5 ↓ 10").let { result ->
+            assertAPLNull(result)
+        }
+    }
+
+    @Test
+    fun dropScalar2() {
+        parseAPLExpression("0 ↓ 10").let { result ->
+            assert1DArray(arrayOf(10), result)
         }
     }
 
