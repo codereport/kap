@@ -1511,8 +1511,11 @@ class WhereAPLFunction : APLFunctionDescriptor {
             fun isLocationBefore(other: IntArray): Boolean {
                 require(location.size == other.size)
                 location.indices.forEach { i ->
-                    if (other[i] < location[i]) {
-                        return true
+                    val otherPos = other[i]
+                    val locationPos = location[i]
+                    when {
+                        otherPos < locationPos -> return true
+                        otherPos > locationPos -> return false
                     }
                 }
                 return false
@@ -1573,7 +1576,7 @@ class WhereAPLFunction : APLFunctionDescriptor {
             val position = IntArray(maxSize!!.size)
             val valuesListSize = valuesList.size
             val content = LongArray(d.contentSize()) { i ->
-                val result = if (currIndex <= valuesListSize && position.contentEquals(curr!!.location)) {
+                val result = if (currIndex < valuesListSize && position.contentEquals(curr!!.location)) {
                     curr!!.value.also {
                         curr = if (++currIndex < valuesListSize) {
                             valuesList[currIndex]

@@ -322,4 +322,20 @@ class InverseFnTest : APLTest() {
     fun inverseWhereTest12() {
         assertAPLNull(parseAPLExpression("⍸˝ ⍬"))
     }
+
+    @Test
+    fun inverseWhereTest13() {
+        parseAPLExpression("⍸˝ ⍸ 2 2⍴0 1 1 0").let { result ->
+            assertDimension(dimensionsOfSize(2, 2), result)
+            assertArrayContent(arrayOf(0, 1, 1, 0), result)
+        }
+    }
+
+    @Test
+    fun inverseWhereTest14() {
+        parseAPLExpression("⍸˝ (1 2) (2 1)").let { result ->
+            assertDimension(dimensionsOfSize(3, 3), result)
+            assertArrayContent(arrayOf(0, 0, 0, 0, 0, 1, 0, 1, 0), result)
+        }
+    }
 }
