@@ -1507,6 +1507,89 @@ class WhereAPLFunction : APLFunctionDescriptor {
             }
         }
 
+        data class LocationWithValue(val location: IntArray, var value: Long = 1) {
+            fun isLocationBefore(other: IntArray): Boolean {
+                require(location.size == other.size)
+                location.indices.forEach { i ->
+                    if (other[i] < location[i]) {
+                        return true
+                    }
+                }
+                return false
+            }
+        }
+
+        private fun makeLocationWithValue(location: IntArray): LocationWithValue {
+            location.forEach { v ->
+                if (v < 0) {
+                    throwAPLException(APLIncompatibleDomainsException("Negative argument", pos))
+                }
+            }
+            return LocationWithValue(location)
+        }
+
+        override fun evalInverse1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val a0 = a.collapse()
+            if (a0.dimensions.size != 1) {
+                throwAPLException(APLIncompatibleDomainsException("Argument must be a one-dimensional array, got ${a0.dimensions}", pos))
+            }
+            if (a0.dimensions[0] == 0) {
+                return APLNullValue.APL_NULL_INSTANCE
+            }
+            val valuesList = ArrayList<LocationWithValue>()
+            var maxSize: IntArray? = null
+            var prevElement: LocationWithValue? = null
+            a0.iterateMembers { v ->
+                val v0 = v.arrayify()
+                if (v0.rank != 1) {
+                    throwAPLException(InvalidDimensionsException("All arguments must be scalars or one-dimensional arrays", pos))
+                }
+                val v0Array = v0.toIntArray(pos)
+                when {
+                    maxSize == null -> maxSize = IntArray(v0Array.size) { i -> v0Array[i] + 1 }
+                    v0Array.size != maxSize!!.size -> throwAPLException(InvalidDimensionsException("All arguments must have the same size", pos))
+                    else -> {
+                        v0Array.indices.forEach { i ->
+                            val size = v0Array[i] + 1
+                            if (maxSize!![i] < size) maxSize!![i] = size
+                        }
+                    }
+                }
+                if (prevElement != null) {
+                    if (v0Array.contentEquals(prevElement!!.location)) {
+                        prevElement!!.value++
+                    } else if (prevElement!!.isLocationBefore(v0Array)) {
+                        throwAPLException(APLIncompatibleDomainsException("All arguments must be ordered", pos))
+                    } else {
+                        prevElement = makeLocationWithValue(v0Array).also { location -> valuesList.add(location) }
+                    }
+                } else {
+                    prevElement = makeLocationWithValue(v0Array).also { location -> valuesList.add(location) }
+                }
+            }
+            val d = Dimensions(maxSize!!)
+            var currIndex = 0
+            var curr: LocationWithValue? = valuesList[0]
+            val position = IntArray(maxSize!!.size)
+            val valuesListSize = valuesList.size
+            val content = LongArray(d.contentSize()) { i ->
+                val result = if (currIndex <= valuesListSize && position.contentEquals(curr!!.location)) {
+                    curr!!.value.also {
+                        curr = if (++currIndex < valuesListSize) {
+                            valuesList[currIndex]
+                        } else {
+                            null
+                        }
+                    }
+                } else {
+                    0
+                }
+                d.incrementMutablePosition(position)
+                result
+            }
+            return APLArrayLong(d, content)
+        }
+
         override val name1Arg get() = "where"
     }
 

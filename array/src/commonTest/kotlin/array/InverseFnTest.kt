@@ -231,4 +231,95 @@ class InverseFnTest : APLTest() {
             parseAPLExpression("{,100}⍢(6↑) ⍳3")
         }
     }
+
+    @Test
+    fun inverseWhereTest0() {
+        parseAPLExpression("⍸˝ 4 5").let { result ->
+            assert1DArray(arrayOf(0, 0, 0, 0, 1, 1), result)
+        }
+    }
+
+    @Test
+    fun inverseWhereTest1() {
+        parseAPLExpression("⍸˝ 2 2 4").let { result ->
+            assert1DArray(arrayOf(0, 0, 2, 0, 1), result)
+        }
+    }
+
+    @Test
+    fun inverseWhereTest2() {
+        assertFailsWith<APLIncompatibleDomainsException> {
+            parseAPLExpression("⍸˝ 2 1")
+        }
+    }
+
+    @Test
+    fun inverseWhereTest3() {
+        assertFailsWith<APLIncompatibleDomainsException> {
+            parseAPLExpression("⍸˝ ¯1 2")
+        }
+    }
+
+    @Test
+    fun inverseWhereTest4() {
+        assertFailsWith<APLIncompatibleDomainsException> {
+            parseAPLExpression("⍸˝ 5")
+        }
+    }
+
+    @Test
+    fun inverseWhereTest5() {
+        parseAPLExpression("⍸˝ (1 2) (2 3)").let { result ->
+            assertDimension(dimensionsOfSize(3, 4), result)
+            assertArrayContent(arrayOf(0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 1), result)
+        }
+    }
+
+    @Test
+    fun inverseWhereTest6() {
+        assertFailsWith<APLIncompatibleDomainsException> {
+            parseAPLExpression("⍸˝ (1 2) (0 3)")
+        }
+    }
+
+    @Test
+    fun inverseWhereTest7() {
+        assertFailsWith<APLIncompatibleDomainsException> {
+            parseAPLExpression("⍸˝ (1 2) (1 0)")
+        }
+    }
+
+    @Test
+    fun inverseWhereTest8() {
+        parseAPLExpression("⍸˝ (1 2) (1 2) (5 2)").let { result ->
+            assertDimension(dimensionsOfSize(6, 3), result)
+            assertArrayContent(arrayOf(0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1), result)
+        }
+    }
+
+    @Test
+    fun inverseWhereTest9() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("⍸˝ (1 2) 1")
+        }
+    }
+
+    @Test
+    fun inverseWhereTest10() {
+        assertFailsWith<APLIncompatibleDomainsException> {
+            parseAPLExpression("⍸˝ 2 2⍴1 2 3 4")
+        }
+    }
+
+    @Test
+    fun inverseWhereTest11() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("⍸˝ (2 2⍴1 0 0 0)(2 2⍴1 0 0 0)")
+        }
+    }
+
+    @Test
+    fun inverseWhereTest12() {
+        assertAPLNull(parseAPLExpression("⍸˝ ⍬"))
+    }
 }

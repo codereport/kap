@@ -104,6 +104,21 @@ value class Dimensions(val dimensions: IntArray) {
         }
     }
 
+    fun incrementMutablePosition(position: IntArray) {
+        for (i in position.size - 1 downTo 0) {
+            val p = position[i]
+            val size = dimensions[i]
+            when {
+                p < size - 1 -> {
+                    position[i]++;
+                    break
+                }
+                p == size - 1 -> position[i] = 0
+                p >= size -> throw IllegalStateException("Invalid position")
+            }
+        }
+    }
+
     override fun toString() = "Dimensions[${dimensions.joinToString(", ")}]"
 
     @JvmInline
