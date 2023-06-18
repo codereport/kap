@@ -2,6 +2,7 @@ package array
 
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertIs
 
 class EvaluationOrderTest : APLTest() {
     /**
@@ -66,6 +67,47 @@ class EvaluationOrderTest : APLTest() {
         """.trimMargin()).let { (result, out) ->
             assertEquals("1122", out)
             assertSimpleNumber(33, result)
+        }
+    }
+
+    @Test
+    fun logicalOpAndTuples0() {
+        parseAPLExpression("1 and 2 ; 10 or 11").let { result ->
+            assertIs<APLList>(result)
+            assertEquals(2, result.listSize())
+            assertSimpleNumber(2, result.listElement(0))
+            assertSimpleNumber(10, result.listElement(1))
+        }
+    }
+
+    @Test
+    fun logicalOpAndTuples1() {
+        parseAPLExpression("1 and 2 ; 10 and 11").let { result ->
+            assertIs<APLList>(result)
+            assertEquals(2, result.listSize())
+            assertSimpleNumber(2, result.listElement(0))
+            assertSimpleNumber(11, result.listElement(1))
+        }
+    }
+
+    @Test
+    fun logicalOpAndTuples2() {
+        parseAPLExpression("1 and 2 and 3 ; 100 or 200 or 300").let { result ->
+            assertIs<APLList>(result)
+            assertEquals(2, result.listSize())
+            assertSimpleNumber(3, result.listElement(0))
+            assertSimpleNumber(100, result.listElement(1))
+        }
+    }
+
+    @Test
+    fun logicalOpAndTuples4() {
+        parseAPLExpression("1 and 2 ; 10 or 11 ; 100 or 101").let { result ->
+            assertIs<APLList>(result)
+            assertEquals(3, result.listSize())
+            assertSimpleNumber(2, result.listElement(0))
+            assertSimpleNumber(10, result.listElement(1))
+            assertSimpleNumber(100, result.listElement(2))
         }
     }
 }

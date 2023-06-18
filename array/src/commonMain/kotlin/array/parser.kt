@@ -336,7 +336,7 @@ class APLParser(val tokeniser: TokenGenerator) {
             val statementList = ArrayList<Instruction>()
             statementList.add(mkInstr(firstValue))
             while (true) {
-                val holder = parseValue()
+                val holder = parseBooleanExpression()
                 statementList.add(mkInstr(holder))
                 if (holder.lastToken.token != ListSeparator) {
                     return ParseResultHolder.InstrParseResult(ParsedAPLList(statementList), holder.lastToken)
