@@ -591,7 +591,7 @@ class Engine(numComputeEngines: Int? = null) {
                     result
                 }
                 return if (formatResult) {
-                    renderResult(context, result)
+                    renderResult(context, collapsedResult)
                 } else {
                     collapsedResult
                 }
