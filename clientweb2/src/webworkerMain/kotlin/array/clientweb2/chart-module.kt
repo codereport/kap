@@ -2,7 +2,7 @@ package array.clientweb2
 
 import array.*
 
-class ChartModule(val sendMessageFn: (ResponseMessage) -> Unit) : KapModule {
+class JsChartModule(val sendMessageFn: (ResponseMessage) -> Unit) : KapModule {
     override val name: String get() = "jschart"
 
     override fun init(engine: Engine) {
@@ -36,7 +36,7 @@ abstract class GenericLineChartFunctionImpl(pos: FunctionInstantiation) : NoAxis
             else -> throwAPLException(InvalidDimensionsException("chart data must be 1- or 2-dimensional", pos))
         }
         val output = AdditionalOutput(ChartOutput(LineChartDescriptor(subtype(), horizontalAxisLabels, datasets)))
-        val module = context.engine.findModule<ChartModule>() ?: throw IllegalStateException("Chart module not found")
+        val module = context.engine.findModule<JsChartModule>() ?: throw IllegalStateException("Chart module not found")
         module.sendMessageFn(output)
         return a
     }

@@ -59,7 +59,7 @@ fun initQueue() {
             sendMessageFn(OutputDescriptor(s))
         }
     }
-    engine.addModule(ChartModule(sendMessageFn))
+    engine.addModule(JsChartModule(sendMessageFn))
     engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
     self.onmessage = { event ->
         when (val request = Json.decodeFromString<Request>(event.data as String)) {

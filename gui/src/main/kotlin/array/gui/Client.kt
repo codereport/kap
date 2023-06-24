@@ -2,7 +2,7 @@ package array.gui
 
 import array.*
 import array.gui.arrayedit.ArrayEditor
-import array.gui.graph.GraphModule
+import array.gui.chart.JavaChartModule
 import array.gui.graphics.GuiModule
 import array.gui.reporting.ReportingClient
 import array.gui.settings.Settings
@@ -355,7 +355,7 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
 
     private fun initModules() {
         engine.addModule(GuiModule())
-        engine.addModule(GraphModule())
+        engine.addModule(JavaChartModule())
     }
 
     fun stopRequest() {
