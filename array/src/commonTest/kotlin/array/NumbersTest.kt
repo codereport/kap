@@ -5,6 +5,7 @@ import com.dhsdevelopments.mpbignum.Rational
 import com.dhsdevelopments.mpbignum.make
 import kotlin.test.Test
 import kotlin.test.assertFailsWith
+import kotlin.test.assertIs
 
 class NumbersTest : APLTest() {
     @Test
@@ -301,6 +302,14 @@ class NumbersTest : APLTest() {
                     NearDouble(20.08553692),
                     NearDouble(0.00004539992976, 8)),
                 result)
+        }
+    }
+
+    @Test
+    fun exponentResultShouldNotExpandToBigint() {
+        parseAPLExpression("2⋆3").let { result ->
+            assertIs<APLLong>(result)
+            assertSimpleNumber(8, result)
         }
     }
 
