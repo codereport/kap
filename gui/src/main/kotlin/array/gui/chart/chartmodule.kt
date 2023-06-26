@@ -38,7 +38,7 @@ abstract class GenericLineChartFunctionImpl(pos: FunctionInstantiation) : NoAxis
 
 class LineChartFunction : APLFunctionDescriptor {
     class LineChartFunctionImpl(instantiation: FunctionInstantiation) : GenericLineChartFunctionImpl(instantiation) {
-        override val type: ChartType get() = LineCharTtype
+        override val type: ChartType get() = LineCharType
     }
 
     override fun make(instantiation: FunctionInstantiation) = LineChartFunctionImpl(instantiation)

@@ -10,7 +10,7 @@ interface ChartType {
     fun make(): XYChart<String, Number>
 }
 
-object LineCharTtype : ChartType {
+object LineCharType : ChartType {
     override fun make() = BarChart(CategoryAxis(), NumberAxis())
 }
 
