@@ -346,4 +346,56 @@ class TransposeTest : APLTest() {
                 ), result)
         }
     }
+
+    @Test
+    fun reverseHorizontalInvalidAxis() {
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("⌽[¯1] 1 2 3")
+        }
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("⌽[1] 1 2 3")
+        }
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("⌽[2] 4 5 ⍴ ⍳4")
+        }
+    }
+
+    @Test
+    fun rotateHorizontalInvalidAxis() {
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("2 ⌽[¯1] 1 2 3")
+        }
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("2 ⌽[1] 1 2 3")
+        }
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("2 ⌽[2] 4 5 ⍴ ⍳4")
+        }
+    }
+
+    @Test
+    fun reverseVerticallInvalidAxis() {
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("⊖[¯1] 1 2 3")
+        }
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("⊖[1] 1 2 3")
+        }
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("⊖[2] 4 5 ⍴ ⍳4")
+        }
+    }
+
+    @Test
+    fun rotateVerticallInvalidAxis() {
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("2 ⊖[¯1] 1 2 3")
+        }
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("2 ⊖[1] 1 2 3")
+        }
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("2 ⊖[2] 4 5 ⍴ ⍳4")
+        }
+    }
 }

@@ -948,19 +948,19 @@ class InverseAPLValue private constructor(val source: APLValue, val axis: Int) :
 
 abstract class RotateFunction(pos: FunctionInstantiation) : APLFunction(pos) {
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-        val axisInt = if (axis == null) defaultAxis(a) else axis.ensureNumber(pos).asInt(pos)
+        val axisInt = if (axis == null) defaultAxis(a) else axis.ensureNumber(pos).asInt(pos).also { ensureValidAxis(it, a.dimensions, pos) }
         return InverseAPLValue.make(a, axisInt)
     }
 
     override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-        val axisInt = if (axis == null) defaultAxis(b) else axis.ensureNumber(pos).asInt(pos)
+        val bDimensions = b.dimensions
+        val axisInt = if (axis == null) defaultAxis(b) else axis.ensureNumber(pos).asInt(pos).also { ensureValidAxis(it, bDimensions, pos) }
         if (a.isScalar()) {
             val numShifts = a.ensureNumber(pos).asLong(pos)
             return RotatedAPLValue.make(b, axisInt, numShifts)
         } else {
             val aCollapsed = a.collapse()
             val aDimensions = aCollapsed.dimensions
-            val bDimensions = b.dimensions
             repeat(aDimensions.size) { i ->
                 if (aDimensions[i] != bDimensions[if (i < axisInt) i else i + 1]) {
                     throwAPLException(InvalidDimensionsException("Invalid dimension", pos))
