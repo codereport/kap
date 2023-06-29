@@ -986,6 +986,8 @@ abstract class RotateFunction(pos: FunctionInstantiation) : APLFunction(pos) {
 class RotateHorizFunction : APLFunctionDescriptor {
     class RotateHorizFunctionImpl(pos: FunctionInstantiation) : RotateFunction(pos) {
         override fun defaultAxis(value: APLValue) = value.rank - 1
+        override fun deriveBitwise() = BitwiseShiftFunction()
+
         override val name1Arg get() = "reverse horiz"
         override val name2Arg get() = "rotate horiz"
     }

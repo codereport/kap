@@ -11,6 +11,8 @@ object BigIntConstants {
     val ALL_BITS_64 = BigInt.of("18446744073709551615")
     val LONG_MIN_VALUE = BigInt.of(Long.MIN_VALUE)
     val LONG_MAX_VALUE = BigInt.of(Long.MAX_VALUE)
+    val INT_MIN_VALUE = BigInt.of(Int.MIN_VALUE)
+    val INT_MAX_VALUE = BigInt.of(Int.MAX_VALUE)
 }
 
 expect val BigInt.absoluteValue: BigInt
@@ -89,6 +91,7 @@ expect infix fun BigInt.shr(other: Long): BigInt
 infix fun BigInt.shl(other: Int) = this shl other.toLong()
 infix fun BigInt.shr(other: Int) = this shr other.toLong()
 
+expect fun BigInt.toInt(): Int
 expect fun BigInt.toLong(): Long
 expect fun BigInt.toDouble(): Double
 
@@ -106,6 +109,7 @@ fun max(a: BigInt, b: BigInt) = if (a > b) a else a
 fun min(a: BigInt, b: BigInt) = if (a < b) a else b
 
 expect fun BigInt.rangeInLong(): Boolean
+expect fun BigInt.rangeInInt(): Boolean
 
 fun BigInt.Companion.fromDoubleFloor(value: Double): BigInt {
     val remainder = value.rem(1)

@@ -194,6 +194,10 @@ internal fun mpzToLong(value: mpz_t): Long {
     }
 }
 
+actual fun BigInt.toInt(): Int {
+    return (mpzToLong(this.inner) and 0xFFFFFFFFL).toInt()
+}
+
 actual fun BigInt.toLong(): Long {
     return mpzToLong(this.inner)
 }
@@ -220,4 +224,8 @@ actual fun BigInt.toString(radix: Int): String {
 
 actual fun BigInt.rangeInLong(): Boolean {
     return mpz_fits_slong_p!!(inner) != 0
+}
+
+actual fun BigInt.rangeInInt(): Boolean {
+    return mpz_fits_sint_p!!(inner) != 0
 }

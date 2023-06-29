@@ -284,6 +284,7 @@ fun Long.makeAPLNumber(): APLLong {
 fun Double.makeAPLNumber() = APLDouble(this)
 fun Complex.makeAPLNumber() = if (this.imaginary == 0.0) APLDouble(real) else APLComplex(this)
 fun BigInt.makeAPLNumber() = APLBigInt(this)
+fun BigInt.makeAPLNumberWithReduction() = if (this.rangeInLong()) this.toLong().makeAPLNumber() else APLBigInt(this)
 fun Rational.makeAPLNumber() = if (denominator == BigIntConstants.ONE) numerator.makeAPLNumber() else APLRational(this)
 
 private fun compareComplex(a: Complex, b: Complex): Int {

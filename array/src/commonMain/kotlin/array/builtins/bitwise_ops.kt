@@ -38,7 +38,7 @@ abstract class BitwiseCombineAPLFunction(pos: FunctionInstantiation) : MathCombi
 
     override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue = when {
         a is APLLong && b is APLLong -> bitwiseCombine2ArgLong(a.value, b.value).makeAPLNumber()
-        else -> bitwiseCombine2ArgBigint(tryConvertToBigInt(a), tryConvertToBigInt(b)).makeAPLNumber()
+        else -> bitwiseCombine2ArgBigint(tryConvertToBigInt(a), tryConvertToBigInt(b)).makeAPLNumberWithReduction()
     }
 
     override fun combine1ArgLong(a: Long) = bitwiseCombine1ArgLong(a)
@@ -131,4 +131,46 @@ class BitwiseCountBitsFunction : APLFunctionDescriptor {
     }
 
     override fun make(instantiation: FunctionInstantiation) = BitwiseCountBitsFunctionImpl(instantiation)
+}
+
+class BitwiseShiftFunction : APLFunctionDescriptor {
+    class BitwiseShiftFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
+        override fun combine2ArgLong(a: Long, b: Long): Long {
+            return opLong(a, b)
+        }
+
+        override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
+            return numericRelationOperation(
+                pos,
+                a,
+                b,
+                { x, y -> opLong(x, y).makeAPLNumber() },
+                { x, y -> opBigInt(BigInt.of(x), BigInt.of(y)).makeAPLNumber() },
+                { x, y -> throwAPLException(APLIncompatibleDomainsException("Complex numbers not supported", pos)) },
+                fnBigint = { x, y -> opBigInt(x, y).makeAPLNumberWithReduction() })
+        }
+
+        private fun opLong(a: Long, b: Long): Long {
+            if (a < Int.MIN_VALUE || a > Int.MAX_VALUE) {
+                throwAPLException(APLIncompatibleDomainsException("Shift count out of range: ${a}"))
+            }
+            val result = BigInt.of(b).shl(a.toInt())
+            if (result.rangeInLong()) {
+                return result.toLong()
+            } else {
+                throw LongExpressionOverflow(result)
+            }
+        }
+
+        private fun opBigInt(a: BigInt, b: BigInt): BigInt {
+            if (!a.rangeInInt()) {
+                throwAPLException(APLIncompatibleDomainsException("Shift count out of range: ${a}"))
+            }
+            return b.shl(a.toLong())
+        }
+
+        override val name2Arg get() = "bitwise shift"
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = BitwiseShiftFunctionImpl(instantiation)
 }

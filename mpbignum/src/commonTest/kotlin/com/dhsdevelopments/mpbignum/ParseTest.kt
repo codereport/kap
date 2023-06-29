@@ -86,6 +86,47 @@ class ParseTest {
     }
 
     @Test
+    fun convertToInt() {
+        val a = BigInt.of(123)
+        val b = a.toInt()
+        assertEquals(123, b)
+    }
+
+    @Test
+    fun convertToIntNegative() {
+        val a = BigInt.of(-2)
+        val b = a.toInt()
+        assertEquals(-2, b)
+    }
+
+    @Test
+    fun convertToIntMinInt() {
+        val a = BigInt.of(Int.MIN_VALUE)
+        val b = a.toInt()
+        assertEquals(Int.MIN_VALUE, b)
+    }
+
+    @Test
+    fun convertToIntMaxInt() {
+        val a = BigInt.of(Int.MAX_VALUE)
+        val b = a.toInt()
+        assertEquals(Int.MAX_VALUE, b)
+    }
+
+    @Test
+    fun convertOverflowToInt() {
+        val a = BigInt.of(Int.MAX_VALUE)
+        val b = a + 3
+        val c = b.toInt()
+        assertEquals(Int.MIN_VALUE + 2, c)
+    }
+
+    @Test
+    fun convertToIntZero() {
+        assertEquals(0, BigInt.of("0").toInt())
+    }
+
+    @Test
     fun convertToDouble() {
         val a = BigInt.of(3)
         val b = a.toDouble()

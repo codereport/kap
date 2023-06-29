@@ -87,6 +87,10 @@ actual infix fun BigInt.shr(other: Long): BigInt {
     return BigInt(inner shr other.toInt())
 }
 
+actual fun BigInt.toInt(): Int {
+    return inner.toInt()
+}
+
 actual fun BigInt.toLong(): Long {
     return inner.toLong()
 }
@@ -109,4 +113,8 @@ actual fun BigInt.toString(radix: Int): String {
 
 actual fun BigInt.rangeInLong(): Boolean {
     return inner.bitLength() <= 63
+}
+
+actual fun BigInt.rangeInInt(): Boolean {
+    return inner.bitLength() <= 31
 }

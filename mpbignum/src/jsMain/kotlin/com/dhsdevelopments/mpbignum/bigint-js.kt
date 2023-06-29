@@ -1,8 +1,5 @@
 package com.dhsdevelopments.mpbignum
 
-import kotlin.math.ceil
-import kotlin.math.floor
-
 class BigIntWrapper(val value: dynamic) {
     override fun equals(other: Any?): Boolean {
         if (other !is BigIntWrapper) {
@@ -203,6 +200,13 @@ actual infix fun BigInt.shr(other: Long): BigInt {
     return BigInt.makeFromJs(js("(function(b0){return a>>b0})(BigInt(b))"))
 }
 
+actual fun BigInt.toInt(): Int {
+    @Suppress("UNUSED_VARIABLE")
+    val a = this.inner
+    val s = js("BigInt.asIntN(32,a).toString()") as String
+    return s.toInt()
+}
+
 actual fun BigInt.toLong(): Long {
     @Suppress("UNUSED_VARIABLE")
     val a = this.inner
@@ -234,4 +238,8 @@ actual fun BigInt.toString(radix: Int): String {
 
 actual fun BigInt.rangeInLong(): Boolean {
     return this >= BigIntConstants.LONG_MIN_VALUE && this <= BigIntConstants.LONG_MAX_VALUE
+}
+
+actual fun BigInt.rangeInInt(): Boolean {
+    return this >= BigIntConstants.INT_MIN_VALUE && this <= BigIntConstants.INT_MAX_VALUE
 }

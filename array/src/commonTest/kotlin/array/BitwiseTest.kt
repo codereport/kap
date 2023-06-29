@@ -103,4 +103,19 @@ class BitwiseTest : APLTest() {
         assertSimpleNumber(-104, parseAPLExpression("99 ⍱∵ 70"))
         assertBigIntOrLong(-104, parseAPLExpression("(int:asBigint 99) ⍱∵ (int:asBigint 70)"))
     }
+
+    @Test
+    fun bitwiseShift() {
+        assertSimpleNumber(6, parseAPLExpression("1 ⌽∵ 3"))
+        assertSimpleNumber(1, parseAPLExpression("¯1 ⌽∵ 3"))
+        assertSimpleNumber(3, parseAPLExpression("0 ⌽∵ 3"))
+        assertSimpleNumber(1024, parseAPLExpression("10 ⌽∵ 1"))
+        assertBigIntOrLong(
+            "7214722814281215676076484393336843348098096790246358642812797864546946125152077138320483323038009455714104246272",
+            parseAPLExpression("370 ⌽∵ 3"))
+        assertSimpleNumber(
+            3,
+            parseAPLExpression("¯370 ⌽∵ 7214722814281215676076484393336843348098096790246358642812797864546946125152077138320483323038009455714104246272"))
+        assertSimpleNumber(0, parseAPLExpression("¯10 ⌽∵ 8"))
+    }
 }
