@@ -38,6 +38,12 @@ class JsonTest : APLTest() {
     }
 
     @Test
+    fun testWeirdMastodonData() {
+        unless(backendSupportsJson) { return }
+        parseAPLExpression("json:read \"test-data/mastodon-format.json\"")
+    }
+
+    @Test
     fun readJsonFromString() {
         unless(backendSupportsJson) { return }
 

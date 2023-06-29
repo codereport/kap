@@ -88,14 +88,14 @@ class CharacterProviderReaderWrapper(val provider: CharacterProvider) : Reader()
         var i = 0
         if (bufPos > 0) {
             val charsToCopy = min(len, bufPos)
-            buf.copyInto(cbuf, 0, 0, charsToCopy)
+            buf.copyInto(cbuf, off, 0, charsToCopy)
             i += charsToCopy
-            if (charsToCopy < bufPos) {
+            bufPos = if (charsToCopy < bufPos) {
                 val newLength = bufPos - charsToCopy
                 buf.copyInto(buf, 0, charsToCopy, charsToCopy + newLength)
-                bufPos = newLength
+                newLength
             } else {
-                bufPos = 0
+                0
             }
         }
         while (i < len) {
@@ -104,7 +104,7 @@ class CharacterProviderReaderWrapper(val provider: CharacterProvider) : Reader()
             val charsToCopy = min(valueString.length, len - i)
             var valueIndex = 0
             while (valueIndex < charsToCopy) {
-                cbuf[i++] = valueString[valueIndex++]
+                cbuf[off + i++] = valueString[valueIndex++]
             }
             if (charsToCopy < valueString.length) {
                 var bufIndex = 0

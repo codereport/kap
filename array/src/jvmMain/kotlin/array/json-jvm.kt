@@ -13,6 +13,7 @@ actual fun parseJsonToAPL(input: CharacterProvider): APLValue {
     val gson = Gson()
     try {
         val jsonReader = gson.newJsonReader(CharacterProviderReaderWrapper(input))
+        jsonReader.isLenient = true
         return parseEntry(jsonReader)
     } catch (e: MalformedJsonException) {
         throw JsonParseException("Parse error in JSON: ${e.message}", e)
