@@ -25,7 +25,6 @@ class JvmIoTest {
             assertEquals("note", reader.nextName())
             assertEquals(JsonToken.STRING, reader.peek())
             val s = reader.nextString()
-            println(s)
         }
     }
 
