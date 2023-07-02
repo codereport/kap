@@ -177,7 +177,11 @@ class ReduceNWiseResultValue(
     }
 }
 
-abstract class ReduceFunctionImpl(val fn: APLFunction, pos: FunctionInstantiation) : APLFunction(pos), SaveStackCapable by SaveStackSupport(fn) {
+abstract class ReduceFunctionImpl(fn: APLFunction, pos: FunctionInstantiation) : APLFunction(pos, listOf(fn)) {
+    private val saveStackSupport = SaveStackSupport(this)
+
+    val fn get() = fns[0]
+
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
         val axisParam = if (axis == null) null else axis.ensureNumber(pos).asInt(pos)
         return if (a.rank == 0) {
@@ -188,7 +192,7 @@ abstract class ReduceFunctionImpl(val fn: APLFunction, pos: FunctionInstantiatio
         } else {
             val axisInt = axisParam ?: defaultAxis(a)
             ensureValidAxis(axisInt, a.dimensions, pos)
-            ReduceResult1Arg(context, fn, a, axisInt, pos, savedStack(context))
+            ReduceResult1Arg(context, fn, a, axisInt, pos, saveStackSupport.savedStack(context))
         }
     }
 
@@ -220,7 +224,7 @@ abstract class ReduceFunctionImpl(val fn: APLFunction, pos: FunctionInstantiatio
                 APLArrayImpl(d, emptyArray())
             }
             else -> {
-                ReduceNWiseResultValue(context, fn, size, b, axisInt, savedStack(context))
+                ReduceNWiseResultValue(context, fn, size, b, axisInt, saveStackSupport.savedStack(context))
             }
         }
     }

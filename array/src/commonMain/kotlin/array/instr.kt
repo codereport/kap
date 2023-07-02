@@ -86,7 +86,7 @@ class FunctionCall2Arg(
 }
 
 class DynamicFunctionDescriptor(val instr: Instruction) : APLFunctionDescriptor {
-    inner class DynamicFunctionImpl(pos: FunctionInstantiation) : APLFunction(pos) {
+    class DynamicFunctionImpl(val instr: Instruction, pos: FunctionInstantiation, val bindEnv: Environment? = null) : APLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             return resolveFn(context).eval1Arg(context, a, axis)
         }
@@ -103,10 +103,23 @@ class DynamicFunctionDescriptor(val instr: Instruction) : APLFunctionDescriptor 
             }
             return v.makeClosure()
         }
+
+        override fun capturedEnvironments(): List<Environment> {
+            return if (bindEnv == null) emptyList() else listOf(bindEnv)
+        }
+
+        override fun computeClosure(parser: APLParser): Pair<APLFunction, List<Instruction>> {
+            val sym = parser.tokeniser.engine.createAnonymousSymbol("leftAssignedFunction")
+            val binding = parser.currentEnvironment().bindLocal(sym)
+            val ref = StackStorageRef(binding)
+            val list = listOf<Instruction>(AssignmentInstruction(arrayOf(ref), instr, pos))
+            val env = parser.currentEnvironment()
+            return Pair(DynamicFunctionImpl(VariableRef(sym, ref, pos), FunctionInstantiation(pos, env), env), list)
+        }
     }
 
     override fun make(instantiation: FunctionInstantiation): APLFunction {
-        return DynamicFunctionImpl(instantiation)
+        return DynamicFunctionImpl(instr, instantiation)
     }
 }
 

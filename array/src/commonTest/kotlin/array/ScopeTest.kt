@@ -220,4 +220,15 @@ class ScopeTest : APLTest() {
         assertArrayContent(arrayOf(2, 4, 6, 5, 7, 9), result)
         assertEquals("321", out)
     }
+
+    @Test
+    fun escapingForEachScope() {
+        parseAPLExpression("a0←10 ⋄ { a←⍵ ⋄ { { a + ⍵ }¨ ⍵+1 } 101 201 301 401 }¨ 10 20 30 40").let { result ->
+            assertDimension(dimensionsOfSize(4), result)
+            assert1DArray(arrayOf(112,212,312,412), result.valueAt(0))
+            assert1DArray(arrayOf(122,222,322,422), result.valueAt(1))
+            assert1DArray(arrayOf(132,232,332,432), result.valueAt(2))
+            assert1DArray(arrayOf(142,242,342,442), result.valueAt(3))
+        }
+    }
 }

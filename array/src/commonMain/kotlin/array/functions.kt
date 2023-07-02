@@ -206,16 +206,17 @@ interface SaveStackCapable {
     fun saveStack(): Boolean
 }
 
-class SaveStackSupport(vararg fn: APLFunction) : SaveStackCapable {
+class SaveStackSupport(fn: APLFunction) {
     private var saveStack: Boolean = false
 
-    override fun saveStack() = saveStack
+    fun savedStack(context: RuntimeContext) = if (saveStack) currentStack().currentFrame() else null
 
     init {
-        computeCapturedEnvs(fn)
+        computeCapturedEnvs(fn.fns)
+        fn.instantiationEnv.markCanEscape()
     }
 
-    private fun computeCapturedEnvs(fns: Array<out APLFunction>) {
+    private fun computeCapturedEnvs(fns: List<APLFunction>) {
         val capturedEnvs = fns.flatMap(APLFunction::allCapturedEnvironments)
         if (capturedEnvs.isNotEmpty()) {
             saveStack = capturedEnvs.isNotEmpty()
@@ -223,6 +224,7 @@ class SaveStackSupport(vararg fn: APLFunction) : SaveStackCapable {
         }
     }
 }
+
 
 abstract class DelegatedAPLFunctionImpl(pos: FunctionInstantiation, fns: List<APLFunction> = emptyList()) : APLFunction(pos, fns) {
     override fun evalArgsAndCall1Arg(context: RuntimeContext, rightArgs: Instruction) =

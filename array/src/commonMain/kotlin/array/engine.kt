@@ -24,6 +24,12 @@ class FunctionInstantiation(val pos: Position, val env: Environment) {
     inline fun updatePos(fn: (Position) -> Position): FunctionInstantiation {
         return FunctionInstantiation(fn(pos), env)
     }
+
+    fun maybeMarkEscape(vararg fns: APLFunction) {
+        if (fns.any { it.allCapturedEnvironments().isNotEmpty() }) {
+            env.markCanEscape()
+        }
+    }
 }
 
 interface APLFunctionDescriptor {

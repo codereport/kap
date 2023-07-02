@@ -155,19 +155,20 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
 
 
     class OuterJoinFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescriptor {
-        class OuterJoinFunctionImpl(pos: FunctionInstantiation, fn: APLFunction) : NoAxisAPLFunction(pos, listOf(fn)),
-                SaveStackCapable by SaveStackSupport(fn) {
+        class OuterJoinFunctionImpl(pos: FunctionInstantiation, fn: APLFunction) : NoAxisAPLFunction(pos, listOf(fn)) {
+            private val saveStackSupport = SaveStackSupport(this)
+
             override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
                 val sta = a.specialisedType
                 val stb = b.specialisedType
                 return when {
                     sta === ArrayMemberType.LONG && stb === ArrayMemberType.LONG && fn.optimisationFlags.is2ALongLong -> {
-                        OuterJoinResultLong(context, a, b, fn, pos, savedStack(context))
+                        OuterJoinResultLong(context, a, b, fn, pos, saveStackSupport.savedStack(context))
                     }
                     sta === ArrayMemberType.DOUBLE && stb === ArrayMemberType.DOUBLE && fn.optimisationFlags.is2ADoubleDouble -> {
-                        OuterJoinResultDouble(context, a, b, fn, pos, savedStack(context))
+                        OuterJoinResultDouble(context, a, b, fn, pos, saveStackSupport.savedStack(context))
                     }
-                    else -> OuterJoinResult(context, a, b, fn, pos, savedStack(context))
+                    else -> OuterJoinResult(context, a, b, fn, pos, saveStackSupport.savedStack(context))
                 }
             }
 
@@ -184,8 +185,9 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
     }
 
     class InnerJoinFunctionDescriptor(val fn0Inner: APLFunction, val fn1Inner: APLFunction) : APLFunctionDescriptor {
-        class InnerJoinFunctionImpl(pos: FunctionInstantiation, fn0: APLFunction, fn1: APLFunction) : NoAxisAPLFunction(pos, listOf(fn0, fn1)),
-                SaveStackCapable by SaveStackSupport(fn0, fn1) {
+        class InnerJoinFunctionImpl(pos: FunctionInstantiation, fn0: APLFunction, fn1: APLFunction) : NoAxisAPLFunction(pos, listOf(fn0, fn1)) {
+            private val saveStackSupport = SaveStackSupport(this)
+
             override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
                 val aDimensions = a.dimensions
                 val bDimensions = b.dimensions
@@ -211,9 +213,9 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
                 }
                 return if (a1Dimensions.size == 1 && b1Dimensions.size == 1) {
                     val v = fn1.eval2Arg(context, a1, b1, null)
-                    ReduceResult1Arg(context, fn0, v, 0, pos, savedStack(context))
+                    ReduceResult1Arg(context, fn0, v, 0, pos, saveStackSupport.savedStack(context))
                 } else {
-                    InnerJoinResult(context, a1, b1, fn0, fn1, pos, savedStack(context))
+                    InnerJoinResult(context, a1, b1, fn0, fn1, pos, saveStackSupport.savedStack(context))
                 }
             }
 

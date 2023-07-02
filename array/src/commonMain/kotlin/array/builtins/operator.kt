@@ -81,14 +81,16 @@ the monadic one (with Dyalog's ↑ meaning))
 
 class RankOperator : APLOperatorValueRightArg {
     override fun combineFunction(fn: APLFunction, instr: Instruction, opPos: FunctionInstantiation): APLFunction {
-        return object : APLFunction(opPos), SaveStackCapable by SaveStackSupport(fn) {
+        return object : APLFunction(opPos) {
+            private val saveStackSupport = SaveStackSupport(this)
+
             override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
                 val aReduced = a.collapseFirstLevel()
                 val aDimensions = aReduced.dimensions
                 val index = computeRankFromOpArg(context)
                 val k = max(0, if (index < 0) aDimensions.size + index else index)
                 val enclosedResult = AxisMultiDimensionEnclosedValue(aReduced, k)
-                val applyRes = ForEachResult1Arg(context, fn, enclosedResult, null, pos, savedStack(context))
+                val applyRes = ForEachResult1Arg(context, fn, enclosedResult, null, pos, saveStackSupport.savedStack(context))
                 return DiscloseAPLFunction.discloseValue(applyRes)
             }
 
@@ -168,7 +170,7 @@ class RankOperator : APLOperatorValueRightArg {
                     enclosedResult1,
                     null,
                     pos,
-                    savedStack(context))
+                    saveStackSupport.savedStack(context))
                 return DiscloseAPLFunction.discloseValue(applyRes)
             }
 

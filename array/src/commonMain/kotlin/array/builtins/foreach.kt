@@ -40,19 +40,20 @@ class ForEachResult2Arg(
 }
 
 class ForEachFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescriptor {
-    class ForEachFunctionImpl(pos: FunctionInstantiation, fn: APLFunction) : APLFunction(pos, listOf(fn)), ParallelSupported,
-            SaveStackCapable by SaveStackSupport(fn) {
+    class ForEachFunctionImpl(pos: FunctionInstantiation, fn: APLFunction) : APLFunction(pos, listOf(fn)), ParallelSupported{
+
+        private val saveStackSupport = SaveStackSupport(this)
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             return if (a.isScalar()) {
                 return EnclosedAPLValue.make(fn.eval1Arg(context, a.disclose(), null))
             } else {
-                ForEachResult1Arg(context, fn, a, axis, pos, savedStack(context))
+                ForEachResult1Arg(context, fn, a, axis, pos, saveStackSupport.savedStack(context))
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            return compute2Arg(context, fn, a, b, axis, pos, savedStack(context))
+            return compute2Arg(context, fn, a, b, axis, pos, saveStackSupport.savedStack(context))
         }
 
         override fun computeParallelTasks1Arg(
