@@ -149,16 +149,14 @@ class ScopeTest : APLTest() {
             |  abc ← λ{ +[y] ⍵ }
             |  foo ⇐ {
             |    io:print "foo"
-            |    io:print abc
             |    ⍞abc¨ ⍵
             |  }
             |  {comp ⍵} foo 4 5 6
             |} 0
             """.trimMargin()
-        assertFailsWith<VariableNotAssigned> {
-            // The unassigned variable in this case is abc which is not in scope, as user defined functions are always evaluated in
-            // the root scope, regardless of where it is found in the source.
-            parseAPLExpression(src)
+        parseAPLExpressionWithOutput(src).let { (result, out) ->
+            assert1DArray(arrayOf(4, 5, 6), result)
+            assertEquals("foo", out)
         }
     }
 
@@ -225,10 +223,10 @@ class ScopeTest : APLTest() {
     fun escapingForEachScope() {
         parseAPLExpression("a0←10 ⋄ { a←⍵ ⋄ { { a + ⍵ }¨ ⍵+1 } 101 201 301 401 }¨ 10 20 30 40").let { result ->
             assertDimension(dimensionsOfSize(4), result)
-            assert1DArray(arrayOf(112,212,312,412), result.valueAt(0))
-            assert1DArray(arrayOf(122,222,322,422), result.valueAt(1))
-            assert1DArray(arrayOf(132,232,332,432), result.valueAt(2))
-            assert1DArray(arrayOf(142,242,342,442), result.valueAt(3))
+            assert1DArray(arrayOf(112, 212, 312, 412), result.valueAt(0))
+            assert1DArray(arrayOf(122, 222, 322, 422), result.valueAt(1))
+            assert1DArray(arrayOf(132, 232, 332, 432), result.valueAt(2))
+            assert1DArray(arrayOf(142, 242, 342, 442), result.valueAt(3))
         }
     }
 }

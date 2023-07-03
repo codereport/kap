@@ -119,7 +119,7 @@ class DynamicFunctionDescriptor(val instr: Instruction) : APLFunctionDescriptor 
     }
 
     override fun make(instantiation: FunctionInstantiation): APLFunction {
-        return DynamicFunctionImpl(instr, instantiation)
+        return DynamicFunctionImpl(instr, instantiation, if (instantiation.env.subtreeHasLocalBindings()) instantiation.env else null)
     }
 }
 
