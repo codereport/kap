@@ -122,6 +122,27 @@ class EvalLambdaFuncTest : APLTest() {
         }
     }
 
+    @Test
+    fun applyWithOperator0() {
+        parseAPLExpression("{ a←⍵ ⋄ ⍞a/ 10 11 12 13 }¨ λ× λ+").let { result ->
+            assert1DArray(arrayOf(10 * 11 * 12 * 13, 10 + 11 + 12 + 13), result)
+        }
+    }
+
+    @Test
+    fun applyWithOperator1() {
+        parseAPLExpression("{ ⍞⍵/ 10 11 12 13 }¨ λ× λ+").let { result ->
+            assert1DArray(arrayOf(10 * 11 * 12 * 13, 10 + 11 + 12 + 13), result)
+        }
+    }
+
+    @Test
+    fun applyWithOperatorAndInnerScope() {
+        parseAPLExpression("{ a←⍵ ⋄ {⍞a/ ⍵} 10 11 12 13 }¨ λ× λ+").let { result ->
+            assert1DArray(arrayOf(10 * 11 * 12 * 13, 10 + 11 + 12 + 13), result)
+        }
+    }
+
     private fun evalWithEngine(engine: Engine, expr: String): APLValue {
         return engine.parseAndEval(StringSourceLocation(expr))
     }

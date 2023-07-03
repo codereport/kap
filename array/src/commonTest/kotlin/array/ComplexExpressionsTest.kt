@@ -587,8 +587,12 @@ class ComplexExpressionsTest : APLTest() {
     }
 
     class AbcFunctionDescriptor(val fn: APLFunction) : APLFunctionDescriptor {
-        class AbcFunctionDescriptorImpl(fn: APLFunction, pos: FunctionInstantiation) : APLFunction(pos, listOf(fn)), SaveStackCapable by SaveStackSupport(fn) {
+        class AbcFunctionDescriptorImpl(fn: APLFunction, pos: FunctionInstantiation) : APLFunction(pos, listOf(fn)) {
             private val fn get() = fns[0]
+
+            init {
+                SaveStackSupport(this)
+            }
 
             override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
                 val result = fn.eval1Arg(context, a, null)
