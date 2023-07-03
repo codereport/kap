@@ -451,4 +451,49 @@ class ReduceTest : APLTest() {
             assertBigIntOrLong("295147905179352825856", result)
         }
     }
+
+    @Test
+    fun reduceWithAxisArgumentFromVariable0() {
+        parseAPLExpression("{ a←0 ⋄ +[a]/ ⍵ ⍴ ⊂1 2 }¨ 3 4").let { result ->
+            assertDimension(dimensionsOfSize(2), result)
+            result.valueAt(0).let { v ->
+                assertDimension(emptyDimensions(), v)
+                assert1DArray(arrayOf(3,6), v.valueAt(0))
+            }
+            result.valueAt(1).let { v ->
+                assertDimension(emptyDimensions(), v)
+                assert1DArray(arrayOf(4,8), v.valueAt(0))
+            }
+        }
+    }
+
+    @Test
+    fun reduceWithAxisArgumentFromVariable1() {
+        parseAPLExpression("{ a←0 ⋄ (+[a])/ ⍵ ⍴ ⊂1 2 }¨ 3 4").let { result ->
+            assertDimension(dimensionsOfSize(2), result)
+            result.valueAt(0).let { v ->
+                assertDimension(emptyDimensions(), v)
+                assert1DArray(arrayOf(3,6), v.valueAt(0))
+            }
+            result.valueAt(1).let { v ->
+                assertDimension(emptyDimensions(), v)
+                assert1DArray(arrayOf(4,8), v.valueAt(0))
+            }
+        }
+    }
+
+    @Test
+    fun reduceWithAxisArgumentFromFunction() {
+        parseAPLExpression("{ a←0 ⋄ b⇐+[a] ⋄ b/ ⍵ ⍴ ⊂1 2 }¨ 3 4").let { result ->
+            assertDimension(dimensionsOfSize(2), result)
+            result.valueAt(0).let { v ->
+                assertDimension(emptyDimensions(), v)
+                assert1DArray(arrayOf(3,6), v.valueAt(0))
+            }
+            result.valueAt(1).let { v ->
+                assertDimension(emptyDimensions(), v)
+                assert1DArray(arrayOf(4,8), v.valueAt(0))
+            }
+        }
+    }
 }
