@@ -32,7 +32,7 @@ zSpc ⇐ { (0≡¨⍵) % ⍵ @\s }
 }
 
 ∇ toHex {
-  "0123456789ABCDEF" ⊇⍨ {⍵ ⫽⍨ ~×\0=⍵} (6 ⍴ 16) ⊤ ⍵
+  "0123456789ABCDEF" ⊇⍨ { ⍵ ⫽⍨ {,1}⍢(¯1↑) ~×\0=⍵ } (6 ⍴ 16) ⊤ ⍵
 }
 
 ∇ renderChar ch {
@@ -79,7 +79,6 @@ zSpc ⇐ { (0≡¨⍵) % ⍵ @\s }
   bottom ← < ((w-1) ⍴ @─) ,"┘"
   separator ← < "→" , ((w-2) ⍴ @─) , "┤"
   res ← {top⍪⍵⍪bottom} ↑ ⍪⌿⍪ ¯1↓ , f ,[0.5] ⊂separator
-
 
   ⍝ To draw the layers to the left, first determine the number of layers and their sizes.
   ds ← ¯2↓⍴v0
