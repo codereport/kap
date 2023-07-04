@@ -1,4 +1,4 @@
-package array.textclient
+package com.dhsdevelopments.kap.textclient
 
 import array.Engine
 import array.StringSourceLocation
