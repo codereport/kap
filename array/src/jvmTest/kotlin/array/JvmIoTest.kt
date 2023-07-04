@@ -11,7 +11,7 @@ class JvmIoTest {
     @Test
     fun parseJson() {
         val gson = Gson()
-        BufferedReader(FileReader("/home/elias/prog/array/array/test-data/mastodon-format.json", Charsets.UTF_8)).use { r ->
+        BufferedReader(FileReader("test-data/mastodon-format.json", Charsets.UTF_8)).use { r ->
             val p: CharacterProvider = ReaderCharacterProvider(r)
             val reader = gson.newJsonReader(CharacterProviderReaderWrapper(p))
             reader.isLenient = true
