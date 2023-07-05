@@ -5,7 +5,7 @@ import array.options.ArgParser
 import array.options.InvalidOption
 import array.options.Option
 
-fun runRepl(args: Array<String>, defaultLibPath: String? = null, init: ((Engine) -> Unit)? = null) {
+fun runRepl(args: Array<String>, defaultLibPath: String? = null, keyboardInput: KeyboardInput? = null, init: ((Engine) -> Unit)? = null) {
     val argParser = ArgParser(
         Option("help", false, "Print a summary of options"),
         Option("lib-path", true, "Location of the KAP standard library"),
@@ -24,7 +24,6 @@ fun runRepl(args: Array<String>, defaultLibPath: String? = null, init: ((Engine)
         return
     }
     try {
-        val keyboardInput = makeKeyboardInput()
         val engine = Engine()
         if (init != null) {
             init(engine)
@@ -69,14 +68,17 @@ fun runRepl(args: Array<String>, defaultLibPath: String? = null, init: ((Engine)
         }
 
         if (!argResult.containsKey("no-repl")) {
+            val kb = keyboardInput ?: makeKeyboardInput()
             val prompt = "> "
             while (true) {
-                val line = keyboardInput.readString(prompt) ?: break
+                val line = kb.readString(prompt) ?: break
                 val stringTrimmed = line.trim()
                 if (stringTrimmed != "") {
                     try {
-                        val result = engine.parseAndEval(StringSourceLocation(line)).collapse()
-                        println(result.formatted(FormatStyle.PRETTY))
+                        val result = engine.parseAndEval(StringSourceLocation(line), collapseResult = true, formatResult = true)
+                        formatResult(result) { s ->
+                            println(s)
+                        }
                     } catch (e: APLGenericException) {
                         println(e.formattedError())
                     }

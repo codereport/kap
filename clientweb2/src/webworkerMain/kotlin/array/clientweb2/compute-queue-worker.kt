@@ -77,8 +77,8 @@ private fun processEvalRequest(engine: Engine, request: EvalRequest) {
         val value =
             engine.parseAndEval(
                 StringSourceLocation(request.src),
+                collapseResult = true,
                 formatResult = request.resultType.requiresFormatting)
-                .collapse()
         when (request.resultType) {
             ResultType.FORMATTED_PRETTY -> StringResponse(formatResultToStrings(value).joinToString("\n"))
             ResultType.FORMATTED_READABLE -> StringResponse(value.formatted(FormatStyle.READABLE))

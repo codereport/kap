@@ -1,5 +1,6 @@
-headers = editline/readline.h
-headerFilter = editline/*
+headers = histedit.h editline/readline.h
+#headerFilter = editline/*
+#headerFilter = *
 
 compilerOpts.linux = -I/usr/include -I/usr/include/x86_64-linux-gnu
 linkerOpts.osx = -ledit
