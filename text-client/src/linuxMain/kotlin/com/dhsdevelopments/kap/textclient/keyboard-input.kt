@@ -1,5 +1,3 @@
-@file:OptIn(ExperimentalForeignApi::class)
-
 package com.dhsdevelopments.kap.textclient
 
 import array.KeyboardInput
@@ -17,6 +15,7 @@ import platform.posix.wchar_tVar
 
 private const val PROMPT_BUF_SIZE = 1024
 
+@OptIn(ExperimentalForeignApi::class)
 private class EditLineState {
     val currentPromptPtr: CPointer<ByteVar> = nativeHeap.allocArray<ByteVar>(PROMPT_BUF_SIZE)
     val extendedCharsKeyboardInput = ExtendedCharsKeyboardInput()
@@ -120,6 +119,7 @@ private fun findPrompt(editLinePointer: CPointer<EditLine>): CPointer<ByteVar> {
     return state.currentPromptPtr
 }
 
+@OptIn(ExperimentalForeignApi::class)
 private fun clientStateFromUserData(editLinePointer: CPointer<EditLine>): EditLineState {
     memScoped {
         val data = alloc<COpaquePointerVar>()
