@@ -24,16 +24,26 @@ private class EditLineState {
 
 @OptIn(ExperimentalForeignApi::class)
 class LibinputKeyboardInput : KeyboardInput {
-    private val editLine = el_init("text-client", stdin, stdout, stderr) ?: throw RuntimeException("Error initialisaing libedit")
+    private val editLine: CPointer<EditLine>
+    private val historyInst: CPointer<HistoryW>
     private val state = EditLineState()
 
     init {
+        editLine = el_init("text-client", stdin, stdout, stderr) ?: throw RuntimeException("Error initialisaing libedit")
+        historyInst = history_winit() ?: throw RuntimeException("Error initialising history")
         val stableRef = StableRef.create(state)
         el_set(editLine, EL_CLIENTDATA, stableRef.asCPointer())
         el_set(editLine, EL_EDITOR, "emacs")
         el_set(editLine, EL_PROMPT, staticCFunction(::findPrompt))
         el_set(editLine, EL_ADDFN, "charprefix", "Prefix for entering kap characters", staticCFunction(::charPrefixUserCommand))
         el_set(editLine, EL_BIND, "`", "charprefix", null)
+        el_set(editLine, EL_HIST, findHistoryWFn(), historyInst)
+
+        memScoped {
+            val event = alloc<HistEventW>()
+            history_w(historyInst, event.ptr, H_SETSIZE, 100)
+            history_w(historyInst, event.ptr, H_SETUNIQUE, 1)
+        }
     }
 
     override fun readString(prompt: String): String? {
@@ -44,7 +54,12 @@ class LibinputKeyboardInput : KeyboardInput {
             if (res == null) {
                 return null
             } else {
-                return res.toKStringFromUtf32()
+                val resString = res.toKStringFromUtf32()
+                if (resString.isNotBlank()) {
+                    val event = alloc<HistEventW>()
+                    history_w(historyInst, event.ptr, H_ENTER, resString.cstr)
+                }
+                return resString
             }
         }
     }

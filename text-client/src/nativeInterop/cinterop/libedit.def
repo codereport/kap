@@ -5,3 +5,15 @@ headers = histedit.h editline/readline.h
 compilerOpts.linux = -I/usr/include -I/usr/include/x86_64-linux-gnu
 linkerOpts.osx = -ledit
 linkerOpts.linux = -L/usr/lib64 -ledit
+
+---
+
+typedef int HistWFnType(HistoryW *, HistEvent *, int, ...);
+static inline HistWFnType *findHistoryWFn(void) {
+    return history_w;
+}
+
+typedef int HistFnType(History *, HistEvent *, int, ...);
+static inline HistFnType *findHistoryFn(void) {
+    return history;
+}
