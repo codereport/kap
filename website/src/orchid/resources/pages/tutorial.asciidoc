@@ -289,9 +289,9 @@ When invoked monadically, `⍳` accepts an argument indicating the size of the r
 [source,kap]
 ----
     ⍳5
-┏━━━━━━━━━┓
-┃0 1 2 3 4┃
-┗━━━━━━━━━┛
+┌→────────┐
+│0 1 2 3 4│
+└─────────┘
 ----
 
 The `⍳` function will be used in a lot of examples below.
@@ -321,9 +321,9 @@ For example:
 ----
     foo ← 10 11 12 13 14 15 16
     foo[4 5 0]
-┏━━━━━━━━┓
-┃14 15 10┃
-┗━━━━━━━━┛
+┌→───────┐
+│14 15 10│
+└────────┘
 ----
 
 The result is a 3-element array containing the values 14, 15 and 10. These are the values in the original array at indexes 4, 5 and 0.
@@ -335,9 +335,9 @@ Thus, to read the first 6 elements from an array, the following can be used:
 ----
     foo ← 10 11 12 13 14 15 16 17 18 19
     foo[⍳6]
-┏━━━━━━━━━━━━━━━━━┓
-┃10 11 12 13 14 15┃
-┗━━━━━━━━━━━━━━━━━┛
+┌→────────────────┐
+│10 11 12 13 14 15│
+└─────────────────┘
 ----
 
 Of course, KAP provides other ways to slice arrays (as would be expected from an array language) and these methods will be discussed later.
@@ -525,10 +525,10 @@ This function returns the signum of its argument (1 if positive, 0 if it was zer
 ----
     foo ← 2 3 ⍴ 1 ¯2 ¯10 20 11 12
     ×foo
-┏━━━━━━━┓
-┃1 -1 -1┃
-┃1  1  1┃
-┗━━━━━━━┛
+┌→──────┐
+↓1 -1 -1│
+│1  1  1│
+└───────┘
 ----
 
 Of course, the same thing can be written without assigning to a variable, as moving forward in this tutorial, this will be the way examples will be written:
@@ -536,10 +536,10 @@ Of course, the same thing can be written without assigning to a variable, as mov
 [source,kap]
 ----
     × 2 3 ⍴ 1 ¯2 ¯10 20 11 12
-┏━━━━━━━┓
-┃1 -1 -1┃
-┃1  1  1┃
-┗━━━━━━━┛
+┌→──────┐
+↓1 -1 -1│
+│1  1  1│
+└───────┘
 ----
 
 For dyadic invocation, the following rules are applied:
@@ -556,9 +556,9 @@ Add 1 to each element in an array.
 [source,kap]
 ----
     1 + 10 20 30
-┏━━━━━━━━┓
-┃11 21 31┃
-┗━━━━━━━━┛
+┌→───────┐
+│11 21 31│
+└────────┘
 ----
 
 Add two arrays.
@@ -566,9 +566,9 @@ Add two arrays.
 [source,kap]
 ----
     10 20 30 + 1+⍳3
-┏━━━━━━━━┓
-┃11 22 33┃
-┗━━━━━━━━┛
+┌→───────┐
+│11 22 33│
+└────────┘
 ----
 
 Adding two arrays of different dimension will raise an error.
@@ -644,8 +644,12 @@ KAP supports the following basic datatypes:
 
 KAP supports the following numeric types:
 
-- 64-bit integers.
-These are written as plain decimal numbers: `123` or `¯12`
+- Integers.
+These are written as plain decimal numbers: `123` or `¯12`.
+Any integer that is too large to fit in 64 bits will be automatically extended to a bigint.
+Manipulating these numbers are slower than 64bit integers but otherwise behave similarly.
+- Rationals.
+A rational number is a pair of bigints and can represent any rational fraction.
 - 64-bit floating point numbers.
 A number if floating point if it contains a decimal point: `123.789`
 - Complex numbers of the form `12J98`.
@@ -671,9 +675,9 @@ If any element is not a character, the entire array will be printed in the regul
     @x @y @z
 "xyz"
     @x @y @z 4
-┏━━━━━━━━━━┓
-┃@x @y @z 4┃
-┗━━━━━━━━━━┛
+┌→─────────┐
+│@x @y @z 4│
+└──────────┘
 ----
 
 == Symbols
@@ -696,7 +700,7 @@ The if statement looks similar to that of C:
 
 [source,kap]
 ----
-if(a < b) {
+if (a < b) {
     io:println "a is less than b"
 } else {
     io:println "a is not less than b"
@@ -708,7 +712,7 @@ An example:
 
 [source,kap]
 ----
-foo ← if(a < b) {
+foo ← if (a < b) {
     10
 } else {
     20
@@ -726,7 +730,7 @@ The following example prints the numbers 0 to 19:
 [source,kap]
 ----
 i ← 0
-while(i < 20) {
+while (i < 20) {
     io:println i
     i ← i+1
 }
