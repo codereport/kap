@@ -298,14 +298,14 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
         pushBackList.add(token)
     }
 
-    private fun skipUntilNewline(): Whitespace {
+    private fun skipUntilNewline(): Newline {
         while (true) {
             val ch = content.nextCodepoint()
             if (ch == null || ch == '\n'.code) {
                 break
             }
         }
-        return Whitespace
+        return Newline
     }
 
     private fun skipNextNewline(): Whitespace {

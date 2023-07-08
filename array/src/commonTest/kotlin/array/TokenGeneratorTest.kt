@@ -143,10 +143,22 @@ class TokenGeneratorTest {
     }
 
     @Test
-    fun parseComments() {
+    fun parseComments0() {
         val gen = makeGenerator("foo ⍝ test comment")
         val token = gen.nextToken()
         assertTokenIsSymbol(gen, token, "foo", gen.engine.initialNamespace.name)
+        assertSame(Newline, gen.nextToken())
+        assertSame(EndOfFile, gen.nextToken())
+    }
+
+    @Test
+    fun parseComments1() {
+        val gen = makeGenerator("foo bar ⍝ abc\nqw we")
+        gen.nextToken().let { token -> assertTokenIsSymbol(gen, token, "foo") }
+        gen.nextToken().let { token -> assertTokenIsSymbol(gen, token, "bar") }
+        gen.nextToken().let { token -> assertSame(Newline, token) }
+        gen.nextToken().let { token -> assertTokenIsSymbol(gen, token, "qw") }
+        gen.nextToken().let { token -> assertTokenIsSymbol(gen, token, "we") }
         assertSame(EndOfFile, gen.nextToken())
     }
 
@@ -621,11 +633,12 @@ class TokenGeneratorTest {
         return TokenGenerator(engine, StringSourceLocation(content))
     }
 
-    private fun assertTokenIsSymbol(gen: TokenGenerator, token: Token, name: String, namespace: String) {
+    private fun assertTokenIsSymbol(gen: TokenGenerator, token: Token, name: String, namespace: String? = null) {
+        val ns = if (namespace != null) gen.engine.makeNamespace(namespace) else gen.engine.initialNamespace
         assertTrue(token is Symbol, "Token was: ${token}")
-        assertEquals(gen.engine.internSymbol(name, gen.engine.makeNamespace(namespace)), token)
+        assertEquals(gen.engine.internSymbol(name, ns), token)
         assertEquals(name, token.symbolName)
-        assertEquals(namespace, token.namespace.name)
+        assertEquals(ns.name, token.namespace.name)
     }
 
     private fun assertPosition(line: Int, col: Int, endLine: Int, endCol: Int, pos: Position) {

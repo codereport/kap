@@ -191,4 +191,18 @@ class AssignmentTest : APLTest() {
             parseAPLExpression(src)
         }
     }
+
+    @Test
+    fun assignmentWithComment() {
+        val src = """
+            |∇ foo x {
+            |  y ← x + 20 ⍝×2
+            |  y+3
+            |}
+            |foo 10
+        """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertSimpleNumber(33, result)
+        }
+    }
 }

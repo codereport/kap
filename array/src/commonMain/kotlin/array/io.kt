@@ -1,5 +1,9 @@
 package array
 
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
+
 open class MPFileException(message: String, cause: Exception? = null) : Exception(message, cause)
 open class MPFileNotFoundException(message: String, cause: Exception? = null) : MPFileException(message, cause)
 
@@ -7,7 +11,9 @@ interface NativeCloseable {
     fun close()
 }
 
+@OptIn(ExperimentalContracts::class)
 inline fun <T : NativeCloseable, R> T.use(fn: (T) -> R): R {
+    contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
     try {
         return fn(this)
     } finally {
