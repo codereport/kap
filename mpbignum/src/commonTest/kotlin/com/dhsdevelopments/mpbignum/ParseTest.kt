@@ -10,6 +10,55 @@ class ParseTest {
     }
 
     @Test
+    fun parseHexNumber() {
+        val a = BigInt.of("a", 16)
+        assertEquals("10", a.toString())
+    }
+
+    @Test
+    fun parseUppercaseHex() {
+        val a = BigInt.of("ABCDEFabcdef", 16)
+        assertEquals("abcdefabcdef", a.toString(16))
+    }
+
+    @Test
+    fun parseWithDigitOutsideRange() {
+        assertFailsWith<NumberFormatException> {
+            BigInt.of("m", 20)
+        }
+    }
+
+    @Test
+    fun parseBase36() {
+        val a = BigInt.of("z0", 36)
+        assertEquals("1260", a.toString())
+    }
+
+    @Test
+    fun parseLargeHex() {
+        val a = BigInt.of("abcdefabcdefabcdef12345678901234567890", 16)
+        assertEquals("3831367003417710754922696341706783590538705040", a.toString())
+    }
+
+    @Test
+    fun parseNegativeHex() {
+        val a = BigInt.of("-123456789abcdefabcdef98765", 16)
+        assertEquals("-1442304682926341000888262952805", a.toString())
+    }
+
+    @Test
+    fun parseFullRangeBase36() {
+        val a = BigInt.of("9876543210abcdefghijklmnopqrstuvwxyz123", 36)
+        assertEquals("1272304576354861089273994929606034399355711171729583749543451", a.toString())
+    }
+
+    @Test
+    fun parseFullRangeNegativeBase36() {
+        val a = BigInt.of("-9876543210abcdefghijklmnopqrstuvwxyz123", 36)
+        assertEquals("-1272304576354861089273994929606034399355711171729583749543451", a.toString())
+    }
+
+    @Test
     fun invalidNumber() {
         assertFailsWith<NumberFormatException> {
             BigInt.of("a")

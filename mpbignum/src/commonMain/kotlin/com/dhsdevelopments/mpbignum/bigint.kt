@@ -35,7 +35,7 @@ expect operator fun BigInt.compareTo(other: BigInt): Int
 expect fun BigInt.Companion.of(value: Short): BigInt
 expect fun BigInt.Companion.of(value: Int): BigInt
 expect fun BigInt.Companion.of(value: Long): BigInt
-expect fun BigInt.Companion.of(s: String): BigInt
+expect fun BigInt.Companion.of(s: String, radix: Int = 10): BigInt
 expect fun BigInt.Companion.of(value: Double): BigInt
 
 operator fun BigInt.plus(other: Int) = this + BigInt.of(other)
@@ -127,4 +127,23 @@ fun BigInt.Companion.fromDoubleCeil(value: Double): BigInt {
     } else {
         BigInt.of(value) + 1
     }
+}
+
+val VALID_DIGITS_LOWER = (0..35).map { i -> if (i < 10) ('0'.code + i).toChar() else ('a'.code + (i - 10)).toChar() }
+val VALID_DIGITS_UPPER = (0..35).map { i -> if (i < 10) ('0'.code + i).toChar() else ('A'.code + (i - 10)).toChar() }
+
+fun standardParseWithBase(s: String, radix: Int): BigInt {
+    fun throwDefault(): Nothing = throw NumberFormatException("Invalid decimal value: ${s}")
+
+    val isNegative = s[0] == '-'
+    val start = if (isNegative) 1 else 0
+    if (s.length < start + 1) throwDefault()
+    var curr = BigIntConstants.ZERO
+    for (i in start until s.length) {
+        val ch = s[i]
+        val index = VALID_DIGITS_LOWER.indexOf(ch).let { v -> if (v == -1) VALID_DIGITS_UPPER.indexOf(ch) else v }
+        if (index == -1 || index >= radix) throwDefault()
+        curr = curr * radix + index
+    }
+    return if (isNegative) -curr else curr
 }

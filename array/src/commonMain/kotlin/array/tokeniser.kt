@@ -396,19 +396,14 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
 
     private fun collectNumber(): Token {
         val buf = StringBuilder()
-        var foundComplex = false
         val posStart = content.pos()
         loop@ while (true) {
             val posBeforeParse = content.pos()
+
+            fun throwGarbageAfterNumError(): Nothing = throw IllegalNumberFormat("Garbage after number", posBeforeParse)
+
             val ch = content.nextCodepoint() ?: break
             when {
-                ch == 'j'.code || ch == 'J'.code -> {
-                    if (foundComplex) {
-                        throw IllegalNumberFormat("Garbage after number", posBeforeParse)
-                    }
-                    foundComplex = true
-                }
-                isLetter(ch) -> throw IllegalNumberFormat("Garbage after number", posBeforeParse)
                 !isNumericConstituent(ch) -> {
                     content.pushBack()
                     break@loop
@@ -424,7 +419,7 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
                 return result
             }
         }
-        throw IllegalNumberFormat("Content cannot be parsed as a number", posStart)
+        throw IllegalNumberFormat("Content cannot be parsed as a number: '${s}'", posStart)
     }
 
     private fun collectSymbolOrKeyword(firstChar: Int, posBeforeParse: Position): Token {
@@ -530,7 +525,7 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
         private fun isSymbolStartChar(ch: Int) = isLetter(ch) || ch == '_'.code || ch == ':'.code || ch == '∆'.code || ch == '⍙'.code
         private fun isSymbolContinuation(ch: Int) = isSymbolStartChar(ch) || isDigit(ch)
         private fun isNumericConstituent(ch: Int) =
-            isDigit(ch) || isNegationSign(ch) || ch == '.'.code || ch == 'j'.code || ch == 'J'.code
+            isDigit(ch) || isNegationSign(ch) || ch == '.'.code || ch in ('a'.code)..('z'.code) || ch in (('A'.code)..('Z'.code))
 
         private fun isCharQuote(ch: Int) = ch == '@'.code
         private fun isQuotePrefixChar(ch: Int) = ch == '\''.code
@@ -608,6 +603,17 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
                 val sign = groups.get(1) ?: throw IllegalNumberFormat("Illegal format of sign")
                 val s = groups.get(2) ?: throw IllegalNumberFormat("Illegal format of number part")
                 val v = BigInt.of(withNeg(sign.value != "", s.value))
+                if (v >= Long.MIN_VALUE && v <= Long.MAX_VALUE) {
+                    ParsedLong(v.toLong())
+                } else {
+                    ParsedBigInt(v)
+                }
+            },
+            NumberParser("^(¯?)0x([0-9a-fA-F]+)$".toRegex()) { result ->
+                val groups = result.groups
+                val sign = groups.get(1) ?: throw IllegalNumberFormat("Illegal format of sign")
+                val s = groups.get(2) ?: throw IllegalNumberFormat("Illegal format of number part")
+                val v = BigInt.of(withNeg(sign.value != "", s.value), 16)
                 if (v >= Long.MIN_VALUE && v <= Long.MAX_VALUE) {
                     ParsedLong(v.toLong())
                 } else {

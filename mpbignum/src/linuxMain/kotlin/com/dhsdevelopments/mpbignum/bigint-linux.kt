@@ -139,10 +139,10 @@ actual fun BigInt.Companion.of(value: Long): BigInt {
     return BigInt.of(value.toString())
 }
 
-actual fun BigInt.Companion.of(s: String): BigInt {
+actual fun BigInt.Companion.of(s: String, radix: Int): BigInt {
     val result = MpzWrapper.allocMpzWrapper()
     memScoped {
-        val res = mpz_set_str!!(result.value, s.cstr.ptr, 10)
+        val res = mpz_set_str!!(result.value, s.cstr.ptr, radix)
         if (res != 0) {
             throw NumberFormatException("Invalid number format: ${s}, result: ${res}")
         }

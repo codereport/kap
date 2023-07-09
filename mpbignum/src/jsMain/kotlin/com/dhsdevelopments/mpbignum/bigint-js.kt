@@ -130,15 +130,8 @@ actual fun BigInt.Companion.of(value: Long): BigInt {
     return BigInt.of(stringified)
 }
 
-actual fun BigInt.Companion.of(s: String): BigInt {
-    val regex = "^-?[0-9]+$".toRegex()
-    if (!regex.matches(s)) {
-        throw NumberFormatException("Invalid decimal value: ${s}")
-    }
-
-    @Suppress("UNUSED_VARIABLE")
-    val stringified = s
-    return makeFromJs(js("BigInt(stringified)"))
+actual fun BigInt.Companion.of(s: String, radix: Int): BigInt {
+    return standardParseWithBase(s, radix)
 }
 
 actual fun BigInt.Companion.of(value: Double): BigInt {

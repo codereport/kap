@@ -49,8 +49,8 @@ actual fun BigInt.Companion.of(value: Long): BigInt {
     return BigInt.of(value.toString())
 }
 
-actual fun BigInt.Companion.of(s: String): BigInt {
-    return BigInt(BigInteger(s))
+actual fun BigInt.Companion.of(s: String, radix: Int): BigInt {
+    return BigInt(BigInteger(s, radix))
 }
 
 actual infix fun BigInt.and(other: BigInt): BigInt {

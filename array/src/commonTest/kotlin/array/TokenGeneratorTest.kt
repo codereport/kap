@@ -123,6 +123,30 @@ class TokenGeneratorTest {
         assertSame(EndOfFile, gen.nextToken())
     }
 
+    @Test
+    fun parseHexNumbers() {
+        val gen = makeGenerator(
+            """
+            |0x0 0x1 0x000001 0x000000000000000000000000000000000001 0x123456789abcdef1234567890
+            |0xffffffff 0x100000000 0x7fffffff 0x80000000 0x7fffffffffffffff 0x8000000000000000
+            |¯0x1234abcdef ¯0xabcdefabcdefabcdef1234567890            
+            """.trimMargin().replace('\n', ' '))
+        assertInteger(0, gen.nextToken())
+        assertInteger(1, gen.nextToken())
+        assertInteger(1, gen.nextToken())
+        assertInteger(1, gen.nextToken())
+        assertBigInt(BigInt.of("123456789abcdef1234567890", 16), gen.nextToken())
+        assertInteger(0xffffffffL, gen.nextToken())
+        assertInteger(0x100000000L, gen.nextToken())
+        assertInteger(0x7fffffffL, gen.nextToken())
+        assertInteger(0x80000000L, gen.nextToken())
+        assertInteger(0x7fffffffffffffffL, gen.nextToken())
+        assertBigInt(BigInt.of("8000000000000000", 16), gen.nextToken())
+        assertInteger(-0x1234abcdefL, gen.nextToken())
+        assertBigInt(BigInt.of("-abcdefabcdefabcdef1234567890", 16), gen.nextToken())
+        assertSame(EndOfFile, gen.nextToken())
+    }
+
     private fun assertDouble(expected: Pair<Double, Double>, token: Token) {
         assertTrue(token is ParsedDouble)
         assertTrue(expected.first <= token.value)
@@ -131,6 +155,11 @@ class TokenGeneratorTest {
 
     private fun assertInteger(expected: Long, token: Token) {
         assertTrue(token is ParsedLong)
+        assertEquals(expected, token.value)
+    }
+
+    private fun assertBigInt(expected: BigInt, token: Token) {
+        assertTrue(token is ParsedBigInt)
         assertEquals(expected, token.value)
     }
 
