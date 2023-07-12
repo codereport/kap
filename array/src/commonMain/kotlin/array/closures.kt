@@ -12,13 +12,11 @@ private fun crossEscapeBindings(env: Environment, level: Int): List<EnvironmentB
 fun depthOfEnv(baseEnv: Environment, env: Environment): Int {
     var curr = baseEnv
     var i = 0
-    while (true) {
-        if (curr === env) {
-            return i
-        }
+    while (curr !== env) {
         i++
         curr = curr.parent ?: throw IllegalStateException("Can't find env in parent list")
     }
+    return i
 }
 
 private fun Environment.rewriteForEscape() {

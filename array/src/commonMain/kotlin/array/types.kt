@@ -53,11 +53,7 @@ class DimensionLabels(val labels: List<List<AxisLabel?>?>) {
     companion object {
         fun computeLabelledAxis(value: APLValue): BooleanArray {
             val labels = value.labels
-            return if (labels == null) {
-                BooleanArray(value.dimensions.size) { false }
-            } else {
-                labels.computeLabelledAxes()
-            }
+            return labels?.computeLabelledAxes() ?: BooleanArray(value.dimensions.size) { false }
         }
 
         @Suppress("unused")
@@ -157,12 +153,10 @@ abstract class APLValue {
     fun collapse(): APLValue {
         val l = labels
         val v = collapseInt()
-        return if (l == null) {
-            v
-        } else if (v === this) {
-            this
-        } else {
-            LabelledArray(v, l)
+        return when {
+            l == null -> v
+            v === this -> this
+            else -> LabelledArray(v, l)
         }
     }
 

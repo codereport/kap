@@ -315,7 +315,6 @@ class AssignmentInstruction(val variableList: Array<StackStorageRef>, val instr:
             v.dimensions.size != 1 -> throwAPLException(APLEvalException("Destructuring assignment requires rank-1 value", pos))
             variableList.size != v.size -> throwAPLException(
                 APLEvalException("Destructuring assignment expected ${variableList.size} results, got: ${v.size}", pos))
-
             else -> {
                 variableList.forEachIndexed { i, binding ->
                     context.setVar(binding, v.valueAt(i))
@@ -437,5 +436,4 @@ sealed class FunctionCallChain(pos: FunctionInstantiation, fns: List<APLFunction
 
         override fun copy(fns: List<APLFunction>) = Chain3(instantiation, fns[0], fns[1], fns[2])
     }
-
 }
