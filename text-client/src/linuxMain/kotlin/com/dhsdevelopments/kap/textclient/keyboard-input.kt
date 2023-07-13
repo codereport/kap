@@ -28,7 +28,7 @@ class LibinputKeyboardInput : KeyboardInput {
     private val state = EditLineState()
 
     init {
-        editLine = el_init("text-client", stdin, stdout, stderr) ?: throw RuntimeException("Error initialisaing libedit")
+        editLine = el_init("text-client", stdin, stdout, stderr) ?: throw RuntimeException("Error initialising libedit")
         historyInst = history_winit() ?: throw RuntimeException("Error initialising history")
         val stableRef = StableRef.create(state)
         el_set(editLine, EL_CLIENTDATA, stableRef.asCPointer())
@@ -130,7 +130,7 @@ private fun clientStateFromUserData(editLinePointer: CPointer<EditLine>): EditLi
 }
 
 @OptIn(ExperimentalForeignApi::class)
-private fun copyTruncated(dest: CPointer<ByteVarOf<Byte>>, values: ByteArray) {
+private fun copyTruncated(dest: CPointer<ByteVar>, values: ByteArray) {
     var i = 0
     while (i < values.size && i < PROMPT_BUF_SIZE - 1) {
         dest[i] = values[i]

@@ -28,7 +28,7 @@ class CurlTask {
                 curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, staticCFunction(::handleWrite))
                 curl_easy_setopt(curl, CURLOPT_WRITEDATA, stableRef.asCPointer())
                 if (postContent != null) {
-                    val buf = allocArray<ByteVarOf<Byte>>(postContent.size)
+                    val buf = allocArray<ByteVar>(postContent.size)
                     for (i in postContent.indices) {
                         buf[i] = postContent[i]
                     }
@@ -76,7 +76,7 @@ class CurlTask {
 
     private fun processResult(curl: COpaquePointer): HttpResultLinux {
         memScoped {
-            val codeResult = alloc<LongVarOf<Long>>()
+            val codeResult = alloc<LongVar>()
             curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, codeResult)
             return HttpResultLinux(codeResult.value, buf.toString())
         }
