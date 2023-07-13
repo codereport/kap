@@ -397,4 +397,20 @@ class ReshapeTest : APLTest() {
             parseAPLExpression("¯2 ⍴ 1 2 3 4")
         }
     }
+
+    @Test
+    fun reshapeNullArray() {
+        parseAPLExpression("3 4 ⍴ ⍬").let { result ->
+            assertDimension(dimensionsOfSize(3, 4), result)
+            assertArrayContent(Array(3 * 4) { 0 }, result)
+        }
+    }
+
+    @Test
+    fun reshapeEmptySizeArray() {
+        parseAPLExpression("3 4 ⍴ comp 3 0 ⍴ 3").let { result ->
+            assertDimension(dimensionsOfSize(3, 4), result)
+            assertArrayContent(Array(3 * 4) { 0 }, result)
+        }
+    }
 }

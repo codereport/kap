@@ -190,13 +190,13 @@ object ResizedArrayImpls {
         override fun valueAt(p: Int) = value
     }
 
-    class ResizedArrayLong(override val dimensions: Dimensions, private val boxed: APLLong) : APLArray() {
+    class ResizedSingleValueLong(override val dimensions: Dimensions, private val boxed: APLLong) : APLArray() {
         override val specialisedType get() = ArrayMemberType.LONG
         override fun valueAt(p: Int) = boxed
         override fun valueAtLong(p: Int, pos: Position?) = boxed.value
     }
 
-    class ResizedArrayDouble(override val dimensions: Dimensions, private val boxed: APLDouble) : APLArray() {
+    class ResizedSingleValueDouble(override val dimensions: Dimensions, private val boxed: APLDouble) : APLArray() {
         override val specialisedType get() = ArrayMemberType.DOUBLE
         override fun valueAt(p: Int) = boxed
         override fun valueAtDouble(p: Int, pos: Position?) = boxed.value
@@ -219,11 +219,18 @@ object ResizedArrayImpls {
         return when {
             dimensions.compareEquals(v0.dimensions) -> v0
             value is IotaArrayImpls.GenericIotaArrayLong -> value.resizeIotaArray(dimensions, 0)
-            v0 is APLLong -> ResizedArrayLong(dimensions, v0)
-            v0 is APLDouble -> ResizedArrayDouble(dimensions, v0)
-            v0 is APLSingleValue -> ResizedSingleValueGeneric(dimensions, v0)
-            dimensions.size == 0 -> ResizedSingleValueGeneric(dimensions, v0.disclose())
+            v0 is APLSingleValue -> resizedSingleValue(dimensions, v0)
+            dimensions.size == 0 -> resizedSingleValue(dimensions, v0.disclose())
+            v0.dimensions.contentSize() == 0 -> resizedSingleValue(dimensions, v0.defaultValue())
             else -> GenericResizedArray(dimensions, v0)
+        }
+    }
+
+    fun resizedSingleValue(dimensions: Dimensions, v: APLValue): APLValue {
+        return when (v) {
+            is APLLong -> ResizedSingleValueLong(dimensions, v)
+            is APLDouble -> ResizedSingleValueDouble(dimensions, v)
+            else -> ResizedSingleValueGeneric(dimensions, v)
         }
     }
 }
