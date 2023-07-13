@@ -135,8 +135,8 @@ class ExpandTest : APLTest() {
                     0, 0, 0, 0,
                     0, 0, 0, 0,
                     0, 0, 0, 0,
-                    0, 0, 0, 0
-                ), result)
+                    0, 0, 0, 0),
+                result)
         }
     }
 
@@ -163,7 +163,8 @@ class ExpandTest : APLTest() {
                     0, 100, 100, 100, 100,
                     0, 101, 101, 101, 101,
                     0, 102, 102, 102, 102,
-                ), result)
+                ),
+                result)
         }
     }
 }

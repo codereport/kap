@@ -193,8 +193,7 @@ class NamespaceTest : APLTest() {
                 |namespace("bar")
                 |import("foo")
                 |a (100)
-                """.trimMargin()
-            ).collapse()
+                """.trimMargin()).collapse()
         }
     }
 

@@ -153,8 +153,7 @@ class SQLTest : APLTest() {
                 """
                 |c ← sql:connect "jdbc:sqlite::memory:"
                 |c sql:query "select * from bar"
-                """.trimMargin()
-            )
+                """.trimMargin())
         }
     }
 

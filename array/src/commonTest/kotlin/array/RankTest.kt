@@ -182,8 +182,8 @@ class RankTest : APLTest() {
                 arrayOf(
                     2, 0, 1, 2,
                     2, 3, 4, 5,
-                    2, 6, 7, 8
-                ), result)
+                    2, 6, 7, 8),
+                result)
         }
     }
 }

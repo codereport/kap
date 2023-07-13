@@ -50,9 +50,8 @@ class IOAPLTest : APLTest() {
     fun readMissingFile() {
         val engine = Engine()
         try {
-            engine.parseAndEval(
-                StringSourceLocation("io:read \"test-data/this-file-should-not-be-found-as-well\"")
-            ).collapse()
+            engine.parseAndEval(StringSourceLocation("io:read \"test-data/this-file-should-not-be-found-as-well\""))
+                .collapse()
             fail("Read should not succeed")
         } catch (e: TagCatch) {
             val tag = e.tag.ensureSymbol().value
