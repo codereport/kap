@@ -671,7 +671,7 @@ class ModAPLFunction : APLFunctionDescriptor {
                 { x, y -> opLong(x, y).makeAPLNumber() },
                 { x, y -> opDouble(x, y).makeAPLNumber() },
                 { x, y -> complexMod(x, y).makeAPLNumber() },
-                fnBigint = { x, y -> bigintMod(x, y).makeAPLNumber() },
+                fnBigint = { x, y -> bigintMod(x, y).makeAPLNumberWithReduction() },
                 fnRational = { x, y -> rationalMod(x, y).makeAPLNumber() })
         }
 
@@ -682,10 +682,26 @@ class ModAPLFunction : APLFunctionDescriptor {
             if (x == 0.0) y else (y % x).let { result -> if ((x < 0 && y > 0) || (x > 0 && y < 0)) x + result else result }
 
         private fun bigintMod(x: BigInt, y: BigInt) =
-            if (x == BigIntConstants.ZERO) y else (y % x).let { result -> if ((x < 0 && y > 0) || (x > 0 && y < 0)) x + result else result }
+            if (x == BigIntConstants.ZERO) y else (y % x).let { result ->
+                val xSign = x.signum()
+                val ySign = y.signum()
+                if ((xSign == -1 && ySign == 1) || (xSign == 1 && ySign == -1)) {
+                    x + result
+                } else {
+                    result
+                }
+            }
 
         private fun rationalMod(x: Rational, y: Rational) =
-            if (x == Rational.ZERO) y else (y % x).let { result -> if ((x < 0 && y > 0) || (x > 0 && y < 0)) x + result else result }
+            if (x == Rational.ZERO) y else (y % x).let { result ->
+                val xSign = x.signum()
+                val ySign = y.signum()
+                if ((xSign == -1 && ySign == 1) || (xSign == 1 && ySign == -1)) {
+                    x + result
+                } else {
+                    result
+                }
+            }
 
         override fun combine2ArgLong(a: Long, b: Long) = opLong(a, b)
         override fun combine2ArgDouble(a: Double, b: Double) = opDouble(a, b)
@@ -838,7 +854,7 @@ class MinAPLFunction : APLFunctionDescriptor {
                 { x, y -> if (x < y) x.makeAPLNumber() else y.makeAPLNumber() },
                 { x, y -> (if (x.real < y.real || (x.real == y.real && x.imaginary < y.imaginary)) x else y).makeAPLNumber() },
                 { x, y -> if (x < y) APLChar(x) else APLChar(y) },
-                fnBigint = { x, y -> if (x < y) x.makeAPLNumber() else y.makeAPLNumber() },
+                fnBigint = { x, y -> if (x < y) x.makeAPLNumberWithReduction() else y.makeAPLNumberWithReduction() },
                 fnRational = { x, y -> if (x < y) x.makeAPLNumber() else y.makeAPLNumber() })
         }
 
@@ -886,7 +902,7 @@ class MaxAPLFunction : APLFunctionDescriptor {
                 { x, y -> if (x > y) x.makeAPLNumber() else y.makeAPLNumber() },
                 { x, y -> (if (x.real > y.real || (x.real == y.real && x.imaginary > y.imaginary)) x else y).makeAPLNumber() },
                 { x, y -> if (x > y) APLChar(x) else APLChar(y) },
-                fnBigint = { x, y -> if (x > y) x.makeAPLNumber() else y.makeAPLNumber() },
+                fnBigint = { x, y -> if (x > y) x.makeAPLNumberWithReduction() else y.makeAPLNumberWithReduction() },
                 fnRational = { x, y -> if (x > y) x.makeAPLNumber() else y.makeAPLNumber() })
         }
 
