@@ -280,6 +280,13 @@ class NumbersTest : APLTest() {
     }
 
     @Test
+    fun testExponentialWithNegativeBaseAndIntegerPower() {
+        parseAPLExpression("¯9.0⋆2").let { result ->
+            assertSimpleDouble(81.0, result)
+        }
+    }
+
+    @Test
     fun testExponentialWithComplex() {
         parseAPLExpression("1J1 ¯2J9 1J¯9 ¯2J¯2*3").let { result ->
             assert1DArray(

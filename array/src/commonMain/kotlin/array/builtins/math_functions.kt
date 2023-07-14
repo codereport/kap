@@ -741,7 +741,7 @@ class PowerAPLFunction : APLFunctionDescriptor {
                     }
                 },
                 { x, y ->
-                    if (x < 0) {
+                    if (x < 0 && y.rem(1) != 0.0) {
                         x.toComplex().pow(y.toComplex()).makeAPLNumber()
                     } else {
                         x.pow(y).makeAPLNumber()

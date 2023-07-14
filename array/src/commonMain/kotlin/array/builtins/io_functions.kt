@@ -112,7 +112,6 @@ class ReadFileFunction : APLFunctionDescriptor {
     override fun make(instantiation: FunctionInstantiation) = ReadFileFunctionImpl(instantiation)
 }
 
-
 class LoadFunction : APLFunctionDescriptor {
     class LoadFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
