@@ -841,7 +841,7 @@ class MinAPLFunction : APLFunctionDescriptor {
                         floor(x).toLong().makeAPLNumber()
                     }
                 },
-                { x -> throwAPLException(APLIncompatibleDomainsException("Floor is not valid for complex values", pos)) },
+                { _ -> throwAPLException(APLIncompatibleDomainsException("Floor is not valid for complex values", pos)) },
                 fnBigInt = { x -> x.makeAPLNumber() },
                 fnRational = { x -> x.floor().makeAPLNumber() })
         }

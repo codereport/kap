@@ -1,19 +1,19 @@
 package com.dhsdevelopments.kap.gui2
 
 import array.*
-import org.fife.ui.rtextarea.RDocument
-import org.fife.ui.rtextarea.RTextArea
+import java.awt.Color
 import java.awt.Font
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
+import javax.swing.JTextPane
 import javax.swing.text.*
 import javax.swing.text.Position
 
-class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : RTextArea() {
+class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
     init {
         font = fontIn.deriveFont(18.0f)
         val doc = ReplDoc()
-        document = doc
+        styledDocument = doc
 
         doc.documentFilter = ReplFilter()
 
@@ -23,12 +23,19 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : RTextArea() {
         enableKapKeyboard(this)
     }
 
-    val replDoc = document as ReplDoc
+    val replDoc get() = styledDocument as ReplDoc
 
-    fun appendToOutput(s: String) {
+    val errorStyle = addStyle("error", null).also { style ->
+        StyleConstants.setForeground(style, Color.RED)
+    }
+
+    fun appendToOutput(s: String, style: AttributeSet? = null, appendNewline: Boolean = false) {
         // This is run in the calculation thread, but it's safe thanks to swing documents being thread safe
         withNoCursorMovementAndEditable {
-            insert(s, replDoc.outputPos.offset - 1)
+            styledDocument.insertString(replDoc.outputPos.offset - 1, s, style)
+            if (appendNewline) {
+                styledDocument.insertString(replDoc.outputPos.offset - 1, "\n", null)
+            }
         }
     }
 
@@ -76,7 +83,7 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : RTextArea() {
             is APLGenericException -> value.formattedError()
             else -> value.message ?: "no description"
         }
-        appendToOutput(message)
+        appendToOutput(message, style = errorStyle, appendNewline = true)
     }
 
     private fun evalExpression(engine: Engine, text: String): Either<APLValue, Exception> {
@@ -100,7 +107,7 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : RTextArea() {
     }
 }
 
-class ReplDoc : RDocument() {
+class ReplDoc : DefaultStyledDocument() {
     val outputPos: Position
     private val startEditAreaMark: Position
     var updateAllowed: Boolean = false

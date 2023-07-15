@@ -1,11 +1,11 @@
 package com.dhsdevelopments.kap.gui2
 
-import org.fife.ui.rtextarea.RTextScrollPane
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Font
 import javax.swing.JFrame
 import javax.swing.JLabel
+import javax.swing.JScrollPane
 import javax.swing.SwingUtilities
 
 class Main {
@@ -14,7 +14,7 @@ class Main {
         fun main(args: Array<String>) {
             SwingUtilities.invokeLater {
                 val client = Gui2Client()
-                client.openRepFramel()
+                client.openReplFrame()
             }
         }
     }
@@ -28,12 +28,11 @@ class Gui2Client {
         font = Font.createFont(Font.TRUETYPE_FONT, this::class.java.getResourceAsStream("fonts/iosevka-fixed-regular.ttf")).deriveFont(18.0f)
     }
 
-    fun openRepFramel() {
+    fun openReplFrame() {
         val frame = JFrame("Test frame")
         frame.defaultCloseOperation = JFrame.EXIT_ON_CLOSE
-        val scrollPane = RTextScrollPane(ReplPanel(computeQueue, font)).apply {
+        val scrollPane = JScrollPane(ReplPanel(computeQueue, font)).apply {
             preferredSize = Dimension(800, 800)
-            lineNumbersEnabled = false
         }
         frame.contentPane.layout = BorderLayout()
         frame.contentPane.add(scrollPane, BorderLayout.CENTER)
