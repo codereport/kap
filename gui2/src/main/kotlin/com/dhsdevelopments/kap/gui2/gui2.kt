@@ -25,7 +25,7 @@ class Gui2Client {
     private val font: Font
 
     init {
-        font = Font.createFont(Font.TRUETYPE_FONT, this::class.java.getResourceAsStream("fonts/iosevka-fixed-regular.ttf"))
+        font = Font.createFont(Font.TRUETYPE_FONT, this::class.java.getResourceAsStream("fonts/iosevka-fixed-regular.ttf")).deriveFont(18.0f)
     }
 
     fun openRepFramel() {

@@ -1,0 +1,11 @@
+<component name="ProjectRunConfigurationManager">
+  <configuration default="false" name="gui2" type="JetRunConfigurationType">
+    <option name="MAIN_CLASS_NAME" value="com.dhsdevelopments.kap.gui2.Main" />
+    <module name="array.gui2.main" />
+    <shortenClasspath name="NONE" />
+    <option name="WORKING_DIRECTORY" value="$PROJECT_DIR$/array" />
+    <method v="2">
+      <option name="Make" enabled="true" />
+    </method>
+  </configuration>
+</component>

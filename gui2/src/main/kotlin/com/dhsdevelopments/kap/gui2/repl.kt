@@ -20,6 +20,7 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : RTextArea() {
         computeQueue.addStandardOutputListener(StdoutListener(::appendToOutput))
         setCaretPosition(doc.length)
         addKeyListener(ReplKeyListener())
+        enableKapKeyboard(this)
     }
 
     val replDoc = document as ReplDoc
@@ -51,7 +52,6 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : RTextArea() {
 
     private fun sendToInterpreter(text: String) {
         val req = Request { engine ->
-            println("req: ${text}")
             val result = evalExpression(engine, text)
             when (result) {
                 is Either.Left -> formatAndAddResultToDoc(result.value)
@@ -92,7 +92,6 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : RTextArea() {
         override fun keyPressed(e: KeyEvent) {
             if (e.keyChar == '\n') {
                 val text = editedText()
-                println("Text: '${text}'")
                 appendToOutput("    ${text}\n")
                 sendToInterpreter(text)
                 e.consume()
