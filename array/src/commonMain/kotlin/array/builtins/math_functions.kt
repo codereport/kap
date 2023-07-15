@@ -741,7 +741,8 @@ class PowerAPLFunction : APLFunctionDescriptor {
                     }
                 },
                 { x, y ->
-                    if (x < 0 && y.rem(1) != 0.0) {
+                    // If x is negative and y is non-integer, the result is complex, otherwise we can do a simple double exponentiation
+                    if (x < 0 && truncate(y) != y) {
                         x.toComplex().pow(y.toComplex()).makeAPLNumber()
                     } else {
                         x.pow(y).makeAPLNumber()
