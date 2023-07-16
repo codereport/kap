@@ -10,6 +10,8 @@ import javax.swing.text.*
 import javax.swing.text.Position
 
 class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
+    val history = ArrayList<HistoryEntry>()
+
     init {
         font = fontIn.deriveFont(18.0f)
         val doc = ReplDoc()
@@ -29,6 +31,10 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
         StyleConstants.setForeground(style, Color.RED)
     }
 
+    val commandHistoryStyle = addStyle("commandHistoryParent", null).also { style ->
+        StyleConstants.setForeground(style, Color(0, 60, 0))
+    }
+
     fun appendToOutput(s: String, style: AttributeSet? = null, appendNewline: Boolean = false) {
         // This is run in the calculation thread, but it's safe thanks to swing documents being thread safe
         withNoCursorMovementAndEditable {
@@ -37,6 +43,20 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
                 styledDocument.insertString(replDoc.outputPos.offset - 1, "\n", null)
             }
         }
+    }
+
+    private fun addCommandToHistoryAndSend(s: String) {
+        val style = addStyle(null, commandHistoryStyle)
+        withNoCursorMovementAndEditable {
+            styledDocument.insertString(replDoc.outputPos.offset - 1, "    ", null)
+            styledDocument.insertString(replDoc.outputPos.offset - 1, s, style)
+            styledDocument.insertString(replDoc.outputPos.offset - 1, "\n", null)
+        }
+        val src = ReplSourceLocation(s, style)
+        if (history.isEmpty() || history.last().src.text != s) {
+            history.add(HistoryEntry(src))
+        }
+        sendToInterpreter(src)
     }
 
     fun <T> withNoCursorMovementAndEditable(fn: () -> T): T {
@@ -57,9 +77,9 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
         return this.getText(pos, document.length - pos)
     }
 
-    private fun sendToInterpreter(text: String) {
+    private fun sendToInterpreter(src: SourceLocation) {
         val req = Request { engine ->
-            val result = evalExpression(engine, text)
+            val result = evalExpression(engine, src)
             when (result) {
                 is Either.Left -> formatAndAddResultToDoc(result.value)
                 is Either.Right -> formatAndAddErrorToDoc(result.value)
@@ -86,9 +106,9 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
         appendToOutput(message, style = errorStyle, appendNewline = true)
     }
 
-    private fun evalExpression(engine: Engine, text: String): Either<APLValue, Exception> {
+    private fun evalExpression(engine: Engine, src: SourceLocation): Either<APLValue, Exception> {
         return try {
-            val result = engine.parseAndEval(StringSourceLocation(text), formatResult = true)
+            val result = engine.parseAndEval(src, formatResult = true)
             Either.Left(result)
         } catch (e: Exception) {
             Either.Right(e)
@@ -99,8 +119,7 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
         override fun keyPressed(e: KeyEvent) {
             if (e.keyChar == '\n') {
                 val text = editedText()
-                appendToOutput("    ${text}\n")
-                sendToInterpreter(text)
+                addCommandToHistoryAndSend(text)
                 e.consume()
             }
         }
@@ -155,3 +174,10 @@ class ReplFilter : DocumentFilter() {
         }
     }
 }
+
+class ReplSourceLocation(val text: String, val style: Style) : SourceLocation {
+    override fun sourceText() = text
+    override fun open() = StringCharacterProvider(text)
+}
+
+class HistoryEntry(val src: ReplSourceLocation)
