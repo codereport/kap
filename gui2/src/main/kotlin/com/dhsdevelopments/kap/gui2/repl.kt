@@ -8,6 +8,9 @@ import java.awt.event.KeyEvent
 import javax.swing.JTextPane
 import javax.swing.text.*
 import javax.swing.text.Position
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
     val history = ArrayList<HistoryEntry>()
@@ -32,7 +35,7 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
     }
 
     val commandHistoryStyle = addStyle("commandHistoryParent", null).also { style ->
-        StyleConstants.setForeground(style, Color(0, 60, 0))
+        StyleConstants.setForeground(style, Color(0, 104, 0))
     }
 
     fun appendToOutput(s: String, style: AttributeSet? = null, appendNewline: Boolean = false) {
@@ -47,19 +50,24 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
 
     private fun addCommandToHistoryAndSend(s: String) {
         val style = addStyle(null, commandHistoryStyle)
+        val textIndex: Int
         withNoCursorMovementAndEditable {
             styledDocument.insertString(replDoc.outputPos.offset - 1, "    ", null)
+            textIndex = replDoc.outputPos.offset
             styledDocument.insertString(replDoc.outputPos.offset - 1, s, style)
             styledDocument.insertString(replDoc.outputPos.offset - 1, "\n", null)
         }
-        val src = ReplSourceLocation(s, style)
+        val docPos = replDoc.createPosition(textIndex)
+        val src = ReplSourceLocation(s, style, docPos)
         if (history.isEmpty() || history.last().src.text != s) {
             history.add(HistoryEntry(src))
         }
         sendToInterpreter(src)
     }
 
+    @OptIn(ExperimentalContracts::class)
     fun <T> withNoCursorMovementAndEditable(fn: () -> T): T {
+        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
         val editorCaret = caret as DefaultCaret
         val oldUpdatePolicy = editorCaret.updatePolicy
         editorCaret.updatePolicy = DefaultCaret.ALWAYS_UPDATE
@@ -99,6 +107,16 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
 
     @Suppress("USELESS_IS_CHECK")
     private fun formatAndAddErrorToDoc(value: Exception) {
+        if (value is APLGenericException) {
+            val pos = value.pos
+            if (pos != null) {
+                val src = pos.source
+                if (src is ReplSourceLocation) {
+                    //println("error pos: ${src.docPos}")
+                    //TODO: Highlight error
+                }
+            }
+        }
         val message = when (value) {
             is APLGenericException -> value.formattedError()
             else -> value.message ?: "no description"
@@ -141,7 +159,9 @@ class ReplDoc : DefaultStyledDocument() {
 
     fun startEditPosition() = startEditAreaMark.offset + 1
 
+    @OptIn(ExperimentalContracts::class)
     fun <T> withUpdateAllowed(fn: () -> T): T {
+        contract { callsInPlace(fn, InvocationKind.EXACTLY_ONCE) }
         val oldUpdateAllowed = updateAllowed
         updateAllowed = true
         try {
@@ -175,7 +195,7 @@ class ReplFilter : DocumentFilter() {
     }
 }
 
-class ReplSourceLocation(val text: String, val style: Style) : SourceLocation {
+class ReplSourceLocation(val text: String, val style: Style, val docPos: Position) : SourceLocation {
     override fun sourceText() = text
     override fun open() = StringCharacterProvider(text)
 }

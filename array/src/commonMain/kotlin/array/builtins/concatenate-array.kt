@@ -247,7 +247,7 @@ abstract class ConcatenateAPLFunctionImpl(pos: FunctionInstantiation) : APLFunct
         return when (sizeAlongAxis) {
             0 -> APLNullValue.APL_NULL_INSTANCE
             1 -> arg.valueAt(offset)
-            else -> loopedReduce(context, arg, sizeAlongAxis, stepLength, offset, savedStack, functionAxis)
+            else -> loopedReduce(context, arg, sizeAlongAxis, stepLength, offset, functionAxis)
         }
     }
 
@@ -257,7 +257,6 @@ abstract class ConcatenateAPLFunctionImpl(pos: FunctionInstantiation) : APLFunct
         sizeAlongAxis: Int,
         stepLength: Int,
         offset: Int,
-        savedStack: StorageStack.StorageStackFrame?,
         functionAxis: APLValue?
     ): APLValue {
         val a = arg.valueAt(offset)

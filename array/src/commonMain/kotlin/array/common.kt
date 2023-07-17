@@ -11,7 +11,7 @@ open class APLGenericException(message: String, val pos: Position? = null, cause
     fun formattedError(): String {
         val buf = StringBuilder()
         if (pos != null) {
-            buf.append("Error at: ${pos.line + 1}:${pos.col}: ")
+            buf.append("Error at: ${pos.line + 1}:${pos.col + 1}: ")
             if (pos.callerName != null) {
                 buf.append("${pos.callerName}: ")
             }
