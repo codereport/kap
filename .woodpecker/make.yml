@@ -2,11 +2,10 @@ branches: [ master, codeberg-test ]
 
 pipeline:
   build:
-    image: ubuntu:latest
+    image: debian
     pull: true
     commands: |
-      echo 'deb https://fr.archive.ubuntu.com/ jammy main' >> /etc/apt/sources.list
-      apt-get update && apt-get install -y openjdk-17-jdk libicu-dev libcurl4-openssl-dev libjansson-dev libgmp-dev
+      apt-get update && apt-get install -y openjdk-17-jdk libicu-dev libcurl4-openssl-dev libjansson-dev libgmp-dev libedit-dev
       ./gradlew gui:build
       ./gradlew text-client:build
       ./gradlew client-java:build
