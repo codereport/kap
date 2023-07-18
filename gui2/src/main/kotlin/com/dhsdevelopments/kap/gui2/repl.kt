@@ -39,7 +39,7 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
         StyleConstants.setUnderline(style, true)
     }
 
-    val commandHistoryStyle = addStyle("commandHistoryParent", null).also { style ->
+    val commandHistoryStyle = addStyle("commandHistory", null).also { style ->
         StyleConstants.setForeground(style, Color(0, 104, 0))
     }
 
@@ -54,16 +54,15 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
     }
 
     private fun addCommandToHistoryAndSend(s: String) {
-        val style = addStyle(null, commandHistoryStyle)
         val textIndex: Int
         withNoCursorMovementAndEditable {
             replDoc.insertString(replDoc.outputPos.offset - 1, "    ", null)
             textIndex = replDoc.outputPos.offset - 1
-            replDoc.insertString(replDoc.outputPos.offset - 1, s, style)
+            replDoc.insertString(replDoc.outputPos.offset - 1, s, commandHistoryStyle)
             replDoc.insertString(replDoc.outputPos.offset - 1, "\n", null)
         }
         val docPos = replDoc.createPosition(textIndex)
-        val src = ReplSourceLocation(s, style, docPos)
+        val src = ReplSourceLocation(s, docPos)
         if (history.isEmpty() || history.last().src.text != s) {
             history.add(HistoryEntry(src))
         }
@@ -92,8 +91,7 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
 
     private fun sendToInterpreter(src: SourceLocation) {
         val req = Request { engine ->
-            val result = evalExpression(engine, src)
-            when (result) {
+            when (val result = evalExpression(engine, src)) {
                 is Either.Left -> formatAndAddResultToDoc(result.value)
                 is Either.Right -> formatAndAddErrorToDoc(result.value)
             }
@@ -119,7 +117,6 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
                 if (src is ReplSourceLocation) {
                     val startPos = src.computeOffset(pos.line, pos.col) + src.docPos.offset
                     val endPos = src.computeOffset(pos.computedEndLine, pos.computedEndCol) + src.docPos.offset
-                    println("s:${startPos} e:${endPos}")
                     replDoc.setCharacterAttributes(startPos, endPos - startPos, errorLocationStyle, false)
                 }
             }
@@ -202,7 +199,7 @@ class ReplFilter : DocumentFilter() {
     }
 }
 
-class ReplSourceLocation(val text: String, val style: Style, val docPos: Position) : SourceLocation {
+class ReplSourceLocation(val text: String, val docPos: Position) : SourceLocation {
     override fun sourceText() = text
     override fun open() = StringCharacterProvider(text)
 
