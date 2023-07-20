@@ -339,4 +339,11 @@ class EncloseTest : APLTest() {
             assertDimension(dimensionsOfSize(0), result)
         }
     }
+
+    @Test
+    fun encloseDelegatedValue() {
+        parseAPLExpression("⊂ 2 int:proto 6").let { result ->
+            assertSimpleNumber(6, result)
+        }
+    }
 }

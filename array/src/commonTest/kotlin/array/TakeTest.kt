@@ -413,6 +413,13 @@ class TakeTest : APLTest() {
     }
 
     @Test
+    fun takeWithDefault() {
+        parseAPLExpression("2 ↑ 9 int:proto ,10").let { result ->
+            assert1DArray(arrayOf(10, 9), result)
+        }
+    }
+
+    @Test
     fun dropSkippedDimensions0() {
         parseAPLExpression("1 ↓ 3 5 ⍴ ⍳100").let { result ->
             assertDimension(dimensionsOfSize(2, 5), result)

@@ -122,7 +122,8 @@ abstract class APLValue {
     abstract fun collapseFirstLevel(): APLValue
     fun isScalar(): Boolean = rank == 0
     open fun defaultValue(): APLValue = APLLONG_0
-    abstract fun arrayify(): APLValue
+    abstract fun isAtomic(): Boolean
+    fun arrayify() = if (rank == 0) APLArrayImpl.make(dimensionsOfSize(1)) { this.disclose() } else this
     open fun unwrapDeferredValue(): APLValue = this
 
     abstract fun compareEquals(reference: APLValue): Boolean
@@ -359,7 +360,7 @@ abstract class APLSingleValue : APLValue() {
     override val rank get() = 0
     override fun collapseInt() = this
     override fun collapseFirstLevel() = this
-    override fun arrayify() = APLArrayImpl.make(dimensionsOfSize(1)) { this }
+    override fun isAtomic() = true
     override fun disclose() = this
 }
 
@@ -387,7 +388,7 @@ abstract class APLArray : APLValue() {
 
     override fun formattedAsCodeRequiresParens() = !isStringValue()
 
-    override fun arrayify() = if (rank == 0) APLArrayImpl.make(dimensionsOfSize(1)) { valueAt(0) } else this
+    override fun isAtomic() = false
 
     override fun compareEquals(reference: APLValue): Boolean {
         val u = this.unwrapDeferredValue()
@@ -575,6 +576,8 @@ class APLList(val elements: List<APLValue>) : APLSingleValue() {
     override val aplValueType: APLValueType get() = APLValueType.LIST
 
     override val dimensions get() = emptyDimensions()
+
+    override fun formattedAsCodeRequiresParens() = true
 
     override fun formatted(style: FormatStyle) =
         when (style) {
@@ -1052,7 +1055,7 @@ abstract class AbstractDelegatedValue : APLValue() {
     override fun collapseInt() = value.collapseInt()
     override fun collapseFirstLevel() = value.collapseFirstLevel()
     override fun defaultValue() = value.defaultValue()
-    override fun arrayify() = value.arrayify()
+    override fun isAtomic() = value.isAtomic()
     override fun unwrapDeferredValue() = value.unwrapDeferredValue()
     override fun compareEquals(reference: APLValue) = value.compareEquals(reference)
     override fun compare(reference: APLValue, pos: Position?) = value.compare(reference, pos)
