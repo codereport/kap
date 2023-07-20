@@ -451,6 +451,38 @@ class AccessFromIndexAPLFunction : APLFunctionDescriptor {
     override fun make(instantiation: FunctionInstantiation) = AccessFromIndexAPLFunctionImpl(instantiation)
 }
 
+class PickResultValue(val a: APLValue, val b: APLValue, val pos: Position) : APLArray() {
+    override val dimensions = a.dimensions
+    val bDimensions = b.dimensions
+    val multipliers = bDimensions.multipliers()
+
+    override fun valueAt(p: Int): APLValue {
+        val indexCoord = a.valueAt(p)
+        val indexCoordDimensions = indexCoord.dimensions
+        if (!((indexCoordDimensions.size == 0 && bDimensions.size == 1) || (indexCoordDimensions.size == 1 && bDimensions.size == indexCoordDimensions[0]))) {
+            throwAPLException(
+                InvalidDimensionsException(
+                    "Lookup index at position ${Arrays.toString(dimensions.positionFromIndex(p))} has rank ${indexCoordDimensions.size}. Not compatible with rank: ${bDimensions.size}",
+                    pos))
+        }
+        val coordArray = if (indexCoordDimensions.size == 0) intArrayOf(indexCoord.ensureNumber(pos).asInt(pos)) else indexCoord.toIntArray(pos)
+        return b.valueAt(bDimensions.indexFromPosition(coordArray, multipliers, pos))
+    }
+}
+
+class PickAPLFunction : APLFunctionDescriptor {
+    class PickAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            return PickResultValue(a.unwrapDeferredValue(), b, pos)
+        }
+
+        override val name2Arg get() = "pick"
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = PickAPLFunctionImpl(instantiation)
+}
+
+
 class TakeArrayValue(val selection: IntArray, val source: APLValue, val pos: Position? = null) : APLArray() {
     override val dimensions = Dimensions(selection.map(Int::absoluteValue).toIntArray())
     private val multipliers = dimensions.multipliers()

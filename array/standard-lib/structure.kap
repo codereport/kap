@@ -43,14 +43,3 @@ defsyntax when (:special :openBrace :optional (:special :newline) :repeat (entry
 }
 
 declare(:export (when begin end))
-
-declare(:singleCharExported "⊇")
-
-∇ (A) ⊇ (B) {
-  if (~isLocallyBound 'A) {
-    throw "Function requires left argument"
-  }
-  {(⊂⍵)⊃B}¨A
-}
-
-declare(:export ⊇)

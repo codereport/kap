@@ -75,4 +75,25 @@ class PickTest : APLTest() {
             parseAPLExpression("(,⊂1 2) ⊇ ⍳4", true)
         }
     }
+
+    @Test
+    fun pickEmptyResult() {
+        parseAPLExpression("⍬ ⊇ 1 2 3 4 5", true).let { result ->
+            assertAPLNull(result)
+        }
+    }
+
+    @Test
+    fun pickInvalidDimensionOfIndex0() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("(,⊂2 2 ⍴ 1 2 3 4) ⊇ ⍳10")
+        }
+    }
+
+    @Test
+    fun pickInvalidDimensionOfIndex1() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("(,⊂2 2 ⍴ 1 2 3 4) ⊇ 100 100 ⍴ 1 2 3")
+        }
+    }
 }

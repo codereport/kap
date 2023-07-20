@@ -361,6 +361,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("⍎", ParseNumberFunction())
         registerNativeFunction("%", CaseFunction())
         registerNativeFunction("⊆", PartitionedEncloseFunction())
+        registerNativeFunction("⊇", PickAPLFunction())
         registerNativeFunction("cmp", CompareObjectsFunction())
         registerNativeFunction("→", ReturnFunction())
         registerNativeFunction("floorc", ComplexFloorFunction())
@@ -466,8 +467,8 @@ class Engine(numComputeEngines: Int? = null) {
             "≢", "≤", "≥", "⊂", "⊃", "⊖", "⊢", "⊣", "⊤", "⊥", "⋆", "⌈", "⌊", "⌶", "⌷", "⌹",
             "⌻", "⌽", "⌿", "⍀", "⍉", "⍋", "⍎", "⍒", "⍕", "⍞", "⍟", "⍠", "⍣", "⍤", "⍥",
             "⍨", "⍪", "⍫", "⍱", "⍲", "⍳", "⍴", "⍵", "⍶", "⍷", "⍸", "⍹", "⍺", "◊",
-            "○", "$", "¥", "χ", "\\", ".", "∵", "⍓", "⫽", "⑊", "⊆", "⍥", "∥", "⍛", "˝", "⍢",
-            "√")
+            "○", "$", "¥", "χ", "\\", ".", "∵", "⍓", "⫽", "⑊", "⊆", "⊇", "⍥", "∥", "⍛", "˝",
+            "⍢", "√")
     }
 
     fun charIsSingleCharExported(ch: String) = exportedSingleCharFunctions.contains(ch)
