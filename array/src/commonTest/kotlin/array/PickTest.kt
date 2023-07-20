@@ -1,6 +1,7 @@
 package array
 
 import kotlin.test.Test
+import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
 class PickTest : APLTest() {
@@ -94,6 +95,65 @@ class PickTest : APLTest() {
     fun pickInvalidDimensionOfIndex1() {
         assertFailsWith<InvalidDimensionsException> {
             parseAPLExpression("(,⊂2 2 ⍴ 1 2 3 4) ⊇ 100 100 ⍴ 1 2 3")
+        }
+    }
+
+    @Test
+    fun pickWithUnder0() {
+        parseAPLExpression("(1+)⍢(2⊇) 10 20 30 40 50 60").let { result ->
+            assert1DArray(arrayOf(10, 20, 31, 40, 50, 60), result)
+        }
+    }
+
+    @Test
+    fun pickWithUnder1() {
+        parseAPLExpression("(1+)⍢(2 5⊇) 10 20 30 40 50 60").let { result ->
+            assert1DArray(arrayOf(10, 20, 31, 40, 50, 61), result)
+        }
+    }
+
+    @Test
+    fun pickWithUnder2() {
+        parseAPLExpression("{9 9}⍢(2 5⊇) 10 20 30 40 50 60").let { result ->
+            assert1DArray(arrayOf(10, 20, 9, 40, 50, 9), result)
+        }
+    }
+
+    @Test
+    fun pickWithUnder3() {
+        parseAPLExpression("(0 1) (2 1) (2 2) (1 2) (0 3) -⍢⊇ 3 4 ⍴ 10×⍳100").let { result ->
+            assertDimension(dimensionsOfSize(3, 4), result)
+            assertArrayContent(arrayOf(0, -10, 20, -30, 40, 50, -60, 70, 80, -90, -100, 110), result)
+        }
+    }
+
+    @Test
+    fun pickWithUnderInvalidDimension0() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("(0 1 1) (2 1) (2 2) (1 2) (0 3) -⍢⊇ 3 4 ⍴ 10×⍳100")
+        }
+    }
+
+    @Test
+    fun pickWithUnderInvalidDimension1() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("(0 1) (2 1) (2 2) (1 2) (0 3) {1 2 3 4}⍢⊇ 3 4 ⍴ 10×⍳100")
+        }
+    }
+
+    @Test
+    fun pickwithUnderAndSideEffect() {
+        parseAPLExpressionWithOutput("(0 1) (2 1) (2 2) (1 2) (0 3) {0 1 2 3 4}⍢⊇ io:print¨ 3 4 ⍴ 10×⍳100").let { (result, out) ->
+            assertDimension(dimensionsOfSize(3, 4), result)
+            assertArrayContent(arrayOf(0, 0, 20, 4, 40, 50, 3, 70, 80, 1, 2, 110), result)
+            assertEquals("02040507080110", out)
+        }
+    }
+
+    @Test
+    fun pickWithUnderAndScalarExt() {
+        parseAPLExpression("{9}⍢(2 5⊇) 10 20 30 40 50 60").let { result ->
+            assert1DArray(arrayOf(10, 20, 9, 40, 50, 9), result)
         }
     }
 }

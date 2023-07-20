@@ -458,15 +458,43 @@ class PickResultValue(val a: APLValue, val b: APLValue, val pos: Position) : APL
 
     override fun valueAt(p: Int): APLValue {
         val indexCoord = a.valueAt(p)
+        val resultPos = indexCoordToPosition(indexCoord)
+        return b.valueAt(resultPos)
+    }
+
+    private fun indexCoordToPosition(indexCoord: APLValue): Int {
         val indexCoordDimensions = indexCoord.dimensions
         if (!((indexCoordDimensions.size == 0 && bDimensions.size == 1) || (indexCoordDimensions.size == 1 && bDimensions.size == indexCoordDimensions[0]))) {
             throwAPLException(
                 InvalidDimensionsException(
-                    "Lookup index at position ${Arrays.toString(dimensions.positionFromIndex(p))} has rank ${indexCoordDimensions.size}. Not compatible with rank: ${bDimensions.size}",
+                    "Lookup index has rank ${indexCoordDimensions.size}. Not compatible with rank: ${bDimensions.size}",
                     pos))
         }
         val coordArray = if (indexCoordDimensions.size == 0) intArrayOf(indexCoord.ensureNumber(pos).asInt(pos)) else indexCoord.toIntArray(pos)
-        return b.valueAt(bDimensions.indexFromPosition(coordArray, multipliers, pos))
+        return bDimensions.indexFromPosition(coordArray, multipliers, pos)
+    }
+
+    fun replaceForUnder(updated: APLValue): APLValue {
+        if (!updated.dimensions.compareEquals(dimensions)) {
+            throwAPLException(
+                InvalidDimensionsException(
+                    "Updated result does not have the same dimensions as selection. Updated: ${updated.dimensions}, selection: ${dimensions}",
+                    pos))
+        }
+        val positionList = IntArray(bDimensions.contentSize())
+        positionList.fill(-1)
+        a.iterateMembersWithPosition { indexCoord, i ->
+            val resultPos = indexCoordToPosition(indexCoord)
+            positionList[resultPos] = i
+        }
+        return PickOverlayReplacementValue(bDimensions, updated, b, positionList)
+    }
+}
+
+class PickOverlayReplacementValue(override val dimensions: Dimensions, val updated: APLValue, val b: APLValue, val positionList: IntArray) : APLArray() {
+    override fun valueAt(p: Int): APLValue {
+        val position = positionList[p]
+        return if (position == -1) b.valueAt(p) else updated.valueAt(position)
     }
 }
 
@@ -474,6 +502,21 @@ class PickAPLFunction : APLFunctionDescriptor {
     class PickAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             return PickResultValue(a.unwrapDeferredValue(), b, pos)
+        }
+
+        override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            val a0 = a.collapse().arrayify()
+            val underValue = eval2Arg(context, a0, b, null)
+            if (underValue !is PickResultValue) {
+                throw IllegalStateException("Result is not of the correct type. Type = ${underValue::class}")
+            }
+            val updated = baseFn.eval1Arg(context, underValue, null)
+            val updated0 = if (updated.isScalar()) {
+                ResizedArrayImpls.makeResizedArray(underValue.dimensions, updated)
+            } else {
+                updated
+            }
+            return underValue.replaceForUnder(updated0)
         }
 
         override val name2Arg get() = "pick"
