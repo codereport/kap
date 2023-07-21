@@ -110,8 +110,6 @@ class EncodeTest : APLTest() {
         }
     }
 
-    // Ignored since there is a problem with RankOperator
-    @Ignore
     @Test
     fun decodeSingleValue() {
         parseAPLExpression("3 ⊤ 7", true).let { result ->
@@ -127,8 +125,6 @@ class EncodeTest : APLTest() {
         }
     }
 
-    // TODO: This triggers a real bug, but it needs some more work before it can be addressed
-    @Ignore
     @Test
     fun decodeOutsideRangeOfInteger() {
         parseAPLExpression("(40⍴10) ⊤ 12", true).let { result ->
@@ -136,7 +132,45 @@ class EncodeTest : APLTest() {
             assertArrayContent(
                 arrayOf(
                     0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2), result)
+                    0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 2),
+                result)
+        }
+    }
+
+    @Ignore
+    @Test
+    fun decodeNegative() {
+        parseAPLExpression("(10⍴10) ⊤ ¯10", true).let { result ->
+            assert1DArray(arrayOf(9, 9, 9, 9, 9, 9, 9, 9, 0), result)
+        }
+    }
+
+    @Test
+    fun decodeBigInt() {
+        parseAPLExpression("(100⍴10) ⊤ 10000000000000000000000000000000000000000", true).let { result ->
+            val expected = Array(100) { i -> if (i == 59) 1 else 0 }
+            assert1DArray(expected, result)
+        }
+    }
+
+    @Ignore
+    @Test
+    fun decodeNegativeBigInt() {
+        parseAPLExpression("(40⍴10) ⊤ ¯123456789012345678901234567890", true).let { result ->
+            assert1DArray(
+                arrayOf(
+                    9, 9, 9, 9, 9, 9, 9, 9, 9, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0, 9,
+                    8, 7, 6, 5, 4, 3, 2, 1, 0, 9, 8, 7, 6, 5, 4, 3, 2, 1, 1, 0),
+                result)
+        }
+    }
+
+    @Ignore
+    @Test
+    fun decodeMultiDimensional() {
+        parseAPLExpression("(2⍴2) ⊤ 2 3 ⍴ 10+⍳6", true).let { result ->
+            assertDimension(dimensionsOfSize(2, 2, 3), result)
+            assertArrayContent(arrayOf(1, 1, 0, 0, 1, 1, 0, 1, 0, 1, 0, 1), result)
         }
     }
 }
