@@ -847,7 +847,7 @@ class APLParser(val tokeniser: TokenGenerator) {
                 return innerParser.parseValueToplevel(EndOfFile)
             }
         } catch (e: MPFileException) {
-            throw ParseException("Error loading file: ${resolved}: ${e.message}", pos)
+            throw ParseException("Error loading file: ${resolved}: ${e.message}", pos, e)
         }
     }
 
