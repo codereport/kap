@@ -1,8 +1,8 @@
 package array
 
-import java.nio.file.Path
+import java.nio.file.Paths
 
-val jarDirectories = mutableListOf(Path.of("lib"))
+val jarDirectories = mutableListOf(Paths.get("lib"))
 
 class LibClassLoader : ClassLoader() {
 

@@ -2,7 +2,6 @@ package array
 
 import java.io.*
 import java.nio.file.Files
-import java.nio.file.Path
 import java.nio.file.Paths
 import kotlin.io.path.createDirectory
 import kotlin.io.path.pathString
@@ -213,7 +212,7 @@ private inline fun <T> transformIOException(fn: () -> T): T {
 }
 
 actual fun fileType(path: String): FileNameType? {
-    val p = Path.of(path)
+    val p = Paths.get(path)
     return when {
         !Files.exists(p) -> null
         Files.isRegularFile(p) -> FileNameType.FILE
@@ -228,7 +227,7 @@ actual fun currentDirectory(): String {
 
 actual fun createDirectory(path: String) {
     transformIOException {
-        Path.of(path).createDirectory()
+        Paths.get(path).createDirectory()
     }
 }
 
@@ -254,7 +253,7 @@ actual fun readDirectoryContent(dirName: String): List<PathEntry> {
 }
 
 actual fun resolveDirectoryPathInt(fileName: String, workingDirectory: String): String {
-    val file = Path.of(fileName)
-    val parent = Path.of(workingDirectory)
+    val file = Paths.get(fileName)
+    val parent = Paths.get(workingDirectory)
     return parent.resolve(file).pathString
 }

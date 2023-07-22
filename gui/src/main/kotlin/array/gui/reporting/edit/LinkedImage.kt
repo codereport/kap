@@ -11,7 +11,7 @@ interface LinkedImage {
     val isReal: Boolean
 
     /**
-     * @return The path of the image to render.
+     * @return The Paths.get the image to render.
      */
     val imagePath: String
 

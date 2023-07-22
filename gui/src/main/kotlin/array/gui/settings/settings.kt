@@ -7,6 +7,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import java.io.IOException
 import java.nio.file.Path
+import java.nio.file.Paths
 import kotlin.io.path.*
 
 @Serializable
@@ -30,7 +31,7 @@ data class Settings(
 
 private fun findSettingsDirectory(): Path? {
     val homeString = System.getProperty("user.home") ?: return null
-    val home = Path.of(homeString)
+    val home = Paths.get(homeString)
     unless(home.exists()) {
         return null
     }
