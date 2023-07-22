@@ -240,6 +240,22 @@ class RationalTest {
     }
 
     @Test
+    fun testMod5() {
+        val a = mkrational(100, 9)
+        val b = mkrational(-100, 9)
+        val c = a % b
+        assertEquals(0, c.signum())
+    }
+
+    @Test
+    fun testMod6() {
+        val a = mkrational(100, 9)
+        val b = mkrational(100, 9)
+        val c = a % b
+        assertEquals(0, c.signum())
+    }
+
+    @Test
     fun testPower0() {
         val a = mkrational(1, 2)
         val b = a.pow(5)

@@ -88,6 +88,16 @@ actual operator fun BigInt.rem(other: BigInt): BigInt {
     }
 }
 
+internal fun printMpz(prefix: String, m: mpz_t) {
+    val size = mpz_sizeinbase!!(m, 10)
+    val s = memScoped {
+        val buf = allocArray<ByteVar>(size.toLong() + 2)
+        mpz_get_str!!(buf, 10, m)
+        buf.toKString()
+    }
+    println("${prefix}: ${s}")
+}
+
 internal fun linuxBigIntRem(result: mpz_t, a: mpz_t, b: mpz_t) {
     if (mpz_sgn_wrap(a) == -1) {
         memScoped {
@@ -96,11 +106,19 @@ internal fun linuxBigIntRem(result: mpz_t, a: mpz_t, b: mpz_t) {
                 val bAbs = allocMpzStruct()
                 mpz_neg!!(bAbs, b)
                 mpz_mod!!(res, a, b)
-                mpz_sub!!(result, res, bAbs)
+                if (mpz_sgn_wrap(res) == 0) {
+                    mpz_set!!(result, res)
+                } else {
+                    mpz_sub!!(result, res, bAbs)
+                }
                 mpz_clear!!(bAbs)
             } else {
                 mpz_mod!!(res, a, b)
-                mpz_sub!!(result, res, b)
+                if (mpz_sgn_wrap(res) == 0) {
+                    mpz_set!!(result, res)
+                } else {
+                    mpz_sub!!(result, res, b)
+                }
             }
             mpz_clear!!(res)
         }

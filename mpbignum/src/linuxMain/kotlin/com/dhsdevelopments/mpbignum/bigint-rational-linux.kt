@@ -173,15 +173,6 @@ class LinuxRational(val value: mpq_t) : Rational {
         }
     }
 
-    fun printMpz(m: mpz_t): String {
-        val size = mpz_sizeinbase!!(m, 10)
-        memScoped {
-            val buf = allocArray<ByteVar>(size.toLong() + 2)
-            mpz_get_str!!(buf, 10, m)
-            return buf.toKString()
-        }
-    }
-
     override fun rem(other: Rational): Rational {
         val result = nativeHeap.allocMpqStruct()
         alignDenominator(other as LinuxRational) { n0, n1, lcm ->
