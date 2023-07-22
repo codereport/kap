@@ -30,16 +30,16 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
 
     val replDoc get() = styledDocument as ReplDoc
 
-    val errorStyle = addStyle("error", null).also { style ->
+    val errorStyle: Style = addStyle("error", null).also { style ->
         StyleConstants.setForeground(style, Color.RED)
     }
 
-    val errorLocationStyle = addStyle("errorLocation", null).also { style ->
+    val errorLocationStyle: Style = addStyle("errorLocation", null).also { style ->
         StyleConstants.setForeground(style, Color.RED)
         StyleConstants.setUnderline(style, true)
     }
 
-    val commandHistoryStyle = addStyle("commandHistory", null).also { style ->
+    val commandHistoryStyle: Style = addStyle("commandHistory", null).also { style ->
         StyleConstants.setForeground(style, Color(0, 104, 0))
     }
 

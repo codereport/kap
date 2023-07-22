@@ -79,8 +79,6 @@ class ParStyle private constructor(
 
     fun getIndent() = indent.get()
 
-    val isIndented get() = indent.map { indent: Indent -> indent.level > 0 }.orElse(false)
-
     fun updateFold(fold: Boolean): ParStyle {
         val foldLevels = if (fold) foldCount + 1 else Math.max(0, foldCount - 1)
         return ParStyle(alignment, backgroundColor, indent, foldLevels)

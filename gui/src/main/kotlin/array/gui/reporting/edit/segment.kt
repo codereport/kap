@@ -23,7 +23,7 @@ sealed class Segment {
 class StringSegment(val value: String) : Segment() {
     override fun length() = styledTextOps.length(value)
     override fun charAt(index: Int) = styledTextOps.charAt(value, index)
-    override fun getText() = styledTextOps.getText(value)
+    override fun getText(): String = styledTextOps.getText(value)
 
     override fun subSequence(start: Int, end: Int?): Segment {
         val res = if (end != null) {
@@ -50,7 +50,7 @@ class StringSegment(val value: String) : Segment() {
     }
 
     companion object {
-        val styledTextOps = SegmentOps.styledTextOps<TextStyle?>()
+        val styledTextOps: TextOps<String, TextStyle> = SegmentOps.styledTextOps()
     }
 }
 

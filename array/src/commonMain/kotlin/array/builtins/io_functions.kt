@@ -226,7 +226,7 @@ class ReaddirFunction : APLFunctionDescriptor {
 
         private fun parseOutputTypes(context: RuntimeContext, value: APLValue): List<OutputType> {
             val keywordToType =
-                OutputType.values().associateBy { outputType ->
+                OutputType.entries.associateBy { outputType ->
                     context.engine.internSymbol(
                         outputType.selector,
                         context.engine.keywordNamespace)

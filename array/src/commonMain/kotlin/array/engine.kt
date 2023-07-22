@@ -296,7 +296,7 @@ class Engine(numComputeEngines: Int? = null) {
     init {
         // Intern the names of all the types in the core namespace.
         // This ensures that code that refers to the unqualified versions of the names pick up the correct symbol.
-        APLValueType.values().forEach { aplValueType ->
+        APLValueType.entries.forEach { aplValueType ->
             coreNamespace.internAndExport(aplValueType.typeName)
         }
 

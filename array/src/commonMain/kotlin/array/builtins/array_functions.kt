@@ -1591,7 +1591,7 @@ class WhereAPLFunction : APLFunctionDescriptor {
             }
         }
 
-        data class LocationWithValue(val location: IntArray, var value: Long = 1) {
+        class LocationWithValue(val location: IntArray, var value: Long = 1) {
             fun isLocationBefore(other: IntArray): Boolean {
                 require(location.size == other.size)
                 location.indices.forEach { i ->

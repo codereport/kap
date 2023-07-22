@@ -9,15 +9,12 @@ import java.io.File
  * A custom object which contains a file path to an image file.
  * When rendered in the rich text editor, the image is loaded from the
  * specified file.
+ *
+ * @param imagePath The path to the image file.
  */
 class RealLinkedImage(imagePath: String) : LinkedImage {
     override val imagePath: String
 
-    /**
-     * Creates a new linked image object.
-     *
-     * @param imagePath The path to the image file.
-     */
     init {
         // if the image is below the current working directory,
         // then store as relative path name.

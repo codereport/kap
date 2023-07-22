@@ -43,7 +43,7 @@ class SettingsDialog(owner: Window, val prevData: Settings) : Dialog<Settings>()
         prevData.copy(
             fontFamily = fontFamilyInput.value,
             fontSize = Integer.parseInt(fontSizeInput.textProperty().valueSafe),
-            newlineBehaviour = ReturnBehaviour.values()[returnBehaviour.selectionModel.selectedIndex],
+            newlineBehaviour = ReturnBehaviour.entries[returnBehaviour.selectionModel.selectedIndex],
             keyPrefix = keyPrefix.text.trim().let { s -> if (s.isEmpty()) prevData.keyPrefix else s })
 
     private fun initFields() {
@@ -58,7 +58,7 @@ class SettingsDialog(owner: Window, val prevData: Settings) : Dialog<Settings>()
 
         fontSizeInput.text = prevData.fontSizeWithDefault().toString()
 
-        val returnBehaviourOptions = ReturnBehaviour.values().map(this::nameFromReturnBehaviour)
+        val returnBehaviourOptions = ReturnBehaviour.entries.map(this::nameFromReturnBehaviour)
         returnBehaviour.items.setAll(returnBehaviourOptions)
         returnBehaviour.selectionModel.select(returnBehaviourIndex(prevData.newlineBehaviourWithDefault()))
 
@@ -66,7 +66,7 @@ class SettingsDialog(owner: Window, val prevData: Settings) : Dialog<Settings>()
     }
 
     private fun returnBehaviourIndex(defaultReturnBehaviour: ReturnBehaviour): Int {
-        ReturnBehaviour.values().forEachIndexed { i, v -> if (v === defaultReturnBehaviour) return i }
+        ReturnBehaviour.entries.forEachIndexed { i, v -> if (v === defaultReturnBehaviour) return i }
         error("Unexpected return behaviour value: ${defaultReturnBehaviour}")
     }
 
