@@ -175,9 +175,11 @@ class NumbersTest : APLTest() {
         assertSimpleNumber(0, parseAPLExpression("5|0"))
         assertSimpleNumber(0, parseAPLExpression("0|0"))
         assertSimpleNumber(3, parseAPLExpression("0|3"))
+        assertSimpleNumber(0, parseAPLExpression("2|¯2"))
         assertAPLValue(NearComplex(Complex(1.0, 1.0), 4, 4), parseAPLExpression("2J3 | 10J8"))
         assertAPLValue(NearComplex(Complex(2.7, 3.1), 4, 4), parseAPLExpression("2.6J3.8 | 10.7J31.1"))
         assertAPLValue(NearComplex(Complex(10.2, 9.9), 4, 4), parseAPLExpression("0 | 10.2J9.9"))
+        assertSimpleDouble(-0.0, parseAPLExpression("2.0|¯2.0"))
     }
 
     @Test
@@ -196,8 +198,10 @@ class NumbersTest : APLTest() {
 
     @Test
     fun testModCombinationsBigint0() {
-        parseAPLExpression("(int:asBigint¨ 2 2 ¯2 ¯2) | int:asBigint¨ 123 ¯123 123 ¯123").let { result ->
-            assert1DArray(arrayOf(InnerBigIntOrLong(1), InnerBigIntOrLong(1), InnerBigIntOrLong(-1), InnerBigIntOrLong(-1)), result)
+        parseAPLExpression("(int:asBigint¨ 2 2 ¯2 ¯2 2) | int:asBigint¨ 123 ¯123 123 ¯123 ¯2").let { result ->
+            assert1DArray(
+                arrayOf(InnerBigIntOrLong(1), InnerBigIntOrLong(1), InnerBigIntOrLong(-1), InnerBigIntOrLong(-1), InnerBigIntOrLong(0)),
+                result)
         }
     }
 
@@ -250,8 +254,10 @@ class NumbersTest : APLTest() {
 
     @Test
     fun testModRational() {
-        parseAPLExpression("5 | (117÷10) (¯117÷3)").let { result ->
-            assert1DArray(arrayOf(InnerRational(17, 10), InnerBigIntOrLong(1)), result)
+        parseAPLExpression("5 5 (3÷2) | (117÷10) (¯117÷3) (¯3÷2)").let { result ->
+            assert1DArray(
+                arrayOf(InnerRational(17, 10), InnerBigIntOrLong(1), InnerBigIntOrLong(0)),
+                result)
         }
     }
 

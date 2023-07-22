@@ -676,30 +676,38 @@ class ModAPLFunction : APLFunctionDescriptor {
         }
 
         private fun opLong(x: Long, y: Long) =
-            if (x == 0L) y else (y % x).let { result -> if ((x < 0 && y > 0) || (x > 0 && y < 0)) x + result else result }
+            if (x == 0L) y else (y % x).let { result -> if (result != 0L && ((x < 0 && y > 0) || (x > 0 && y < 0))) x + result else result }
 
         private fun opDouble(x: Double, y: Double) =
-            if (x == 0.0) y else (y % x).let { result -> if ((x < 0 && y > 0) || (x > 0 && y < 0)) x + result else result }
+            if (x == 0.0) y else (y % x).let { result -> if (result != 0.0 && ((x < 0 && y > 0) || (x > 0 && y < 0))) x + result else result }
 
         private fun bigintMod(x: BigInt, y: BigInt) =
             if (x == BigIntConstants.ZERO) y else (y % x).let { result ->
-                val xSign = x.signum()
-                val ySign = y.signum()
-                if ((xSign == -1 && ySign == 1) || (xSign == 1 && ySign == -1)) {
-                    x + result
-                } else {
+                if (result == BigIntConstants.ZERO) {
                     result
+                } else {
+                    val xSign = x.signum()
+                    val ySign = y.signum()
+                    if ((xSign == -1 && ySign == 1) || (xSign == 1 && ySign == -1)) {
+                        x + result
+                    } else {
+                        result
+                    }
                 }
             }
 
         private fun rationalMod(x: Rational, y: Rational) =
             if (x == Rational.ZERO) y else (y % x).let { result ->
-                val xSign = x.signum()
-                val ySign = y.signum()
-                if ((xSign == -1 && ySign == 1) || (xSign == 1 && ySign == -1)) {
-                    x + result
-                } else {
+                if (result == Rational.ZERO) {
                     result
+                } else {
+                    val xSign = x.signum()
+                    val ySign = y.signum()
+                    if ((xSign == -1 && ySign == 1) || (xSign == 1 && ySign == -1)) {
+                        x + result
+                    } else {
+                        result
+                    }
                 }
             }
 

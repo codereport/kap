@@ -137,11 +137,10 @@ class EncodeTest : APLTest() {
         }
     }
 
-    @Ignore
     @Test
     fun decodeNegative() {
         parseAPLExpression("(10⍴10) ⊤ ¯10", true).let { result ->
-            assert1DArray(arrayOf(9, 9, 9, 9, 9, 9, 9, 9, 0), result)
+            assert1DArray(arrayOf(9, 9, 9, 9, 9, 9, 9, 9, 9, 0), result)
         }
     }
 
@@ -153,7 +152,6 @@ class EncodeTest : APLTest() {
         }
     }
 
-    @Ignore
     @Test
     fun decodeNegativeBigInt() {
         parseAPLExpression("(40⍴10) ⊤ ¯123456789012345678901234567890", true).let { result ->

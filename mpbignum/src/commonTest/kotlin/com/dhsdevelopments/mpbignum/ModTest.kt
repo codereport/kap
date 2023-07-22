@@ -37,6 +37,14 @@ class ModTest {
     }
 
     @Test
+    fun rightSideNegative2() {
+        val a = BigInt.of(2)
+        val b = BigInt.of(-2)
+        val c = a % b
+        assertEquals(BigInt.of(0), c)
+    }
+
+    @Test
     fun leftSideNegative0() {
         val a = BigInt.of("-7")
         val b = BigInt.of("2")
@@ -50,6 +58,14 @@ class ModTest {
         val b = BigInt.of("380")
         val c = a % b
         assertEquals(BigInt.of("-336"), c)
+    }
+
+    @Test
+    fun leftSideNegative2() {
+        val a = BigInt.of(-2)
+        val b = BigInt.of(2)
+        val c = a % b
+        assertEquals(BigInt.of(0), c)
     }
 
     @Test
