@@ -402,15 +402,11 @@ class APLParser(val tokeniser: TokenGenerator) {
                 }
             }
             is ParseResultHolder.FnParseResult -> {
-                fun baseFn() = Chain2(parsedFn.instantiation, parsedFn, holder.fn)
-                when {
-                    leftArgs.isEmpty() -> {
-                        ParseResultHolder.FnParseResult(baseFn(), holder.lastToken)
-                    }
-                    else -> {
-                        val b = makeLeftBindFunction(leftArgs, parsedFn)
-                        ParseResultHolder.FnParseResult(Chain2(parsedFn.instantiation, b, holder.fn), holder.lastToken)
-                    }
+                if (leftArgs.isEmpty()) {
+                    ParseResultHolder.FnParseResult(Chain2(parsedFn.instantiation, parsedFn, holder.fn), holder.lastToken)
+                } else {
+                    val b = makeLeftBindFunction(leftArgs, parsedFn)
+                    ParseResultHolder.FnParseResult(Chain2(parsedFn.instantiation, b, holder.fn), holder.lastToken)
                 }
             }
         }
