@@ -415,6 +415,8 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("√", SqrtAPLFunction())
         registerNativeFunction("gcd", GcdAPLFunction(), "math")
         registerNativeFunction("lcm", LcmAPLFunction(), "math")
+        registerNativeFunction("numerator", NumeratorAPLFunction(), "math")
+        registerNativeFunction("denominator", DenominatorAPLFunction(), "math")
 
         // metafunctions
         registerNativeFunction("typeof", TypeofFunction())

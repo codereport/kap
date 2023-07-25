@@ -1601,3 +1601,37 @@ class LcmAPLFunction : APLFunctionDescriptor {
 
     override fun make(instantiation: FunctionInstantiation) = LcmAPLFunctionImpl(instantiation)
 }
+
+class NumeratorAPLFunction : APLFunctionDescriptor {
+    class NumeratorAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
+        override fun numberCombine1Arg(a: APLNumber): APLValue {
+            return singleArgNumericRelationOperation(
+                pos,
+                a,
+                { x -> x.makeAPLNumber() },
+                { x -> throwAPLException(IncompatibleTypeException("Cannot return numerator from a double")) },
+                { x -> throwAPLException(IncompatibleTypeException("Cannot return numerator from a complex")) },
+                fnBigInt = { x -> x.makeAPLNumberWithReduction() },
+                fnRational = { x -> x.numerator.makeAPLNumberWithReduction() })
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = NumeratorAPLFunctionImpl(instantiation)
+}
+
+class DenominatorAPLFunction : APLFunctionDescriptor {
+    class DenominatorAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
+        override fun numberCombine1Arg(a: APLNumber): APLValue {
+            return singleArgNumericRelationOperation(
+                pos,
+                a,
+                { x -> APLLONG_1 },
+                { x -> throwAPLException(IncompatibleTypeException("Cannot return numerator from a double")) },
+                { x -> throwAPLException(IncompatibleTypeException("Cannot return numerator from a complex")) },
+                fnBigInt = { x -> APLLONG_1 },
+                fnRational = { x -> x.denominator.makeAPLNumberWithReduction() })
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = DenominatorAPLFunctionImpl(instantiation)
+}
