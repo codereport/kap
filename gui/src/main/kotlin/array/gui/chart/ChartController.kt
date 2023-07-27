@@ -10,12 +10,12 @@ interface ChartType {
     fun make(): XYChart<String, Number>
 }
 
-object LineCharType : ChartType {
-    override fun make() = BarChart(CategoryAxis(), NumberAxis())
+object LineChartType : ChartType {
+    override fun make() = LineChart(CategoryAxis(), NumberAxis())
 }
 
 object BarChartType : ChartType {
-    override fun make() = LineChart(CategoryAxis(), NumberAxis())
+    override fun make() = BarChart(CategoryAxis(), NumberAxis())
 }
 
 class ChartController(val lineChart: XYChart<String, Number>) {
