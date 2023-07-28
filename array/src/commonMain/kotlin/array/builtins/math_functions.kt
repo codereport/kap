@@ -221,10 +221,8 @@ abstract class MathCombineAPLFunction(pos: FunctionInstantiation) : APLFunction(
                 when {
                     b is APLLong && a.specialisedType === ArrayMemberType.LONG && optimisationFlags.is2ALongLong ->
                         LongArraySum2ArgsRightScalar(this, a, b.value, pos)
-
                     a.isScalar() -> EnclosedAPLValue.make(makeCellSumFunction2Args(a.valueAt(0), b, pos))
-                    else ->
-                        GenericArraySum2Args(this, a, b, pos)
+                    else -> GenericArraySum2Args(this, a, b, pos)
                 }
             }
 

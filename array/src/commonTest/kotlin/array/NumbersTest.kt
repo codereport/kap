@@ -668,4 +668,11 @@ class NumbersTest : APLTest() {
             assertNearDouble(NearDouble(3.14159265358979323846, 15), result)
         }
     }
+
+    @Test
+    fun scalarFunctionWithLazyValues() {
+        parseAPLExpression("1 + (0 ⊇ 2 3 4 5 6 7)").let { result ->
+            assertSimpleNumber(3, result)
+        }
+    }
 }

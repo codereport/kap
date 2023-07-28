@@ -474,6 +474,10 @@ class PickResultValue(val a: APLValue, val b: APLValue, val pos: Position) : APL
         return bDimensions.indexFromPosition(coordArray, multipliers, pos)
     }
 
+    override fun unwrapDeferredValue(): APLValue {
+        return unwrapEnclosedSingleValue(this)
+    }
+
     fun replaceForUnder(updated: APLValue): APLValue {
         if (!updated.dimensions.compareEquals(dimensions)) {
             throwAPLException(
