@@ -13,6 +13,7 @@ class ComputeQueue {
     private val standardOutputListeners = CopyOnWriteArrayList<StdoutListener>()
 
     init {
+        engine.addModule(Gui2Module())
         engine.addLibrarySearchPath("../array/standard-lib")
         engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
         engine.standardOutput = CharacterOutput(::writeStringToListeners)

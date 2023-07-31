@@ -455,7 +455,7 @@ abstract class APLArray : APLValue() {
     }
 }
 
-class LabelledArray(val value: APLValue, override val labels: DimensionLabels) : APLArray() {
+class LabelledArray(override val value: APLValue, override val labels: DimensionLabels) : AbstractDelegatedValue() {
     override val dimensions = value.dimensions
     override fun valueAt(p: Int) = value.valueAt(p)
 

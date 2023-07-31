@@ -1,6 +1,4 @@
-package array.gui.arrayedit
-
-import array.*
+package array
 
 class MutableAPLValue(value: APLValue) {
     var dimensions = value.dimensions
@@ -20,7 +18,7 @@ class MutableAPLValue(value: APLValue) {
 
     fun insert(axis: Int, index: Int, n: Int) {
         if (axis < 0 || axis >= dimensions.size) {
-            throw java.lang.IllegalArgumentException("Invalid axis: ${axis}, available axis: ${dimensions.size}")
+            throw IllegalArgumentException("Invalid axis: ${axis}, available axis: ${dimensions.size}")
         }
         val newDimensions = Dimensions(IntArray(dimensions.size) { i ->
             val s = dimensions[i]

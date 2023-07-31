@@ -3,16 +3,14 @@ package com.dhsdevelopments.kap.gui2
 import java.awt.BorderLayout
 import java.awt.Dimension
 import java.awt.Font
-import javax.swing.JFrame
-import javax.swing.JLabel
-import javax.swing.JScrollPane
-import javax.swing.SwingUtilities
+import javax.swing.*
 
 class Main {
     companion object {
         @JvmStatic
         fun main(args: Array<String>) {
             SwingUtilities.invokeLater {
+                UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName())
                 val client = Gui2Client()
                 client.openReplFrame()
             }
