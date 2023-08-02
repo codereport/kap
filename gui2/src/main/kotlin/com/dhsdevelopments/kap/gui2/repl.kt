@@ -14,6 +14,7 @@ import kotlin.contracts.contract
 
 class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
     val history = ArrayList<HistoryEntry>()
+    var historyPosition = 0
 
     init {
         font = fontIn.deriveFont(18.0f)
@@ -65,6 +66,7 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
         val src = ReplSourceLocation(s, docPos)
         if (history.isEmpty() || history.last().src.text != s) {
             history.add(HistoryEntry(src))
+            historyPosition = history.size - 1
         }
         sendToInterpreter(src)
     }
@@ -82,11 +84,6 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
         } finally {
             editorCaret.updatePolicy = oldUpdatePolicy
         }
-    }
-
-    fun editedText(): String {
-        val pos = replDoc.startEditPosition()
-        return this.getText(pos, document.length - pos)
     }
 
     private fun sendToInterpreter(src: SourceLocation) {
@@ -137,14 +134,87 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
         }
     }
 
+    private fun traverseHistory(offset: Int) {
+        val newPos = historyPosition + offset
+        if (newPos !in 0..history.size) return
+        historyPosition = newPos
+        val s = if (newPos == history.size) "" else history[newPos].src.text
+        replaceInput(s)
+    }
+
+    private fun editedText(): String {
+        val pos = replDoc.startEditPosition()
+        return this.getText(pos, document.length - pos)
+    }
+
+    private fun replaceInput(s: String) {
+        withNoCursorMovementAndEditable {
+            val pos = replDoc.startEditPosition()
+            replDoc.remove(pos, document.length - pos)
+            replDoc.insertString(pos, s, null)
+        }
+    }
+
     inner class ReplKeyListener : KeyAdapter() {
         override fun keyPressed(e: KeyEvent) {
-            if (e.keyChar == '\n') {
-                val text = editedText()
-                addCommandToHistoryAndSend(text)
-                e.consume()
+            when (e.keyCode) {
+                KeyEvent.VK_ENTER -> {
+                    val text = editedText()
+                    addCommandToHistoryAndSend(text)
+                    e.consume()
+                }
+                KeyEvent.VK_UP -> {
+                    when {
+                        caretOnFirstEditLine() -> {
+                            e.consume()
+                            traverseHistory(-1)
+                        }
+                        caretPosition < replDoc.startEditPosition() -> {
+                            e.consume()
+                        }
+                    }
+                }
+                KeyEvent.VK_DOWN -> {
+                    when {
+                        caretOnLastEditLine() -> {
+                            e.consume()
+                            traverseHistory(1)
+                        }
+                        caretPosition < replDoc.startEditPosition() -> {
+                            e.consume()
+                        }
+                    }
+                }
+                KeyEvent.VK_HOME -> {
+                    if (caretOnFirstEditLine()) {
+                        caretPosition = replDoc.startEditPosition()
+                        e.consume()
+                    }
+                }
             }
         }
+    }
+
+    private fun caretOnFirstEditLine(): Boolean {
+        val curr = caretPosition
+        val start = replDoc.startEditPosition()
+        if (curr < start) {
+            return false
+        }
+        val text = replDoc.getText(start, replDoc.length - start)
+        val index = text.indexOf('\n')
+        return index == -1 || (curr - start) < index
+    }
+
+    private fun caretOnLastEditLine(): Boolean {
+        val curr = caretPosition
+        val start = replDoc.startEditPosition()
+        if (curr < start) {
+            return false
+        }
+        val text = replDoc.getText(start, replDoc.length - start)
+        val index = text.lastIndexOf('\n')
+        return index == -1 || (curr - start) > index
     }
 }
 
