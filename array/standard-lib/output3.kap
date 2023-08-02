@@ -115,14 +115,19 @@ renderEmpty ⇐ {
 
 format ⇐ { throw "Forward declaration" }
 
+∇ isOversized v {
+  (0 < ≢⍴v) and (1 ∊ 40<⍴v)
+}
+
 renderArrayOrString ⇐ {
   v←⍵
   when {
-    ((,0)≡⍴v)           { 1 1 ⍴ "⍬" }
-    (0=×/⍴v)            { renderEmpty v }
-    (isAplString v)     { renderString v }
-    (isEnclosedArray v) { singleLineSyms withBorder format ⊃v }
-    (1)                 { renderArray format ¨v }
+    ((,0)≡⍴v)            { 1 1 ⍴ "⍬" }
+    (0=×/⍴v)             { renderEmpty v }
+    (isOversized v)      { singleLineSyms withBorder <"Oversized array: ",⊃{⍺," ",⍵}/⍕¨⍴v }
+    (isAplString v)      { renderString v }
+    (isEnclosedArray v)  { singleLineSyms withBorder format ⊃v }
+    (1)                  { renderArray format ¨v }
   }
 }
 
