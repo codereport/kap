@@ -113,10 +113,10 @@ abstract class APLFunction(instantiation: FunctionInstantiation, val fns: List<A
     open val name1Arg get() = this::class.simpleName ?: "unnamed"
     open val name2Arg get() = this::class.simpleName ?: "unnamed"
 
-    fun inversibleStructuralUnder1Arg(underFn: APLFunction, baseFn: APLFunction, context: RuntimeContext, a: APLValue): APLValue {
-        val v = underFn.eval1Arg(context, a, null)
+    fun inversibleStructuralUnder1Arg(underFn: APLFunction, baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+        val v = underFn.eval1Arg(context, a, axis)
         val baseRes = baseFn.eval1Arg(context, v, null)
-        return underFn.evalInverse1Arg(context, baseRes, null)
+        return underFn.evalInverse1Arg(context, baseRes, axis)
     }
 
     fun inversibleStructuralUnder2Arg(
@@ -124,11 +124,12 @@ abstract class APLFunction(instantiation: FunctionInstantiation, val fns: List<A
         baseFn: APLFunction,
         context: RuntimeContext,
         a: APLValue,
-        b: APLValue
+        b: APLValue,
+        axis: APLValue?
     ): APLValue {
-        val v = underFn.eval2Arg(context, a, b, null)
+        val v = underFn.eval2Arg(context, a, b, axis)
         val baseRes = baseFn.eval1Arg(context, v, null)
-        return underFn.evalInverse2ArgB(context, a, baseRes, null)
+        return underFn.evalInverse2ArgB(context, a, baseRes, axis)
     }
 
     open fun reduce(

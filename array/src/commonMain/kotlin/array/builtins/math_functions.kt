@@ -363,13 +363,11 @@ class AddAPLFunction : APLFunctionDescriptor {
         override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?) = eval1Arg(context, a, axis)
 
         override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            ensureAxisNull(axis)
-            return inversibleStructuralUnder1Arg(this, baseFn, context, a)
+            return inversibleStructuralUnder1Arg(this, baseFn, context, a, axis)
         }
 
         override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            ensureAxisNull(axis)
-            return inversibleStructuralUnder2Arg(this, baseFn, context, a, b)
+            return inversibleStructuralUnder2Arg(this, baseFn, context, a, b, axis)
         }
 
         private val subFn by lazy { SubAPLFunction().make(pos) }
@@ -436,8 +434,7 @@ class SubAPLFunction : APLFunctionDescriptor {
             eval1Arg(context, a, axis)
 
         override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            ensureAxisNull(axis)
-            return inversibleStructuralUnder1Arg(this, baseFn, context, a)
+            return inversibleStructuralUnder1Arg(this, baseFn, context, a, axis)
         }
 
         override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?) =
@@ -448,8 +445,7 @@ class SubAPLFunction : APLFunctionDescriptor {
             addFn.eval2Arg(context, a, b, axis)
 
         override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            ensureAxisNull(axis)
-            return inversibleStructuralUnder2Arg(this, baseFn, context, a, b)
+            return inversibleStructuralUnder2Arg(this, baseFn, context, a, b, axis)
         }
 
         override fun identityValue() = APLLONG_0
@@ -513,8 +509,7 @@ class MulAPLFunction : APLFunctionDescriptor {
         }
 
         override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            ensureAxisNull(axis)
-            return inversibleStructuralUnder2Arg(this, baseFn, context, a, b)
+            return inversibleStructuralUnder2Arg(this, baseFn, context, a, b, axis)
         }
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_LONG or OPTIMISATION_FLAG_1ARG_DOUBLE or OPTIMISATION_FLAG_2ARG_LONG_LONG or OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
@@ -574,8 +569,7 @@ class DivAPLFunction : APLFunctionDescriptor {
         override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?) = eval1Arg(context, a, axis)
 
         override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            ensureAxisNull(axis)
-            return inversibleStructuralUnder1Arg(this, baseFn, context, a)
+            return inversibleStructuralUnder1Arg(this, baseFn, context, a, axis)
         }
 
         private val mulFn by lazy { MulAPLFunction().make(pos) }
@@ -586,8 +580,7 @@ class DivAPLFunction : APLFunctionDescriptor {
             mulFn.eval2Arg(context, b, a, axis)
 
         override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            ensureAxisNull(axis)
-            return inversibleStructuralUnder2Arg(this, baseFn, context, a, b)
+            return inversibleStructuralUnder2Arg(this, baseFn, context, a, b, axis)
         }
 
         override fun identityValue() = APLLONG_1
@@ -809,8 +802,7 @@ class PowerAPLFunction : APLFunctionDescriptor {
             logFn.eval1Arg(context, a, axis)
 
         override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            ensureAxisNull(axis)
-            return inversibleStructuralUnder1Arg(this, baseFn, context, a)
+            return inversibleStructuralUnder1Arg(this, baseFn, context, a, axis)
         }
 
         override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?) =
@@ -1031,8 +1023,7 @@ class LogAPLFunction : APLFunctionDescriptor {
             powerFn.eval1Arg(context, a, axis)
 
         override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            ensureAxisNull(axis)
-            return inversibleStructuralUnder1Arg(this, baseFn, context, a)
+            return inversibleStructuralUnder1Arg(this, baseFn, context, a, axis)
         }
 
         override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?) =

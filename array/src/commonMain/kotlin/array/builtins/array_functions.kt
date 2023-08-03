@@ -1064,8 +1064,7 @@ abstract class RotateFunction(pos: FunctionInstantiation) : APLFunction(pos) {
         eval1Arg(context, a, axis)
 
     override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-        ensureAxisNull(axis)
-        return inversibleStructuralUnder1Arg(this, baseFn, context, a)
+        return inversibleStructuralUnder1Arg(this, baseFn, context, a, axis)
     }
 
     abstract fun defaultAxis(value: APLValue): Int
@@ -1199,8 +1198,7 @@ class TransposeFunction : APLFunctionDescriptor {
         }
 
         override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            ensureAxisNull(axis)
-            return inversibleStructuralUnder1Arg(this, baseFn, context, a)
+            return inversibleStructuralUnder1Arg(this, baseFn, context, a, axis)
         }
 
         override val name1Arg get() = "transpose"
