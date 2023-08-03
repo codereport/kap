@@ -715,8 +715,8 @@ class TakeAPLFunction : APLFunctionDescriptor {
             return TakeArrayValue(selection, b0, pos)
         }
 
-        override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            val underValue = eval2Arg(context, a, b, null)
+        override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            val underValue = eval2Arg(context, a, b, axis)
             if (underValue !is TakeArrayValue) {
                 throw IllegalStateException("Result is not of the correct type. Type = ${underValue::class}")
             }
@@ -831,7 +831,8 @@ class DropAPLFunction : APLFunctionDescriptor {
             return DropArrayValue(axisArray, b0, pos)
         }
 
-        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue): APLValue {
+        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+            ensureAxisNull(axis)
             val underValue = eval1Arg(context, a, null)
             if (underValue !is DropResultValueOneArg) {
                 throw IllegalStateException("Result is not of the correct type. Type = ${underValue::class}")
@@ -840,7 +841,8 @@ class DropAPLFunction : APLFunctionDescriptor {
             return underValue.replaceForUnder(updated)
         }
 
-        override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+        override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+            ensureAxisNull(axis)
             val underValue = eval2Arg(context, a, b, null)
             if (underValue !is DropArrayValue) {
                 throw IllegalStateException("Result is not of the correct type. Type = ${underValue::class}")
@@ -1063,8 +1065,10 @@ abstract class RotateFunction(pos: FunctionInstantiation) : APLFunction(pos) {
     override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?) =
         eval1Arg(context, a, axis)
 
-    override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue) =
-        inversibleStructuralUnder1Arg(this, baseFn, context, a)
+    override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+        ensureAxisNull(axis)
+        return inversibleStructuralUnder1Arg(this, baseFn, context, a)
+    }
 
     abstract fun defaultAxis(value: APLValue): Int
 }
@@ -1196,8 +1200,10 @@ class TransposeFunction : APLFunctionDescriptor {
             return eval1Arg(context, a, axis)
         }
 
-        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue) =
-            inversibleStructuralUnder1Arg(this, baseFn, context, a)
+        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+            ensureAxisNull(axis)
+            return inversibleStructuralUnder1Arg(this, baseFn, context, a)
+        }
 
         override val name1Arg get() = "transpose"
         override val name2Arg get() = "transpose"

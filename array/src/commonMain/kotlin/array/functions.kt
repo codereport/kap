@@ -90,13 +90,11 @@ abstract class APLFunction(instantiation: FunctionInstantiation, val fns: List<A
         throw NotImplementedError("copy function must be implemented. class = ${this::class.simpleName}")
     }
 
-    open fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue): APLValue {
+    open fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue =
         throwAPLException(StructuralUnderNotSupported(pos))
-    }
 
-    open fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+    open fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue =
         throwAPLException(StructuralUnderNotSupported(pos))
-    }
 
     open fun capturedEnvironments(): List<Environment> = emptyList()
 
@@ -153,15 +151,16 @@ fun APLFunction.iterateFunctionTree(fn: (APLFunction) -> Unit) {
     }
 }
 
-abstract class NoAxisAPLFunction(pos: FunctionInstantiation, fns: List<APLFunction> = emptyList()) : APLFunction(pos, fns) {
-    private fun checkAxisNotNull(axis: APLValue?) {
-        if (axis != null) {
-            throwAPLException(AxisNotSupported(pos))
-        }
+fun APLFunction.ensureAxisNull(axis: APLValue?) {
+    if (axis != null) {
+        throwAPLException(AxisNotSupported(pos))
     }
+}
+
+abstract class NoAxisAPLFunction(pos: FunctionInstantiation, fns: List<APLFunction> = emptyList()) : APLFunction(pos, fns) {
 
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-        checkAxisNotNull(axis)
+        ensureAxisNull(axis)
         return eval1Arg(context, a)
     }
 
@@ -169,7 +168,7 @@ abstract class NoAxisAPLFunction(pos: FunctionInstantiation, fns: List<APLFuncti
         throwAPLException(Unimplemented1ArgException(pos))
 
     override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-        checkAxisNotNull(axis)
+        ensureAxisNull(axis)
         return eval2Arg(context, a, b)
     }
 
@@ -177,7 +176,7 @@ abstract class NoAxisAPLFunction(pos: FunctionInstantiation, fns: List<APLFuncti
         throwAPLException(Unimplemented2ArgException(pos))
 
     override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-        checkAxisNotNull(axis)
+        ensureAxisNull(axis)
         return evalInverse1Arg(context, a)
     }
 
@@ -185,7 +184,7 @@ abstract class NoAxisAPLFunction(pos: FunctionInstantiation, fns: List<APLFuncti
         throwAPLException(InverseNotAvailable(pos))
 
     override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-        checkAxisNotNull(axis)
+        ensureAxisNull(axis)
         return evalInverse2ArgA(context, a, b)
     }
 
@@ -193,12 +192,28 @@ abstract class NoAxisAPLFunction(pos: FunctionInstantiation, fns: List<APLFuncti
         throwAPLException(InverseNotAvailable(pos))
 
     override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-        checkAxisNotNull(axis)
+        ensureAxisNull(axis)
         return evalInverse2ArgB(context, a, b)
     }
 
     open fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue): APLValue =
         throwAPLException(InverseNotAvailable(pos))
+
+    open fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue): APLValue =
+        throwAPLException(StructuralUnderNotSupported(pos))
+
+    override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+        ensureAxisNull(axis)
+        return evalWithStructuralUnder1Arg(baseFn, context, a)
+    }
+
+    open fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue =
+        throwAPLException(StructuralUnderNotSupported(pos))
+
+    override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        ensureAxisNull(axis)
+        return evalWithStructuralUnder2Arg(baseFn, context, a, b)
+    }
 }
 
 interface SaveStackCapable {
@@ -258,8 +273,8 @@ abstract class DelegatedAPLFunctionImpl(pos: FunctionInstantiation, fns: List<AP
     override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue =
         innerImpl().evalInverse1Arg(context, a, axis)
 
-    override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue) =
-        innerImpl().evalWithStructuralUnder1Arg(baseFn, context, a)
+    override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?) =
+        innerImpl().evalWithStructuralUnder1Arg(baseFn, context, a, axis)
 
     override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue =
         innerImpl().evalInverse2ArgB(context, a, b, axis)
@@ -267,8 +282,8 @@ abstract class DelegatedAPLFunctionImpl(pos: FunctionInstantiation, fns: List<AP
     override fun evalInverse2ArgA(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue =
         innerImpl().evalInverse2ArgA(context, a, b, axis)
 
-    override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue) =
-        innerImpl().evalWithStructuralUnder2Arg(baseFn, context, a, b)
+    override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?) =
+        innerImpl().evalWithStructuralUnder2Arg(baseFn, context, a, b, axis)
 
     override fun computeClosure(parser: APLParser) =
         innerImpl().computeClosure(parser)
@@ -380,12 +395,12 @@ class LeftAssignedFunction(
         throwAPLException(LeftAssigned2ArgException(pos))
     }
 
-    override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue): APLValue {
+    override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
         val leftArg = leftArgs.evalWithContext(context)
-        return underlying.evalWithStructuralUnder2Arg(baseFn, context, leftArg, a)
+        return underlying.evalWithStructuralUnder2Arg(baseFn, context, leftArg, a, axis)
     }
 
-    override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+    override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
         throwAPLException(LeftAssigned2ArgException(pos))
     }
 
@@ -445,6 +460,14 @@ class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction, 
 
     override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
         return baseFn.evalInverse2ArgA(context, a, b, axis.evalWithContext(context))
+    }
+
+    override fun evalWithStructuralUnder1Arg(processingFN: APLFunction, context: RuntimeContext, a: APLValue): APLValue {
+        return baseFn.evalWithStructuralUnder1Arg(processingFN, context, a, axis.evalWithContext(context))
+    }
+
+    override fun evalWithStructuralUnder2Arg(processingFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+        return baseFn.evalWithStructuralUnder2Arg(processingFn, context, a, b, axis.evalWithContext(context))
     }
 
     override fun capturedEnvironments(): List<Environment> {

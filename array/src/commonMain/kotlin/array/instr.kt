@@ -400,7 +400,8 @@ sealed class FunctionCallChain(pos: FunctionInstantiation, fns: List<APLFunction
 
         private val structuralUnderOp = StructuralUnderOp()
 
-        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue): APLValue {
+        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+            ensureAxisNull(axis)
             val innerFn: APLFunction = structuralUnderOp.combineFunction(baseFn, fn0, fn0.instantiation).make(instantiation)
             val outerFn = structuralUnderOp.combineFunction(innerFn, fn1, fn1.instantiation).make(instantiation)
             return outerFn.eval1Arg(context, a, null)

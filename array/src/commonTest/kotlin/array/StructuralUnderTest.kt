@@ -21,6 +21,14 @@ class StructuralUnderTest : APLTest() {
     }
 
     @Test
+    fun scalarFunctionUnderTakeWithAxis() {
+        parseAPLExpression("1 (1+)⍢↑[1] 3 3 ⍴ ⍳9").let { result ->
+            assertDimension(dimensionsOfSize(3, 3), result)
+            assertArrayContent(arrayOf(1, 1, 2, 4, 4, 5, 7, 7, 8), result)
+        }
+    }
+
+    @Test
     fun dropUnderTake0() {
         parseAPLExpression("((1↓)under(¯2↑)) 3 4 ⍴ ⍳12").let { result ->
             assertDimension(dimensionsOfSize(2, 4), result)

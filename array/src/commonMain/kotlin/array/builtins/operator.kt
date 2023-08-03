@@ -318,11 +318,11 @@ class OverOp : APLOperatorTwoArg {
 class StructuralUnderDerivedFunction(val baseFn: APLFunction, val wrapperFn: APLFunction) : APLFunctionDescriptor {
     inner class StructuralUnderDerivedFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            return wrapperFn.evalWithStructuralUnder1Arg(baseFn, context, a)
+            return wrapperFn.evalWithStructuralUnder1Arg(baseFn, context, a, null)
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
-            return wrapperFn.evalWithStructuralUnder2Arg(baseFn, context, a, b)
+            return wrapperFn.evalWithStructuralUnder2Arg(baseFn, context, a, b, null)
         }
     }
 

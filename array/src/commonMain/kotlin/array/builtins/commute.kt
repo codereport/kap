@@ -25,7 +25,8 @@ class CommuteOp : APLOperatorOneArg {
                 return fn.evalInverse2ArgB(context, b, a, axis)
             }
 
-            override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+                ensureAxisNull(axis)
                 return inversibleStructuralUnder2Arg(this, baseFn, context, a, b)
             }
         }
