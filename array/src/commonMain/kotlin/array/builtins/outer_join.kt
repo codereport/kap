@@ -163,12 +163,12 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
                 val stb = b.specialisedType
                 return when {
                     sta === ArrayMemberType.LONG && stb === ArrayMemberType.LONG && fn.optimisationFlags.is2ALongLong -> {
-                        OuterJoinResultLong(context, a, b, fn, pos, saveStackSupport.savedStack(context))
+                        OuterJoinResultLong(context, a, b, fn, pos, saveStackSupport.savedStack())
                     }
                     sta === ArrayMemberType.DOUBLE && stb === ArrayMemberType.DOUBLE && fn.optimisationFlags.is2ADoubleDouble -> {
-                        OuterJoinResultDouble(context, a, b, fn, pos, saveStackSupport.savedStack(context))
+                        OuterJoinResultDouble(context, a, b, fn, pos, saveStackSupport.savedStack())
                     }
-                    else -> OuterJoinResult(context, a, b, fn, pos, saveStackSupport.savedStack(context))
+                    else -> OuterJoinResult(context, a, b, fn, pos, saveStackSupport.savedStack())
                 }
             }
 
@@ -213,9 +213,9 @@ class OuterInnerJoinOp : APLOperatorTwoArg {
                 }
                 return if (a1Dimensions.size == 1 && b1Dimensions.size == 1) {
                     val v = fn1.eval2Arg(context, a1, b1, null)
-                    ReduceResult1Arg(context, fn0, v, 0, pos, saveStackSupport.savedStack(context))
+                    ReduceResult1Arg(context, fn0, v, 0, pos, saveStackSupport.savedStack())
                 } else {
-                    InnerJoinResult(context, a1, b1, fn0, fn1, pos, saveStackSupport.savedStack(context))
+                    InnerJoinResult(context, a1, b1, fn0, fn1, pos, saveStackSupport.savedStack())
                 }
             }
 

@@ -48,12 +48,12 @@ class ForEachFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescripto
             return if (a.isScalar()) {
                 return EnclosedAPLValue.make(fn.eval1Arg(context, a.disclose(), null))
             } else {
-                ForEachResult1Arg(context, fn, a, axis, pos, saveStackSupport.savedStack(context))
+                ForEachResult1Arg(context, fn, a, axis, pos, saveStackSupport.savedStack())
             }
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            return compute2Arg(context, fn, a, b, axis, pos, saveStackSupport.savedStack(context))
+            return compute2Arg(context, fn, a, b, axis, pos, saveStackSupport.savedStack())
         }
 
         override fun computeParallelTasks1Arg(

@@ -45,6 +45,21 @@ class StructuralUnderTest : APLTest() {
     }
 
     @Test
+    fun addUnderTakeWithAxis() {
+        parseAPLExpression("1 (10+)⍢↓[1] 3 3 ⍴ ⍳9").let { result ->
+            assertDimension(dimensionsOfSize(3, 3), result)
+            assertArrayContent(arrayOf(0, 11, 12, 3, 14, 15, 6, 17, 18), result)
+        }
+    }
+
+    @Test
+    fun addUnderTakeWithInvalidAxis() {
+        assertFailsWith<IllegalAxisException> {
+            parseAPLExpression("1 (10+)⍢↓[2] 5 5 ⍴ ⍳9")
+        }
+    }
+
+    @Test
     fun addUnderDyadicDrop0() {
         parseAPLExpression("(100+)⍢(1↓) 10 11 12 13 14").let { result ->
             assert1DArray(arrayOf(10, 111, 112, 113, 114), result)

@@ -192,7 +192,7 @@ abstract class ReduceFunctionImpl(fn: APLFunction, pos: FunctionInstantiation) :
         } else {
             val axisInt = axisParam ?: defaultAxis(a)
             ensureValidAxis(axisInt, a.dimensions, pos)
-            ReduceResult1Arg(context, fn, a, axisInt, pos, saveStackSupport.savedStack(context))
+            ReduceResult1Arg(context, fn, a, axisInt, pos, saveStackSupport.savedStack())
         }
     }
 
@@ -224,7 +224,7 @@ abstract class ReduceFunctionImpl(fn: APLFunction, pos: FunctionInstantiation) :
                 APLArrayImpl(d, emptyArray())
             }
             else -> {
-                ReduceNWiseResultValue(context, fn, size, b, axisInt, saveStackSupport.savedStack(context))
+                ReduceNWiseResultValue(context, fn, size, b, axisInt, saveStackSupport.savedStack())
             }
         }
     }

@@ -832,8 +832,7 @@ class DropAPLFunction : APLFunctionDescriptor {
         }
 
         override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            ensureAxisNull(axis)
-            val underValue = eval1Arg(context, a, null)
+            val underValue = eval1Arg(context, a, axis)
             if (underValue !is DropResultValueOneArg) {
                 throw IllegalStateException("Result is not of the correct type. Type = ${underValue::class}")
             }
@@ -842,8 +841,7 @@ class DropAPLFunction : APLFunctionDescriptor {
         }
 
         override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            ensureAxisNull(axis)
-            val underValue = eval2Arg(context, a, b, null)
+            val underValue = eval2Arg(context, a, b, axis)
             if (underValue !is DropArrayValue) {
                 throw IllegalStateException("Result is not of the correct type. Type = ${underValue::class}")
             }

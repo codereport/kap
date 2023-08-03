@@ -224,7 +224,7 @@ interface SaveStackCapable {
 class SaveStackSupport(fn: APLFunction) {
     private var saveStack: Boolean = false
 
-    fun savedStack(context: RuntimeContext) = if (saveStack) currentStack().currentFrame() else null
+    fun savedStack() = if (saveStack) currentStack().currentFrame() else null
 
     init {
         computeCapturedEnvs(fn.fns)
@@ -462,10 +462,12 @@ class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction, 
         return baseFn.evalInverse2ArgA(context, a, b, axis.evalWithContext(context))
     }
 
+    @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
     override fun evalWithStructuralUnder1Arg(processingFN: APLFunction, context: RuntimeContext, a: APLValue): APLValue {
         return baseFn.evalWithStructuralUnder1Arg(processingFN, context, a, axis.evalWithContext(context))
     }
 
+    @Suppress("PARAMETER_NAME_CHANGED_ON_OVERRIDE")
     override fun evalWithStructuralUnder2Arg(processingFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
         return baseFn.evalWithStructuralUnder2Arg(processingFn, context, a, b, axis.evalWithContext(context))
     }
