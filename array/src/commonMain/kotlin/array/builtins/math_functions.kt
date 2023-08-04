@@ -550,14 +550,14 @@ class DivAPLFunction : APLFunctionDescriptor {
                 { x, y -> if (y == Complex.ZERO) APLDOUBLE_0 else (x / y).makeAPLNumber() },
                 fnBigint = { x, y ->
                     when {
-                        y == BigIntConstants.ZERO -> APLLONG_0
-                        x % y == BigIntConstants.ZERO -> (x / y).makeAPLNumber()
+                        y.signum() == 0 -> APLLONG_0
+                        (x % y).signum() == 0 -> (x / y).makeAPLNumber()
                         else -> (Rational.make(x, BigIntConstants.ONE) / Rational.make(y, BigIntConstants.ONE)).makeAPLNumber()
                     }
                 },
                 fnRational = { x, y ->
                     when {
-                        y == Rational.ZERO -> APLLONG_0
+                        y.signum() == 0 -> APLLONG_0
                         else -> (x / y).makeAPLNumber()
                     }
                 })
@@ -690,12 +690,12 @@ class ModAPLFunction : APLFunctionDescriptor {
         private fun opDouble(x: Double, y: Double) =
             if (x == 0.0) y else (y % x).let { result -> if (result != 0.0 && ((x < 0 && y > 0) || (x > 0 && y < 0))) x + result else result }
 
-        private fun bigintMod(x: BigInt, y: BigInt) =
-            if (x == BigIntConstants.ZERO) y else (y % x).let { result ->
-                if (result == BigIntConstants.ZERO) {
+        private fun bigintMod(x: BigInt, y: BigInt): BigInt {
+            val xSign = x.signum()
+            return if (xSign == 0) y else (y % x).let { result ->
+                if (result.signum() == 0) {
                     result
                 } else {
-                    val xSign = x.signum()
                     val ySign = y.signum()
                     if ((xSign == -1 && ySign == 1) || (xSign == 1 && ySign == -1)) {
                         x + result
@@ -704,13 +704,14 @@ class ModAPLFunction : APLFunctionDescriptor {
                     }
                 }
             }
+        }
 
-        private fun rationalMod(x: Rational, y: Rational) =
-            if (x == Rational.ZERO) y else (y % x).let { result ->
-                if (result == Rational.ZERO) {
+        private fun rationalMod(x: Rational, y: Rational): Rational {
+            val xSign = x.signum()
+            return if (xSign == 0) y else (y % x).let { result ->
+                if (result.signum() == 0) {
                     result
                 } else {
-                    val xSign = x.signum()
                     val ySign = y.signum()
                     if ((xSign == -1 && ySign == 1) || (xSign == 1 && ySign == -1)) {
                         x + result
@@ -719,6 +720,7 @@ class ModAPLFunction : APLFunctionDescriptor {
                     }
                 }
             }
+        }
 
         override fun combine2ArgLong(a: Long, b: Long) = opLong(a, b)
         override fun combine2ArgDouble(a: Double, b: Double) = opDouble(a, b)
@@ -1195,8 +1197,8 @@ class AndAPLFunction : APLFunctionDescriptor {
 
         private fun opBigint(x: BigInt, y: BigInt): APLValue {
             return when {
-                x == BigIntConstants.ZERO && (y == BigIntConstants.ZERO || y == BigIntConstants.ONE) -> APLLONG_0
-                (x == BigIntConstants.ZERO || x == BigIntConstants.ONE) && y == BigIntConstants.ZERO -> APLLONG_0
+                x.signum() == 0 && (y.signum() == 0 || y == BigIntConstants.ONE) -> APLLONG_0
+                (x.signum() == 0 || x == BigIntConstants.ONE) && y.signum() == 0 -> APLLONG_0
                 x == BigIntConstants.ONE && x == BigIntConstants.ONE -> APLLONG_1
                 else -> throwIllegalArgument()
             }
@@ -1204,8 +1206,8 @@ class AndAPLFunction : APLFunctionDescriptor {
 
         private fun opRational(x: Rational, y: Rational): APLValue {
             return when {
-                x == Rational.ZERO && (y == Rational.ZERO || y == Rational.ONE) -> APLLONG_0
-                (x == Rational.ZERO || y == Rational.ONE) && y == Rational.ZERO -> APLLONG_0
+                x.signum() == 0 && (y.signum() == 0 || y == Rational.ONE) -> APLLONG_0
+                (x.signum() == 0 || y == Rational.ONE) && y.signum() == 0 -> APLLONG_0
                 x == Rational.ONE && y == Rational.ONE -> APLLONG_1
                 else -> throwIllegalArgument()
             }
@@ -1249,12 +1251,16 @@ class NandAPLFunction : APLFunctionDescriptor {
             else -> throwIllegalArgument()
         }
 
-        private fun opBigint(a: BigInt, b: BigInt) = when {
-            a == BigIntConstants.ZERO && b == BigIntConstants.ZERO -> 1L
-            a == BigIntConstants.ZERO && b == BigIntConstants.ONE -> 1L
-            a == BigIntConstants.ONE && b == BigIntConstants.ZERO -> 1L
-            a == BigIntConstants.ONE && b == BigIntConstants.ONE -> 0L
-            else -> throwIllegalArgument()
+        private fun opBigint(a: BigInt, b: BigInt): Long {
+            val aSign = a.signum()
+            val bSign = b.signum()
+            return when {
+                aSign == 0 && bSign == 0 -> 1L
+                aSign == 0 && b == BigIntConstants.ONE -> 1L
+                a == BigIntConstants.ONE && bSign == 0 -> 1L
+                a == BigIntConstants.ONE && b == BigIntConstants.ONE -> 0L
+                else -> throwIllegalArgument()
+            }
         }
 
         override fun combine2ArgLong(a: Long, b: Long) = opLong(a, b)
@@ -1297,10 +1303,12 @@ class NorAPLFunction : APLFunctionDescriptor {
         }
 
         private fun opBigint(x: BigInt, y: BigInt): Long {
+            val xSign = x.signum()
+            val ySign = y.signum()
             return when {
-                x == BigIntConstants.ZERO && y == BigIntConstants.ZERO -> 1L
-                x == BigIntConstants.ZERO && y == BigIntConstants.ONE -> 0L
-                x == BigIntConstants.ONE && y == BigIntConstants.ZERO -> 0L
+                xSign == 0 && ySign == 0 -> 1L
+                xSign == 0 && y == BigIntConstants.ONE -> 0L
+                x == BigIntConstants.ONE && ySign == 0 -> 0L
                 x == BigIntConstants.ONE && y == BigIntConstants.ONE -> 0L
                 else -> throwIllegalArgument()
             }
@@ -1436,18 +1444,26 @@ class OrAPLFunction : APLFunctionDescriptor {
             else -> throwIllegalArgument()
         }
 
-        private fun opBigInt(x: BigInt, y: BigInt): APLValue = when {
-            x == BigIntConstants.ZERO && y == BigIntConstants.ZERO -> APLLONG_0
-            (x == BigIntConstants.ZERO || y == BigIntConstants.ONE) && y == BigIntConstants.ONE -> APLLONG_1
-            x == BigIntConstants.ONE && (y == BigIntConstants.ZERO || y == BigIntConstants.ONE) -> APLLONG_1
-            else -> throwIllegalArgument()
+        private fun opBigInt(x: BigInt, y: BigInt): APLValue {
+            val xSign = x.signum()
+            val ySign = y.signum()
+            return when {
+                xSign == 0 && ySign == 0 -> APLLONG_0
+                (xSign == 0 || y == BigIntConstants.ONE) && y == BigIntConstants.ONE -> APLLONG_1
+                x == BigIntConstants.ONE && (ySign == 0 || y == BigIntConstants.ONE) -> APLLONG_1
+                else -> throwIllegalArgument()
+            }
         }
 
-        private fun opRational(x: Rational, y: Rational): APLValue = when {
-            x == Rational.ZERO && y == Rational.ZERO -> APLLONG_0
-            (x == Rational.ZERO || x == Rational.ONE) && y == Rational.ONE -> APLLONG_1
-            x == Rational.ONE && (y == Rational.ZERO || y == Rational.ONE) -> APLLONG_1
-            else -> throwIllegalArgument()
+        private fun opRational(x: Rational, y: Rational): APLValue {
+            val xSign = x.signum()
+            val ySign = y.signum()
+            return when {
+                xSign == 0 && ySign == 0 -> APLLONG_0
+                (xSign == 0 || x == Rational.ONE) && y == Rational.ONE -> APLLONG_1
+                x == Rational.ONE && (ySign == 0 || y == Rational.ONE) -> APLLONG_1
+                else -> throwIllegalArgument()
+            }
         }
 
         override fun combine2ArgLong(a: Long, b: Long) = opLong(a, b)
@@ -1584,7 +1600,7 @@ class LcmAPLFunction : APLFunctionDescriptor {
 
         private fun opBigint(x: BigInt, y: BigInt): APLBigInt {
             val gcd = x.gcd(y)
-            return if (gcd == BigIntConstants.ZERO) {
+            return if (gcd.signum() == 0) {
                 BigIntConstants.ZERO.makeAPLNumber()
             } else {
                 (x * (y / gcd)).makeAPLNumber()
@@ -1593,7 +1609,7 @@ class LcmAPLFunction : APLFunctionDescriptor {
 
         private fun opRational(x: Rational, y: Rational): APLValue {
             val gcd = rationalGcd(x, y)
-            return if (gcd == Rational.ZERO) {
+            return if (gcd.signum() == 0) {
                 Rational.ZERO.makeAPLNumber()
             } else {
                 (x * (y / gcd)).makeAPLNumber()

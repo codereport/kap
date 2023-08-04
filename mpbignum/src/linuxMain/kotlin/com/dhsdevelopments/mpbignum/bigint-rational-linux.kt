@@ -13,7 +13,7 @@ class LinuxRational(val value: mpq_t) : Rational {
 
     companion object {
         fun make(a: BigInt, b: BigInt): LinuxRational {
-            if (b == BigIntConstants.ZERO) {
+            if (b.signum() == 0) {
                 throw ArithmeticException("Denominator is zero")
             }
             val m = nativeHeap.allocMpqStruct()

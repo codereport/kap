@@ -1,17 +1,17 @@
 package com.dhsdevelopments.mpbignum
 
 fun standardGcd(a: BigInt, b: BigInt): BigInt {
-    if (b == BigIntConstants.ZERO) {
+    if (b.signum() == 0) {
         return a.absoluteValue
     }
-    if (a == BigIntConstants.ZERO) {
+    if (a.signum() == 0) {
         return b.absoluteValue
     }
 
     var a0 = a
     var b0 = b
     var z: BigInt
-    while (b0 != BigIntConstants.ZERO) {
+    while (b0.signum() != 0) {
         z = b0
         b0 = a0 % b0
         a0 = z

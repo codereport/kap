@@ -98,7 +98,7 @@ class RationalStandard(numeratorInt: BigInt, denominatorInt: BigInt, isNormalise
     override fun pow(other: Long): Rational {
         return when {
             other == 0L -> RationalStandard(BigIntConstants.ONE, BigIntConstants.ONE)
-            numerator == BigIntConstants.ZERO -> this
+            numerator.signum() == 0 -> this
             other < 0 -> RationalStandard(denominator.pow(-other), numerator.pow(-other))
             else -> RationalStandard(numerator.pow(other), denominator.pow(other))
         }
@@ -115,7 +115,7 @@ class RationalStandard(numeratorInt: BigInt, denominatorInt: BigInt, isNormalise
     override fun ceil(): BigInt {
         return if (denominator == BigIntConstants.ONE) {
             numerator
-        } else if (numerator < BigIntConstants.ZERO) {
+        } else if (numerator.signum() == -1) {
             numerator / denominator
         } else {
             numerator / denominator + BigIntConstants.ONE
@@ -125,7 +125,7 @@ class RationalStandard(numeratorInt: BigInt, denominatorInt: BigInt, isNormalise
     override fun floor(): BigInt {
         return if (denominator == BigIntConstants.ONE) {
             numerator
-        } else if (numerator < BigIntConstants.ZERO) {
+        } else if (numerator.signum() == -1) {
             numerator / denominator - BigIntConstants.ONE
         } else {
             numerator / denominator
