@@ -1523,7 +1523,7 @@ class BinomialAPLFunction : APLFunctionDescriptor {
                     else -> doubleBinomial(a, b)
                 }
             } catch (e: IllegalArgumentException) {
-                throw APLIncompatibleDomainsException("Binomial: invalid arguments: ${a},${b}", pos, e)
+                throwAPLException(APLIncompatibleDomainsException("Binomial: invalid arguments: ${a},${b}", pos, e))
             }
         }
 
@@ -1653,8 +1653,8 @@ class DenominatorAPLFunction : APLFunctionDescriptor {
                 pos,
                 a,
                 { x -> APLLONG_1 },
-                { x -> throwAPLException(IncompatibleTypeException("Cannot return numerator from a double")) },
-                { x -> throwAPLException(IncompatibleTypeException("Cannot return numerator from a complex")) },
+                { x -> throwAPLException(IncompatibleTypeException("Cannot return denominator from a double")) },
+                { x -> throwAPLException(IncompatibleTypeException("Cannot return denominator from a complex")) },
                 fnBigInt = { x -> APLLONG_1 },
                 fnRational = { x -> x.denominator.makeAPLNumberWithReduction() })
         }

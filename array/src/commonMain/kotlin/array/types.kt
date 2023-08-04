@@ -109,7 +109,7 @@ abstract class APLValue {
     open fun valueAtInt(p: Int, pos: Position?): Int {
         val l = valueAtLong(p, pos)
         if (l < Int.MIN_VALUE || l > Int.MAX_VALUE) {
-            throw IntMagnitudeException(l, pos)
+            throwAPLException(IntMagnitudeException(l, pos))
         }
         return l.toInt()
     }

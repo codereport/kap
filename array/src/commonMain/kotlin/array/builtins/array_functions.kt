@@ -1192,7 +1192,7 @@ class TransposeFunction : APLFunctionDescriptor {
 
         override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             if (axis != null) {
-                throw AxisNotSupported(pos)
+                throwAPLException(AxisNotSupported(pos))
             }
             return eval1Arg(context, a, axis)
         }

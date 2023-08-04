@@ -381,19 +381,19 @@ sealed class FunctionCallChain(pos: FunctionInstantiation, fns: List<APLFunction
         }
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            if (axis != null) throw AxisNotSupported(pos)
+            ensureAxisNull(axis)
             val res = fn1.eval1Arg(context, a, null)
             return fn0.eval1Arg(context, res, null)
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            if (axis != null) throw AxisNotSupported(pos)
+            ensureAxisNull(axis)
             val res = fn1.eval2Arg(context, a, b, null)
             return fn0.eval1Arg(context, res, null)
         }
 
         override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            if (axis != null) throw AxisNotSupported(pos)
+            ensureAxisNull(axis)
             val res = fn0.evalInverse1Arg(context, a, null)
             return fn1.evalInverse1Arg(context, res, null)
         }
@@ -408,7 +408,7 @@ sealed class FunctionCallChain(pos: FunctionInstantiation, fns: List<APLFunction
         }
 
         override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            if (axis != null) throw AxisNotSupported(pos)
+            ensureAxisNull(axis)
             val res = fn0.evalInverse1Arg(context, b, null)
             return fn1.evalInverse2ArgB(context, a, res, null)
         }
@@ -422,14 +422,14 @@ sealed class FunctionCallChain(pos: FunctionInstantiation, fns: List<APLFunction
         val fn2 get() = fns[2]
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-            if (axis != null) throw AxisNotSupported(pos)
+            ensureAxisNull(axis)
             val right = fn2.eval1Arg(context, a, null)
             val left = fn0.eval1Arg(context, a, null)
             return fn1.eval2Arg(context, left, right, null)
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
-            if (axis != null) throw AxisNotSupported(pos)
+            ensureAxisNull(axis)
             val right = fn2.eval2Arg(context, a, b, null)
             val left = fn0.eval2Arg(context, a, b, null)
             return fn1.eval2Arg(context, left, right, null)

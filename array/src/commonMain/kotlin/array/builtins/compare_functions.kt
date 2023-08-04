@@ -84,7 +84,7 @@ class LessThanAPLFunction : APLFunctionDescriptor {
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             if (axis != null) {
-                throw AxisNotSupported(pos)
+                throwAPLException(AxisNotSupported(pos))
             }
             val aDimensions = a.dimensions
             val dimensionsArray = IntArray(aDimensions.size + 1) { i ->
@@ -123,7 +123,7 @@ class GreaterThanAPLFunction : APLFunctionDescriptor {
 
         override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
             if (axis != null) {
-                throw AxisNotSupported(pos)
+                throwAPLException(AxisNotSupported(pos))
             }
             val aDimensions = a.dimensions
             return if (aDimensions.size <= 1) {

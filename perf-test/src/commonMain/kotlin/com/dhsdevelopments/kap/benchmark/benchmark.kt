@@ -116,7 +116,10 @@ fun runAllTests(name: String, libPath: String, reportPath: String, reportName: S
         throw IllegalStateException("Report directory is a file: ${reportPath}")
     }
 
-    val tests = listOf(benchmarkPrimes(), benchmarkVarLookupScope(), contribBench(), simpleSum(), benchmarkMultipleCall(), benchmarkFormatter())
+//    val tests = listOf(
+//        benchmarkPrimes(), benchmarkVarLookupScope(), contribBench(), simpleSum(), benchmarkMultipleCall(),
+//        benchmarkFormatter(), benchmarkRationals())
+    val tests = listOf(benchmarkRationals())
     println("Running tests: ${name}")
     val results = ArrayList<TestCaseResults>()
     tests.forEach { testcase ->

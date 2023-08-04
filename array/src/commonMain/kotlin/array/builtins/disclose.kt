@@ -169,12 +169,13 @@ class EncloseAPLFunction : APLFunctionDescriptor {
             val partitionArgs = when (aDimensions.size) {
                 0 -> intArrayOf(a.ensureNumber(pos).asInt(pos))
                 1 -> a.toIntArray(pos)
-                else -> throw APLIllegalArgumentException("Left argument to partition must be a scalar or a one-dimensional array")
+                else -> throwAPLException(APLIllegalArgumentException("Left argument to partition must be a scalar or a one-dimensional array"))
             }
             if (partitionArgs.size != b.dimensions[axisInt]) {
-                throw InvalidDimensionsException(
-                    "Size of A must be the same size as the dimension of B along the selected axis (size of A: ${partitionArgs.size}, size of axis in B: ${b.dimensions[axisInt]})",
-                    pos)
+                throwAPLException(
+                    InvalidDimensionsException(
+                        "Size of A must be the same size as the dimension of B along the selected axis (size of A: ${partitionArgs.size}, size of axis in B: ${b.dimensions[axisInt]})",
+                        pos))
             }
             val partitionIndexes = computePartitionIndexes(partitionArgs)
             return PartitionedValue(b, axisInt, partitionIndexes)
@@ -428,12 +429,13 @@ class PartitionedEncloseFunction : APLFunctionDescriptor {
             val partitionArgs = when (aDimensions.size) {
                 0 -> intArrayOf(a.ensureNumber(pos).asInt(pos))
                 1 -> a.toIntArray(pos)
-                else -> throw APLIllegalArgumentException("Left argument to partition must be a scalar or a one-dimensional array")
+                else -> throwAPLException(APLIllegalArgumentException("Left argument to partition must be a scalar or a one-dimensional array"))
             }
             if (partitionArgs.size != b.dimensions[axisInt]) {
-                throw InvalidDimensionsException(
-                    "Size of A must be the same size as the dimension of B along the selected axis (size of A: ${partitionArgs.size}, size of axis in B: ${b.dimensions[axisInt]})",
-                    pos)
+                throwAPLException(
+                    InvalidDimensionsException(
+                        "Size of A must be the same size as the dimension of B along the selected axis (size of A: ${partitionArgs.size}, size of axis in B: ${b.dimensions[axisInt]})",
+                        pos))
             }
             val partitionIndexes = computePartitionIndexes(partitionArgs)
             return PartitionedValue(b, axisInt, partitionIndexes)
@@ -478,7 +480,7 @@ private fun computeAxis(b: APLValue, axis: APLValue?, pos: Position? = null): In
         axis.ensureNumber(pos).asInt(pos)
     }
     if (axisInt < 0 || axisInt >= bDimensions.size) {
-        throw IllegalAxisException(axisInt, bDimensions, pos)
+        throwAPLException(IllegalAxisException(axisInt, bDimensions, pos))
     }
     return axisInt
 }

@@ -135,15 +135,15 @@ class UnwindProtectAPLFunction : APLFunctionDescriptor {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val aDimensions = a.dimensions
             if (aDimensions.size != 1 || aDimensions[0] != 2) {
-                throw APLEvalException("Invalid dimensions in unwindProtect call", pos)
+                throwAPLException(APLEvalException("Invalid dimensions in unwindProtect call", pos))
             }
             val fn = a.valueAt(0).collapseFirstLevel()
             if (fn !is LambdaValue) {
-                throw APLEvalException("Handler function is not a lambda", pos)
+                throwAPLException(APLEvalException("Handler function is not a lambda", pos))
             }
             val finallyHandler = a.valueAt(1).collapseFirstLevel()
             if (finallyHandler !is LambdaValue) {
-                throw APLEvalException("Unwind handler is not a lambda", pos)
+                throwAPLException(APLEvalException("Unwind handler is not a lambda", pos))
             }
             var thrownException: APLEvalException? = null
             var result: APLValue? = null
