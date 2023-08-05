@@ -12,6 +12,8 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
+object ResultValueAttribute
+
 class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
     val history = ArrayList<HistoryEntry>()
     var historyPosition = 0
@@ -96,12 +98,14 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
         computeQueue.requestJob(req)
     }
 
-    private fun formatAndAddResultToDoc(result: APLValue) {
+    private fun formatAndAddResultToDoc(result: EvalExpressionResult) {
         val buf = StringBuilder()
-        formatResult(result) { s ->
+        for (s in result.formatttedResult) {
             buf.append(s)
             buf.append("\n")
         }
+        val style = addStyle(null, null)
+        style.addAttribute(ResultValueAttribute, result.value)
         appendToOutput(buf.toString())
     }
 
@@ -125,10 +129,10 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
         appendToOutput(message, style = errorStyle, appendNewline = true)
     }
 
-    private fun evalExpression(engine: Engine, src: SourceLocation): Either<APLValue, Exception> {
+    private fun evalExpression(engine: Engine, src: SourceLocation): Either<EvalExpressionResult, Exception> {
         return try {
-            val result = engine.parseAndEval(src, formatResult = true)
-            Either.Left(result)
+            val (result, formatted) = engine.parseAndEvalWithFormat(src)
+            Either.Left(EvalExpressionResult(result, formatted))
         } catch (e: Exception) {
             Either.Right(e)
         }
@@ -287,3 +291,5 @@ class ReplSourceLocation(val text: String, val docPos: Position) : SourceLocatio
 }
 
 class HistoryEntry(val src: ReplSourceLocation)
+
+class EvalExpressionResult(val value: APLValue, val formatttedResult: List<String>)

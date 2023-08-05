@@ -1,8 +1,8 @@
 package array.gui.styledarea
 
-import array.APLValue
 import array.assertx
 import array.gui.Client
+import array.gui.EvalExpressionResult
 import array.gui.display.makeKapValueDoc
 import array.gui.settings.ReturnBehaviour
 import javafx.application.Platform
@@ -255,7 +255,7 @@ class ROStyledArea(
         return doc
     }
 
-    fun appendAPLValueEnd(value: APLValue, style: TextStyle, parStyle: ParStyle = ParStyle()) {
+    fun appendExpressionResultEnd(value: EvalExpressionResult, style: TextStyle, parStyle: ParStyle = ParStyle()) {
         withUpdateEnabled {
             val newDoc = makeKapValueDoc(segOps, value, style, parStyle)
             val inputPos = findInputStartEnd()

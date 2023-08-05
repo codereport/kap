@@ -74,15 +74,13 @@ fun initQueue() {
 
 private fun processEvalRequest(engine: Engine, request: EvalRequest) {
     val result = try {
-        val value =
-            engine.parseAndEval(
-                StringSourceLocation(request.src),
-                collapseResult = true,
-                formatResult = request.resultType.requiresFormatting)
-        when (request.resultType) {
-            ResultType.FORMATTED_PRETTY -> StringResponse(formatResultToStrings(value).joinToString("\n"))
-            ResultType.FORMATTED_READABLE -> StringResponse(value.formatted(FormatStyle.READABLE))
-            ResultType.JS -> DataResponse(formatValueToJs(value))
+        engine.parseAndEvalWithPostProcessing(StringSourceLocation(request.src)) { _, context, result ->
+            val collapsed = result.collapse()
+            when (request.resultType) {
+                ResultType.FORMATTED_PRETTY -> StringResponse(formatResultToStrings(renderResult(context, collapsed)).joinToString("\n"))
+                ResultType.FORMATTED_READABLE -> StringResponse(collapsed.formatted(FormatStyle.READABLE))
+                ResultType.JS -> DataResponse(formatValueToJs(collapsed))
+            }
         }
     } catch (e: APLGenericException) {
         EvalExceptionDescriptor(e.formattedError(), makePosDescriptor(e.pos))

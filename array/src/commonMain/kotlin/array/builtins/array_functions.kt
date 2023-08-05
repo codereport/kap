@@ -1665,7 +1665,7 @@ class WhereAPLFunction : APLFunctionDescriptor {
             var curr: LocationWithValue? = valuesList[0]
             val position = IntArray(maxSize!!.size)
             val valuesListSize = valuesList.size
-            val content = LongArray(d.contentSize()) { i ->
+            val content = LongArray(d.contentSize()) {
                 val result = if (currIndex < valuesListSize && position.contentEquals(curr!!.location)) {
                     curr!!.value.also {
                         curr = if (++currIndex < valuesListSize) {

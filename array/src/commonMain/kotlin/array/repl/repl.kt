@@ -75,8 +75,8 @@ fun runRepl(args: Array<String>, defaultLibPath: String? = null, keyboardInput: 
                 val stringTrimmed = line.trim()
                 if (stringTrimmed != "") {
                     try {
-                        val result = engine.parseAndEval(StringSourceLocation(line), collapseResult = true, formatResult = true)
-                        formatResult(result) { s ->
+                        val (_, result) = engine.parseAndEvalWithFormat(StringSourceLocation(line))
+                        for (s in result) {
                             println(s)
                         }
                     } catch (e: APLGenericException) {

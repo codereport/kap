@@ -7,6 +7,7 @@ import java.util.concurrent.TransferQueue
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
 
+class EvalExpressionResult(val value: APLValue, val formatttedResult: List<String>)
 class WrappedException(cause: Throwable) : APLGenericException("JVM exception while evaluating expression: ${cause.message}", null, cause)
 
 class Job(val id: JobId, val request: CalculationQueue.Request)
@@ -65,8 +66,7 @@ class CalculationQueue(val engine: Engine) {
         val source: SourceLocation,
         val variableBindings: List<Pair<Pair<String, String>, APLValue>>?,
         val preserveNamespace: Boolean = false,
-        val inhibitRenderer: Boolean = true,
-        val callback: (Either<APLValue, Exception>) -> Unit
+        val callback: (Either<EvalExpressionResult, Exception>) -> Unit
     ) : Request {
         override fun processRequest(engine: Engine) {
             val queueResult = try {
@@ -74,8 +74,10 @@ class CalculationQueue(val engine: Engine) {
                     engine.internSymbol(k.second, engine.makeNamespace(k.first)) to v
                 }?.toMap()
 
-                fun parseSrc() =
-                    engine.parseAndEval(source, extraBindings = resolvedSymbols, formatResult = !inhibitRenderer).collapse()
+                fun parseSrc(): EvalExpressionResult {
+                    val (result, formatted) = engine.parseAndEvalWithFormat(source, extraBindings = resolvedSymbols)
+                    return EvalExpressionResult(result, formatted)
+                }
 
                 val result = if (preserveNamespace) {
                     engine.withSavedNamespace {
@@ -146,9 +148,9 @@ class CalculationQueue(val engine: Engine) {
         source: SourceLocation,
         variableBindings: List<Pair<Pair<String, String>, APLValue>>? = null,
         preserveNamespace: Boolean = false,
-        fn: (Either<APLValue, Exception>) -> Unit
+        fn: (Either<EvalExpressionResult, Exception>) -> Unit
     ): JobId {
-        return pushJobToQueue(EvalAPLRequest(source, variableBindings, preserveNamespace, false, fn))
+        return pushJobToQueue(EvalAPLRequest(source, variableBindings, preserveNamespace, fn))
     }
 
     fun pushReadVariableRequest(name: String, callback: (APLValue?) -> Unit): JobId {

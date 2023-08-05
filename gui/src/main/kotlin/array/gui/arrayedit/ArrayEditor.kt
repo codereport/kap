@@ -209,7 +209,7 @@ class ArrayEditor {
             println("Got result: ${result}")
             Platform.runLater {
                 when (result) {
-                    is Either.Left -> insertExpressionResult(position, selection, result.value, insertionStyle)
+                    is Either.Left -> insertExpressionResult(position, selection, result.value.value, insertionStyle)
                     is Either.Right -> displayError("Error evaluating expression", formatExceptionDescription(result.value))
                 }
             }

@@ -1,7 +1,6 @@
 package array.gui
 
 import array.APLGenericException
-import array.APLValue
 import array.SourceLocation
 import array.StringCharacterProvider
 import array.gui.styledarea.*
@@ -68,8 +67,8 @@ class ResultList3(val client: Client) {
 
     fun getNode() = scrollArea
 
-    fun addResult(v: APLValue) {
-        styledArea.appendAPLValueEnd(v, TextStyle(TextStyle.Type.RESULT))
+    fun addResult(v: EvalExpressionResult) {
+        styledArea.appendExpressionResultEnd(v, TextStyle(TextStyle.Type.RESULT))
     }
 
     // Need to suppress error warning here because of https://youtrack.jetbrains.com/issue/KTIJ-20744

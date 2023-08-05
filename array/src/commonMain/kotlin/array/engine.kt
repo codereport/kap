@@ -576,12 +576,40 @@ class Engine(numComputeEngines: Int? = null) {
         }
     }
 
+    fun parseAndEvalWithFormat(
+        source: SourceLocation,
+        extraBindings: Map<Symbol, APLValue>? = null,
+    ): Pair<APLValue, List<String>> {
+        return parseAndEvalWithPostProcessing(source, extraBindings = extraBindings) { engine, context, result ->
+            val collapsed = result.collapse()
+            val renderedResult = renderResult(context, collapsed)
+            val list = ArrayList<String>()
+            formatResult(renderedResult) { s ->
+                list.add(s)
+            }
+            Pair(collapsed, list)
+        }
+    }
+
     fun parseAndEval(
         source: SourceLocation,
         extraBindings: Map<Symbol, APLValue>? = null,
-        collapseResult: Boolean = true,
-        formatResult: Boolean = false
+        collapseResult: Boolean = true
     ): APLValue {
+        return parseAndEvalWithPostProcessing(source, extraBindings = extraBindings) { engine, context, result ->
+            if (collapseResult) {
+                result.collapse()
+            } else {
+                result
+            }
+        }
+    }
+
+    fun <T> parseAndEvalWithPostProcessing(
+        source: SourceLocation,
+        extraBindings: Map<Symbol, APLValue>? = null,
+        postProcess: (Engine, RuntimeContext, APLValue) -> T
+    ): T {
         if (extraBindings != null) {
             throw IllegalArgumentException("extra bindings is not supported at the moment")
         }
@@ -594,30 +622,7 @@ class Engine(numComputeEngines: Int? = null) {
                 recomputeRootFrame()
                 val context = RuntimeContext(this)
                 val result = instr.evalWithContext(context)
-                val collapsedResult = if (collapseResult || formatResult) {
-                    result.collapse()
-                } else {
-                    result
-                }
-                return if (formatResult) {
-                    renderResult(context, collapsedResult)
-                } else {
-                    collapsedResult
-                }
-            }
-        }
-    }
-
-    private fun renderResult(context: RuntimeContext, result: APLValue): APLValue {
-        val rendererFn = customRenderer
-        return if (rendererFn == null) {
-            val parts = result.formatted(FormatStyle.PRETTY).split("\n")
-            APLArrayImpl(dimensionsOfSize(parts.size), Array(parts.size) { i -> APLString(parts[i].asCodepointList().toIntArray()) })
-        } else {
-            try {
-                rendererFn.makeClosure().eval1Arg(context, result, null)
-            } catch (e: APLEvalException) {
-                throwAPLException(APLEvalException("Error while rendering result: ${e.message}", e.pos, e))
+                return postProcess(tokeniser.engine, context, result)
             }
         }
     }

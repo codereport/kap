@@ -46,6 +46,20 @@ fun formatResult(value: APLValue, fn: (String) -> Unit) {
     }
 }
 
+fun renderResult(context: RuntimeContext, result: APLValue): APLValue {
+    val rendererFn = context.engine.customRenderer
+    return if (rendererFn == null) {
+        val parts = result.formatted(FormatStyle.PRETTY).split("\n")
+        APLArrayImpl(dimensionsOfSize(parts.size), Array(parts.size) { i -> APLString(parts[i].asCodepointList().toIntArray()) })
+    } else {
+        try {
+            rendererFn.makeClosure().eval1Arg(context, result, null)
+        } catch (e: APLEvalException) {
+            throwAPLException(APLEvalException("Error while rendering result: ${e.message}", e.pos, e))
+        }
+    }
+}
+
 fun formatResultToStrings(value: APLValue): List<String> {
     val result = ArrayList<String>()
     formatResult(value, result::add)

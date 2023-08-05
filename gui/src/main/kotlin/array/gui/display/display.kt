@@ -3,6 +3,7 @@ package array.gui.display
 import array.*
 import array.gui.Client
 import array.gui.ClientRenderContext
+import array.gui.EvalExpressionResult
 import array.gui.arrayedit.ArrayEditor
 import array.gui.styledarea.EditorContent
 import array.gui.styledarea.ParStyle
@@ -32,12 +33,12 @@ import kotlin.reflect.KClass
 
 fun makeKapValueDoc(
     segOps: TextOps<EditorContent, TextStyle>,
-    value: APLValue,
+    value: EvalExpressionResult,
     style: TextStyle,
     parStyle: ParStyle
 ): ReadOnlyStyledDocument<ParStyle, EditorContent, TextStyle>? {
     val newDoc = ReadOnlyStyledDocumentBuilder(segOps, parStyle)
-    formatResultToStrings(value).forEach { s ->
+    for (s in value.formatttedResult) {
         newDoc.addParagraph(EditorContent.makeString(s), style)
     }
     return newDoc.addParagraph(EditorContent.makeBlank(), style).build()
