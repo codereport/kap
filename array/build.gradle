@@ -139,7 +139,7 @@ kotlin {
                 implementation "org.apache.poi:poi-ooxml:5.2.3"
                 implementation 'com.google.code.gson:gson:2.10.1'
                 implementation 'org.apache.derby:derbywar:10.16.1.1'
-                implementation 'org.xerial:sqlite-jdbc:3.41.2.1'
+                implementation 'org.xerial:sqlite-jdbc:3.42.0.0'
             }
         }
         jvmTest {

@@ -2,7 +2,7 @@ plugins {
     id 'application'
     id 'org.jetbrains.kotlin.jvm'
     id 'org.openjfx.javafxplugin' version '0.0.10'
-    id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.0-Beta'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.0'
 }
 
 repositories {
@@ -36,8 +36,8 @@ dependencies {
     implementation "org.jetbrains.kotlin:kotlin-reflect"
     implementation project(':array')
     implementation group: 'org.fxmisc.richtext', name: 'richtextfx', version: '0.11.0'
-    implementation group: 'org.jsoup', name: 'jsoup', version: '1.15.3'
-    implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-json', version: '1.5.0'
+    implementation group: 'org.jsoup', name: 'jsoup', version: '1.16.1'
+    implementation group: 'org.jetbrains.kotlinx', name: 'kotlinx-serialization-json', version: '1.5.1'
     implementation group: 'org.controlsfx', name: 'controlsfx', version: '11.1.2'
     implementation group: 'com.panemu', name: 'tiwulfx-dock', version: '0.2'
 }
