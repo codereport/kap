@@ -5,18 +5,23 @@ import java.awt.Color
 import java.awt.Font
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
+import java.awt.event.MouseAdapter
+import java.awt.event.MouseEvent
 import javax.swing.JTextPane
 import javax.swing.text.*
 import javax.swing.text.Position
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.math.max
 
 object ResultValueAttribute
 
 class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
     val history = ArrayList<HistoryEntry>()
     var historyPosition = 0
+    var resultHistoryMaxSize = 2
+    val resultHistory = ArrayDeque<Style>()
 
     init {
         font = fontIn.deriveFont(18.0f)
@@ -26,9 +31,10 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
         doc.documentFilter = ReplFilter()
 
         computeQueue.addStandardOutputListener(StdoutListener(::appendToOutput))
-        setCaretPosition(doc.length)
+        addMouseListener(ReplMouseListener())
         addKeyListener(ReplKeyListener())
         enableKapKeyboard(this)
+        setCaretPosition(doc.length)
     }
 
     val replDoc get() = styledDocument as ReplDoc
@@ -104,9 +110,22 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
             buf.append(s)
             buf.append("\n")
         }
+        val style = addResultToHistory(result.value)
+        appendToOutput(buf.toString(), style = style)
+    }
+
+    private fun addResultToHistory(value: APLValue): Style {
         val style = addStyle(null, null)
-        style.addAttribute(ResultValueAttribute, result.value)
-        appendToOutput(buf.toString())
+        style.addAttribute(ResultValueAttribute, ResultValueReference(value))
+        while (resultHistory.size >= max(resultHistoryMaxSize, 1)) {
+            val oldStyle = resultHistory.removeFirst()
+            val oldRef = oldStyle.getAttribute(ResultValueAttribute) as ResultValueReference
+            oldRef.value = null
+        }
+        if (resultHistoryMaxSize > 0) {
+            resultHistory.add(style)
+        }
+        return style
     }
 
     @Suppress("USELESS_IS_CHECK")
@@ -159,6 +178,13 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
         }
     }
 
+    private fun handlePopup(e: MouseEvent) {
+        val position = viewToModel2D(e.point)
+        val element = replDoc.getCharacterElement(position)
+        val value = element.attributes.getAttribute(ResultValueAttribute) as ResultValueReference
+        println("got value: ${value.value}")
+    }
+
     inner class ReplKeyListener : KeyAdapter() {
         override fun keyPressed(e: KeyEvent) {
             when (e.keyCode) {
@@ -195,6 +221,20 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
                         e.consume()
                     }
                 }
+            }
+        }
+    }
+
+    inner class ReplMouseListener : MouseAdapter() {
+        override fun mousePressed(e: MouseEvent) {
+            if (e.isPopupTrigger) {
+                handlePopup(e)
+            }
+        }
+
+        override fun mouseReleased(e: MouseEvent) {
+            if (e.isPopupTrigger) {
+                handlePopup(e)
             }
         }
     }
@@ -291,5 +331,5 @@ class ReplSourceLocation(val text: String, val docPos: Position) : SourceLocatio
 }
 
 class HistoryEntry(val src: ReplSourceLocation)
-
+class ResultValueReference(var value: APLValue?)
 class EvalExpressionResult(val value: APLValue, val formatttedResult: List<String>)
