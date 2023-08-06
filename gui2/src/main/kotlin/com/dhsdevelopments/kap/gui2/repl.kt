@@ -3,10 +3,14 @@ package com.dhsdevelopments.kap.gui2
 import array.*
 import java.awt.Color
 import java.awt.Font
+import java.awt.Toolkit
+import java.awt.datatransfer.StringSelection
 import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.JMenuItem
+import javax.swing.JPopupMenu
 import javax.swing.JTextPane
 import javax.swing.text.*
 import javax.swing.text.Position
@@ -20,7 +24,7 @@ object ResultValueAttribute
 class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
     val history = ArrayList<HistoryEntry>()
     var historyPosition = 0
-    var resultHistoryMaxSize = 2
+    var resultHistoryMaxSize = 10
     val resultHistory = ArrayDeque<Style>()
 
     init {
@@ -178,11 +182,36 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
         }
     }
 
-    private fun handlePopup(e: MouseEvent) {
-        val position = viewToModel2D(e.point)
+    private fun handlePopup(event: MouseEvent) {
+        val position = viewToModel2D(event.point)
         val element = replDoc.getCharacterElement(position)
-        val value = element.attributes.getAttribute(ResultValueAttribute) as ResultValueReference
-        println("got value: ${value.value}")
+        val value = element.attributes.getAttribute(ResultValueAttribute) as ResultValueReference?
+        val menu = JPopupMenu().apply {
+            add("Test")
+            if (value != null) {
+                val v = value.value
+                if (v != null) {
+                    add(JPopupMenu.Separator())
+                    add(JMenuItem("Copy as code").apply { addActionListener { copyValueAsCode(v) } })
+                    add(JMenuItem("Copy as HTML").apply { addActionListener { copyValueAsHtml(v) } })
+                }
+            }
+        }
+        menu.show(this, event.x, event.y)
+    }
+
+    private fun copyValueAsCode(value: APLValue) {
+        val transferable = StringSelection(value.formatted(FormatStyle.READABLE))
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        clipboard.setContents(transferable, null)
+    }
+
+    private fun copyValueAsHtml(value: APLValue) {
+        val buf = StringBuilder()
+        val transferable = HtmlTransferable(value.formatted(FormatStyle.PLAIN), buf.toString())
+        value.asHtml(buf)
+        val clipboard = Toolkit.getDefaultToolkit().systemClipboard
+        clipboard.setContents(transferable, null)
     }
 
     inner class ReplKeyListener : KeyAdapter() {
