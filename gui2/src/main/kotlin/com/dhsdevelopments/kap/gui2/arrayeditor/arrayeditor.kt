@@ -1,20 +1,16 @@
 package com.dhsdevelopments.kap.gui2.arrayeditor
 
 import array.*
+import array.builtins.ResizedArrayImpls
 import java.awt.Component
-import javax.swing.JFrame
-import javax.swing.JLabel
-import javax.swing.JScrollPane
-import javax.swing.JTable
+import javax.swing.*
 import javax.swing.table.AbstractTableModel
-import javax.swing.table.DefaultTableColumnModel
-import javax.swing.table.TableCellRenderer
+import javax.swing.table.DefaultTableCellRenderer
 
 class ArrayEditor(value: APLValue) : JTable() {
     private val arrayEditorTableModel get() = model as ArrayEditorTableModel
 
     init {
-        columnModel = ArrayEditorColumnModel()
         columnSelectionAllowed = true
         model = ArrayEditorTableModel(value)
         setDefaultRenderer(Object::class.java, APLValueRenderer())
@@ -42,29 +38,55 @@ class ArrayEditorTableModel(value: APLValue) : AbstractTableModel() {
     }
 }
 
-class ArrayEditorColumnModel : DefaultTableColumnModel()
+class APLValueRenderer : DefaultTableCellRenderer() {
+    private var defaultLabel: JLabel? = null
 
-class APLValueRenderer : TableCellRenderer {
-    override fun getTableCellRendererComponent(table: JTable, value: Any, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int): Component {
+    override fun getTableCellRendererComponent(table: JTable?, value: Any, isSelected: Boolean, hasFocus: Boolean, row: Int, column: Int): Component {
         assertx(value is APLValue)
-        return when {
+        val component = when {
+            value is APLNumber -> makeAPLNumberRenderer(value)
             value.isStringValue() -> makeAPLStringRenderer(value.toStringValue())
             !value.isScalar() -> makeAPLArrayRenderer(value)
             else -> makeFormattedOutputRenderer(value)
         }
+        component.isOpaque = true
+        if (table != null) {
+            component.foreground = if (isSelected) table.selectionForeground else table.foreground
+            component.background = if (isSelected) table.selectionBackground else table.background
+        }
+        component.border = if (hasFocus) UIManager.getBorder("Table.focusCellHighlightBorder") else noFocusBorder
+        return component
     }
-}
 
-private fun makeAPLStringRenderer(value: String): Component {
-    return JLabel(value)
-}
+    private fun makeLabel() = defaultLabel ?: JLabel().also { l -> defaultLabel = l }
 
-private fun makeAPLArrayRenderer(value: APLValue): Component {
-    return JLabel("array(${value.dimensions.dimensions.joinToString(", ")})")
-}
+    private fun makeAPLNumberRenderer(value: APLNumber): JComponent {
+        return makeLabel().also { l ->
+            l.text = value.formatted(FormatStyle.PLAIN)
+            l.horizontalAlignment = SwingConstants.RIGHT
+        }
+    }
 
-private fun makeFormattedOutputRenderer(value: APLValue): Component {
-    return JLabel(value.formatted(FormatStyle.PLAIN))
+    private fun makeAPLStringRenderer(value: String): JComponent {
+        return makeLabel().also { l ->
+            l.text = value
+            l.horizontalAlignment = SwingConstants.LEFT
+        }
+    }
+
+    private fun makeAPLArrayRenderer(value: APLValue): JComponent {
+        return makeLabel().also { l ->
+            l.text = "array(${value.dimensions.dimensions.joinToString(", ")})"
+            l.horizontalAlignment = SwingConstants.LEFT
+        }
+    }
+
+    private fun makeFormattedOutputRenderer(value: APLValue): JComponent {
+        return makeLabel().also { l ->
+            l.text = value.formatted(FormatStyle.PLAIN)
+            l.horizontalAlignment = SwingConstants.LEFT
+        }
+    }
 }
 
 fun openInArrayEditor(v: APLValue) {
@@ -77,4 +99,11 @@ fun openInArrayEditor(v: APLValue) {
     frame.contentPane = scrollPane
     frame.pack()
     frame.isVisible = true
+}
+
+fun main() {
+    SwingUtilities.invokeLater {
+        val v = ResizedArrayImpls.makeResizedArray(dimensionsOfSize(20, 10), APLLONG_1)
+        openInArrayEditor(v)
+    }
 }
