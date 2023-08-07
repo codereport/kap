@@ -218,8 +218,12 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
         override fun keyPressed(e: KeyEvent) {
             when (e.keyCode) {
                 KeyEvent.VK_ENTER -> {
-                    val text = editedText()
-                    addCommandToHistoryAndSend(text)
+                    if (e.isShiftDown) {
+                        replDoc.insertString(caretPosition, "\n", null)
+                    } else {
+                        val text = editedText()
+                        addCommandToHistoryAndSend(text)
+                    }
                     e.consume()
                 }
                 KeyEvent.VK_UP -> {

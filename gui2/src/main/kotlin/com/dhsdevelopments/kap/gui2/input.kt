@@ -18,12 +18,14 @@ class KapKeyboardHandler(val panel: JTextComponent) : KeyAdapter() {
         if (prefixEnabled) {
             if (e.keyChar == ' ') {
                 appendToInput(inputPrefix.toString())
-            }
-            val charAsString = e.keyChar.toString()
-            val res = keyboardInput.keymap.toList().find { (k, _) -> k.character == charAsString }
-            if (res != null) {
                 e.consume()
-                appendToInput(res.second)
+            } else {
+                val charAsString = e.keyChar.toString()
+                val res = keyboardInput.keymap.toList().find { (k, _) -> k.character == charAsString }
+                if (res != null) {
+                    appendToInput(res.second)
+                    e.consume()
+                }
             }
             prefixEnabled = false
         } else {
