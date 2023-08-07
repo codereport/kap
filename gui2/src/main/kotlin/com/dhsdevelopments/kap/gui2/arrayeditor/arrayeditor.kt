@@ -2,7 +2,9 @@ package com.dhsdevelopments.kap.gui2.arrayeditor
 
 import array.*
 import java.awt.Component
+import javax.swing.JFrame
 import javax.swing.JLabel
+import javax.swing.JScrollPane
 import javax.swing.JTable
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.DefaultTableColumnModel
@@ -63,4 +65,16 @@ private fun makeAPLArrayRenderer(value: APLValue): Component {
 
 private fun makeFormattedOutputRenderer(value: APLValue): Component {
     return JLabel(value.formatted(FormatStyle.PLAIN))
+}
+
+fun openInArrayEditor(v: APLValue) {
+    val frame = JFrame()
+    val editor = ArrayEditor(v)
+    editor.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+    val scrollPane = JScrollPane(editor)
+    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
+    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+    frame.contentPane = scrollPane
+    frame.pack()
+    frame.isVisible = true
 }

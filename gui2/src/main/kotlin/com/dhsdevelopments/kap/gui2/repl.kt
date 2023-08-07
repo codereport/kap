@@ -1,6 +1,7 @@
 package com.dhsdevelopments.kap.gui2
 
 import array.*
+import com.dhsdevelopments.kap.gui2.arrayeditor.openInArrayEditor
 import java.awt.Color
 import java.awt.Font
 import java.awt.Toolkit
@@ -9,6 +10,7 @@ import java.awt.event.KeyAdapter
 import java.awt.event.KeyEvent
 import java.awt.event.MouseAdapter
 import java.awt.event.MouseEvent
+import javax.swing.JLabel
 import javax.swing.JMenuItem
 import javax.swing.JPopupMenu
 import javax.swing.JTextPane
@@ -192,8 +194,12 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
                 val v = value.value
                 if (v != null) {
                     add(JPopupMenu.Separator())
+                    add(JLabel("Stored result"))
                     add(JMenuItem("Copy as code").apply { addActionListener { copyValueAsCode(v) } })
                     add(JMenuItem("Copy as HTML").apply { addActionListener { copyValueAsHtml(v) } })
+                    if (v.dimensions.size == 2) {
+                        add(JMenuItem("Open in editor").apply { addActionListener { openInArrayEditor(v) } })
+                    }
                 }
             }
         }

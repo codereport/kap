@@ -1,9 +1,7 @@
 package com.dhsdevelopments.kap.gui2
 
 import array.*
-import com.dhsdevelopments.kap.gui2.arrayeditor.ArrayEditor
-import javax.swing.JFrame
-import javax.swing.JScrollPane
+import com.dhsdevelopments.kap.gui2.arrayeditor.openInArrayEditor
 import javax.swing.SwingUtilities
 
 class Gui2Module : KapModule {
@@ -20,11 +18,7 @@ class OpenEditor : APLFunctionDescriptor {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val a0 = a.collapse()
             SwingUtilities.invokeLater {
-                val frame = JFrame()
-                val editor = ArrayEditor(a0)
-                frame.contentPane = JScrollPane(editor)
-                frame.pack()
-                frame.isVisible = true
+                openInArrayEditor(a0)
             }
             return APLNullValue.APL_NULL_INSTANCE
         }
