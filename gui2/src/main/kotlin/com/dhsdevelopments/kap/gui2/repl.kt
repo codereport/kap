@@ -214,8 +214,8 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
 
     private fun copyValueAsHtml(value: APLValue) {
         val buf = StringBuilder()
-        val transferable = HtmlTransferable(value.formatted(FormatStyle.PLAIN), buf.toString())
         value.asHtml(buf)
+        val transferable = HtmlTransferable(value.formatted(FormatStyle.PLAIN), buf.toString())
         val clipboard = Toolkit.getDefaultToolkit().systemClipboard
         clipboard.setContents(transferable, null)
     }
