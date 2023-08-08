@@ -6,6 +6,7 @@ import java.awt.Component
 import javax.swing.*
 import javax.swing.table.AbstractTableModel
 import javax.swing.table.DefaultTableCellRenderer
+import javax.swing.table.TableCellEditor
 
 class ArrayEditor(value: APLValue) : JTable() {
     private val arrayEditorTableModel get() = model as ArrayEditorTableModel
@@ -14,6 +15,7 @@ class ArrayEditor(value: APLValue) : JTable() {
         columnSelectionAllowed = true
         model = ArrayEditorTableModel(value)
         setDefaultRenderer(Object::class.java, APLValueRenderer())
+        cellEditor = APLValueCellEditor()
     }
 }
 
@@ -36,6 +38,8 @@ class ArrayEditorTableModel(value: APLValue) : AbstractTableModel() {
         val p = content.dimensions.indexFromPosition(intArrayOf(rowIndex, columnIndex))
         return content.valueAt(p)
     }
+
+    override fun isCellEditable(rowIndex: Int, columnIndex: Int) = true
 }
 
 class APLValueRenderer : DefaultTableCellRenderer() {
@@ -58,44 +62,35 @@ class APLValueRenderer : DefaultTableCellRenderer() {
         return component
     }
 
-    private fun makeLabel() = defaultLabel ?: JLabel().also { l -> defaultLabel = l }
-
-    private fun makeAPLNumberRenderer(value: APLNumber): JComponent {
-        return makeLabel().also { l ->
-            l.text = value.formatted(FormatStyle.PLAIN)
-            l.horizontalAlignment = SwingConstants.RIGHT
+    private fun makeLabel(text: String? = "", horizontalAlignment: Int = SwingConstants.LEFT): JLabel {
+        val label = defaultLabel ?: JLabel().also { l ->
+            defaultLabel = l
         }
+        label.text = text
+        label.horizontalAlignment = horizontalAlignment
+        return label
     }
 
-    private fun makeAPLStringRenderer(value: String): JComponent {
-        return makeLabel().also { l ->
-            l.text = value
-            l.horizontalAlignment = SwingConstants.LEFT
-        }
-    }
+    private fun makeAPLNumberRenderer(value: APLNumber) =
+        makeLabel(text = value.formatted(FormatStyle.PLAIN), horizontalAlignment = SwingConstants.RIGHT)
 
-    private fun makeAPLArrayRenderer(value: APLValue): JComponent {
-        return makeLabel().also { l ->
-            l.text = "array(${value.dimensions.dimensions.joinToString(", ")})"
-            l.horizontalAlignment = SwingConstants.LEFT
-        }
-    }
+    private fun makeAPLStringRenderer(value: String) =
+        makeLabel(text = value)
 
-    private fun makeFormattedOutputRenderer(value: APLValue): JComponent {
-        return makeLabel().also { l ->
-            l.text = value.formatted(FormatStyle.PLAIN)
-            l.horizontalAlignment = SwingConstants.LEFT
-        }
-    }
+    private fun makeAPLArrayRenderer(value: APLValue) =
+        makeLabel(text = "array(${value.dimensions.dimensions.joinToString(", ")})")
+
+    private fun makeFormattedOutputRenderer(value: APLValue) =
+        makeLabel(text = value.formatted(FormatStyle.PLAIN))
 }
 
 fun openInArrayEditor(v: APLValue) {
     val frame = JFrame()
     val editor = ArrayEditor(v)
-    editor.setAutoResizeMode(JTable.AUTO_RESIZE_OFF);
+    editor.autoResizeMode = JTable.AUTO_RESIZE_OFF
     val scrollPane = JScrollPane(editor)
-    scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS);
-    scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_ALWAYS);
+    scrollPane.horizontalScrollBarPolicy = JScrollPane.HORIZONTAL_SCROLLBAR_ALWAYS
+    scrollPane.verticalScrollBarPolicy = JScrollPane.VERTICAL_SCROLLBAR_ALWAYS
     frame.contentPane = scrollPane
     frame.pack()
     frame.isVisible = true
@@ -105,5 +100,17 @@ fun main() {
     SwingUtilities.invokeLater {
         val v = ResizedArrayImpls.makeResizedArray(dimensionsOfSize(20, 10), APLLONG_1)
         openInArrayEditor(v)
+    }
+}
+
+class APLValueCellEditor : AbstractCellEditor(), TableCellEditor {
+    private val textField by lazy { JTextField(30) }
+
+    override fun getCellEditorValue(): Any {
+        return APLLONG_1
+    }
+
+    override fun getTableCellEditorComponent(table: JTable?, value: Any?, isSelected: Boolean, row: Int, column: Int): Component {
+        return textField
     }
 }
