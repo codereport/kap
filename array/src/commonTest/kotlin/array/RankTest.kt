@@ -186,4 +186,13 @@ class RankTest : APLTest() {
                 result)
         }
     }
+
+    @Test
+    fun rankWithLargeValue() {
+        parseAPLExpression("(⊂⍤3) 1 2 3 4").let { result ->
+            assertDimension(emptyDimensions(), result)
+            val v = result.valueAt(0)
+            assert1DArray(arrayOf(1, 2, 3, 4), v)
+        }
+    }
 }

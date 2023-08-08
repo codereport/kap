@@ -88,7 +88,7 @@ class RankOperator : APLOperatorValueRightArg {
                 val aReduced = a.collapseFirstLevel()
                 val aDimensions = aReduced.dimensions
                 val index = computeRankFromOpArg(context)
-                val k = max(0, if (index < 0) aDimensions.size + index else index)
+                val k = min(aDimensions.size, max(0, if (index < 0) aDimensions.size + index else index))
                 val enclosedResult = AxisMultiDimensionEnclosedValue(aReduced, k)
                 val applyRes = ForEachResult1Arg(context, fn, enclosedResult, null, pos, saveStackSupport.savedStack())
                 return DiscloseAPLFunction.discloseValue(applyRes)

@@ -149,7 +149,7 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
         }
         val message = when (value) {
             is APLGenericException -> value.formattedError()
-            else -> value.message ?: "no description"
+            else -> "Error from JVM: ${value.message}"
         }
         appendToOutput(message, style = errorStyle, appendNewline = true)
     }
