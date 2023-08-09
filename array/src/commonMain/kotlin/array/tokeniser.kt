@@ -12,6 +12,10 @@ abstract class Token {
     }
 }
 
+abstract class ConstantToken : Token() {
+    abstract fun parsedValue(): APLValue
+}
+
 object Whitespace : Token()
 object EndOfFile : Token()
 object OpenParen : Token()
@@ -136,27 +140,33 @@ class Symbol(val symbolName: String, val namespace: Namespace) : Token(), Compar
     val nameWithNamespace get() = "${namespace.name}:${symbolName}"
 }
 
-class StringToken(val value: String) : Token() {
+class StringToken(val value: String) : ConstantToken() {
+    override fun parsedValue() = APLString(value)
     override fun toString() = "StringToken['${value}']"
 }
 
-class ParsedLong(val value: Long) : Token() {
+class ParsedLong(val value: Long) : ConstantToken() {
+    override fun parsedValue() = value.makeAPLNumber()
     override fun toString() = "ParsedLong[${value}]"
 }
 
-class ParsedDouble(val value: Double) : Token() {
+class ParsedDouble(val value: Double) : ConstantToken() {
+    override fun parsedValue() = value.makeAPLNumber()
     override fun toString() = "ParsedDouble[${value}]"
 }
 
-class ParsedComplex(val value: Complex) : Token() {
+class ParsedComplex(val value: Complex) : ConstantToken() {
+    override fun parsedValue() = value.makeAPLNumber()
     override fun toString() = "ParsedComplex[${value}]"
 }
 
-class ParsedCharacter(val value: Int) : Token() {
+class ParsedCharacter(val value: Int) : ConstantToken() {
+    override fun parsedValue() = value.makeAPLNumber()
     override fun toString() = "ParsedCharacter[${value}]"
 }
 
-class ParsedBigInt(val value: BigInt) : Token() {
+class ParsedBigInt(val value: BigInt) : ConstantToken() {
+    override fun parsedValue() = value.makeAPLNumber()
     override fun toString() = "ParsedBigInt[${value}]"
 }
 

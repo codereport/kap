@@ -39,7 +39,7 @@ class ReplPanel(val computeQueue: ComputeQueue, fontIn: Font) : JTextPane() {
         computeQueue.addStandardOutputListener(StdoutListener(::appendToOutput))
         addMouseListener(ReplMouseListener())
         addKeyListener(ReplKeyListener())
-        enableKapKeyboard(this)
+        enableKapKeyboard()
         setCaretPosition(doc.length)
     }
 

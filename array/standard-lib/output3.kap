@@ -116,7 +116,7 @@ renderEmpty ⇐ {
 format ⇐ { throw "Forward declaration" }
 
 ∇ isOversized v {
-  (0 < ≢⍴v) and (1 ∊ 40<⍴v)
+  (0 < ≢⍴v) and (1 ∊ 100<⍴v)
 }
 
 renderArrayOrString ⇐ {
