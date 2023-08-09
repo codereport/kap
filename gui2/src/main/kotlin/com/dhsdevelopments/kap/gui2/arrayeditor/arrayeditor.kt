@@ -7,6 +7,8 @@ import com.dhsdevelopments.kap.gui2.enableKapKeyboard
 import java.awt.BorderLayout
 import java.awt.Component
 import java.awt.event.MouseEvent
+import java.awt.event.WindowAdapter
+import java.awt.event.WindowEvent
 import java.util.*
 import javax.swing.*
 import javax.swing.event.*
@@ -119,12 +121,19 @@ private val activeEdtiors = HashMap<Int, ArrayEditor>()
 
 fun openInArrayEditor(v: APLValue) {
     val frame = JFrame()
+    frame.defaultCloseOperation = WindowConstants.DISPOSE_ON_CLOSE
 
     val panel = JPanel(BorderLayout())
 
     val index = arrayEditorIndex++
     panel.add(JLabel("Index: ${index}"), BorderLayout.NORTH)
 
+    frame.addWindowListener(object : WindowAdapter() {
+        override fun windowClosed(e: WindowEvent?) {
+            activeEdtiors.remove(index)
+        }
+    })
+    
     val editor = ArrayEditor(v)
     activeEdtiors[index] = editor
     editor.autoResizeMode = JTable.AUTO_RESIZE_OFF
