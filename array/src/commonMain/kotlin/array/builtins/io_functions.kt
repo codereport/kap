@@ -131,7 +131,7 @@ class LoadFunction : APLFunctionDescriptor {
 
 private fun ensureHeaderArray(headerArg: APLValue, pos: Position): Map<String, String> {
     if (headerArg.rank != 2 || headerArg.dimensions[1] != 2) {
-        throwAPLException(APLIllegalArgumentException("Headers list should be a rank-2 array with 2 columns"))
+        throwAPLException(APLIllegalArgumentException("Headers list should be a rank-2 array with 2 columns", pos))
     }
     val result = HashMap<String, String>()
     for (i in 0 until headerArg.dimensions[0]) {

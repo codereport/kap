@@ -318,7 +318,7 @@ class AsBigintFunction : APLFunctionDescriptor {
             return when (a0) {
                 is APLBigInt -> a0
                 is APLLong -> APLBigInt(a0.asBigInt())
-                else -> throwAPLException(APLIncompatibleDomainsException("Argument is not an integer: ${a0.formatted(FormatStyle.PLAIN)}"))
+                else -> throwAPLException(APLIncompatibleDomainsException("Argument is not an integer: ${a0.formatted(FormatStyle.PLAIN)}", pos))
             }
         }
     }

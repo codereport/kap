@@ -28,7 +28,7 @@ class MakeCharsFromCodepoints : APLFunctionDescriptor {
                     if (x.imaginary == 0.0) {
                         APLChar.fromLong(x.real.toLong(), pos)
                     } else {
-                        throwAPLException(APLIllegalArgumentException("Complex numbers can't bre presented as characters: ${x}"))
+                        throwAPLException(APLIllegalArgumentException("Complex numbers can't be represented as characters: ${x}", pos))
                     }
                 },
                 { x -> APLChar(x) })
@@ -84,7 +84,7 @@ class ToNamesFunction : APLFunctionDescriptor {
                     APLString(name)
                 }
             } else {
-                throwAPLException(IncompatibleTypeException("Value is not a char: ${a}"))
+                throwAPLException(IncompatibleTypeException("Value is not a char: ${a}", pos))
             }
         }
     }

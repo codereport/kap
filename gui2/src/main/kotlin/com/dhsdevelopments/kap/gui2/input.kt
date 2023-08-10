@@ -6,7 +6,6 @@ import java.awt.event.KeyEvent
 import javax.swing.text.JTextComponent
 
 fun JTextComponent.enableKapKeyboard() {
-    println("Enabling for ${this}")
     addKeyListener(KapKeyboardHandler(this))
 }
 

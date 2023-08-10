@@ -221,7 +221,7 @@ class SQLPreparedQueryFunction : APLFunctionDescriptor {
                     val bCollapsed = b.collapse()
                     val bDimensions = bCollapsed.dimensions
                     if (bDimensions.size != 1) {
-                        throwAPLException(SQLAPLException("Right argument to function must be a rank-1 array"))
+                        throwAPLException(SQLAPLException("Right argument to function must be a rank-1 array", pos))
                     }
                     repeat(bDimensions[0]) { colIndex ->
                         updatePreparedStatementCol(statement, colIndex + 1, bCollapsed.valueAt(colIndex), pos)

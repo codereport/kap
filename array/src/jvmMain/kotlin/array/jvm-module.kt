@@ -53,7 +53,10 @@ private inline fun <reified T : Any?> ensureJvmInstance(a: APLValue, pos: Positi
     val wrapped: JvmInstanceValue = ensureJvmGenericValue(a, pos)
     val instance = wrapped.instance
     if (instance !is T) {
-        throwAPLException(APLIllegalArgumentException("Expected Java type: ${T::class.qualifiedName}, got: ${if (instance == null) "null" else instance::class.qualifiedName}"))
+        throwAPLException(
+            APLIllegalArgumentException(
+                "Expected Java type: ${T::class.qualifiedName}, got: ${if (instance == null) "null" else instance::class.qualifiedName}",
+                pos))
     }
     return instance
 }
@@ -156,7 +159,7 @@ class ToJvmShortFunction : APLFunctionDescriptor {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val n = a.ensureNumber(pos).asLong(pos)
             if (n < Short.MIN_VALUE || n > Short.MAX_VALUE) {
-                throwAPLException(KAPOverflowException("Value does not fit in short: ${n}"))
+                throwAPLException(KAPOverflowException("Value does not fit in short: ${n}", pos))
             }
             return JvmInstanceValue(n.toShort())
         }
@@ -170,7 +173,7 @@ class ToJvmIntFunction : APLFunctionDescriptor {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val n = a.ensureNumber(pos).asLong(pos)
             if (n < Int.MIN_VALUE || n > Int.MAX_VALUE) {
-                throwAPLException(KAPOverflowException("Value does not fit in int: ${n}"))
+                throwAPLException(KAPOverflowException("Value does not fit in int: ${n}", pos))
             }
             return JvmInstanceValue(n.toInt())
         }
@@ -195,7 +198,7 @@ class ToJvmByteFunction : APLFunctionDescriptor {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val n = a.ensureNumber(pos).asLong(pos)
             if (n < Byte.MIN_VALUE || n > Byte.MAX_VALUE) {
-                throwAPLException(KAPOverflowException("Value does not fit in byte: ${n}"))
+                throwAPLException(KAPOverflowException("Value does not fit in byte: ${n}", pos))
             }
             return JvmInstanceValue(n.toByte())
         }
@@ -209,7 +212,7 @@ class ToJvmCharFunction : APLFunctionDescriptor {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val n = a.ensureNumber(pos).asLong(pos)
             if (n < Char.MIN_VALUE.code || n > Char.MAX_VALUE.code) {
-                throwAPLException(KAPOverflowException("Value does not fit in char: ${n}"))
+                throwAPLException(KAPOverflowException("Value does not fit in char: ${n}", pos))
             }
             return JvmInstanceValue(n.toInt().toChar())
         }
@@ -268,7 +271,7 @@ private fun javaObjToKap(engine: Engine, value: Any?, pos: Position): APLValue {
         is DoubleArray -> APLArrayDouble(dimensionsOfSize(value.size), value.copyOf())
         is Array<*> -> APLArrayImpl(dimensionsOfSize(value.size), value.map { v -> javaObjToKap(engine, v, pos) }.toTypedArray())
         is List<*> -> APLArrayImpl(dimensionsOfSize(value.size), value.map { v -> javaObjToKap(engine, v, pos) }.toTypedArray())
-        else -> throwAPLException(APLIllegalArgumentException("Unexpected JVM type: ${value::class.qualifiedName}"))
+        else -> throwAPLException(APLIllegalArgumentException("Unexpected JVM type: ${value::class.qualifiedName}", pos))
     }
 }
 

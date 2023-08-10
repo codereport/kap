@@ -1636,8 +1636,8 @@ class NumeratorAPLFunction : APLFunctionDescriptor {
                 pos,
                 a,
                 { x -> x.makeAPLNumber() },
-                { x -> throwAPLException(IncompatibleTypeException("Cannot return numerator from a double")) },
-                { x -> throwAPLException(IncompatibleTypeException("Cannot return numerator from a complex")) },
+                { x -> throwAPLException(IncompatibleTypeException("Cannot return numerator from a double", pos)) },
+                { x -> throwAPLException(IncompatibleTypeException("Cannot return numerator from a complex", pos)) },
                 fnBigInt = { x -> x.makeAPLNumberWithReduction() },
                 fnRational = { x -> x.numerator.makeAPLNumberWithReduction() })
         }
@@ -1653,8 +1653,8 @@ class DenominatorAPLFunction : APLFunctionDescriptor {
                 pos,
                 a,
                 { x -> APLLONG_1 },
-                { x -> throwAPLException(IncompatibleTypeException("Cannot return denominator from a double")) },
-                { x -> throwAPLException(IncompatibleTypeException("Cannot return denominator from a complex")) },
+                { x -> throwAPLException(IncompatibleTypeException("Cannot return denominator from a double", pos)) },
+                { x -> throwAPLException(IncompatibleTypeException("Cannot return denominator from a complex", pos)) },
                 fnBigInt = { x -> APLLONG_1 },
                 fnRational = { x -> x.denominator.makeAPLNumberWithReduction() })
         }
