@@ -1,7 +1,7 @@
 plugins {
     id 'application'
     id 'org.jetbrains.kotlin.jvm'
-    id 'org.openjfx.javafxplugin' version '0.0.10'
+    id 'org.openjfx.javafxplugin' version '0.0.14'
     id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.0'
 }
 
@@ -27,7 +27,7 @@ compileTestKotlin {
 }
 
 javafx {
-    version = "18"
+    version = "20"
     modules = ['javafx.base', 'javafx.controls', 'javafx.graphics', 'javafx.fxml', 'javafx.web', 'javafx.swing']
 }
 
