@@ -10,6 +10,68 @@ The list is currently incomplete.
 
 When describing arguments to dyadic calls, the left argument is referred to as `A` and the right argument as `B`.
 
+== Syntax
+
+=== Datatypes
+
+Kap supports the following datatypes:
+
+- Integer: `1234`, `¯456`
+- Floating point: `1.234`, `¯0.001`
+- Rational: The result of dividing two integers: `(2÷7)`
+- Complex: `1j7`, `2.8j1.2`.
+Note that the real and imaginary parts are always floating point.
+- Character: `@a`
+- Map: Created using the `map` function
+- Symbol: `'foo`, `'qw:bar`.
+If the namespace name is blank, the symbol is placed in the `keyword` namespace: `:abcd`.
+All keywords are self-evaluating.
+- Array: An N-dimensional array of values, where each value is a primitive or another array
+
+=== Character syntax
+
+A character is a single Unicode codepoint.
+The following forms are allowed:
+
+- `@a` -- Any character is allowed, except backlash
+- `@\LATIN_CAPTIAL_LETTER_B` -- Unicode name, spaces are replaced with underscore
+- `@\u0397` -- Hex codepoint
+- `@\n` -- Newline (codepoint U+000A)
+- `@\r` -- CR (codepoint U+000D)
+- `@\e` -- Esc
+- `@\s` -- Space
+- `@\t` -- Tab
+- `@\0` -- Nul character
+
+=== String syntax
+
+Strings are single-dimensional arrays of characters, enclosed in double-quotes: `"foo test"`.
+
+The following escape codes are allowed in a string:
+
+- `\"` -- Double quote
+- `\n` -- Newline
+- `\r` -- CR
+
+=== N-tuples
+
+N-tuples, also simply called "`lists`", are primitive values that act as a container of zero or more values.
+The explicit list syntax uses `;` to separate the elements.
+List parsing has lower precedence than boolean operations as well as regular lists and function calls, which means that they usually have to be enclosed in parentheses.
+
+`1;2;3;4` -- A list consisting of 4 elements.
+`1 + 2 ; 3 + 4 ; 5` -- a list consisting of the three values: `3`, `7`, and `5`.
+
+=== Short-circuiting boolean operations
+
+The names `and` and `or` are short-circuiting functions that act on the arguments true/false property.
+For the purposes of these functions, the numeric value `0` is considered false, and any other value is true.
+
+`2 and 3` -- Evaluates to `3`, and will not evaluate `3`.
+`0 or 1` -- Evaluates to `1`.
+
+Note that `and` and `or` has higher precendece than lists, but lower than regular lists and function calls.
+
 == Scalar functions
 
 All scalar functions are evaluated in the same way.
@@ -252,6 +314,18 @@ Computes the square root of the argument.
 
 Computes the `A` root of `B`.
 
+=== `floorc`: Complex floor
+
+==== Monadic: Complex floor
+
+Computes the complex floor of the argument.
+
+=== `ceilcc`: Complex ceiling
+
+==== Monadic: Complex ceiling
+
+Computes the complex ceiling of the argument.
+
 == Math functions (namespace `math`)
 
 === `math:sin`: Sine
@@ -332,3 +406,62 @@ Assuming `A` is a function:
 The function will only be called when the underlying value is retrieved.
 Note that the result is not cached, so if a result is retrieved more than once, the function will be called once for each time the value is read.
 If multiple reads are expected it is recommended to collapse the array prior to reading it.
+
+== Map functions
+
+The functions in this section are used to create, access and update map objects.
+Maps are immutable, and any function that modifies the content returns a new objects with the changes applied while the original object remains unchanged.
+
+=== `map`: Create a map
+
+This function is called monadically with the initial content as argument.
+The argument can either be a single-dimensional array with an even number of elements, or a two-dimension array with 2 columns.
+In both cases, the key/value pairs are specified in an row-major interleaved form.
+
+`map :foo 1 :bar 5` -- create a map with two elements
+
+`map 4 2 ⍴ "key0" (1 2 3 4) "key1" "Some value" "key2" (2 2 ⍴ 1 2 3 4) "key3" "Abc"` -- create a map with 4 elements
+
+=== `mapGet`: Read a value from a map
+
+This function is called monadically with `A` being the map and `B` being the key.
+The corresponding value is returned, or `⍬` if the key was not found in the map.
+
+=== `mapPut`: Update a map
+
+This function is used to update a map.
+It's called dyadically with `A` being the map, and `B` being a key/value definition as described in the documentation for `map`.
+This function returns the updated map.
+
+=== `mapRemove`: Remove elements from a map
+
+This function removes keys from a map. `A` is the map to update, and `B` is an array consisting of a list of keys to remove.
+This function returns the updated map.
+
+=== `mapToArray`: Convert a map to an array
+
+This function is called monadically with a map as argument.
+It returns a two dimensional array with two columns, where the first column is the keys and the second column the values.
+
+----
+    m ← map "foo" 10 "bar" 20 "abcde" (1 2 3)
+    mapToArray m
+┌→──────────────┐
+↓  "bar"      20│
+│  "foo"      10│
+│"abcde" ┌→────┐│
+│        │1 2 3││
+│        └─────┘│
+└───────────────┘
+----
+
+=== `mapSize`: Return the size of a map
+
+This function si called monadically with a map as it argument.
+It returns the number of elements in the map.
+
+----
+    m ← map :a 11 :b 94 :c 4050 :d 91756
+    mapSize m
+4
+----
