@@ -59,7 +59,7 @@ N-tuples, also simply called "`lists`", are primitive values that act as a conta
 The explicit list syntax uses `;` to separate the elements.
 List parsing has lower precedence than boolean operations as well as regular lists and function calls, which means that they usually have to be enclosed in parentheses.
 
-`1;2;3;4` -- A list consisting of 4 elements.
+`1;2;3;4` -- A list consisting of 4 elements. +
 `1 + 2 ; 3 + 4 ; 5` -- a list consisting of the three values: `3`, `7`, and `5`.
 
 === Short-circuiting boolean operations
@@ -67,7 +67,7 @@ List parsing has lower precedence than boolean operations as well as regular lis
 The names `and` and `or` are short-circuiting functions that act on the arguments true/false property.
 For the purposes of these functions, the numeric value `0` is considered false, and any other value is true.
 
-`io:println 2 and io:println 3` -- Evaluates to `3`, and will print both `2` and `3`.
+`io:println 2 and io:println 3` -- Evaluates to `3`, and will print both `2` and `3`. +
 `io:println 1 or io:println 0` -- Evaluates to `1`, and will not print `0`.
 
 Note that `and` and `or` has higher precendece than lists, but lower than regular lists and function calls.
