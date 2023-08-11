@@ -2102,6 +2102,15 @@
         <div id="toctitle">Table of Contents</div>
         <ul class="sectlevel1">
             <li><a href="#_introduction">Introduction</a></li>
+            <li><a href="#_syntax">Syntax</a>
+                <ul class="sectlevel2">
+                    <li><a href="#_datatypes">Datatypes</a></li>
+                    <li><a href="#_character_syntax">Character syntax</a></li>
+                    <li><a href="#_string_syntax">String syntax</a></li>
+                    <li><a href="#_n_tuples">N-tuples</a></li>
+                    <li><a href="#_short_circuiting_boolean_operations">Short-circuiting boolean operations</a></li>
+                </ul>
+            </li>
             <li><a href="#_scalar_functions">Scalar functions</a>
                 <ul class="sectlevel2">
                     <li><a href="#_addconjugate"><code>+</code>: Add/Conjugate</a></li>
@@ -2122,6 +2131,8 @@
                     <li><a href="#_logical_nand"><code>⍲</code>: Logical nand</a></li>
                     <li><a href="#_logical_nor"><code>⍱</code>: Logical nor</a></li>
                     <li><a href="#_square_root"><code>√</code>: Square root</a></li>
+                    <li><a href="#_floorc_complex_floor"><code>floorc</code>: Complex floor</a></li>
+                    <li><a href="#_ceilcc_complex_ceiling"><code>ceilcc</code>: Complex ceiling</a></li>
                 </ul>
             </li>
             <li><a href="#_math_functions_namespace_math">Math functions (namespace <code>math</code>)</a>
@@ -2143,6 +2154,19 @@
                     <li><a href="#_for_each"><code>¨</code>: For each</a></li>
                 </ul>
             </li>
+            <li><a href="#_map_functions">Map functions</a>
+                <ul class="sectlevel2">
+                    <li><a href="#_map_create_a_map"><code>map</code>: Create a map</a></li>
+                    <li><a href="#_mapget_read_a_value_from_a_map"><code>mapGet</code>: Read a value from a map</a></li>
+                    <li><a href="#_mapput_update_a_map"><code>mapPut</code>: Update a map</a></li>
+                    <li><a href="#_mapremove_remove_elements_from_a_map"><code>mapRemove</code>: Remove elements from a
+                        map</a></li>
+                    <li><a href="#_maptoarray_convert_a_map_to_an_array"><code>mapToArray</code>: Convert a map to an
+                        array</a></li>
+                    <li><a href="#_mapsize_return_the_size_of_a_map"><code>mapSize</code>: Return the size of a map</a>
+                    </li>
+                </ul>
+            </li>
         </ul>
     </div>
 </div>
@@ -2157,6 +2181,147 @@
             <div class="paragraph">
                 <p>When describing arguments to dyadic calls, the left argument is referred to as <code>A</code> and the
                     right argument as <code>B</code>.</p>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_syntax">Syntax</h2>
+        <div class="sectionbody">
+            <div class="sect2">
+                <h3 id="_datatypes">Datatypes</h3>
+                <div class="paragraph">
+                    <p>Kap supports the following datatypes:</p>
+                </div>
+                <div class="ulist">
+                    <ul>
+                        <li>
+                            <p>Integer: <code>1234</code>, <code>¯456</code>, <code>0x12</code> (the <code>0x</code>
+                                prefix indicates the value is specified in hex)</p>
+                        </li>
+                        <li>
+                            <p>Floating point: <code>1.234</code>, <code>¯0.001</code></p>
+                        </li>
+                        <li>
+                            <p>Rational: The result of dividing two integers: <code>(2÷7)</code></p>
+                        </li>
+                        <li>
+                            <p>Complex: <code>1j7</code>, <code>2.8j1.2</code>.
+                                Note that the real and imaginary parts are always floating point.</p>
+                        </li>
+                        <li>
+                            <p>Character: <code>@a</code></p>
+                        </li>
+                        <li>
+                            <p>Map: Created using the <code>map</code> function</p>
+                        </li>
+                        <li>
+                            <p>Symbol: <code>'foo</code>, <code>'qw:bar</code>.
+                                If the namespace name is blank, the symbol is placed in the <code>keyword</code>
+                                namespace: <code>:abcd</code>.
+                                All keywords are self-evaluating.</p>
+                        </li>
+                        <li>
+                            <p>Array: An N-dimensional array of values, where each value is a primitive or another
+                                array</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_character_syntax">Character syntax</h3>
+                <div class="paragraph">
+                    <p>A character is a single Unicode codepoint.
+                        The following forms are allowed:</p>
+                </div>
+                <div class="ulist">
+                    <ul>
+                        <li>
+                            <p><code>@a</code>&#8201;&#8212;&#8201;Any character is allowed, except backlash</p>
+                        </li>
+                        <li>
+                            <p><code>@\LATIN_CAPTIAL_LETTER_B</code>&#8201;&#8212;&#8201;Unicode name, spaces are
+                                replaced with underscore</p>
+                        </li>
+                        <li>
+                            <p><code>@\u0397</code>&#8201;&#8212;&#8201;Hex codepoint</p>
+                        </li>
+                        <li>
+                            <p><code>@\n</code>&#8201;&#8212;&#8201;Newline (codepoint U+000A)</p>
+                        </li>
+                        <li>
+                            <p><code>@\r</code>&#8201;&#8212;&#8201;CR (codepoint U+000D)</p>
+                        </li>
+                        <li>
+                            <p><code>@\e</code>&#8201;&#8212;&#8201;Esc</p>
+                        </li>
+                        <li>
+                            <p><code>@\s</code>&#8201;&#8212;&#8201;Space</p>
+                        </li>
+                        <li>
+                            <p><code>@\t</code>&#8201;&#8212;&#8201;Tab</p>
+                        </li>
+                        <li>
+                            <p><code>@\0</code>&#8201;&#8212;&#8201;Nul character</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_string_syntax">String syntax</h3>
+                <div class="paragraph">
+                    <p>Strings are single-dimensional arrays of characters, enclosed in double-quotes: <code>"foo
+                        test"</code>.</p>
+                </div>
+                <div class="paragraph">
+                    <p>The following escape codes are allowed in a string:</p>
+                </div>
+                <div class="ulist">
+                    <ul>
+                        <li>
+                            <p><code>\"</code>&#8201;&#8212;&#8201;Double quote</p>
+                        </li>
+                        <li>
+                            <p><code>\n</code>&#8201;&#8212;&#8201;Newline</p>
+                        </li>
+                        <li>
+                            <p><code>\r</code>&#8201;&#8212;&#8201;CR</p>
+                        </li>
+                    </ul>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_n_tuples">N-tuples</h3>
+                <div class="paragraph">
+                    <p>N-tuples, also simply called &#8220;lists&#8221;, are primitive values that act as a container of
+                        zero or more values.
+                        The explicit list syntax uses <code>;</code> to separate the elements.
+                        List parsing has lower precedence than boolean operations as well as regular lists and function
+                        calls, which means that they usually have to be enclosed in parentheses.</p>
+                </div>
+                <div class="paragraph">
+                    <p><code>1;2;3;4</code>&#8201;&#8212;&#8201;A list consisting of 4 elements.
+                        <code>1 + 2 ; 3 + 4 ; 5</code>&#8201;&#8212;&#8201;a list consisting of the three values: <code>3</code>,
+                        <code>7</code>, and <code>5</code>.</p>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_short_circuiting_boolean_operations">Short-circuiting boolean operations</h3>
+                <div class="paragraph">
+                    <p>The names <code>and</code> and <code>or</code> are short-circuiting functions that act on the
+                        arguments true/false property.
+                        For the purposes of these functions, the numeric value <code>0</code> is considered false, and
+                        any other value is true.</p>
+                </div>
+                <div class="paragraph">
+                    <p><code>io:println 2 and io:println 3</code>&#8201;&#8212;&#8201;Evaluates to <code>3</code>, and
+                        will print both <code>2</code> and <code>3</code>.
+                        <code>io:println 1 or io:println 0</code>&#8201;&#8212;&#8201;Evaluates to <code>1</code>, and
+                        will not print <code>0</code>.</p>
+                </div>
+                <div class="paragraph">
+                    <p>Note that <code>and</code> and <code>or</code> has higher precendece than lists, but lower than
+                        regular lists and function calls.</p>
+                </div>
             </div>
         </div>
     </div>
@@ -2252,6 +2417,12 @@
                     <div class="paragraph">
                         <p><code>8-1</code> &#8658; <code>7</code></p>
                     </div>
+                    <div class="paragraph">
+                        <p>Subtracting a character from another character will return the difference between taking the
+                            Unicode codepoint into consideration. The most useful use of this is to subtract the nul
+                            symbol, <code>@\0</code>, from a character to obtain the Unicode codepoint as an integer:
+                            <code>@a - @\0</code> returns 97.</p>
+                    </div>
                 </div>
             </div>
             <div class="sect2">
@@ -2295,7 +2466,8 @@
                 <div class="sect3">
                     <h4 id="_monadic_magnitude">Monadic: Magnitude</h4>
                     <div class="paragraph">
-                        <p>Returns the magnitude of the argument. For real numbers, this is simply the absolute value.
+                        <p>Returns the magnitude of the argument.
+                            For real numbers, this is simply the absolute value.
                             For complex numbers, it&#8217;s the length of the vector from the origin to the value.</p>
                     </div>
                     <div class="paragraph">
@@ -2306,8 +2478,9 @@
                 <div class="sect3">
                     <h4 id="_dyadic_modulo">Dyadic: Modulo</h4>
                     <div class="paragraph">
-                        <p>Returns the value of <code>B</code> mod <code>A</code>. Note that the order of the arguments
-                            is reversed compared to the similar function in most programming languages.</p>
+                        <p>Returns the value of <code>B</code> mod <code>A</code>.
+                            Note that the order of the arguments is reversed compared to the similar function in most
+                            programming languages.</p>
                     </div>
                     <div class="paragraph">
                         <p><strong>TODO:</strong> Describe the behaviour of complex mod</p>
@@ -2533,6 +2706,24 @@
                     </div>
                 </div>
             </div>
+            <div class="sect2">
+                <h3 id="_floorc_complex_floor"><code>floorc</code>: Complex floor</h3>
+                <div class="sect3">
+                    <h4 id="_monadic_complex_floor">Monadic: Complex floor</h4>
+                    <div class="paragraph">
+                        <p>Computes the complex floor of the argument.</p>
+                    </div>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_ceilcc_complex_ceiling"><code>ceilcc</code>: Complex ceiling</h3>
+                <div class="sect3">
+                    <h4 id="_monadic_complex_ceiling">Monadic: Complex ceiling</h4>
+                    <div class="paragraph">
+                        <p>Computes the complex ceiling of the argument.</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
     <div class="sect1">
@@ -2660,10 +2851,96 @@
             </div>
         </div>
     </div>
+    <div class="sect1">
+        <h2 id="_map_functions">Map functions</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p>The functions in this section are used to create, access and update map objects.
+                    Maps are immutable, and any function that modifies the content returns a new objects with the
+                    changes applied while the original object remains unchanged.</p>
+            </div>
+            <div class="sect2">
+                <h3 id="_map_create_a_map"><code>map</code>: Create a map</h3>
+                <div class="paragraph">
+                    <p>This function is called monadically with the initial content as argument.
+                        The argument can either be a single-dimensional array with an even number of elements, or a
+                        two-dimension array with 2 columns.
+                        In both cases, the key/value pairs are specified in an row-major interleaved form.</p>
+                </div>
+                <div class="paragraph">
+                    <p><code>map :foo 1 :bar 5</code>&#8201;&#8212;&#8201;create a map with two elements</p>
+                </div>
+                <div class="paragraph">
+                    <p><code>map 4 2 ⍴ "key0" (1 2 3 4) "key1" "Some value" "key2" (2 2 ⍴ 1 2 3 4) "key3" "Abc"</code>&#8201;&#8212;&#8201;create
+                        a map with 4 elements</p>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_mapget_read_a_value_from_a_map"><code>mapGet</code>: Read a value from a map</h3>
+                <div class="paragraph">
+                    <p>This function is called monadically with <code>A</code> being the map and <code>B</code> being
+                        the key.
+                        The corresponding value is returned, or <code>⍬</code> if the key was not found in the map.</p>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_mapput_update_a_map"><code>mapPut</code>: Update a map</h3>
+                <div class="paragraph">
+                    <p>This function is used to update a map.
+                        It&#8217;s called dyadically with <code>A</code> being the map, and <code>B</code> being a
+                        key/value definition as described in the documentation for <code>map</code>.
+                        This function returns the updated map.</p>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_mapremove_remove_elements_from_a_map"><code>mapRemove</code>: Remove elements from a map</h3>
+                <div class="paragraph">
+                    <p>This function removes keys from a map. <code>A</code> is the map to update, and <code>B</code> is
+                        an array consisting of a list of keys to remove.
+                        This function returns the updated map.</p>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_maptoarray_convert_a_map_to_an_array"><code>mapToArray</code>: Convert a map to an array</h3>
+                <div class="paragraph">
+                    <p>This function is called monadically with a map as argument.
+                        It returns a two dimensional array with two columns, where the first column is the keys and the
+                        second column the values.</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre>    m ← map "foo" 10 "bar" 20 "abcde" (1 2 3)
+    mapToArray m
+┌→──────────────┐
+↓  "bar"      20│
+│  "foo"      10│
+│"abcde" ┌→────┐│
+│        │1 2 3││
+│        └─────┘│
+└───────────────┘</pre>
+                    </div>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_mapsize_return_the_size_of_a_map"><code>mapSize</code>: Return the size of a map</h3>
+                <div class="paragraph">
+                    <p>This function si called monadically with a map as it argument.
+                        It returns the number of elements in the map.</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre>    m ← map :a 11 :b 94 :c 4050 :d 91756
+    mapSize m
+4</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
 <div id="footer">
     <div id="footer-text">
-        Last updated 2023-08-11 22:23:55 +0800
+        Last updated 2023-08-12 02:23:22 +0800
     </div>
 </div>
 </body>

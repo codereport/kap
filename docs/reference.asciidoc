@@ -16,7 +16,7 @@ When describing arguments to dyadic calls, the left argument is referred to as `
 
 Kap supports the following datatypes:
 
-- Integer: `1234`, `¯456`
+- Integer: `1234`, `¯456`, `0x12` (the `0x` prefix indicates the value is specified in hex)
 - Floating point: `1.234`, `¯0.001`
 - Rational: The result of dividing two integers: `(2÷7)`
 - Complex: `1j7`, `2.8j1.2`.
@@ -67,8 +67,8 @@ List parsing has lower precedence than boolean operations as well as regular lis
 The names `and` and `or` are short-circuiting functions that act on the arguments true/false property.
 For the purposes of these functions, the numeric value `0` is considered false, and any other value is true.
 
-`2 and 3` -- Evaluates to `3`, and will not evaluate `3`.
-`0 or 1` -- Evaluates to `1`.
+`io:println 2 and io:println 3` -- Evaluates to `3`, and will print both `2` and `3`.
+`io:println 1 or io:println 0` -- Evaluates to `1`, and will not print `0`.
 
 Note that `and` and `or` has higher precendece than lists, but lower than regular lists and function calls.
 
@@ -126,6 +126,9 @@ Negate the argument.
 Subtract `B` from `A`.
 
 `8-1` => `7`
+
+Subtracting a character from another character will return the difference between taking the Unicode codepoint into consideration.
+The most useful use of this is to subtract the nul symbol, `@\0`, from a character to obtain the Unicode codepoint as an integer: `@a - @\0` returns 97.
 
 === `×`: Multiply/angle
 
