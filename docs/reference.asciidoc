@@ -1,0 +1,314 @@
+= Kap reference
+:experimental:
+
+:toc:
+
+== Introduction
+
+The following document intends to list all functions and operators available in Kap.
+The list is currently incomplete.
+
+When describing arguments to dyadic calls, the left argument is referred to as `A` and the right argument as `B`.
+
+== Scalar functions
+
+All scalar functions are evaluated in the same way.
+For monadic invocations, the return value has the same shape as the argument, with the function being recursively applied to any non-primitive element in the input array.
+
+For dyadic invocations, both arguments must have the same dimensions, or at least one of the arguments must be a scalar.
+If the arguments have matching dimensions, the operation is applied pairwise.
+If one of the arguments is a scalar, that scalar is applied together with each element in the other argument.
+
+When performing scalar operation between different numeric types, the standard conversion rules apply, unless documented to do something different.
+The rules are iterated from top to bottom, stopping after the first match:
+
+- Any argument is complex - Complex
+- Any argument is floating point - Floating point
+- Any argument is rational - Rational
+- Both arguments are integer - integer
+- Both arguments are character - Character
+- Raise an error
+
+=== `+`: Add/Conjugate
+
+==== Monadic
+
+When called monadically, `+` performs the complex conjugate operation.
+This operation reverses the sign of the imaginary part.
+For real numbers, the operation simply returns the argument.
+
+`+2` => `2`
+
+==== Dyadic
+
+When called dyadically, this function adds the two arguments.
+If one of the arguments is a character, the other argument must be a real number which is truncated to an integer and added to the Unicode value of the character, returning a new character.
+
+`1+4` => `5` +
+`0.0+5` => `5.0` +
+`1j2 + 6j7` => `7.0J9.0` +
+`@f + 1` => `@g`
+
+=== `-`: Subtract/negate
+
+==== Monadic
+
+Negate the argument.
+
+`-2` => `¯2` +
+`-(¯2)` => `2` +
+`-4j9` => `-4.0J-9.0`
+
+==== Dyadic
+
+Subtract `B` from `A`.
+
+`8-1` => `7`
+
+=== `×`: Multiply/angle
+
+==== Monadic
+
+For real values, return the values 1, 0 or -1 if the argument is positive, zero or negative respectively.
+For complex arguments, return the angle of the point in complex space relative to the point at 0, or 0 if the value is at 0.
+
+`×2` => `1`
+
+==== Dyadic
+
+Multiply `A` with `B`.
+
+=== `÷`: Divide/reciprocal
+
+==== Monadic
+
+Return the reciprocal of the argument.
+
+==== Dyadic
+
+Divide `A` with `B`.
+
+=== `⋆`: Power
+
+==== Monadic
+
+Return e to the power of the argument.
+
+==== Dyadic
+
+Return `A` to the power of `B`.
+
+=== `⍟`: Log
+
+==== Monadic (natural logarithm)
+
+Return log(A).
+
+==== Dyadic (log base A)
+
+Return the base `A` logarithm of `B`.
+
+=== `=`: Equals
+
+==== Dyadic
+
+Return 1 if `A` and `B` are equal, otherwise return 0.
+
+Note that this function a scalar function, meaning that arrays are compared element-wise.
+To compare arrays for equality, use `≡`.
+
+`10=10` => `1` +
+`10=11` => `0` +
+`1 2 3 = 1 3 4` => `1 0 0`
+
+=== `≠`: Not equals
+
+==== Dyadic
+
+Return 1 if `A` and `B` are not equal, otherwise return 0.
+
+Note that this function a scalar function, meaning that arrays are compared element-wise.
+To compare arrays , use `≢`.
+
+`10≠11` => `1` +
+`3 3 4 4 ≠ 4 4 4 3` => `0 0 1 0`
+
+=== `<`: Less than/increase rank
+
+==== Monadic
+
+When called monadically, this function performs the non-scalar operation "increase rank".
+This function resizes the argument to a new array with a new dimension of size 1 added as an initial dimension.
+
+The functionality is equivalent to `(1,⍴A) ⍴ A`
+
+==== Dyadic
+
+Return 1 if `A` is less than `B`.
+
+Note that this function a scalar function, meaning that arrays are compared element-wise.
+To compare arrays, use `cmp`.
+
+=== `>`: Greater than/decrease rank
+
+==== Monadic
+
+When called monadically, this function performs the non-scalar operation "decrease rank".
+This function removes the major axis from the argument, and resizes the next axis to be the size of the first two axes multiplied together.
+
+In other words, this function performs the following operation: `((×/2↑⍴A),2↓⍴A) ⍴ A` for arrays of 2 or more dimensions.
+When called on arrays of 1 or 0 dimensions, this function returns its argument.
+
+==== Dyadic
+
+Return 1 if `A` is less than `B`.
+
+Note that this function a scalar function, meaning that arrays are compared element-wise.
+To compare arrays, use `cmp`.
+
+=== `≤`: Less than or equal
+
+==== Dyadic
+
+Return 1 if `A` is less than or equal to `B`.
+
+Note that this function a scalar function, meaning that arrays are compared element-wise.
+To compare arrays, use `cmp`.
+
+=== `≥`: Greater than or equal
+
+==== Dyadic
+
+Return 1 if `A` is greater than or equal to `B`.
+
+Note that this function a scalar function, meaning that arrays are compared element-wise.
+To compare arrays, use `cmp`.
+
+=== `∧`: Logical and
+
+==== Dyadic
+
+Returns 1 if `A` and `B` are 1. If the arguments are not 0 or 1, raise an error.
+
+`0∧1` => `0` +
+`1∧0 1 0 0` => `0 1 0 0` +
+`1∧@a` => Error: Invalid type +
+`0∧3` => Error: Only 0 and 1 are allowed arguments
+
+*Compatibility note:* APL uses ∧ to represent the least common multiple (LCM) operation.
+This function is available in Kap as `math:lcm`.
+
+=== `∨`: Logical or
+
+==== Dyadic
+
+Returns 1 if either `A` or `B` are 1. If the arguments are not 0 or 1, raise an error.
+
+`0∨0` => `0` +
+`1∨1` => `1`
+
+*Compatibility note:* APL uses ∨ to represent the greatest common divisor (GCD) operation.
+This function is available in Kap as `math:gcd`.
+
+=== `⍲`: Logical nand
+
+==== Dyadic
+
+Returns 0 if `A` and `B` are 1, otherwise return 1. This function is equivalent to `~A∧B`.
+
+=== `⍱`: Logical nor
+
+==== Dyadic
+
+Returns 0 if either `A` or `B` are 1, otherwise return 1. This function is equivalent to `~A∨B`.
+
+=== `√`: Square root
+
+==== Monadic
+
+Computes the square root of the argument.
+
+==== Dyadic
+
+Computes the `A` root of `B`.
+
+== Math functions (namespace `math`)
+
+=== `math:sin`: Sine
+
+==== Monadic
+
+Compute the sine of the argument
+
+=== `math:cos`: Cosine
+
+==== Monadic
+
+Compute the sine of the argument
+
+=== `math:tan`: Tangent
+
+==== Monadic
+
+Compute the tangent of the argument.
+
+=== `math:asin`: Arcsin
+
+==== Monadic
+
+Compute the arcsin of the argument
+
+=== `math:acos`: Arccos
+
+==== Monadic
+
+Compute the arccos of the argument
+
+=== `math:atan`: Arctan
+
+==== Monadic
+
+Compute the arctan of the argument.
+
+=== `math:gcd`: GCD
+
+==== Dyadic
+
+Compute the greatest common divisor of `A` and `B`.
+
+=== `math:lcm`: LCM
+
+==== Dyadic
+
+Compute the least common multiple of `A` and `B`.
+
+=== `math:numerator`: Numerator
+
+==== Monadic
+
+Returns the numerator of a rational number.
+Raises an error if the argument is a floating point or complex.
+
+=== `math:denominator`: Denominator
+
+==== Monadic
+
+Returns the denominator of a rational number.
+Raises an error if the argument is a floating point or complex.
+
+== Operators
+
+=== `¨`: For each
+
+The given function is applied to the arguments and returns an array of the same shape as the input.
+
+Assuming `A` is a function:
+
+`A¨ 1 2 3` is equivalent to `(A 1) (A 2) (A 3)`
+
+`10 20 30 A¨ 1 2 2` is equivalent to: `(10 A 1) (20 A 2) (30 A 3)`.
+
+*Lazy behaviour:* The result of `¨` is a lazy array.
+The function will only be called when the underlying value is retrieved.
+Note that the result is not cached, so if a result is retrieved more than once, the function will be called once for each time the value is read.
+If multiple reads are expected it is recommended to collapse the array prior to reading it.
