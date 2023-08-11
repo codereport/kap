@@ -1,6 +1,0 @@
-site:
-  #  baseUrl: https://kap.dhsdevelopments.com/
-  theme: 'Editorial'
-
-allPages:
-  layout: single

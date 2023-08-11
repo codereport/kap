@@ -31,7 +31,7 @@ The rules are iterated from top to bottom, stopping after the first match:
 
 === `+`: Add/Conjugate
 
-==== Monadic
+==== Monadic: Conjugate
 
 When called monadically, `+` performs the complex conjugate operation.
 This operation reverses the sign of the imaginary part.
@@ -39,7 +39,7 @@ For real numbers, the operation simply returns the argument.
 
 `+2` => `2`
 
-==== Dyadic
+==== Dyadic: Add
 
 When called dyadically, this function adds the two arguments.
 If one of the arguments is a character, the other argument must be a real number which is truncated to an integer and added to the Unicode value of the character, returning a new character.
@@ -51,7 +51,7 @@ If one of the arguments is a character, the other argument must be a real number
 
 === `-`: Subtract/negate
 
-==== Monadic
+==== Monadic: Negate
 
 Negate the argument.
 
@@ -59,7 +59,7 @@ Negate the argument.
 `-(¯2)` => `2` +
 `-4j9` => `-4.0J-9.0`
 
-==== Dyadic
+==== Dyadic: Subtract
 
 Subtract `B` from `A`.
 
@@ -67,50 +67,70 @@ Subtract `B` from `A`.
 
 === `×`: Multiply/angle
 
-==== Monadic
+==== Monadic: Angle
 
 For real values, return the values 1, 0 or -1 if the argument is positive, zero or negative respectively.
 For complex arguments, return the angle of the point in complex space relative to the point at 0, or 0 if the value is at 0.
 
 `×2` => `1`
 
-==== Dyadic
+==== Dyadic: Multiply
 
 Multiply `A` with `B`.
 
 === `÷`: Divide/reciprocal
 
-==== Monadic
+==== Monadic: Reciprocal
 
 Return the reciprocal of the argument.
 
-==== Dyadic
+==== Dyadic: Divide
 
 Divide `A` with `B`.
 
+=== `|`: Mod/magnitude
+
+==== Monadic: Magnitude
+
+Returns the magnitude of the argument.
+For real numbers, this is simply the absolute value.
+For complex numbers, it's the length of the vector from the origin to the value.
+
+`|3` => `3` +
+`|¯4` => `4`
+
+==== Dyadic: Modulo
+
+Returns the value of `B` mod `A`.
+Note that the order of the arguments is reversed compared to the similar function in most programming languages.
+
+*TODO:* Describe the behaviour of complex mod
+
+`2|5` => `1`
+
 === `⋆`: Power
 
-==== Monadic
+==== Monadic: Power
 
 Return e to the power of the argument.
 
-==== Dyadic
+==== Dyadic: Power with base
 
 Return `A` to the power of `B`.
 
 === `⍟`: Log
 
-==== Monadic (natural logarithm)
+==== Monadic: Natural logarithm
 
 Return log(A).
 
-==== Dyadic (log base A)
+==== Dyadic: Log base A
 
 Return the base `A` logarithm of `B`.
 
 === `=`: Equals
 
-==== Dyadic
+==== Dyadic: Equals
 
 Return 1 if `A` and `B` are equal, otherwise return 0.
 
@@ -123,7 +143,7 @@ To compare arrays for equality, use `≡`.
 
 === `≠`: Not equals
 
-==== Dyadic
+==== Dyadic: Not equals
 
 Return 1 if `A` and `B` are not equal, otherwise return 0.
 
@@ -135,14 +155,14 @@ To compare arrays , use `≢`.
 
 === `<`: Less than/increase rank
 
-==== Monadic
+==== Monadic: Increase rank
 
 When called monadically, this function performs the non-scalar operation "increase rank".
 This function resizes the argument to a new array with a new dimension of size 1 added as an initial dimension.
 
 The functionality is equivalent to `(1,⍴A) ⍴ A`
 
-==== Dyadic
+==== Dyadic: Less than
 
 Return 1 if `A` is less than `B`.
 
@@ -151,7 +171,7 @@ To compare arrays, use `cmp`.
 
 === `>`: Greater than/decrease rank
 
-==== Monadic
+==== Monadic: Increase rank
 
 When called monadically, this function performs the non-scalar operation "decrease rank".
 This function removes the major axis from the argument, and resizes the next axis to be the size of the first two axes multiplied together.
@@ -159,7 +179,7 @@ This function removes the major axis from the argument, and resizes the next axi
 In other words, this function performs the following operation: `((×/2↑⍴A),2↓⍴A) ⍴ A` for arrays of 2 or more dimensions.
 When called on arrays of 1 or 0 dimensions, this function returns its argument.
 
-==== Dyadic
+==== Dyadic: Greater than
 
 Return 1 if `A` is less than `B`.
 
@@ -168,7 +188,7 @@ To compare arrays, use `cmp`.
 
 === `≤`: Less than or equal
 
-==== Dyadic
+==== Dyadic: Less than or equal
 
 Return 1 if `A` is less than or equal to `B`.
 
@@ -177,7 +197,7 @@ To compare arrays, use `cmp`.
 
 === `≥`: Greater than or equal
 
-==== Dyadic
+==== Dyadic: Greater than or equal
 
 Return 1 if `A` is greater than or equal to `B`.
 
@@ -186,7 +206,7 @@ To compare arrays, use `cmp`.
 
 === `∧`: Logical and
 
-==== Dyadic
+==== Dyadic: Logical and
 
 Returns 1 if `A` and `B` are 1. If the arguments are not 0 or 1, raise an error.
 
@@ -200,7 +220,7 @@ This function is available in Kap as `math:lcm`.
 
 === `∨`: Logical or
 
-==== Dyadic
+==== Dyadic: Logical or
 
 Returns 1 if either `A` or `B` are 1. If the arguments are not 0 or 1, raise an error.
 
@@ -212,23 +232,23 @@ This function is available in Kap as `math:gcd`.
 
 === `⍲`: Logical nand
 
-==== Dyadic
+==== Dyadic: Logical nand
 
 Returns 0 if `A` and `B` are 1, otherwise return 1. This function is equivalent to `~A∧B`.
 
 === `⍱`: Logical nor
 
-==== Dyadic
+==== Dyadic: Logical nor
 
 Returns 0 if either `A` or `B` are 1, otherwise return 1. This function is equivalent to `~A∨B`.
 
 === `√`: Square root
 
-==== Monadic
+==== Monadic: Square root
 
 Computes the square root of the argument.
 
-==== Dyadic
+==== Dyadic: Root of base
 
 Computes the `A` root of `B`.
 
@@ -236,62 +256,62 @@ Computes the `A` root of `B`.
 
 === `math:sin`: Sine
 
-==== Monadic
+==== Monadic: Sine
 
 Compute the sine of the argument
 
 === `math:cos`: Cosine
 
-==== Monadic
+==== Monadic: Cosine
 
 Compute the sine of the argument
 
 === `math:tan`: Tangent
 
-==== Monadic
+==== Monadic: Tangent
 
 Compute the tangent of the argument.
 
 === `math:asin`: Arcsin
 
-==== Monadic
+==== Monadic: Arcsin
 
 Compute the arcsin of the argument
 
 === `math:acos`: Arccos
 
-==== Monadic
+==== Monadic: Arccos
 
 Compute the arccos of the argument
 
 === `math:atan`: Arctan
 
-==== Monadic
+==== Monadic: Arctan
 
 Compute the arctan of the argument.
 
 === `math:gcd`: GCD
 
-==== Dyadic
+==== Dyadic: GCD
 
 Compute the greatest common divisor of `A` and `B`.
 
 === `math:lcm`: LCM
 
-==== Dyadic
+==== Dyadic: LCM
 
 Compute the least common multiple of `A` and `B`.
 
 === `math:numerator`: Numerator
 
-==== Monadic
+==== Monadic: Numerator
 
 Returns the numerator of a rational number.
 Raises an error if the argument is a floating point or complex.
 
 === `math:denominator`: Denominator
 
-==== Monadic
+==== Monadic: Denominator
 
 Returns the denominator of a rational number.
 Raises an error if the argument is a floating point or complex.

@@ -1,9 +1,0 @@
-= KAP
-
-Array language based on APL.
-
-== Documentation
-
-The language is described here.
-
-Link: [gui]

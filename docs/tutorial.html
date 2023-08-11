@@ -1,0 +1,4731 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="generator" content="Asciidoctor 2.0.20">
+    <title>KAP Tutorial</title>
+    <link rel="stylesheet"
+          href="https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700">
+    <style>
+        /*! Asciidoctor default stylesheet | MIT License | https://asciidoctor.org */
+        /* Uncomment the following line when using as a custom stylesheet */
+        /* @import "https://fonts.googleapis.com/css?family=Open+Sans:300,300italic,400,400italic,600,600italic%7CNoto+Serif:400,400italic,700,700italic%7CDroid+Sans+Mono:400,700"; */
+        html {
+            font-family: sans-serif;
+            -webkit-text-size-adjust: 100%
+        }
+
+        a {
+            background: none
+        }
+
+        a:focus {
+            outline: thin dotted
+        }
+
+        a:active, a:hover {
+            outline: 0
+        }
+
+        h1 {
+            font-size: 2em;
+            margin: .67em 0
+        }
+
+        b, strong {
+            font-weight: bold
+        }
+
+        abbr {
+            font-size: .9em
+        }
+
+        abbr[title] {
+            cursor: help;
+            border-bottom: 1px dotted #dddddf;
+            text-decoration: none
+        }
+
+        dfn {
+            font-style: italic
+        }
+
+        hr {
+            height: 0
+        }
+
+        mark {
+            background: #ff0;
+            color: #000
+        }
+
+        code, kbd, pre, samp {
+            font-family: monospace;
+            font-size: 1em
+        }
+
+        pre {
+            white-space: pre-wrap
+        }
+
+        q {
+            quotes: "\201C" "\201D" "\2018" "\2019"
+        }
+
+        small {
+            font-size: 80%
+        }
+
+        sub, sup {
+            font-size: 75%;
+            line-height: 0;
+            position: relative;
+            vertical-align: baseline
+        }
+
+        sup {
+            top: -.5em
+        }
+
+        sub {
+            bottom: -.25em
+        }
+
+        img {
+            border: 0
+        }
+
+        svg:not(:root) {
+            overflow: hidden
+        }
+
+        figure {
+            margin: 0
+        }
+
+        audio, video {
+            display: inline-block
+        }
+
+        audio:not([controls]) {
+            display: none;
+            height: 0
+        }
+
+        fieldset {
+            border: 1px solid silver;
+            margin: 0 2px;
+            padding: .35em .625em .75em
+        }
+
+        legend {
+            border: 0;
+            padding: 0
+        }
+
+        button, input, select, textarea {
+            font-family: inherit;
+            font-size: 100%;
+            margin: 0
+        }
+
+        button, input {
+            line-height: normal
+        }
+
+        button, select {
+            text-transform: none
+        }
+
+        button, html input[type=button], input[type=reset], input[type=submit] {
+            -webkit-appearance: button;
+            cursor: pointer
+        }
+
+        button[disabled], html input[disabled] {
+            cursor: default
+        }
+
+        input[type=checkbox], input[type=radio] {
+            padding: 0
+        }
+
+        button::-moz-focus-inner, input::-moz-focus-inner {
+            border: 0;
+            padding: 0
+        }
+
+        textarea {
+            overflow: auto;
+            vertical-align: top
+        }
+
+        table {
+            border-collapse: collapse;
+            border-spacing: 0
+        }
+
+        *, ::before, ::after {
+            box-sizing: border-box
+        }
+
+        html, body {
+            font-size: 100%
+        }
+
+        body {
+            background: #fff;
+            color: rgba(0, 0, 0, .8);
+            padding: 0;
+            margin: 0;
+            font-family: "Noto Serif", "DejaVu Serif", serif;
+            line-height: 1;
+            position: relative;
+            cursor: auto;
+            -moz-tab-size: 4;
+            -o-tab-size: 4;
+            tab-size: 4;
+            word-wrap: anywhere;
+            -moz-osx-font-smoothing: grayscale;
+            -webkit-font-smoothing: antialiased
+        }
+
+        a:hover {
+            cursor: pointer
+        }
+
+        img, object, embed {
+            max-width: 100%;
+            height: auto
+        }
+
+        object, embed {
+            height: 100%
+        }
+
+        img {
+            -ms-interpolation-mode: bicubic
+        }
+
+        .left {
+            float: left !important
+        }
+
+        .right {
+            float: right !important
+        }
+
+        .text-left {
+            text-align: left !important
+        }
+
+        .text-right {
+            text-align: right !important
+        }
+
+        .text-center {
+            text-align: center !important
+        }
+
+        .text-justify {
+            text-align: justify !important
+        }
+
+        .hide {
+            display: none
+        }
+
+        img, object, svg {
+            display: inline-block;
+            vertical-align: middle
+        }
+
+        textarea {
+            height: auto;
+            min-height: 50px
+        }
+
+        select {
+            width: 100%
+        }
+
+        .subheader, .admonitionblock td.content > .title, .audioblock > .title, .exampleblock > .title, .imageblock > .title, .listingblock > .title, .literalblock > .title, .stemblock > .title, .openblock > .title, .paragraph > .title, .quoteblock > .title, table.tableblock > .title, .verseblock > .title, .videoblock > .title, .dlist > .title, .olist > .title, .ulist > .title, .qlist > .title, .hdlist > .title {
+            line-height: 1.45;
+            color: #7a2518;
+            font-weight: 400;
+            margin-top: 0;
+            margin-bottom: .25em
+        }
+
+        div, dl, dt, dd, ul, ol, li, h1, h2, h3, #toctitle, .sidebarblock > .content > .title, h4, h5, h6, pre, form, p, blockquote, th, td {
+            margin: 0;
+            padding: 0
+        }
+
+        a {
+            color: #2156a5;
+            text-decoration: underline;
+            line-height: inherit
+        }
+
+        a:hover, a:focus {
+            color: #1d4b8f
+        }
+
+        a img {
+            border: 0
+        }
+
+        p {
+            line-height: 1.6;
+            margin-bottom: 1.25em;
+            text-rendering: optimizeLegibility
+        }
+
+        p aside {
+            font-size: .875em;
+            line-height: 1.35;
+            font-style: italic
+        }
+
+        h1, h2, h3, #toctitle, .sidebarblock > .content > .title, h4, h5, h6 {
+            font-family: "Open Sans", "DejaVu Sans", sans-serif;
+            font-weight: 300;
+            font-style: normal;
+            color: #ba3925;
+            text-rendering: optimizeLegibility;
+            margin-top: 1em;
+            margin-bottom: .5em;
+            line-height: 1.0125em
+        }
+
+        h1 small, h2 small, h3 small, #toctitle small, .sidebarblock > .content > .title small, h4 small, h5 small, h6 small {
+            font-size: 60%;
+            color: #e99b8f;
+            line-height: 0
+        }
+
+        h1 {
+            font-size: 2.125em
+        }
+
+        h2 {
+            font-size: 1.6875em
+        }
+
+        h3, #toctitle, .sidebarblock > .content > .title {
+            font-size: 1.375em
+        }
+
+        h4, h5 {
+            font-size: 1.125em
+        }
+
+        h6 {
+            font-size: 1em
+        }
+
+        hr {
+            border: solid #dddddf;
+            border-width: 1px 0 0;
+            clear: both;
+            margin: 1.25em 0 1.1875em
+        }
+
+        em, i {
+            font-style: italic;
+            line-height: inherit
+        }
+
+        strong, b {
+            font-weight: bold;
+            line-height: inherit
+        }
+
+        small {
+            font-size: 60%;
+            line-height: inherit
+        }
+
+        code {
+            font-family: "Droid Sans Mono", "DejaVu Sans Mono", monospace;
+            font-weight: 400;
+            color: rgba(0, 0, 0, .9)
+        }
+
+        ul, ol, dl {
+            line-height: 1.6;
+            margin-bottom: 1.25em;
+            list-style-position: outside;
+            font-family: inherit
+        }
+
+        ul, ol {
+            margin-left: 1.5em
+        }
+
+        ul li ul, ul li ol {
+            margin-left: 1.25em;
+            margin-bottom: 0
+        }
+
+        ul.circle {
+            list-style-type: circle
+        }
+
+        ul.disc {
+            list-style-type: disc
+        }
+
+        ul.square {
+            list-style-type: square
+        }
+
+        ul.circle ul:not([class]), ul.disc ul:not([class]), ul.square ul:not([class]) {
+            list-style: inherit
+        }
+
+        ol li ul, ol li ol {
+            margin-left: 1.25em;
+            margin-bottom: 0
+        }
+
+        dl dt {
+            margin-bottom: .3125em;
+            font-weight: bold
+        }
+
+        dl dd {
+            margin-bottom: 1.25em
+        }
+
+        blockquote {
+            margin: 0 0 1.25em;
+            padding: .5625em 1.25em 0 1.1875em;
+            border-left: 1px solid #ddd
+        }
+
+        blockquote, blockquote p {
+            line-height: 1.6;
+            color: rgba(0, 0, 0, .85)
+        }
+
+        @media screen and (min-width: 768px) {
+            h1, h2, h3, #toctitle, .sidebarblock > .content > .title, h4, h5, h6 {
+                line-height: 1.2
+            }
+
+            h1 {
+                font-size: 2.75em
+            }
+
+            h2 {
+                font-size: 2.3125em
+            }
+
+            h3, #toctitle, .sidebarblock > .content > .title {
+                font-size: 1.6875em
+            }
+
+            h4 {
+                font-size: 1.4375em
+            }
+        }
+
+        table {
+            background: #fff;
+            margin-bottom: 1.25em;
+            border: 1px solid #dedede;
+            word-wrap: normal
+        }
+
+        table thead, table tfoot {
+            background: #f7f8f7
+        }
+
+        table thead tr th, table thead tr td, table tfoot tr th, table tfoot tr td {
+            padding: .5em .625em .625em;
+            font-size: inherit;
+            color: rgba(0, 0, 0, .8);
+            text-align: left
+        }
+
+        table tr th, table tr td {
+            padding: .5625em .625em;
+            font-size: inherit;
+            color: rgba(0, 0, 0, .8)
+        }
+
+        table tr.even, table tr.alt {
+            background: #f8f8f7
+        }
+
+        table thead tr th, table tfoot tr th, table tbody tr td, table tr td, table tfoot tr td {
+            line-height: 1.6
+        }
+
+        h1, h2, h3, #toctitle, .sidebarblock > .content > .title, h4, h5, h6 {
+            line-height: 1.2;
+            word-spacing: -.05em
+        }
+
+        h1 strong, h2 strong, h3 strong, #toctitle strong, .sidebarblock > .content > .title strong, h4 strong, h5 strong, h6 strong {
+            font-weight: 400
+        }
+
+        .center {
+            margin-left: auto;
+            margin-right: auto
+        }
+
+        .stretch {
+            width: 100%
+        }
+
+        .clearfix::before, .clearfix::after, .float-group::before, .float-group::after {
+            content: " ";
+            display: table
+        }
+
+        .clearfix::after, .float-group::after {
+            clear: both
+        }
+
+        :not(pre).nobreak {
+            word-wrap: normal
+        }
+
+        :not(pre).nowrap {
+            white-space: nowrap
+        }
+
+        :not(pre).pre-wrap {
+            white-space: pre-wrap
+        }
+
+        :not(pre):not([class^=L]) > code {
+            font-size: .9375em;
+            font-style: normal !important;
+            letter-spacing: 0;
+            padding: .1em .5ex;
+            word-spacing: -.15em;
+            background: #f7f7f8;
+            border-radius: 4px;
+            line-height: 1.45;
+            text-rendering: optimizeSpeed
+        }
+
+        pre {
+            color: rgba(0, 0, 0, .9);
+            font-family: "Droid Sans Mono", "DejaVu Sans Mono", monospace;
+            line-height: 1.45;
+            text-rendering: optimizeSpeed
+        }
+
+        pre code, pre pre {
+            color: inherit;
+            font-size: inherit;
+            line-height: inherit
+        }
+
+        pre > code {
+            display: block
+        }
+
+        pre.nowrap, pre.nowrap pre {
+            white-space: pre;
+            word-wrap: normal
+        }
+
+        em em {
+            font-style: normal
+        }
+
+        strong strong {
+            font-weight: 400
+        }
+
+        .keyseq {
+            color: rgba(51, 51, 51, .8)
+        }
+
+        kbd {
+            font-family: "Droid Sans Mono", "DejaVu Sans Mono", monospace;
+            display: inline-block;
+            color: rgba(0, 0, 0, .8);
+            font-size: .65em;
+            line-height: 1.45;
+            background: #f7f7f7;
+            border: 1px solid #ccc;
+            border-radius: 3px;
+            box-shadow: 0 1px 0 rgba(0, 0, 0, .2), inset 0 0 0 .1em #fff;
+            margin: 0 .15em;
+            padding: .2em .5em;
+            vertical-align: middle;
+            position: relative;
+            top: -.1em;
+            white-space: nowrap
+        }
+
+        .keyseq kbd:first-child {
+            margin-left: 0
+        }
+
+        .keyseq kbd:last-child {
+            margin-right: 0
+        }
+
+        .menuseq, .menuref {
+            color: #000
+        }
+
+        .menuseq b:not(.caret), .menuref {
+            font-weight: inherit
+        }
+
+        .menuseq {
+            word-spacing: -.02em
+        }
+
+        .menuseq b.caret {
+            font-size: 1.25em;
+            line-height: .8
+        }
+
+        .menuseq i.caret {
+            font-weight: bold;
+            text-align: center;
+            width: .45em
+        }
+
+        b.button::before, b.button::after {
+            position: relative;
+            top: -1px;
+            font-weight: 400
+        }
+
+        b.button::before {
+            content: "[";
+            padding: 0 3px 0 2px
+        }
+
+        b.button::after {
+            content: "]";
+            padding: 0 2px 0 3px
+        }
+
+        p a > code:hover {
+            color: rgba(0, 0, 0, .9)
+        }
+
+        #header, #content, #footnotes, #footer {
+            width: 100%;
+            margin: 0 auto;
+            max-width: 62.5em;
+            *zoom: 1;
+            position: relative;
+            padding-left: .9375em;
+            padding-right: .9375em
+        }
+
+        #header::before, #header::after, #content::before, #content::after, #footnotes::before, #footnotes::after, #footer::before, #footer::after {
+            content: " ";
+            display: table
+        }
+
+        #header::after, #content::after, #footnotes::after, #footer::after {
+            clear: both
+        }
+
+        #content {
+            margin-top: 1.25em
+        }
+
+        #content::before {
+            content: none
+        }
+
+        #header > h1:first-child {
+            color: rgba(0, 0, 0, .85);
+            margin-top: 2.25rem;
+            margin-bottom: 0
+        }
+
+        #header > h1:first-child + #toc {
+            margin-top: 8px;
+            border-top: 1px solid #dddddf
+        }
+
+        #header > h1:only-child, body.toc2 #header > h1:nth-last-child(2) {
+            border-bottom: 1px solid #dddddf;
+            padding-bottom: 8px
+        }
+
+        #header .details {
+            border-bottom: 1px solid #dddddf;
+            line-height: 1.45;
+            padding-top: .25em;
+            padding-bottom: .25em;
+            padding-left: .25em;
+            color: rgba(0, 0, 0, .6);
+            display: flex;
+            flex-flow: row wrap
+        }
+
+        #header .details span:first-child {
+            margin-left: -.125em
+        }
+
+        #header .details span.email a {
+            color: rgba(0, 0, 0, .85)
+        }
+
+        #header .details br {
+            display: none
+        }
+
+        #header .details br + span::before {
+            content: "\00a0\2013\00a0"
+        }
+
+        #header .details br + span.author::before {
+            content: "\00a0\22c5\00a0";
+            color: rgba(0, 0, 0, .85)
+        }
+
+        #header .details br + span#revremark::before {
+            content: "\00a0|\00a0"
+        }
+
+        #header #revnumber {
+            text-transform: capitalize
+        }
+
+        #header #revnumber::after {
+            content: "\00a0"
+        }
+
+        #content > h1:first-child:not([class]) {
+            color: rgba(0, 0, 0, .85);
+            border-bottom: 1px solid #dddddf;
+            padding-bottom: 8px;
+            margin-top: 0;
+            padding-top: 1rem;
+            margin-bottom: 1.25rem
+        }
+
+        #toc {
+            border-bottom: 1px solid #e7e7e9;
+            padding-bottom: .5em
+        }
+
+        #toc > ul {
+            margin-left: .125em
+        }
+
+        #toc ul.sectlevel0 > li > a {
+            font-style: italic
+        }
+
+        #toc ul.sectlevel0 ul.sectlevel1 {
+            margin: .5em 0
+        }
+
+        #toc ul {
+            font-family: "Open Sans", "DejaVu Sans", sans-serif;
+            list-style-type: none
+        }
+
+        #toc li {
+            line-height: 1.3334;
+            margin-top: .3334em
+        }
+
+        #toc a {
+            text-decoration: none
+        }
+
+        #toc a:active {
+            text-decoration: underline
+        }
+
+        #toctitle {
+            color: #7a2518;
+            font-size: 1.2em
+        }
+
+        @media screen and (min-width: 768px) {
+            #toctitle {
+                font-size: 1.375em
+            }
+
+            body.toc2 {
+                padding-left: 15em;
+                padding-right: 0
+            }
+
+            #toc.toc2 {
+                margin-top: 0 !important;
+                background: #f8f8f7;
+                position: fixed;
+                width: 15em;
+                left: 0;
+                top: 0;
+                border-right: 1px solid #e7e7e9;
+                border-top-width: 0 !important;
+                border-bottom-width: 0 !important;
+                z-index: 1000;
+                padding: 1.25em 1em;
+                height: 100%;
+                overflow: auto
+            }
+
+            #toc.toc2 #toctitle {
+                margin-top: 0;
+                margin-bottom: .8rem;
+                font-size: 1.2em
+            }
+
+            #toc.toc2 > ul {
+                font-size: .9em;
+                margin-bottom: 0
+            }
+
+            #toc.toc2 ul ul {
+                margin-left: 0;
+                padding-left: 1em
+            }
+
+            #toc.toc2 ul.sectlevel0 ul.sectlevel1 {
+                padding-left: 0;
+                margin-top: .5em;
+                margin-bottom: .5em
+            }
+
+            body.toc2.toc-right {
+                padding-left: 0;
+                padding-right: 15em
+            }
+
+            body.toc2.toc-right #toc.toc2 {
+                border-right-width: 0;
+                border-left: 1px solid #e7e7e9;
+                left: auto;
+                right: 0
+            }
+        }
+
+        @media screen and (min-width: 1280px) {
+            body.toc2 {
+                padding-left: 20em;
+                padding-right: 0
+            }
+
+            #toc.toc2 {
+                width: 20em
+            }
+
+            #toc.toc2 #toctitle {
+                font-size: 1.375em
+            }
+
+            #toc.toc2 > ul {
+                font-size: .95em
+            }
+
+            #toc.toc2 ul ul {
+                padding-left: 1.25em
+            }
+
+            body.toc2.toc-right {
+                padding-left: 0;
+                padding-right: 20em
+            }
+        }
+
+        #content #toc {
+            border: 1px solid #e0e0dc;
+            margin-bottom: 1.25em;
+            padding: 1.25em;
+            background: #f8f8f7;
+            border-radius: 4px
+        }
+
+        #content #toc > :first-child {
+            margin-top: 0
+        }
+
+        #content #toc > :last-child {
+            margin-bottom: 0
+        }
+
+        #footer {
+            max-width: none;
+            background: rgba(0, 0, 0, .8);
+            padding: 1.25em
+        }
+
+        #footer-text {
+            color: hsla(0, 0%, 100%, .8);
+            line-height: 1.44
+        }
+
+        #content {
+            margin-bottom: .625em
+        }
+
+        .sect1 {
+            padding-bottom: .625em
+        }
+
+        @media screen and (min-width: 768px) {
+            #content {
+                margin-bottom: 1.25em
+            }
+
+            .sect1 {
+                padding-bottom: 1.25em
+            }
+        }
+
+        .sect1:last-child {
+            padding-bottom: 0
+        }
+
+        .sect1 + .sect1 {
+            border-top: 1px solid #e7e7e9
+        }
+
+        #content h1 > a.anchor, h2 > a.anchor, h3 > a.anchor, #toctitle > a.anchor, .sidebarblock > .content > .title > a.anchor, h4 > a.anchor, h5 > a.anchor, h6 > a.anchor {
+            position: absolute;
+            z-index: 1001;
+            width: 1.5ex;
+            margin-left: -1.5ex;
+            display: block;
+            text-decoration: none !important;
+            visibility: hidden;
+            text-align: center;
+            font-weight: 400
+        }
+
+        #content h1 > a.anchor::before, h2 > a.anchor::before, h3 > a.anchor::before, #toctitle > a.anchor::before, .sidebarblock > .content > .title > a.anchor::before, h4 > a.anchor::before, h5 > a.anchor::before, h6 > a.anchor::before {
+            content: "\00A7";
+            font-size: .85em;
+            display: block;
+            padding-top: .1em
+        }
+
+        #content h1:hover > a.anchor, #content h1 > a.anchor:hover, h2:hover > a.anchor, h2 > a.anchor:hover, h3:hover > a.anchor, #toctitle:hover > a.anchor, .sidebarblock > .content > .title:hover > a.anchor, h3 > a.anchor:hover, #toctitle > a.anchor:hover, .sidebarblock > .content > .title > a.anchor:hover, h4:hover > a.anchor, h4 > a.anchor:hover, h5:hover > a.anchor, h5 > a.anchor:hover, h6:hover > a.anchor, h6 > a.anchor:hover {
+            visibility: visible
+        }
+
+        #content h1 > a.link, h2 > a.link, h3 > a.link, #toctitle > a.link, .sidebarblock > .content > .title > a.link, h4 > a.link, h5 > a.link, h6 > a.link {
+            color: #ba3925;
+            text-decoration: none
+        }
+
+        #content h1 > a.link:hover, h2 > a.link:hover, h3 > a.link:hover, #toctitle > a.link:hover, .sidebarblock > .content > .title > a.link:hover, h4 > a.link:hover, h5 > a.link:hover, h6 > a.link:hover {
+            color: #a53221
+        }
+
+        details, .audioblock, .imageblock, .literalblock, .listingblock, .stemblock, .videoblock {
+            margin-bottom: 1.25em
+        }
+
+        details {
+            margin-left: 1.25rem
+        }
+
+        details > summary {
+            cursor: pointer;
+            display: block;
+            position: relative;
+            line-height: 1.6;
+            margin-bottom: .625rem;
+            outline: none;
+            -webkit-tap-highlight-color: transparent
+        }
+
+        details > summary::-webkit-details-marker {
+            display: none
+        }
+
+        details > summary::before {
+            content: "";
+            border: solid transparent;
+            border-left: solid;
+            border-width: .3em 0 .3em .5em;
+            position: absolute;
+            top: .5em;
+            left: -1.25rem;
+            transform: translateX(15%)
+        }
+
+        details[open] > summary::before {
+            border: solid transparent;
+            border-top: solid;
+            border-width: .5em .3em 0;
+            transform: translateY(15%)
+        }
+
+        details > summary::after {
+            content: "";
+            width: 1.25rem;
+            height: 1em;
+            position: absolute;
+            top: .3em;
+            left: -1.25rem
+        }
+
+        .admonitionblock td.content > .title, .audioblock > .title, .exampleblock > .title, .imageblock > .title, .listingblock > .title, .literalblock > .title, .stemblock > .title, .openblock > .title, .paragraph > .title, .quoteblock > .title, table.tableblock > .title, .verseblock > .title, .videoblock > .title, .dlist > .title, .olist > .title, .ulist > .title, .qlist > .title, .hdlist > .title {
+            text-rendering: optimizeLegibility;
+            text-align: left;
+            font-family: "Noto Serif", "DejaVu Serif", serif;
+            font-size: 1rem;
+            font-style: italic
+        }
+
+        table.tableblock.fit-content > caption.title {
+            white-space: nowrap;
+            width: 0
+        }
+
+        .paragraph.lead > p, #preamble > .sectionbody > [class=paragraph]:first-of-type p {
+            font-size: 1.21875em;
+            line-height: 1.6;
+            color: rgba(0, 0, 0, .85)
+        }
+
+        .admonitionblock > table {
+            border-collapse: separate;
+            border: 0;
+            background: none;
+            width: 100%
+        }
+
+        .admonitionblock > table td.icon {
+            text-align: center;
+            width: 80px
+        }
+
+        .admonitionblock > table td.icon img {
+            max-width: none
+        }
+
+        .admonitionblock > table td.icon .title {
+            font-weight: bold;
+            font-family: "Open Sans", "DejaVu Sans", sans-serif;
+            text-transform: uppercase
+        }
+
+        .admonitionblock > table td.content {
+            padding-left: 1.125em;
+            padding-right: 1.25em;
+            border-left: 1px solid #dddddf;
+            color: rgba(0, 0, 0, .6);
+            word-wrap: anywhere
+        }
+
+        .admonitionblock > table td.content > :last-child > :last-child {
+            margin-bottom: 0
+        }
+
+        .exampleblock > .content {
+            border: 1px solid #e6e6e6;
+            margin-bottom: 1.25em;
+            padding: 1.25em;
+            background: #fff;
+            border-radius: 4px
+        }
+
+        .sidebarblock {
+            border: 1px solid #dbdbd6;
+            margin-bottom: 1.25em;
+            padding: 1.25em;
+            background: #f3f3f2;
+            border-radius: 4px
+        }
+
+        .sidebarblock > .content > .title {
+            color: #7a2518;
+            margin-top: 0;
+            text-align: center
+        }
+
+        .exampleblock > .content > :first-child, .sidebarblock > .content > :first-child {
+            margin-top: 0
+        }
+
+        .exampleblock > .content > :last-child, .exampleblock > .content > :last-child > :last-child, .exampleblock > .content .olist > ol > li:last-child > :last-child, .exampleblock > .content .ulist > ul > li:last-child > :last-child, .exampleblock > .content .qlist > ol > li:last-child > :last-child, .sidebarblock > .content > :last-child, .sidebarblock > .content > :last-child > :last-child, .sidebarblock > .content .olist > ol > li:last-child > :last-child, .sidebarblock > .content .ulist > ul > li:last-child > :last-child, .sidebarblock > .content .qlist > ol > li:last-child > :last-child {
+            margin-bottom: 0
+        }
+
+        .literalblock pre, .listingblock > .content > pre {
+            border-radius: 4px;
+            overflow-x: auto;
+            padding: 1em;
+            font-size: .8125em
+        }
+
+        @media screen and (min-width: 768px) {
+            .literalblock pre, .listingblock > .content > pre {
+                font-size: .90625em
+            }
+        }
+
+        @media screen and (min-width: 1280px) {
+            .literalblock pre, .listingblock > .content > pre {
+                font-size: 1em
+            }
+        }
+
+        .literalblock pre, .listingblock > .content > pre:not(.highlight), .listingblock > .content > pre[class=highlight], .listingblock > .content > pre[class^="highlight "] {
+            background: #f7f7f8
+        }
+
+        .literalblock.output pre {
+            color: #f7f7f8;
+            background: rgba(0, 0, 0, .9)
+        }
+
+        .listingblock > .content {
+            position: relative
+        }
+
+        .listingblock code[data-lang]::before {
+            display: none;
+            content: attr(data-lang);
+            position: absolute;
+            font-size: .75em;
+            top: .425rem;
+            right: .5rem;
+            line-height: 1;
+            text-transform: uppercase;
+            color: inherit;
+            opacity: .5
+        }
+
+        .listingblock:hover code[data-lang]::before {
+            display: block
+        }
+
+        .listingblock.terminal pre .command::before {
+            content: attr(data-prompt);
+            padding-right: .5em;
+            color: inherit;
+            opacity: .5
+        }
+
+        .listingblock.terminal pre .command:not([data-prompt])::before {
+            content: "$"
+        }
+
+        .listingblock pre.highlightjs {
+            padding: 0
+        }
+
+        .listingblock pre.highlightjs > code {
+            padding: 1em;
+            border-radius: 4px
+        }
+
+        .listingblock pre.prettyprint {
+            border-width: 0
+        }
+
+        .prettyprint {
+            background: #f7f7f8
+        }
+
+        pre.prettyprint .linenums {
+            line-height: 1.45;
+            margin-left: 2em
+        }
+
+        pre.prettyprint li {
+            background: none;
+            list-style-type: inherit;
+            padding-left: 0
+        }
+
+        pre.prettyprint li code[data-lang]::before {
+            opacity: 1
+        }
+
+        pre.prettyprint li:not(:first-child) code[data-lang]::before {
+            display: none
+        }
+
+        table.linenotable {
+            border-collapse: separate;
+            border: 0;
+            margin-bottom: 0;
+            background: none
+        }
+
+        table.linenotable td[class] {
+            color: inherit;
+            vertical-align: top;
+            padding: 0;
+            line-height: inherit;
+            white-space: normal
+        }
+
+        table.linenotable td.code {
+            padding-left: .75em
+        }
+
+        table.linenotable td.linenos, pre.pygments .linenos {
+            border-right: 1px solid;
+            opacity: .35;
+            padding-right: .5em;
+            -webkit-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none
+        }
+
+        pre.pygments span.linenos {
+            display: inline-block;
+            margin-right: .75em
+        }
+
+        .quoteblock {
+            margin: 0 1em 1.25em 1.5em;
+            display: table
+        }
+
+        .quoteblock:not(.excerpt) > .title {
+            margin-left: -1.5em;
+            margin-bottom: .75em
+        }
+
+        .quoteblock blockquote, .quoteblock p {
+            color: rgba(0, 0, 0, .85);
+            font-size: 1.15rem;
+            line-height: 1.75;
+            word-spacing: .1em;
+            letter-spacing: 0;
+            font-style: italic;
+            text-align: justify
+        }
+
+        .quoteblock blockquote {
+            margin: 0;
+            padding: 0;
+            border: 0
+        }
+
+        .quoteblock blockquote::before {
+            content: "\201c";
+            float: left;
+            font-size: 2.75em;
+            font-weight: bold;
+            line-height: .6em;
+            margin-left: -.6em;
+            color: #7a2518;
+            text-shadow: 0 1px 2px rgba(0, 0, 0, .1)
+        }
+
+        .quoteblock blockquote > .paragraph:last-child p {
+            margin-bottom: 0
+        }
+
+        .quoteblock .attribution {
+            margin-top: .75em;
+            margin-right: .5ex;
+            text-align: right
+        }
+
+        .verseblock {
+            margin: 0 1em 1.25em
+        }
+
+        .verseblock pre {
+            font-family: "Open Sans", "DejaVu Sans", sans-serif;
+            font-size: 1.15rem;
+            color: rgba(0, 0, 0, .85);
+            font-weight: 300;
+            text-rendering: optimizeLegibility
+        }
+
+        .verseblock pre strong {
+            font-weight: 400
+        }
+
+        .verseblock .attribution {
+            margin-top: 1.25rem;
+            margin-left: .5ex
+        }
+
+        .quoteblock .attribution, .verseblock .attribution {
+            font-size: .9375em;
+            line-height: 1.45;
+            font-style: italic
+        }
+
+        .quoteblock .attribution br, .verseblock .attribution br {
+            display: none
+        }
+
+        .quoteblock .attribution cite, .verseblock .attribution cite {
+            display: block;
+            letter-spacing: -.025em;
+            color: rgba(0, 0, 0, .6)
+        }
+
+        .quoteblock.abstract blockquote::before, .quoteblock.excerpt blockquote::before, .quoteblock .quoteblock blockquote::before {
+            display: none
+        }
+
+        .quoteblock.abstract blockquote, .quoteblock.abstract p, .quoteblock.excerpt blockquote, .quoteblock.excerpt p, .quoteblock .quoteblock blockquote, .quoteblock .quoteblock p {
+            line-height: 1.6;
+            word-spacing: 0
+        }
+
+        .quoteblock.abstract {
+            margin: 0 1em 1.25em;
+            display: block
+        }
+
+        .quoteblock.abstract > .title {
+            margin: 0 0 .375em;
+            font-size: 1.15em;
+            text-align: center
+        }
+
+        .quoteblock.excerpt > blockquote, .quoteblock .quoteblock {
+            padding: 0 0 .25em 1em;
+            border-left: .25em solid #dddddf
+        }
+
+        .quoteblock.excerpt, .quoteblock .quoteblock {
+            margin-left: 0
+        }
+
+        .quoteblock.excerpt blockquote, .quoteblock.excerpt p, .quoteblock .quoteblock blockquote, .quoteblock .quoteblock p {
+            color: inherit;
+            font-size: 1.0625rem
+        }
+
+        .quoteblock.excerpt .attribution, .quoteblock .quoteblock .attribution {
+            color: inherit;
+            font-size: .85rem;
+            text-align: left;
+            margin-right: 0
+        }
+
+        p.tableblock:last-child {
+            margin-bottom: 0
+        }
+
+        td.tableblock > .content {
+            margin-bottom: 1.25em;
+            word-wrap: anywhere
+        }
+
+        td.tableblock > .content > :last-child {
+            margin-bottom: -1.25em
+        }
+
+        table.tableblock, th.tableblock, td.tableblock {
+            border: 0 solid #dedede
+        }
+
+        table.grid-all > * > tr > * {
+            border-width: 1px
+        }
+
+        table.grid-cols > * > tr > * {
+            border-width: 0 1px
+        }
+
+        table.grid-rows > * > tr > * {
+            border-width: 1px 0
+        }
+
+        table.frame-all {
+            border-width: 1px
+        }
+
+        table.frame-ends {
+            border-width: 1px 0
+        }
+
+        table.frame-sides {
+            border-width: 0 1px
+        }
+
+        table.frame-none > colgroup + * > :first-child > *, table.frame-sides > colgroup + * > :first-child > * {
+            border-top-width: 0
+        }
+
+        table.frame-none > :last-child > :last-child > *, table.frame-sides > :last-child > :last-child > * {
+            border-bottom-width: 0
+        }
+
+        table.frame-none > * > tr > :first-child, table.frame-ends > * > tr > :first-child {
+            border-left-width: 0
+        }
+
+        table.frame-none > * > tr > :last-child, table.frame-ends > * > tr > :last-child {
+            border-right-width: 0
+        }
+
+        table.stripes-all > * > tr, table.stripes-odd > * > tr:nth-of-type(odd), table.stripes-even > * > tr:nth-of-type(even), table.stripes-hover > * > tr:hover {
+            background: #f8f8f7
+        }
+
+        th.halign-left, td.halign-left {
+            text-align: left
+        }
+
+        th.halign-right, td.halign-right {
+            text-align: right
+        }
+
+        th.halign-center, td.halign-center {
+            text-align: center
+        }
+
+        th.valign-top, td.valign-top {
+            vertical-align: top
+        }
+
+        th.valign-bottom, td.valign-bottom {
+            vertical-align: bottom
+        }
+
+        th.valign-middle, td.valign-middle {
+            vertical-align: middle
+        }
+
+        table thead th, table tfoot th {
+            font-weight: bold
+        }
+
+        tbody tr th {
+            background: #f7f8f7
+        }
+
+        tbody tr th, tbody tr th p, tfoot tr th, tfoot tr th p {
+            color: rgba(0, 0, 0, .8);
+            font-weight: bold
+        }
+
+        p.tableblock > code:only-child {
+            background: none;
+            padding: 0
+        }
+
+        p.tableblock {
+            font-size: 1em
+        }
+
+        ol {
+            margin-left: 1.75em
+        }
+
+        ul li ol {
+            margin-left: 1.5em
+        }
+
+        dl dd {
+            margin-left: 1.125em
+        }
+
+        dl dd:last-child, dl dd:last-child > :last-child {
+            margin-bottom: 0
+        }
+
+        li p, ul dd, ol dd, .olist .olist, .ulist .ulist, .ulist .olist, .olist .ulist {
+            margin-bottom: .625em
+        }
+
+        ul.checklist, ul.none, ol.none, ul.no-bullet, ol.no-bullet, ol.unnumbered, ul.unstyled, ol.unstyled {
+            list-style-type: none
+        }
+
+        ul.no-bullet, ol.no-bullet, ol.unnumbered {
+            margin-left: .625em
+        }
+
+        ul.unstyled, ol.unstyled {
+            margin-left: 0
+        }
+
+        li > p:empty:only-child::before {
+            content: "";
+            display: inline-block
+        }
+
+        ul.checklist > li > p:first-child {
+            margin-left: -1em
+        }
+
+        ul.checklist > li > p:first-child > .fa-square-o:first-child, ul.checklist > li > p:first-child > .fa-check-square-o:first-child {
+            width: 1.25em;
+            font-size: .8em;
+            position: relative;
+            bottom: .125em
+        }
+
+        ul.checklist > li > p:first-child > input[type=checkbox]:first-child {
+            margin-right: .25em
+        }
+
+        ul.inline {
+            display: flex;
+            flex-flow: row wrap;
+            list-style: none;
+            margin: 0 0 .625em -1.25em
+        }
+
+        ul.inline > li {
+            margin-left: 1.25em
+        }
+
+        .unstyled dl dt {
+            font-weight: 400;
+            font-style: normal
+        }
+
+        ol.arabic {
+            list-style-type: decimal
+        }
+
+        ol.decimal {
+            list-style-type: decimal-leading-zero
+        }
+
+        ol.loweralpha {
+            list-style-type: lower-alpha
+        }
+
+        ol.upperalpha {
+            list-style-type: upper-alpha
+        }
+
+        ol.lowerroman {
+            list-style-type: lower-roman
+        }
+
+        ol.upperroman {
+            list-style-type: upper-roman
+        }
+
+        ol.lowergreek {
+            list-style-type: lower-greek
+        }
+
+        .hdlist > table, .colist > table {
+            border: 0;
+            background: none
+        }
+
+        .hdlist > table > tbody > tr, .colist > table > tbody > tr {
+            background: none
+        }
+
+        td.hdlist1, td.hdlist2 {
+            vertical-align: top;
+            padding: 0 .625em
+        }
+
+        td.hdlist1 {
+            font-weight: bold;
+            padding-bottom: 1.25em
+        }
+
+        td.hdlist2 {
+            word-wrap: anywhere
+        }
+
+        .literalblock + .colist, .listingblock + .colist {
+            margin-top: -.5em
+        }
+
+        .colist td:not([class]):first-child {
+            padding: .4em .75em 0;
+            line-height: 1;
+            vertical-align: top
+        }
+
+        .colist td:not([class]):first-child img {
+            max-width: none
+        }
+
+        .colist td:not([class]):last-child {
+            padding: .25em 0
+        }
+
+        .thumb, .th {
+            line-height: 0;
+            display: inline-block;
+            border: 4px solid #fff;
+            box-shadow: 0 0 0 1px #ddd
+        }
+
+        .imageblock.left {
+            margin: .25em .625em 1.25em 0
+        }
+
+        .imageblock.right {
+            margin: .25em 0 1.25em .625em
+        }
+
+        .imageblock > .title {
+            margin-bottom: 0
+        }
+
+        .imageblock.thumb, .imageblock.th {
+            border-width: 6px
+        }
+
+        .imageblock.thumb > .title, .imageblock.th > .title {
+            padding: 0 .125em
+        }
+
+        .image.left, .image.right {
+            margin-top: .25em;
+            margin-bottom: .25em;
+            display: inline-block;
+            line-height: 0
+        }
+
+        .image.left {
+            margin-right: .625em
+        }
+
+        .image.right {
+            margin-left: .625em
+        }
+
+        a.image {
+            text-decoration: none;
+            display: inline-block
+        }
+
+        a.image object {
+            pointer-events: none
+        }
+
+        sup.footnote, sup.footnoteref {
+            font-size: .875em;
+            position: static;
+            vertical-align: super
+        }
+
+        sup.footnote a, sup.footnoteref a {
+            text-decoration: none
+        }
+
+        sup.footnote a:active, sup.footnoteref a:active {
+            text-decoration: underline
+        }
+
+        #footnotes {
+            padding-top: .75em;
+            padding-bottom: .75em;
+            margin-bottom: .625em
+        }
+
+        #footnotes hr {
+            width: 20%;
+            min-width: 6.25em;
+            margin: -.25em 0 .75em;
+            border-width: 1px 0 0
+        }
+
+        #footnotes .footnote {
+            padding: 0 .375em 0 .225em;
+            line-height: 1.3334;
+            font-size: .875em;
+            margin-left: 1.2em;
+            margin-bottom: .2em
+        }
+
+        #footnotes .footnote a:first-of-type {
+            font-weight: bold;
+            text-decoration: none;
+            margin-left: -1.05em
+        }
+
+        #footnotes .footnote:last-of-type {
+            margin-bottom: 0
+        }
+
+        #content #footnotes {
+            margin-top: -.625em;
+            margin-bottom: 0;
+            padding: .75em 0
+        }
+
+        div.unbreakable {
+            page-break-inside: avoid
+        }
+
+        .big {
+            font-size: larger
+        }
+
+        .small {
+            font-size: smaller
+        }
+
+        .underline {
+            text-decoration: underline
+        }
+
+        .overline {
+            text-decoration: overline
+        }
+
+        .line-through {
+            text-decoration: line-through
+        }
+
+        .aqua {
+            color: #00bfbf
+        }
+
+        .aqua-background {
+            background: #00fafa
+        }
+
+        .black {
+            color: #000
+        }
+
+        .black-background {
+            background: #000
+        }
+
+        .blue {
+            color: #0000bf
+        }
+
+        .blue-background {
+            background: #0000fa
+        }
+
+        .fuchsia {
+            color: #bf00bf
+        }
+
+        .fuchsia-background {
+            background: #fa00fa
+        }
+
+        .gray {
+            color: #606060
+        }
+
+        .gray-background {
+            background: #7d7d7d
+        }
+
+        .green {
+            color: #006000
+        }
+
+        .green-background {
+            background: #007d00
+        }
+
+        .lime {
+            color: #00bf00
+        }
+
+        .lime-background {
+            background: #00fa00
+        }
+
+        .maroon {
+            color: #600000
+        }
+
+        .maroon-background {
+            background: #7d0000
+        }
+
+        .navy {
+            color: #000060
+        }
+
+        .navy-background {
+            background: #00007d
+        }
+
+        .olive {
+            color: #606000
+        }
+
+        .olive-background {
+            background: #7d7d00
+        }
+
+        .purple {
+            color: #600060
+        }
+
+        .purple-background {
+            background: #7d007d
+        }
+
+        .red {
+            color: #bf0000
+        }
+
+        .red-background {
+            background: #fa0000
+        }
+
+        .silver {
+            color: #909090
+        }
+
+        .silver-background {
+            background: #bcbcbc
+        }
+
+        .teal {
+            color: #006060
+        }
+
+        .teal-background {
+            background: #007d7d
+        }
+
+        .white {
+            color: #bfbfbf
+        }
+
+        .white-background {
+            background: #fafafa
+        }
+
+        .yellow {
+            color: #bfbf00
+        }
+
+        .yellow-background {
+            background: #fafa00
+        }
+
+        span.icon > .fa {
+            cursor: default
+        }
+
+        a span.icon > .fa {
+            cursor: inherit
+        }
+
+        .admonitionblock td.icon [class^="fa icon-"] {
+            font-size: 2.5em;
+            text-shadow: 1px 1px 2px rgba(0, 0, 0, .5);
+            cursor: default
+        }
+
+        .admonitionblock td.icon .icon-note::before {
+            content: "\f05a";
+            color: #19407c
+        }
+
+        .admonitionblock td.icon .icon-tip::before {
+            content: "\f0eb";
+            text-shadow: 1px 1px 2px rgba(155, 155, 0, .8);
+            color: #111
+        }
+
+        .admonitionblock td.icon .icon-warning::before {
+            content: "\f071";
+            color: #bf6900
+        }
+
+        .admonitionblock td.icon .icon-caution::before {
+            content: "\f06d";
+            color: #bf3400
+        }
+
+        .admonitionblock td.icon .icon-important::before {
+            content: "\f06a";
+            color: #bf0000
+        }
+
+        .conum[data-value] {
+            display: inline-block;
+            color: #fff !important;
+            background: rgba(0, 0, 0, .8);
+            border-radius: 50%;
+            text-align: center;
+            font-size: .75em;
+            width: 1.67em;
+            height: 1.67em;
+            line-height: 1.67em;
+            font-family: "Open Sans", "DejaVu Sans", sans-serif;
+            font-style: normal;
+            font-weight: bold
+        }
+
+        .conum[data-value] * {
+            color: #fff !important
+        }
+
+        .conum[data-value] + b {
+            display: none
+        }
+
+        .conum[data-value]::after {
+            content: attr(data-value)
+        }
+
+        pre .conum[data-value] {
+            position: relative;
+            top: -.125em
+        }
+
+        b.conum * {
+            color: inherit !important
+        }
+
+        .conum:not([data-value]):empty {
+            display: none
+        }
+
+        dt, th.tableblock, td.content, div.footnote {
+            text-rendering: optimizeLegibility
+        }
+
+        h1, h2, p, td.content, span.alt, summary {
+            letter-spacing: -.01em
+        }
+
+        p strong, td.content strong, div.footnote strong {
+            letter-spacing: -.005em
+        }
+
+        p, blockquote, dt, td.content, td.hdlist1, span.alt, summary {
+            font-size: 1.0625rem
+        }
+
+        p {
+            margin-bottom: 1.25rem
+        }
+
+        .sidebarblock p, .sidebarblock dt, .sidebarblock td.content, p.tableblock {
+            font-size: 1em
+        }
+
+        .exampleblock > .content {
+            background: #fffef7;
+            border-color: #e0e0dc;
+            box-shadow: 0 1px 4px #e0e0dc
+        }
+
+        .print-only {
+            display: none !important
+        }
+
+        @page {
+            margin: 1.25cm .75cm
+        }
+
+        @media print {
+            * {
+                box-shadow: none !important;
+                text-shadow: none !important
+            }
+
+            html {
+                font-size: 80%
+            }
+
+            a {
+                color: inherit !important;
+                text-decoration: underline !important
+            }
+
+            a.bare, a[href^="#"], a[href^="mailto:"] {
+                text-decoration: none !important
+            }
+
+            a[href^="http:"]:not(.bare)::after, a[href^="https:"]:not(.bare)::after {
+                content: "(" attr(href) ")";
+                display: inline-block;
+                font-size: .875em;
+                padding-left: .25em
+            }
+
+            abbr[title] {
+                border-bottom: 1px dotted
+            }
+
+            abbr[title]::after {
+                content: " (" attr(title) ")"
+            }
+
+            pre, blockquote, tr, img, object, svg {
+                page-break-inside: avoid
+            }
+
+            thead {
+                display: table-header-group
+            }
+
+            svg {
+                max-width: 100%
+            }
+
+            p, blockquote, dt, td.content {
+                font-size: 1em;
+                orphans: 3;
+                widows: 3
+            }
+
+            h2, h3, #toctitle, .sidebarblock > .content > .title {
+                page-break-after: avoid
+            }
+
+            #header, #content, #footnotes, #footer {
+                max-width: none
+            }
+
+            #toc, .sidebarblock, .exampleblock > .content {
+                background: none !important
+            }
+
+            #toc {
+                border-bottom: 1px solid #dddddf !important;
+                padding-bottom: 0 !important
+            }
+
+            body.book #header {
+                text-align: center
+            }
+
+            body.book #header > h1:first-child {
+                border: 0 !important;
+                margin: 2.5em 0 1em
+            }
+
+            body.book #header .details {
+                border: 0 !important;
+                display: block;
+                padding: 0 !important
+            }
+
+            body.book #header .details span:first-child {
+                margin-left: 0 !important
+            }
+
+            body.book #header .details br {
+                display: block
+            }
+
+            body.book #header .details br + span::before {
+                content: none !important
+            }
+
+            body.book #toc {
+                border: 0 !important;
+                text-align: left !important;
+                padding: 0 !important;
+                margin: 0 !important
+            }
+
+            body.book #toc, body.book #preamble, body.book h1.sect0, body.book .sect1 > h2 {
+                page-break-before: always
+            }
+
+            .listingblock code[data-lang]::before {
+                display: block
+            }
+
+            #footer {
+                padding: 0 .9375em
+            }
+
+            .hide-on-print {
+                display: none !important
+            }
+
+            .print-only {
+                display: block !important
+            }
+
+            .hide-for-print {
+                display: none !important
+            }
+
+            .show-for-print {
+                display: inherit !important
+            }
+        }
+
+        @media amzn-kf8, print {
+            #header > h1:first-child {
+                margin-top: 1.25rem
+            }
+
+            .sect1 {
+                padding: 0 !important
+            }
+
+            .sect1 + .sect1 {
+                border: 0
+            }
+
+            #footer {
+                background: none
+            }
+
+            #footer-text {
+                color: rgba(0, 0, 0, .6);
+                font-size: .9em
+            }
+        }
+
+        @media amzn-kf8 {
+            #header, #content, #footnotes, #footer {
+                padding: 0
+            }
+        }
+    </style>
+</head>
+<body class="book">
+<div id="header">
+    <h1>KAP Tutorial</h1>
+    <div id="toc" class="toc">
+        <div id="toctitle">Table of Contents</div>
+        <ul class="sectlevel0">
+            <li><a href="#_introduction">Introduction</a>
+                <ul class="sectlevel1">
+                    <li><a href="#_what_kap_is_and_isnt">What KAP is and isn&#8217;t</a>
+                        <ul class="sectlevel2">
+                            <li><a href="#_about_apl">About APL</a></li>
+                            <li><a href="#_how_kap_is_different_from_apl">How KAP is different from APL</a></li>
+                            <li><a href="#_what_kap_can_be_used_for">What KAP can be used for</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+            <li><a href="#_using_the_kap_software_distribution">Using the KAP software distribution</a>
+                <ul class="sectlevel1">
+                    <li><a href="#_running_kap">Running KAP</a>
+                        <ul class="sectlevel2">
+                            <li><a href="#_download">Download</a></li>
+                            <li><a href="#_running_the_ui">Running the UI</a></li>
+                            <li><a href="#_trying_kap_online">Trying KAP online</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#_inputting_apl_symbols">Inputting APL symbols</a></li>
+                </ul>
+            </li>
+            <li><a href="#_kap_basics">KAP basics</a>
+                <ul class="sectlevel1">
+                    <li><a href="#_printing_text">Printing text</a></li>
+                    <li><a href="#_comments">Comments</a></li>
+                    <li><a href="#_mathematical_functions">Mathematical functions</a></li>
+                    <li><a href="#_variables">Variables</a></li>
+                    <li><a href="#_statement_separators">Statement separators</a></li>
+                    <li><a href="#_monadic_and_dyadic_function_invocation">Monadic and dyadic function invocation</a>
+                    </li>
+                </ul>
+            </li>
+            <li><a href="#_working_with_arrays">Working with arrays</a>
+                <ul class="sectlevel1">
+                    <li><a href="#_constructing_arrays">Constructing arrays</a>
+                        <ul class="sectlevel2">
+                            <li><a href="#_literal_arrays">Literal arrays</a></li>
+                            <li><a href="#_iota_function">Iota function</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#_accessing_data_in_arrays">Accessing data in arrays</a>
+                        <ul class="sectlevel2">
+                            <li><a href="#_reading_single_values">Reading single values</a></li>
+                            <li><a href="#_reading_multiple_values">Reading multiple values</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#_array_dimensionality">Array dimensionality</a>
+                        <ul class="sectlevel2">
+                            <li><a href="#_creating_multidimensional_arrays">Creating multidimensional arrays</a></li>
+                            <li><a href="#_finding_the_dimensionality_of_an_array">Finding the dimensionality of an
+                                array</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#_applying_functions_on_arrays">Applying functions on arrays</a>
+                        <ul class="sectlevel2">
+                            <li><a href="#_scalar_functions">Scalar functions</a></li>
+                            <li><a href="#_structural_functions">Structural functions</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#_operators">Operators</a></li>
+                </ul>
+            </li>
+            <li><a href="#_datatypes">Datatypes</a>
+                <ul class="sectlevel1">
+                    <li><a href="#_numeric_types">Numeric types</a></li>
+                    <li><a href="#_characters">Characters</a></li>
+                    <li><a href="#_symbols">Symbols</a></li>
+                    <li><a href="#_hashtables">Hashtables</a></li>
+                </ul>
+            </li>
+            <li><a href="#_flow_control">Flow control</a>
+                <ul class="sectlevel1">
+                    <li><a href="#_if_statements">If statements</a></li>
+                    <li><a href="#_while_loops">While loops</a></li>
+                    <li><a href="#_exceptions">Exceptions</a></li>
+                </ul>
+            </li>
+            <li><a href="#_kap_reference">KAP Reference</a>
+                <ul class="sectlevel1">
+                    <li><a href="#_list_of_built_in_kap_functions">List of built-in KAP functions</a>
+                        <ul class="sectlevel2">
+                            <li><a href="#_functions">Functions</a></li>
+                            <li><a href="#_operators_2">Operators</a></li>
+                        </ul>
+                    </li>
+                    <li><a href="#_flow_control_2">Flow control</a>
+                        <ul class="sectlevel2">
+                            <li><a href="#_if_statements_2">If statements</a></li>
+                            <li><a href="#_when_statement">When statement</a></li>
+                            <li><a href="#_while_statement">While statement</a></li>
+                            <li><a href="#_unwinding">Unwinding</a></li>
+                            <li><a href="#_throwing_an_exception">Throwing an exception</a></li>
+                            <li><a href="#_catching_exception">Catching exception</a></li>
+                        </ul>
+                    </li>
+                </ul>
+            </li>
+        </ul>
+    </div>
+</div>
+<div id="content">
+    <h1 id="_introduction" class="sect0">Introduction</h1>
+    <div class="openblock partintro">
+        <div class="content">
+            <div class="paragraph">
+                <p>The following document is recommended for people with previous programming experience, but with no
+                    prior experience with APL or any of its cousins, such as <a href="https://www.jsoftware.com/">J</a>,
+                    <a href="https://kx.com/">K</a>, <a href="https://code.kx.com/q/">Q</a>, <a
+                            href="https://mlochbaum.github.io/BQN/">BQN</a>, etc.</p>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_what_kap_is_and_isnt">What KAP is and isn&#8217;t</h2>
+        <div class="sectionbody">
+            <div class="sect2">
+                <h3 id="_about_apl">About APL</h3>
+                <div class="paragraph">
+                    <p>At its core, KAP is a programming language based on APL.</p>
+                </div>
+                <div class="paragraph">
+                    <p>APL is a programming language invented by Ken Iverson in 1966 and is particularly famous for its
+                        use of non-ASCII symbols.
+                        There exists many implementations of APL today, with the most commonly used one being <a
+                                href="https://www.dyalog.com/">Dyalog</a>.
+                        Dyalog is a commercial product which is free for non-commercial use.</p>
+                </div>
+                <div class="paragraph">
+                    <p>At the risk of scaring away a beginner, here is a classic example of APL code (which also happens
+                        to be valid KAP code):</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+                        <pre class="highlight"><code class="language-kap" data-lang="kap">{⊃1 ⍵ ∨.∧ 3 4 = +/ +⌿ ¯1 0 1 ∘.⊖ ¯1 0 1 ⌽¨ ⊂⍵}</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>This is a function that computes an iteration of Conway&#8217;s Game of Life.
+                        The above example can also be found in the Wikipedia page for <a
+                                href="https://en.wikipedia.org/wiki/APL_(programming_language)">APL</a>.</p>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_how_kap_is_different_from_apl">How KAP is different from APL</h3>
+                <div class="paragraph">
+                    <p>APL requires the programmer to take a very different approach to programming compared to most
+                        other programming languages.
+                        In particular, it strongly de-emphasises the use of loops.
+                        Traditional APL doesn&#8217;t even have a looping constructs or <code>if</code> statements, with
+                        the only way to do flow control is to use goto.
+                        Dyalog has looping constructs, but they are still cumbersome to use.</p>
+                </div>
+                <div class="paragraph">
+                    <p>APL has often been been referred to as a &#8220;functional&#8221; programming language.
+                        This is partially true, but it does lack first-class functions.
+                        First-class functions refers to the ability to work with functions as if they were values
+                        themselves.
+                        For example, you could create an array of functions.
+                        Some APL derivatives such as BQN supports this concept, and Dyalog can also do it, albeit in a
+                        very roundabout way.</p>
+                </div>
+                <div class="paragraph">
+                    <p>KAP grew out of a desire to see if it was possible to nicely integrate these programming
+                        constructs together with APL.
+                        The question as to whether that goal has been achieved is left to the reader to determine.</p>
+                </div>
+                <div class="paragraph">
+                    <p>Another difference that makes KAP almost unique among APL dialects is that it is centred around
+                        lazy evaluation.</p>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_what_kap_can_be_used_for">What KAP can be used for</h3>
+                <div class="paragraph">
+                    <p>If the reader is asking themselves if they are supposed to build the software supporting their
+                        new startup in KAP, then the answer is almost certainly no (although if they do, the author
+                        would very much like to hear about it).</p>
+                </div>
+                <div class="paragraph">
+                    <p>Currently, the language can be seen as an alternative to Excel when working with data in array
+                        form.
+                        Excel is great for visualising data, but performing calculations with it quickly becomes
+                        difficult as the code tends to be hidden in cells in the document.
+                        For a programmer, this artefact of Excel is probably the most frustrating, since the code is
+                        arguably more important than the data itself.</p>
+                </div>
+                <div class="paragraph">
+                    <p>The best way to get started is to start using KAP as a calculator by running the GUI frontend and
+                        simply typing expressions to compute things.
+                        When users of other programming languages may take to an IDE and start writing tens or even
+                        hundreds of lines of code to perform certain calculations, KAP can do the same in sometimes just
+                        a single line of code.
+                        It is therefore often not necessary to actually open an editor to write a program, and the user
+                        can instead simply perform their calculation directly in the tool itself.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h1 id="_using_the_kap_software_distribution" class="sect0">Using the KAP software distribution</h1>
+    <div class="sect1">
+        <h2 id="_running_kap">Running KAP</h2>
+        <div class="sectionbody">
+            <div class="sect2">
+                <h3 id="_download">Download</h3>
+                <div class="paragraph">
+                    <p>Currently, KAP is only available in source form and can be downloaded using Git from: from <a
+                            href="https://codeberg.org/loke/array" class="bare">https://codeberg.org/loke/array</a>.
+                        The source code can be downloaded using the following command:</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+                        <pre class="highlight"><code class="language-sh" data-lang="sh">git clone https://codeberg.org/loke/array</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_running_the_ui">Running the UI</h3>
+                <div class="paragraph">
+                    <p>There are different ways to run KAP, but the easiest way to get started is to use the built-in
+                        UI.
+                        The client can be started using the following command:</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+                        <pre class="highlight"><code class="language-sh" data-lang="sh">./gradlew gui:run</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>This is the recommended way to run KAP at the moment, as it implements all language features as
+                        well as provides an easy way to enter the all the symbols used by the language.</p>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_trying_kap_online">Trying KAP online</h3>
+                <div class="paragraph">
+                    <p>KAP can be compiled to Javascript, and a simple web-based demo is available on <a
+                            href="https://kapdemo.dhsdevelopments.com/" class="bare">https://kapdemo.dhsdevelopments.com/</a>
+                    </p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_inputting_apl_symbols">Inputting APL symbols</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p>The use of non-ASCII symbols is something that many beginners find complicated.
+                    It is possible to configure a separate input keymap in most operating systems that support APL
+                    symbols.
+                    However, the easiest way for a beginner to start using KAP is to use the graphical UI.
+                    It provides a REPL as well as a text editor that provides easy access to APL symbols using two
+                    different mechanisms:</p>
+            </div>
+            <div class="ulist">
+                <ul>
+                    <li>
+                        <p>Press <kbd>Alt</kbd> or <kbd>Meta</kbd> together with other keys.<br>
+                            For example, to generate <code>⍴</code> type <span
+                                    class="keyseq"><kbd>Meta</kbd>+<kbd>r</kbd></span>.</p>
+                    </li>
+                    <li>
+                        <p>Press <kbd>`</kbd> followed by other keys.<br>
+                            Type <kbd>`</kbd> followed by <kbd>Space</kbd> to generate a <code>`</code>.</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <h1 id="_kap_basics" class="sect0">KAP basics</h1>
+    <div class="sect1">
+        <h2 id="_printing_text">Printing text</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p>The first thing anyone learning a new language wants to know is how to print a message to the screen.
+                    In KAP, printing is done using <code>io:print</code> or <code>io:println</code>.
+                    The difference between the two is that the latter adds a newline after the output.</p>
+            </div>
+            <div class="paragraph">
+                <p>The following code prints a string to the screen:</p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+                    <pre class="highlight"><code class="language-kap" data-lang="kap">io:println "Example of printing a string"</code></pre>
+                </div>
+            </div>
+            <div class="paragraph">
+                <p>The name of the function is <code>println</code>, which resides in the <code>io</code> namespace.
+                    It is possible to <code>import</code> a namespace so that one does not have to specify the namespace
+                    every time the function is used.
+                    This is not done in this tutorial in order to make it very clear which namespace a given symbol
+                    belongs to.
+                    Many common functions belong to the <code>kap</code> namespace which is imported by default.
+                    Those symbols are given without the namespace.</p>
+            </div>
+            <div class="paragraph">
+                <p>When using the REPL to enter KAP expressions, the return value of the expression is always printed to
+                    the screen.
+                    This is the reason why when typing the above example into the REPL, the string will be printed
+                    twice.
+                    The first is the result of the call to <code>io:println</code> and the second is the return value of
+                    the expression. <code>io:println</code> always returns the value it printed, which results in the
+                    double output.</p>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_comments">Comments</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p>Comments in KAP are indicated using the symbol <code>⍝</code> and extends to the end of the line.</p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">⍝ This entire line is a comment
+io:println "This will be printed"    ⍝ This is another comment</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_mathematical_functions">Mathematical functions</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p>Just like any other programming languages, KAP provides functions to perform mathematical
+                    computations, the main ones are:</p>
+            </div>
+            <div class="ulist">
+                <ul>
+                    <li>
+                        <p><code>+</code>&#8201;&#8212;&#8201;addition</p>
+                    </li>
+                    <li>
+                        <p><code>-</code>&#8201;&#8212;&#8201;subtraction</p>
+                    </li>
+                    <li>
+                        <p><code>×</code>&#8201;&#8212;&#8201;multiplication</p>
+                    </li>
+                    <li>
+                        <p><code>÷</code>&#8201;&#8212;&#8201;division</p>
+                    </li>
+                    <li>
+                        <p><code>*</code>&#8201;&#8212;&#8201;exponentiation</p>
+                    </li>
+                    <li>
+                        <p><code>|</code>&#8201;&#8212;&#8201;modulo</p>
+                    </li>
+                </ul>
+            </div>
+            <div class="paragraph">
+                <p>In KAP, just like in most APL implementations, evaluation happens from right-to-left.
+                    This is probably the biggest difference compared to other languages.
+                    This means that the following:</p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+                    <pre class="highlight"><code class="language-kap" data-lang="kap">3×4+5</code></pre>
+                </div>
+            </div>
+            <div class="paragraph">
+                <p>evaluates to <code>27</code>.
+                    In other words, it&#8217;s interpreted as <code>3×(4+5)</code>.
+                    This may seem somewhat strange, but the decision to interpret the code like this provides two
+                    distinct benefits: First and foremost, it removes any ambiguity as to the order in which computation
+                    will be performed.
+                    Secondly, it reduces the number of parentheses that are needed when writing complex code.</p>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_variables">Variables</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p>Variables in KAP can be global, or they can have local bindings.
+                    The difference between the two types of bindings will be obvious later in the tutorial, but for now
+                    this distinction can be ignored.</p>
+            </div>
+            <div class="paragraph">
+                <p>Variables have names starting with an alphabetic character or underscore, followed by zero or more
+                    alphabetical characters, digits or underscore.
+                    A variable is assigned using <code>←</code> like this:</p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">foo ← 123        ⍝ Assigns the value 123 to the variable foo
+bar ← 1+2+3      ⍝ Assigns the value 6 to the variable bar
+xyz ← foo + bar  ⍝ Assigns the value 129 to the variable xyz</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_statement_separators">Statement separators</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p>Individual statements are separated either by a newline or the symbol <code>⋄</code>.
+                    Thus, the following:</p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">io:println a
+io:println b</code></pre>
+                </div>
+            </div>
+            <div class="paragraph">
+                <p>is equivalent to:</p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+                    <pre class="highlight"><code class="language-kap" data-lang="kap">io:println a ⋄ io:println b</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_monadic_and_dyadic_function_invocation">Monadic and dyadic function invocation</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p>Two terms that any beginner learning APL will quickly come across are the terms <em>monadic</em> and
+                    <em>dyadic</em>.
+                    These terms refer to the two different ways in which a function can be called:</p>
+            </div>
+            <div class="ulist">
+                <ul>
+                    <li>
+                        <p><strong>Monadic</strong> function invocation takes its argument to the right of the name.<br>
+                            Example, assuming <code>FN</code> is the name of the function: <code>FN arg0</code>.</p>
+                    </li>
+                    <li>
+                        <p><strong>Dyadic</strong> function invocation takes two arguments on each side of the function
+                            name.<br>
+                            Example: <code>arg0 FN arg1</code>.</p>
+                    </li>
+                </ul>
+            </div>
+            <div class="paragraph">
+                <p>The call to <code>io:println</code> above is monadic, in that the function argument is to the right:
+                </p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+                    <pre class="highlight"><code class="language-kap" data-lang="kap">io:println rightArg   ⍝ The value rightArg is to the right of the function name</code></pre>
+                </div>
+            </div>
+            <div class="paragraph">
+                <p>An example of a dyadic invocation that we&#8217;ve already seen is the invocation of the function
+                    <code>+</code>:</p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+                    <pre class="highlight"><code class="language-kap" data-lang="kap">10 + 11               ⍝ The function + is called with two arguments: 10 and 11</code></pre>
+                </div>
+            </div>
+            <div class="paragraph">
+                <p>It is important to note that there is nothing special about <code>+</code>.
+                    It&#8217;s a regular function just like <code>io:println</code>.
+                    It just happens to consist of a single character instead of a word.
+                    KAP allows the programmer to define their own functions with a single character name and the details
+                    on this will be explained later in this document.</p>
+            </div>
+            <div class="paragraph">
+                <p>Functions can support monadic, dyadic or both kinds of invocations.
+                    An example of a function that allows both monadic and dyadic invocation is <code>-</code>:</p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">foo - 3               ⍝ Compute the result of 3 subtracted from foo
+-foo                  ⍝ Negate the value of foo (if foo was 10, then the result is -10)</code></pre>
+                </div>
+            </div>
+            <div class="paragraph">
+                <p>The rule for deciding whether a function invocation is monadic or dyadic is that if there is anything
+                    to the left that is a valid argument, then it&#8217;s a dyadic invocation, otherwise it&#8217;s
+                    monadic.
+                    An example will help clear this up:</p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+                    <pre class="highlight"><code class="language-kap" data-lang="kap">10×-2                 ⍝ Result is -20</code></pre>
+                </div>
+            </div>
+            <div class="paragraph">
+                <p>Looking from the right, the rightmost <code>-</code> does not have a value to the left (to the left
+                    of the <code>-</code> is a <code>×</code> symbol), and it must therefore be a monadic invocation
+                    resulting in the value <code>-2</code>.
+                    The call to <code>×</code> is dyadic since it has a <code>10</code> to the left, so the result is
+                    the product of <code>10</code> and <code>-2</code> which is <code>-20</code>.</p>
+            </div>
+        </div>
+    </div>
+    <h1 id="_working_with_arrays" class="sect0">Working with arrays</h1>
+    <div class="openblock partintro">
+        <div class="content">
+            <div class="paragraph">
+                <p>KAP programming is about arrays.
+                    While the language has other container types, the array is the main way that data is organised.
+                    Arrays are particularly important in KAP because a lot of functions are designed to work on sets of
+                    data using a single operation.
+                    The reason array languages can get away with having poor support for flow control is that in many
+                    cases they are not needed, since one does not usually have to iterate over multiple values, and
+                    instead perform a single operation that acts on arrays of data in one go.</p>
+            </div>
+            <div class="paragraph">
+                <p>While KAP has stronger flow control constructs than most other array languages, the language&#8217;s
+                    strength is still the focus on arrays, which is why this topic is explained even before discussing
+                    how flow control works.</p>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_constructing_arrays">Constructing arrays</h2>
+        <div class="sectionbody">
+            <div class="sect2">
+                <h3 id="_literal_arrays">Literal arrays</h3>
+                <div class="paragraph">
+                    <p>In many languages, arrays have only a single dimension.
+                        Taking Javascript as an example, an array is a collection of objects which is given inside
+                        square brackets:</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre class="highlight"><code class="language-javascript" data-lang="javascript">// The following is Javascript code:
+var foo = [1, 2, "string", [4, 5]];</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>In the example above, the array consists of 4 values.
+                        The first two are numbers, the third is a string and the fourth is another array that contains
+                        two more numbers.</p>
+                </div>
+                <div class="paragraph">
+                    <p>In KAP, the same declaration would look like this:</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+                        <pre class="highlight"><code class="language-kap"
+                                                     data-lang="kap">value ← 1 2 "string" (4 5)</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>As can be seen from the comparison above, KAP parses everything as arrays by default.
+                        If more than one value is given separated by spaces, the individual values will be concatenated
+                        together and interpreted as a 1-dimensional array.</p>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_iota_function">Iota function</h3>
+                <div class="paragraph">
+                    <p>It is very common to need an array consisting of numbers in ascending order.
+                        For example, a 5-element array containing the values <code>0 1 2 3 4</code>.
+                        In fact, this is so common that a function is provided to do exactly this: <code>⍳</code>,
+                        called &#8220;iota&#8221;.</p>
+                </div>
+                <div class="paragraph">
+                    <p>When invoked monadically, <code>⍳</code> accepts an argument indicating the size of the resulting
+                        array:</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">    ⍳5
+┌→────────┐
+│0 1 2 3 4│
+└─────────┘</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>The <code>⍳</code> function will be used in a lot of examples below.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_accessing_data_in_arrays">Accessing data in arrays</h2>
+        <div class="sectionbody">
+            <div class="sect2">
+                <h3 id="_reading_single_values">Reading single values</h3>
+                <div class="paragraph">
+                    <p>KAP uses the square brackets to read values from an array, so to read second value from a
+                        1-dimensional array, one would use the following syntax:</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">foo ← 10 11 12 13 14 15 16
+bar ← foo[1]                      ⍝ bar now contains the value 11</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>All arrays are zero-indexed, meaning that the first element (the value 10) can be read using
+                        <code>foo[0]</code>, the second using <code>foo[1]</code>, etc.</p>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_reading_multiple_values">Reading multiple values</h3>
+                <div class="paragraph">
+                    <p>The value inside square brackets (i.e. the index) does not need to be a single number.
+                        One can specify an array as in index itself.
+                        The result will be an array with the corresponding values for each index.
+                        For example:</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">    foo ← 10 11 12 13 14 15 16
+    foo[4 5 0]
+┌→───────┐
+│14 15 10│
+└────────┘</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>The result is a 3-element array containing the values 14, 15 and 10. These are the values in the
+                        original array at indexes 4, 5 and 0.</p>
+                </div>
+                <div class="paragraph">
+                    <p>To read a sequence of values from an array, the <code>⍳</code> function can be used together with
+                        array lookup.
+                        Thus, to read the first 6 elements from an array, the following can be used:</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">    foo ← 10 11 12 13 14 15 16 17 18 19
+    foo[⍳6]
+┌→────────────────┐
+│10 11 12 13 14 15│
+└─────────────────┘</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>Of course, KAP provides other ways to slice arrays (as would be expected from an array language)
+                        and these methods will be discussed later.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_array_dimensionality">Array dimensionality</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p>All arrays have a dimensionality, or &#8220;rank&#8221; as it is often referred to.
+                    Arrays in most languages are 1-dimensional, meaning that values in the array are addressed using a
+                    single number.
+                    When creating an array using the syntax described in the previous section, the result is a
+                    1-dimensional array.</p>
+            </div>
+            <div class="paragraph">
+                <p><strong>Rank-0 arrays</strong></p>
+            </div>
+            <div class="paragraph">
+                <p>A rank-0 array contains a single value:</p>
+            </div>
+            <div class="imageblock">
+                <div class="content">
+                    <img src="diagrams/zero-dim.svg" alt="zero dim">
+                </div>
+            </div>
+            <div class="paragraph">
+                <p><strong>Rank-1 arrays</strong></p>
+            </div>
+            <div class="paragraph">
+                <p>Rank-1 arrays are often referred to as vectors, and are the default type of arrays in almost all
+                    programming languages.
+                    Elements are referenced using a single index:</p>
+            </div>
+            <div class="imageblock">
+                <div class="content">
+                    <img src="diagrams/one-dim.svg" alt="one dim">
+                </div>
+            </div>
+            <div class="paragraph">
+                <p><strong>Rank-2 arrays</strong></p>
+            </div>
+            <div class="paragraph">
+                <p>A 2-dimensional array is similar to a spreadsheet, and have elements that are indexed using two
+                    numbers:</p>
+            </div>
+            <div class="imageblock">
+                <div class="content">
+                    <img src="diagrams/two-dim.svg" alt="two dim">
+                </div>
+            </div>
+            <div class="paragraph">
+                <p><strong>Rank-3 arrays</strong></p>
+            </div>
+            <div class="paragraph">
+                <p>One can think of 3-dimensional arrays as a stack of 2-dimensional arrays, where the first index
+                    indicates the sheet, the second the row and the third is the column:</p>
+            </div>
+            <div class="imageblock">
+                <div class="content">
+                    <img src="diagrams/three-dim.svg" alt="three dim">
+                </div>
+            </div>
+            <div class="paragraph">
+                <p><strong>Rank-4 arrays</strong></p>
+            </div>
+            <div class="paragraph">
+                <p>A 4-dimensional array can be thought of as multiple stacks of sheets.
+                    One needs 4 numbers to find a given cell, with the first number being the stack and the remaining
+                    three numbers as per the rank-3 array.</p>
+            </div>
+            <div class="imageblock">
+                <div class="content">
+                    <img src="diagrams/four-dim.svg" alt="four dim">
+                </div>
+            </div>
+            <div class="paragraph">
+                <p>KAP supports arrays with a large number of dimensions (the exact number is 2<sup>31</sup>-1), but in
+                    practice it&#8217;s rare to work with arrays with more than 4 dimensions.
+                    The principles that are illustrated in the previous paragraphs extend naturally to any number of
+                    dimensions.</p>
+            </div>
+            <div class="sect2">
+                <h3 id="_creating_multidimensional_arrays">Creating multidimensional arrays</h3>
+                <div class="paragraph">
+                    <p>To create an array of different dimensionality, the function <code>⍴</code> is used.
+                        When called dyadically, this function takes an array of numbers to the left that indicates the
+                        sizes of the resulting array&#8217;s dimensions, and changes the dimensions of the array
+                        specified on the right to conform to the requested dimensions.
+                        This operation is called &#8220;reshape&#8221; in APL, and is called that because it gives a new
+                        shape to existing data.</p>
+                </div>
+                <div class="paragraph">
+                    <p>That description was probably a bit confusing, so an example is in order:</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">foo ← 0 1 2 3 4 5 6 7 8 9 10 11 12 13 14
+bar ← 3 5 ⍴ foo</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>After running the above, the variable <code>foo</code> will contain a 1-dimensional array, while
+                        <code>bar</code> contains a 2-dimensional version of the same data.
+                        The operation performed by <code>⍴</code> is referred to as &#8220;reshape&#8221; because it
+                        changes the shape of the array while preserving content.</p>
+                </div>
+                <div class="paragraph">
+                    <p>Content of <code>foo</code>:</p>
+                </div>
+                <table class="tableblock frame-all grid-all" style="width: 60%;">
+                    <colgroup>
+                        <col style="width: 6.6666%;">
+                        <col style="width: 6.6666%;">
+                        <col style="width: 6.6666%;">
+                        <col style="width: 6.6666%;">
+                        <col style="width: 6.6666%;">
+                        <col style="width: 6.6666%;">
+                        <col style="width: 6.6666%;">
+                        <col style="width: 6.6666%;">
+                        <col style="width: 6.6666%;">
+                        <col style="width: 6.6666%;">
+                        <col style="width: 6.6666%;">
+                        <col style="width: 6.6666%;">
+                        <col style="width: 6.6666%;">
+                        <col style="width: 6.6666%;">
+                        <col style="width: 6.6676%;">
+                    </colgroup>
+                    <tbody>
+                    <tr>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">0</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">1</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">2</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">3</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">4</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">5</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">6</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">7</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">8</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">9</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">10</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">11</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">12</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">13</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">14</p></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="paragraph">
+                    <p>Content of <code>bar</code>:</p>
+                </div>
+                <table class="tableblock frame-all grid-all" style="width: 25%;">
+                    <colgroup>
+                        <col style="width: 20%;">
+                        <col style="width: 20%;">
+                        <col style="width: 20%;">
+                        <col style="width: 20%;">
+                        <col style="width: 20%;">
+                    </colgroup>
+                    <tbody>
+                    <tr>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">0</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">1</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">2</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">3</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">4</p></td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">5</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">6</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">7</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">8</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">9</p></td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">10</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">11</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">12</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">13</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">14</p></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="paragraph">
+                    <p>To read a value from a 2-dimensional array, one have to use two indices:</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+                        <pre class="highlight"><code class="language-kap" data-lang="kap">value ← bar[1;2]</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>After the above have been run, the variable <code>value</code> contains <code>7</code>.
+                        That is to say, it contains the value in the second row and third column.</p>
+                </div>
+                <div class="paragraph">
+                    <p>Just like the 1-dimensional case, one can always specify an array instead of a single value when
+                        reading values from a multidimensional array.
+                        An example:</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+                        <pre class="highlight"><code class="language-kap" data-lang="kap">bar[1;0 2 3]</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>This will return the following 1-dimensional array:</p>
+                </div>
+                <table class="tableblock frame-all grid-all" style="width: 15%;">
+                    <colgroup>
+                        <col style="width: 33.3333%;">
+                        <col style="width: 33.3333%;">
+                        <col style="width: 33.3334%;">
+                    </colgroup>
+                    <tbody>
+                    <tr>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">5</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">7</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">8</p></td>
+                    </tr>
+                    </tbody>
+                </table>
+                <div class="paragraph">
+                    <p>It is also possible to read all values along a given axis by omitting the index:</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+                        <pre class="highlight"><code class="language-kap" data-lang="kap">bar[;4]</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>This returns the following:</p>
+                </div>
+                <table class="tableblock frame-all grid-all" style="width: 10%;">
+                    <colgroup>
+                        <col style="width: 33.3333%;">
+                        <col style="width: 33.3333%;">
+                        <col style="width: 33.3334%;">
+                    </colgroup>
+                    <tbody>
+                    <tr>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">4</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">9</p></td>
+                        <td class="tableblock halign-center valign-top"><p class="tableblock">14</p></td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="sect2">
+                <h3 id="_finding_the_dimensionality_of_an_array">Finding the dimensionality of an array</h3>
+                <div class="paragraph">
+                    <p>In the previous section, it was explained how <code>⍴</code> is called dyadically to set the
+                        dimensions of an array.
+                        When called monadically, the function returns the dimensionality of its argument.</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">foo ← 3 5 ⍴ ⍳15
+bar ← ⍴ foo</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>After this code has been run, the variable <code>bar</code> will contain the array <code>3
+                        5</code>.</p>
+                </div>
+                <div class="paragraph">
+                    <p>From this it can be seen that <code>⍴ X ⍴ Y</code> will always return <code>X</code>.
+                        This is because ths expression is parsed as <code>⍴ (X ⍴ Y)</code>, which is equivalent to first
+                        reshaping Y with dimensions X, and then returning the dimensions of this array.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_applying_functions_on_arrays">Applying functions on arrays</h2>
+        <div class="sectionbody">
+            <div class="sect2">
+                <h3 id="_scalar_functions">Scalar functions</h3>
+                <div class="paragraph">
+                    <p>Earlier in this tutorial, the basic mathematical functions were mentioned, including
+                        <code>+</code>, <code>-</code>, etc.
+                        These function belong to a category of functions which either act on single elements, or entire
+                        arrays at the same time.
+                        These functions are referred to in the APL literature as "Scalar Functions".</p>
+                </div>
+                <div class="paragraph">
+                    <p>For monadic invocation on arrays, the function acts on each array element individually, returing
+                        a new array with the same dimensions as its argument.
+                        The below example calls <code>×</code> monadically on an array.
+                        This function returns the signum of its argument (1 if positive, 0 if it was zero and -1 if the
+                        value was negative):</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">    foo ← 2 3 ⍴ 1 ¯2 ¯10 20 11 12
+    ×foo
+┌→──────┐
+↓1 -1 -1│
+│1  1  1│
+└───────┘</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>Of course, the same thing can be written without assigning to a variable, as moving forward in
+                        this tutorial, this will be the way examples will be written:</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">    × 2 3 ⍴ 1 ¯2 ¯10 20 11 12
+┌→──────┐
+↓1 -1 -1│
+│1  1  1│
+└───────┘</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>For dyadic invocation, the following rules are applied:</p>
+                </div>
+                <div class="ulist">
+                    <ul>
+                        <li>
+                            <p>If both arguments are scalar, then the result is simply the two arguments applied to each
+                                other.
+                                I.e. <code>10+11</code> results in <code>21</code>.</p>
+                        </li>
+                        <li>
+                            <p>If one of the arguments is an array, the scalar argument is applied to each element in
+                                the array.</p>
+                        </li>
+                        <li>
+                            <p>If both of the arguments are arrays, then the dimensions must match, and the function is
+                                applied on the corresponding values in each array.</p>
+                        </li>
+                    </ul>
+                </div>
+                <div class="paragraph">
+                    <p>Some examples:</p>
+                </div>
+                <div class="paragraph">
+                    <p>Add 1 to each element in an array.</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">    1 + 10 20 30
+┌→───────┐
+│11 21 31│
+└────────┘</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>Add two arrays.</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">    10 20 30 + 1+⍳3
+┌→───────┐
+│11 22 33│
+└────────┘</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>Adding two arrays of different dimension will raise an error.</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">    1 2 3 + ⍳4
+Error at: 1:7: function add: Arguments must be of the same dimension, or one of the arguments must be a scalar</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>The error message here explains that the arguments to the "add" function does not have the same
+                        dimensions.</p>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_structural_functions">Structural functions</h3>
+                <div class="paragraph">
+                    <p>Functions that are not scalar are called structural, which means that the behaviour of the
+                        function does not follow the simple rules outlined above.</p>
+                </div>
+                <div class="paragraph">
+                    <p>A few structural functions have already been introduced, <code>⍴</code> and <code>⍳</code>.
+                        The dimensionality of the values returned from these functions depend on the arguments, and not
+                        just their dimensions.
+                        For example, the dimensionality of the array returned by the dyadic invocation of <code>⍴</code>
+                        depends on the arguments on the left side of the function.</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_operators">Operators</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p>Operators are used to derive a new function from another function.
+                    Operators are written immediately following a function.
+                    For example, <code>/</code> is the &#8220;reduction operator&#8221;:</p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+                    <pre class="highlight"><code class="language-kap" data-lang="kap">+/ array</code></pre>
+                </div>
+            </div>
+            <div class="paragraph">
+                <p>The above code takes the <code>+</code> function and derives a new function using the reduction
+                    operator.
+                    The new function performs an additive reduction on its argument:</p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">    +/10 20 30 40 50 60
+210</code></pre>
+                </div>
+            </div>
+            <div class="paragraph">
+                <p>The above returns the sum of the values in the array.
+                    In KAP, the reduction is performed left-to-right (which is different to how other versions of APL
+                    performs this operation), with the above example evaluated as follows:</p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+<pre> 10+20 → 30
+ 30+30 → 60
+ 60+40 → 100
+100+50 → 150
+150+60 → 210</pre>
+                </div>
+            </div>
+            <div class="paragraph">
+                <p>The reduction operator is very useful for a lot of purposes.
+                    For example, the function <code>⌈</code> returns the maximum of two values.
+                    When used to together with reduce it can be used to find the maximum value in an array:</p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">    ⌈/ 3 8 4 3 100 2 8 12 9 6
+100</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <h1 id="_datatypes" class="sect0">Datatypes</h1>
+    <div class="openblock partintro">
+        <div class="content">
+            <div class="paragraph">
+                <p>KAP supports the following basic datatypes:</p>
+            </div>
+            <div class="ulist">
+                <ul>
+                    <li>
+                        <p>Number (see next section)</p>
+                    </li>
+                    <li>
+                        <p>Character</p>
+                    </li>
+                    <li>
+                        <p>Symbol</p>
+                    </li>
+                    <li>
+                        <p>Hashtable</p>
+                    </li>
+                    <li>
+                        <p>Array</p>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_numeric_types">Numeric types</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p>KAP supports the following numeric types:</p>
+            </div>
+            <div class="ulist">
+                <ul>
+                    <li>
+                        <p>Integers.
+                            These are written as plain decimal numbers: <code>123</code> or <code>¯12</code>.
+                            Any integer that is too large to fit in 64 bits will be automatically extended to a bigint.
+                            Manipulating these numbers are slower than 64bit integers but otherwise behave similarly.
+                        </p>
+                    </li>
+                    <li>
+                        <p>Rationals.
+                            A rational number is a pair of bigints and can represent any rational fraction.</p>
+                    </li>
+                    <li>
+                        <p>64-bit floating point numbers.
+                            A number if floating point if it contains a decimal point: <code>123.789</code></p>
+                    </li>
+                    <li>
+                        <p>Complex numbers of the form <code>12J98</code>.
+                            The first value represents the real part and the second is the imaginary part.
+                            Both the real and imaginary parts are always 64-bit floating point values even if they do
+                            not contain a decimal point.</p>
+                    </li>
+                </ul>
+            </div>
+            <div class="paragraph">
+                <p>Negative numbers are written using the <code>¯</code> symbol rather than <code>-</code>.
+                    In other words, the value -22 is written as <code>¯22</code>.
+                    The reason for this is that <code>-</code> is a regular function, so an expression such as <code>3
+                        -2</code> will be interpreted as the expression to call the function <code>-</code> on the
+                    arguments <code>3</code> and <code>2</code>, which will subtract 2 from 3.</p>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_characters">Characters</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p>A character is written as a <code>@</code> followed by the character.
+                    For example, <code>@b</code>.
+                    A 1-dimensional array of characters is a string and can be written using double quotes.
+                    Thus, the array <code>@f @o @o</code> is the same as <code>"foo"</code>.</p>
+            </div>
+            <div class="paragraph">
+                <p>The interpreter will print 1-dimensional arrays as strings if every element in the array is a
+                    character.
+                    If any element is not a character, the entire array will be printed in the regular fashion:</p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">    @x @y @z
+"xyz"
+    @x @y @z 4
+┌→─────────┐
+│@x @y @z 4│
+└──────────┘</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_symbols">Symbols</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p>Symbols are objects that represents names.
+                    They are mostly used in advanced concept such as when defining new syntax.
+                    The most common usage of symbols is when using keywords, which are symbols that belong to the
+                    special keyword namespace.
+                    These are entered by prefixing the symbol name by a colon: <code>:foo</code>.</p>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_hashtables">Hashtables</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p>Hashtables are a special datatype that maps an object such as a string to another object.
+                    These are described in a later section.</p>
+            </div>
+        </div>
+    </div>
+    <h1 id="_flow_control" class="sect0">Flow control</h1>
+    <div class="sect1">
+        <h2 id="_if_statements">If statements</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p>The if statement looks similar to that of C:</p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">if (a &lt; b) {
+    io:println "a is less than b"
+} else {
+    io:println "a is not less than b"
+}</code></pre>
+                </div>
+            </div>
+            <div class="paragraph">
+                <p>However, in KAP, the if statement is a value which is set to the result of the last form in the
+                    evaluated clause.
+                    An example:</p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">foo ← if (a &lt; b) {
+    10
+} else {
+    20
+}</code></pre>
+                </div>
+            </div>
+            <div class="paragraph">
+                <p>After executing the above, the variable <code>foo</code> will have the value <code>10</code> if
+                    <code>a</code> was less than <code>b</code>.</p>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_while_loops">While loops</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p>KAP provides a while loop that is similar to that of C and many of its descendents.
+                    A while loop terminates once its condition is false.
+                    The following example prints the numbers 0 to 19:</p>
+            </div>
+            <div class="listingblock">
+                <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">i ← 0
+while (i &lt; 20) {
+    io:println i
+    i ← i+1
+}</code></pre>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_exceptions">Exceptions</h2>
+        <div class="sectionbody">
+            <div class="paragraph">
+                <p><strong>TODO: Explain try/catch</strong></p>
+            </div>
+        </div>
+    </div>
+    <h1 id="_kap_reference" class="sect0">KAP Reference</h1>
+    <div class="sect1">
+        <h2 id="_list_of_built_in_kap_functions">List of built-in KAP functions</h2>
+        <div class="sectionbody">
+            <div class="sect2">
+                <h3 id="_functions">Functions</h3>
+                <div class="paragraph">
+                    <p>In the below list, when discussing a dyadic function call, A and B refers to the left and right
+                        argument respectively.</p>
+                </div>
+                <table class="tableblock frame-all grid-all stretch">
+                    <colgroup>
+                        <col style="width: 11.1111%;">
+                        <col style="width: 44.4444%;">
+                        <col style="width: 44.4445%;">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th class="tableblock halign-left valign-top">Function</th>
+                        <th class="tableblock halign-left valign-top">Monadic</th>
+                        <th class="tableblock halign-left valign-top">Dyadic</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>+</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Complex conjugate</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Addition</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>-</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Negation</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Subtraction</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>×</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Signum</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Multiplication</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>÷</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Reciprocal</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Division</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>|</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Magnitude</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Modulo (note that the arguments are reversed, for <code>a|b</code>, the result is
+                                        B modulo A)</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⌈</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Ceiling (return the smallest integer greater than or equal to the argument)</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Maximum of the two arguments</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⌊</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Floor (return the largest integer smaller than or equal to the argument)</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Minimum of the two arguments</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⍟</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Natural logarithm</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Base-A logarithm of B</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⍳</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>If the argument is a number, return a list from 0 to N-1. If the argument is an
+                                        array, the result is sets of numbers where each value is the index in the
+                                        corresponding axis.</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return the index of B in A</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⍴</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return the shape of the argument</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Reshape B to the dimensions specified in A</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⊢</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return the argument itself</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return B</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⊣</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return the argument itself</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return A</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>=</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Compare cells of A to corresponding cells in B</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>≠</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not-equals comparison of cells in A with the corresponding cells in B</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>&lt;</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Less than</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>&gt;</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Greater than</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>≤</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Less than or equal</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>≥</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Greater than or equal</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⌷</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Indexed lookup from B by index A</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⊂</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Enclose</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Partition B from specification A</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⊃</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Disclose.
+                                        If the argument is an enclosed value, return the contained value, otherwise
+                                        return the argument.</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Pick</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>∧</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>For boolean arguments, return the logical and of A and B. For numeric values,
+                                        return the GCD of A and B.</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>∨</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>For boolean arguments, return the logical or of A and B. For numeric values,
+                                        return the LCM of A and B.</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⍲</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Logical Nand</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⍱</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Logical Nor</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>~</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Logical not</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Remove elements in B from A</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>,</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return the argument converted to a 1-dimensional array</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Concatenate A and B along the major axis</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⍪</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return the argument converted to a 2-dimensional array of one column</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Concatenate A and B along the minor axis.
+                                        This is equivalent to <code>,[0]</code></p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>↑</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return the first value in the array.
+                                        If the array is empty, return 0.</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return the first A values in B. If B has fewer values than A, return 0 for the
+                                        remaining results.</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>↓</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Drop the first value in the argument</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Drop the first A values in B. If A is negative, drop the last -A values of B.</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>?</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return an array of the same dimensions as the argument, with each value being a
+                                        random number between 0 and less than N.</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return A unique numbers between 0 and less than B</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⌽</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Reverse the order of the cells along the minor axis</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Rotate the content of the cells in array B by A steps to the left along the minor
+                                        axis</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⊖</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Reverse the order of the cells along the major axis</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Rotate the content of the cells in array B by A steps to the left along the major
+                                        axis</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⍉</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Transpose the array.
+                                        Reverse the order of the dimensions.</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Reorder the dimensions of B according to A</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>≡</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>True if A is equal to B</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>≢</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Size of the array along the major axis</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>True is A is not equal to B</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>∊</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Find elements of A in B</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⍷</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return an array o booleans of the same dimension as B, where a cell is set to
+                                        true if A is can be found at that point.</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⍋</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return the indexes into the argument ordered by increasing value</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⍒</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return the indexes into the argument ordered by decreasing value</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>/</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>For each element in A, select that number of instances of the corresponding
+                                        element in B. Selection along the major axis.</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⌿</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>For each element in A, select that number of instances of the corresponding
+                                        element in B. Selection along the minor axis.</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⍕</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return the argument as a string</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⍎</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Parse the string as a number</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>∪</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return all unique elements in the argument</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return all unique elements in both arguments</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>∩</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Not defined</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return the intersection of elements in arrays A and B</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>!</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return the factorial of the argument</p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Return the binomial of A to B</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+            <div class="sect2">
+                <h3 id="_operators_2">Operators</h3>
+                <table class="tableblock frame-all grid-all stretch">
+                    <colgroup>
+                        <col style="width: 20%;">
+                        <col style="width: 80%;">
+                    </colgroup>
+                    <thead>
+                    <tr>
+                        <th class="tableblock halign-left valign-top">Name</th>
+                        <th class="tableblock halign-left valign-top">Description</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>/</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Reduce along last axis</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⌿</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Reduce along first axis (this is equivalent to <code>FN/[0]</code>)</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>¨</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Call function on each cell</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⍨</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>For monadic calls, <code>FN⍨ a</code> is equivalent to <code>a FN a</code>.
+                                        For dyadic calls, the arguments are reversed.</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>⍤</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Rank.
+                                        When called as <code>a (FN⍤N) b</code> Calls the function on all elements of N
+                                        major axis of the arguments.
+                                        N can be an array of 1, 2 or 3 integers.</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>∵</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Derive bitwise function</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>∘</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Compose functions.</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p><code>parallel</code></p>
+                                </div>
+                            </div>
+                        </td>
+                        <td class="tableblock halign-left valign-top">
+                            <div class="content">
+                                <div class="paragraph">
+                                    <p>Derive parallel version of the function if available</p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+    <div class="sect1">
+        <h2 id="_flow_control_2">Flow control</h2>
+        <div class="sectionbody">
+            <div class="sect2">
+                <h3 id="_if_statements_2">If statements</h3>
+                <div class="paragraph">
+                    <p>If statement with a single clause.
+                        Returns <code>⍬</code> if the condition is false.</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">if (a) {
+    result
+}</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>If statement with both then and else clauses:</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">if (a) {
+    resultIfTrue
+} else {
+    resultIfFalse
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_when_statement">When statement</h3>
+                <div class="paragraph">
+                    <p>The <code>when</code> statement can be used to check for multiple conditions.
+                        This is preferred to a long list of if/else if/else statements.</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">when {
+    (conditionA) { resultIfA }
+    (conditionB) { resultIfB }
+    (1)          { elseResult }
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_while_statement">While statement</h3>
+                <div class="paragraph">
+                    <p>Executes the body until the condition is false:</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+<pre class="highlight"><code class="language-kap" data-lang="kap">while (a) {
+    code
+}</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_unwinding">Unwinding</h3>
+                <div class="paragraph">
+                    <p>The <code>unwindProtect</code> statement is used to execute one code block after another one,
+                        regardless of whether the first one performed a non-local exit (such as by throwing an
+                        exception):</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+                        <pre class="highlight"><code class="language-kap" data-lang="kap">unwindProtect { mainCode } { unwind }</code></pre>
+                    </div>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_throwing_an_exception">Throwing an exception</h3>
+                <div class="paragraph">
+                    <p>Exceptions are thrown using <code>throw</code>.
+                        Exception have a type, represented by a symbol and some associated data.
+                        The following example throws an exception of type <code>:foo</code> with data
+                        <code>"test"</code>:</p>
+                </div>
+                <div class="listingblock">
+                    <div class="content">
+                        <pre class="highlight"><code class="language-kap" data-lang="kap">:foo throw "test"</code></pre>
+                    </div>
+                </div>
+                <div class="paragraph">
+                    <p>When called monadically, <code>throw</code> will throw an execption of type <code>:error</code>.
+                    </p>
+                </div>
+            </div>
+            <div class="sect2">
+                <h3 id="_catching_exception">Catching exception</h3>
+                <div class="paragraph">
+                    <p>TODO: Need to define a syntax extension to make exception catching nice</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="footer">
+    <div id="footer-text">
+        Last updated 2023-08-11 22:10:49 +0800
+    </div>
+</div>
+</body>
+</html>

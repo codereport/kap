@@ -2,12 +2,14 @@
 
 set -e
 
-asciidoctor -a toc ./website/src/orchid/resources/pages/kap-comparison.asciidoc
-asciidoctor -a toc ./website/src/orchid/resources/pages/tutorial.asciidoc
+asciidoctor -a toc ./docs/kap-comparison.asciidoc
+asciidoctor -a toc ./docs/tutorial.asciidoc
+asciidoctor -a toc ./docs/reference.asciidoc
 
-scp -r website/src/orchid/resources/pages/kap-comparison.html \
-       website/src/orchid/resources/pages/tutorial.html \
-       website/src/orchid/resources/pages/diagrams \
+scp -r docs/kap-comparison.html \
+       docs/tutorial.html \
+       docs/reference.html \
+       docs/diagrams \
         root@matrix.dhsdevelopments.com:/var/www/kapdemo
 
 #./gradlew clientweb:browserDistribution
