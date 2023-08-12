@@ -307,6 +307,20 @@ Returns 0 if `A` and `B` are 1, otherwise return 1. This function is equivalent 
 
 Returns 0 if either `A` or `B` are 1, otherwise return 1. This function is equivalent to `~A∨B`.
 
+=== `∼`: Logical not/Without
+
+==== Monadic: Logical not
+
+Returns `1` if the argument is `0`, and vice versa.
+If the argument is not 0 or 1, raise an error.
+
+==== Dyadic: Without
+
+This is a non-scalar function.
+Returns `B` with all instances in `A` removed.
+
+`1 2 3 4 5 6 ~ 3 6` => `1 2 4 5`
+
 === `√`: Square root
 
 ==== Monadic: Square root
@@ -361,6 +375,148 @@ This is equivalent to `↑⍴A`.
 
 Returns `1` if `A` and `B` are not equal.
 
+=== `⌊`: Min/Floor
+
+==== Monadic: Floor
+
+Returns the largest integer which is less than or equal to the argument.
+
+*Compatibility note:* This function is not defined for complex numbers.
+To access the APL-compatible complex floor operation, use `floorc`.
+
+==== Dyadic: Min
+
+Returns the smallest of `A` and `B`.
+
+=== `⌈`: Max/Ceiling
+
+==== Monadic: Ceiling
+
+Returns the smallest integer which is greater than than or equal to the argument.
+
+*Compatibility note:* This function is not defined for complex numbers.
+To access the APL-compatible complex ceiling operation, use `ceilc`.
+
+==== Dyadic: Max
+
+Returns the largest of `A` and `B`.
+
+== Structural functions
+
+Structural functions are generally defined to be any function that does not obey the general roles of scalar functions.
+Their return values may have a very different structure than its argument.
+
+=== `⊢`: Identity/Right
+
+==== Monadic: Identity
+
+Returns the argument itself.
+
+`⊢123` => `123`
+
+==== Dyadic: Right
+
+Returns the right argument
+
+`1⊢2` => `2`
+
+=== `⊣`: Identity/Left
+
+==== Monadic: Identity
+
+Returns the argument itself.
+
+`⊢123` => `123`
+
+==== Dyadic: Left
+
+Returns the left argument
+
+`1⊢2` => `1`
+
+=== `⌷`: Index lookup
+
+TODO
+
+=== `⊂`: Enclose/Paritioned enclose
+
+TODO
+
+=== `⊃`: Disclose/Pick
+
+TODO
+
+=== `,`: Concatenate/Ravel
+
+TODO
+
+=== `↑`: Take/Take first
+
+TODO
+
+=== `↓`: Drop/Drop first
+
+TODO
+
+=== `?`: Random
+
+TODO
+
+=== `⌽`: Rotate horizontally/Reverse horizontally
+
+TODO
+
+=== `⊖`: Rotate vertically/Reverse vertically
+
+TODO
+
+=== `⍉`: Transpose/Transpose by axis
+
+TODO
+
+=== `∊`: Member
+
+TODO
+
+=== `⍋`: Grade up
+
+TODO
+
+=== `⍒`: Grade down
+
+TODO
+
+=== `⍷`: Find
+
+TODO
+
+=== `⫽`: Select
+
+=== `⍕`: Format
+
+==== Monadic: Format
+
+Returns a string representation of the argument.
+
+=== `⍎`: Parse number
+
+==== Monadic: Parse number
+
+Given a string, attempt to parse it as a number.
+Raises an error if the parsing failed.
+
+=== `%`: Case
+
+TODO
+
+=== `⊆`: Partitioned encode
+
+TODO
+
+=== `⊇`: Select
+
+TODO
+
 == Operators
 
 === `¨`: For each
@@ -411,6 +567,116 @@ The computation will only happen when the result is requested.
 ==== Dyadic: Windowed reduce
 
 TODO: Explain windowed reduce
+
+=== `⌿`: Reduce leading axis/Windowed reduce leading axis
+
+==== Monadic: Reduce leading axis
+
+This function behaves the same as `/` with the only difference being that the axis specifier will default to 0 rather than the last axis.
+
+==== Dyadic: Windowed reduce leading axis
+
+This function behaves the same as `/` with the only difference being that the axis specifier will default to 0 rather than the last axis.
+
+=== `⌻`: Outer product
+
+Format: `x F⌻ y` where `F` is a dyadic function.
+
+This operator derives a dyadic function that returns an array consisting of all combinations of the elements of the last axis of `x` with the elements of the leading axis of `y`.
+
+For one-dimenaional arrays, this corresponds to a table mapping each element of `x` to each element of `y`:
+
+----
+    1 2 3 ,⌻ 1000 2000 3000
+┌→─────────────────────────┐
+↓┌→─────┐ ┌→─────┐ ┌→─────┐│
+││1 1000│ │1 2000│ │1 3000││
+│└──────┘ └──────┘ └──────┘│
+│┌→─────┐ ┌→─────┐ ┌→─────┐│
+││2 1000│ │2 2000│ │2 3000││
+│└──────┘ └──────┘ └──────┘│
+│┌→─────┐ ┌→─────┐ ┌→─────┐│
+││3 1000│ │3 2000│ │3 3000││
+│└──────┘ └──────┘ └──────┘│
+└──────────────────────────┘
+----
+
+=== `.`: Inner product
+
+TODO
+
+=== `⍨`: Commute/duplicate
+
+==== Monadic: Duplicate
+
+Format: `F⍨ x`
+
+Derives a monadic function that calls `F` dyadically with `x` as arguments.
+
+`+⍨ 10` => `20`
+
+==== Dyadic: Commute
+
+Format `x F⍨ y`
+
+Derives a function which calls the underlying function with he arguments reversed.
+
+`10-⍨1` => `-9`
+
+=== `⍣`: Power operator
+
+TODO
+
+=== `\`: Scan
+
+TODO
+
+=== `⍀`: Scan first axis
+
+TODO
+
+=== `⍤`: Rank operator
+
+TODO
+
+=== `∵`: Derive bitwise
+
+TODO
+
+=== `∥`: Parallel
+
+TODO
+
+=== `˝`: Inverse
+
+Derives the functional inverse of the argument function.
+Generally, the inverse of a function is a function that satisfies the following: `F F˝ x` = `x`.
+For dyadic invocations, the equivalence is: `x F x F˝ y` = `y`.
+
+In plain language, the call `F˝ x` can be seen as answering the question: "`what value z can I pass to `F` such that `F z` returns `x`?`" Likewise, the dyadic call `x F˝ y` can be seen as answering the question: "`what value `z` can I pass to `x F z` that will return `y`?`"
+
+The equivalence rule explained above is not strictly adhered to, but rather the implementations of the inverse functions are driven by practicality.
+If a specific inverse makes more practical sense, then that is implemented even if the implementation isn't a strict inverse.
+
+`10-˝3` => `7`
+
+== Compositional operators
+
+=== `∘`: Compose
+
+TODO
+
+=== `⍛`: Reverse compose
+
+TODO
+
+=== `⍥`: Over
+
+TODO
+
+=== `⍢`: Structural under
+
+TODO
 
 == Math functions (namespace `math`)
 
