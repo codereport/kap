@@ -142,6 +142,28 @@ This includes:
 The declared function has the normal lexical scope, which is the same as any variable declared in the same scope.
 Local functions also has access to any variables visible within its scope.
 
+=== `λ`: Create function reference
+
+The `λ` symbol is used to create a function reference from a function.
+The syntax is: `λ fn` where `fn` is any function as it appears in an expression.
+
+The return value is a primitive value which behaves just like any primitive.
+It can be passed to other functions, and be members of arrays.
+
+When creating a function reference, the function captures any lexical bindings references from within the function.
+These bindings remain valid even after the scope is exited.
+
+To call a function from a function reference, use the apply symbol: `⍞`.
+Please see the documentation for this symbol for more information.
+
+=== `⍞`: Apply function from function reference
+
+The `⍞` is used to call a function given its function reference.
+It can take any of the following forms:
+
+- `⍞ variable` -- Calls the function reference stored in variable `variable`.
+- `⍞(expression)` -- `expresion` is evaluated to return a function reference which is subsequently called.
+
 == Scalar functions
 
 All scalar functions are evaluated in the same way.
@@ -597,7 +619,10 @@ TODO
 
 === `∊`: Member
 
-TODO
+==== Dyadic: Member
+
+Returns an array of the same shape as `A`.
+For each value in `A`, the corresponding value in the returned array is set to `1` if the value is found in `B`, otherwise, set it to `0`.
 
 === `⍋`: Grade up
 
