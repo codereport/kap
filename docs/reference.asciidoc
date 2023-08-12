@@ -363,7 +363,7 @@ Returns the largest of `A` and `B`.
 
 Computes the complex floor of the argument.
 
-=== `ceilcc`: Complex ceiling
+=== `ceilc`: Complex ceiling
 
 ==== Monadic: Complex ceiling
 
