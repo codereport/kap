@@ -810,7 +810,7 @@ It returns the number of elements in the map.
 
 == Definitions
 
-== Axis specifier
+=== Axis specifier
 
 An axis specifier is integer value that specifies which axis of a multi-dimensional array to act on.
 Axes are numbered from 0 to the dimensionality of the array - 1. For example, in a 2-dimensional array, axis 0 refers to the rows, while axis 1 refers to the columns.
