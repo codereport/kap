@@ -72,6 +72,76 @@ For the purposes of these functions, the numeric value `0` is considered false, 
 
 Note that `and` and `or` has higher precendece than lists, but lower than regular lists and function calls.
 
+== Syntactic elements
+
+=== `⍝`: Comments
+
+The `⍝` character indicates the start of a comment.
+Everything until the next newline will be ignored.
+
+=== `∇`: Function definition
+
+The symbol `∇` is used to define global functions.
+The general form is:
+
+----
+∇ header {
+  body
+}
+----
+
+The last evaluated form in `body` is returned from the function.
+
+The `header` has the following possible forms:
+
+- `name` -- Declare a function named `name`.
+In `body`, the left argument is accessed using `⍺` and the right argument using `⍵`.
+- `name x` -- The right argument is accessed using the name `x`.
+The left argument is not accessible.
+- `x name y` -- The left argument is accessed using the name `x`, and the right argument has the name `y`.
+- `(a;b) name (d;e)` -- The left and right arguments are assumed to be n-tuples and are destructured prior to evaluating the body.
+- `(a name) x` -- Monadic operator deriving a monadic function.
+- `x (a name b) y` -- Dyadic operator deriving a dyadic function.
+
+When declaring an operator, the function arguments are passed as function objects, and needs to be applied using the function application operation: `⍞`.
+
+To declare a monadic function that returns the argument + 1:
+
+----
+∇ foo x {
+  x+1
+}
+----
+
+To declare an operator that adds 100 to the result of evaluating the function after adding 1 to the argument:
+
+----
+∇ (a foo) x {
+  result ← ⍞a 1+x
+  100 + result
+}
+----
+
+=== `⇐`: Local function declaration
+
+The symbol `⇐` is used to declare lexically scoped local functions.
+It has the following general form:
+
+----
+foo ⇐ fn
+----
+
+Where `fn` can be any function as it appears in an expression.
+This includes:
+
+- Plain functions: `+`
+- Function compositions: `+-`
+- Dfns: `{ body }`
+- Function reference applications: `⍞name`
+
+The declared function has the normal lexical scope, which is the same as any variable declared in the same scope.
+Local functions also has access to any variables visible within its scope.
+
 == Scalar functions
 
 All scalar functions are evaluated in the same way.
@@ -807,6 +877,43 @@ It returns the number of elements in the map.
     mapSize m
 4
 ----
+
+== I/O functions
+
+=== `io:read`: Read file
+
+Format: `io:read name`
+
+Read the content of the file `name` and return the lines in the file as an array of strings.
+
+=== `io:print`: Print a value
+
+Format: `io:print value`
+
+Prints `value` to standard output.
+
+=== `io:httpRequest`: HTTP GET
+
+Performs an HTTP GET request and returns the result.
+
+=== `io:httpPost`: HTTP POST
+
+Performs an HTTP POST and returns the result.
+
+=== `io:readdir`: Read contents of a directory
+
+Format: `io:readdir path`, `format io:readdir path`
+
+When called monadically, this function assumes the left argument is an empty array.
+
+This function loads the contents of the directory at `path`, and returns a 2-dimensional array of results.
+The first column is always the name of the directory entry, with the remaining columns decided by the `format` argument.
+
+The `format` is a list of specifiers indicating what information should be included.
+Currently the following formats are supported:
+
+- `:size` -- the size of the file, or 0 if the entry is a directory
+- `:type` -- the type of the entry, possible results are: `:file`, `:directory` or `:undefined`
 
 == Definitions
 
