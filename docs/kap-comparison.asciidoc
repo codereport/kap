@@ -249,11 +249,11 @@ This functionality is particularly useful in trains.
 The following is a function that divides the argument by 2 and then adds 1: `1+2÷⍨`.
 Example:
 
-```
+----
     A ⇐ 1+2÷⍨
     A 10
 6
-```
+----
 
 In APL, the same code would use the `∘` operator to bind the left argument to the function.
 This syntax is not possible in KAP since operators in KAP requires the left argument to be a function.

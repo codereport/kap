@@ -521,7 +521,51 @@ TODO
 
 === `⊃`: Disclose/Pick
 
-TODO
+==== Monadic: Disclose/Mix
+
+If the argument is enclosed (i.e. an array of rank 0), the `⊃` function returns the array element:
+
+----
+    x ← ⊂"abc"
+    ⊃ x
+"abc"
+----
+
+If `⊃` is called on an array, it performs the standard APL mix operation.
+If the lengths of the subarrays don't match, the resulting array will have the size of the largest subarray, with the shorter ones filled in with the default element of the array (normally 0).
+
+----
+    ⊃ (1 2 3) (6 7 8 9 10)
+┌→─────────┐
+↓1 2 3 0  0│
+│6 7 8 9 10│
+└──────────┘
+----
+
+==== Dyadic: Pick
+
+Pick an element from `B` based on the specification in `A`.
+The left argument can be seen as a chain of coordinates to find an element in a (possibly nested) array.
+In its simplest form, it can be used to pick out a single element from a single-dimensional array:
+
+----
+    2 ⊃ 10 11 12
+12
+----
+
+If more than one value is given, it is used to recursively find nested array elements:
+
+----
+    1 2 ⊃ (1 2 3) (4 5 6)
+6
+----
+
+If the array being searched has more dimensions, one provides the full coordinates instead of just single elements:
+
+----
+    (1 0) 1 ⊃ 2 2 ⍴ (1 2 3) (4 5 6) (7 8 9) (10 11 12)
+8
+----
 
 === `,`: Concatenate/Ravel
 
@@ -741,19 +785,60 @@ If a specific inverse makes more practical sense, then that is implemented even 
 
 === `∘`: Compose
 
-TODO
+- `x A∘B y` is evaluated as `x A (B y)`
+- `A∘B y` is evaluated as `x A (B y)`
 
-=== `⍛`: Reverse compose
+=== `⍛`: Inverse compose
 
-TODO
+- `x A⍛B y` is evaluated as `(A x) B y`
+- `A⍛B y` is evaluated as `(A y) B y`
 
 === `⍥`: Over
 
-TODO
+The over operator derives a function which, when called dyadically, calls the right function on both arguments individually and then calls the left function on the results.
+In other words, this operator can be thought of processing the arguments using A before acting on it using B.
+
+- `x A⍥B y` is evaluated as `(B x) A (B y)`
+- `A⍥B y` is evaluated as `A B y`
 
 === `⍢`: Structural under
 
 TODO
+
+=== `«` and `»`: Fork
+
+The fork is specified using `«` and `»`.
+It has the following form:
+
+- `x A«B»C y` is evaluated as `(x A y) B (x C y)`
+- `A«B»C y` is evaluated as `(A y) B (C y)`
+
+=== Function chains
+
+A sequence of two functions next to each other are executed in the same manner as a train in APL:
+
+- `x (AB) y` is evaluated as `A x B y`
+
+- `(AB) y` is evaluated as `A B y`
+
+Since KAP does not implement APL-style forks, this expands to any number of functions in a train.
+In other words:
+
+- `x (ABCD) y` is evaluated as `A B C x D y`
+
+=== Left-bound functions
+
+A left-bound function derives a monadic function from a dyadic function by assigning a constant to the left argument.
+For example, `2+` is a derived function that adds `2` to its argument.
+This functionality is particularly useful in trains.
+The following is a function that divides the argument by 2 and then adds 1: `1+2÷⍨`.
+Example:
+
+----
+    A ⇐ 1+2÷⍨
+    A 10
+6
+----
 
 == Math functions (namespace `math`)
 
