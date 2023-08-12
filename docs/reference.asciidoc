@@ -331,6 +331,32 @@ Computes the square root of the argument.
 
 Computes the `A` root of `B`.
 
+=== `⌊`: Min/Floor
+
+==== Monadic: Floor
+
+Returns the largest integer which is less than or equal to the argument.
+
+*Compatibility note:* This function is not defined for complex numbers.
+To access the APL-compatible complex floor operation, use `floorc`.
+
+==== Dyadic: Min
+
+Returns the smallest of `A` and `B`.
+
+=== `⌈`: Max/Ceiling
+
+==== Monadic: Ceiling
+
+Returns the smallest integer which is greater than than or equal to the argument.
+
+*Compatibility note:* This function is not defined for complex numbers.
+To access the APL-compatible complex ceiling operation, use `ceilc`.
+
+==== Dyadic: Max
+
+Returns the largest of `A` and `B`.
+
 === `floorc`: Complex floor
 
 ==== Monadic: Complex floor
@@ -375,31 +401,12 @@ This is equivalent to `↑⍴A`.
 
 Returns `1` if `A` and `B` are not equal.
 
-=== `⌊`: Min/Floor
+=== `cmp`: Compare
 
-==== Monadic: Floor
+==== Dyadic: Compare
 
-Returns the largest integer which is less than or equal to the argument.
-
-*Compatibility note:* This function is not defined for complex numbers.
-To access the APL-compatible complex floor operation, use `floorc`.
-
-==== Dyadic: Min
-
-Returns the smallest of `A` and `B`.
-
-=== `⌈`: Max/Ceiling
-
-==== Monadic: Ceiling
-
-Returns the smallest integer which is greater than than or equal to the argument.
-
-*Compatibility note:* This function is not defined for complex numbers.
-To access the APL-compatible complex ceiling operation, use `ceilc`.
-
-==== Dyadic: Max
-
-Returns the largest of `A` and `B`.
+Compare `A` and `B`.
+Returns `-1` if `A` is less than `B`, `0` if they are equal or `1` if `A` is greater than `B`.
 
 == Structural functions
 
