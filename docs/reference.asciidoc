@@ -199,7 +199,7 @@ Return the base `A` logarithm of `B`.
 
 Return 1 if `A` and `B` are equal, otherwise return 0.
 
-Note that this function a scalar function, meaning that arrays are compared element-wise.
+Note that this function is a scalar function, meaning that arrays are compared element-wise.
 To compare arrays for equality, use `≡`.
 
 `10=10` => `1` +
@@ -212,7 +212,7 @@ To compare arrays for equality, use `≡`.
 
 Return 1 if `A` and `B` are not equal, otherwise return 0.
 
-Note that this function a scalar function, meaning that arrays are compared element-wise.
+Note that this function is a scalar function, meaning that arrays are compared element-wise.
 To compare arrays , use `≢`.
 
 `10≠11` => `1` +
@@ -231,7 +231,7 @@ The functionality is equivalent to `(1,⍴A) ⍴ A`
 
 Return 1 if `A` is less than `B`.
 
-Note that this function a scalar function, meaning that arrays are compared element-wise.
+Note that this function is a scalar function, meaning that arrays are compared element-wise.
 To compare arrays, use `cmp`.
 
 === `>`: Greater than/decrease rank
@@ -248,7 +248,7 @@ When called on arrays of 1 or 0 dimensions, this function returns its argument.
 
 Return 1 if `A` is less than `B`.
 
-Note that this function a scalar function, meaning that arrays are compared element-wise.
+Note that this function is a scalar function, meaning that arrays are compared element-wise.
 To compare arrays, use `cmp`.
 
 === `≤`: Less than or equal
@@ -257,7 +257,7 @@ To compare arrays, use `cmp`.
 
 Return 1 if `A` is less than or equal to `B`.
 
-Note that this function a scalar function, meaning that arrays are compared element-wise.
+Note that this function is a scalar function, meaning that arrays are compared element-wise.
 To compare arrays, use `cmp`.
 
 === `≥`: Greater than or equal
@@ -266,7 +266,7 @@ To compare arrays, use `cmp`.
 
 Return 1 if `A` is greater than or equal to `B`.
 
-Note that this function a scalar function, meaning that arrays are compared element-wise.
+Note that this function is a scalar function, meaning that arrays are compared element-wise.
 To compare arrays, use `cmp`.
 
 === `∧`: Logical and
@@ -328,6 +328,89 @@ Computes the complex floor of the argument.
 ==== Monadic: Complex ceiling
 
 Computes the complex ceiling of the argument.
+
+== Object comparison functions
+
+=== `≡`: Compare equal/depth
+
+==== Monadic: Depth
+
+Returns the depth of the argument.
+The depth is defined as being the largest number of recursively enclosed arrays.
+
+`≡(1 2 3) (4 5 6) (7 8 (9 10))` => `3` +
+`≡2` => `0`
+
+==== Dyadic: Compare equals
+
+Returns `1` if `A` and `B` are equal.
+For arrays, this means that both arrays have the same shape, and each element in `A` also compares equal to the same element in `B`.
+
+=== `≢`: Compare not equals/size of major axis
+
+==== Monadic: Size of major axis
+
+Return the size of the first dimension.
+This is equivalent to `↑⍴A`.
+
+`≢ 3` => 0 +
+`≢ 1 2 3` => 3 +
+`≢ 3 5 ⍴ ⍳15` => 3 +
+
+==== Dyadic: Compare not equals
+
+Returns `1` if `A` and `B` are not equal.
+
+== Operators
+
+=== `¨`: For each
+
+The given function is applied to the arguments and returns an array of the same shape as the input.
+
+Assuming `FN` is a function:
+
+`F¨ 1 2 3` is equivalent to `(F 1) (F 2) (F 3)`
+
+`10 20 30 F¨ 1 2 3` is equivalent to: `(10 F 1) (20 F 2) (30 F 3)`.
+
+*Lazy behaviour:* The result of `¨` is a lazy array.
+The function will only be called when the underlying value is retrieved.
+Note that the result is not cached, so if a result is retrieved more than once, the function will be called once for each time the value is read.
+If multiple reads are expected it is recommended to collapse the array prior to reading it.
+
+=== `/`: Reduce
+
+==== Monadic: Reduce
+
+Format: `F[axis]/ x` where `F` is a function, `x` is an array and `axis` is an optional <<Axis specifier,axis specifier>>.
+The axis specifier defaults to the last axis if not specified.
+
+If `x` is a one-dimensional array, the `/` operator acts as a simply left-reduction.
+In other words, the following expression:
+
+----
++/ 1 2 3 4
+----
+
+Results in the following computation (where the variables `tN` are temporary and not visible externally:
+
+----
+t0 ← 1+2
+t1 ← t0+3
+t1+4
+----
+
+When the argument has a higher dimension, the result array is reduced to the same shape, but with the selected axis removed.
+For example, given a 3-dimensional array of shape `2 3 4`, the resulting array after reducing along axis 2 will be `2 3`.
+
+When reducing a higher dimension array, the reduction always takes place along the selected axis, with actual operations performed as per the description above.
+
+*Lazy behaviour:* The result of a reduction is a lazy array.
+The computation will only happen when the result is requested.
+
+==== Dyadic: Windowed reduce
+
+TODO: Explain windowed reduce
 
 == Math functions (namespace `math`)
 
@@ -393,23 +476,6 @@ Raises an error if the argument is a floating point or complex.
 Returns the denominator of a rational number.
 Raises an error if the argument is a floating point or complex.
 
-== Operators
-
-=== `¨`: For each
-
-The given function is applied to the arguments and returns an array of the same shape as the input.
-
-Assuming `A` is a function:
-
-`A¨ 1 2 3` is equivalent to `(A 1) (A 2) (A 3)`
-
-`10 20 30 A¨ 1 2 2` is equivalent to: `(10 A 1) (20 A 2) (30 A 3)`.
-
-*Lazy behaviour:* The result of `¨` is a lazy array.
-The function will only be called when the underlying value is retrieved.
-Note that the result is not cached, so if a result is retrieved more than once, the function will be called once for each time the value is read.
-If multiple reads are expected it is recommended to collapse the array prior to reading it.
-
 == Map functions
 
 The functions in this section are used to create, access and update map objects.
@@ -427,7 +493,7 @@ In both cases, the key/value pairs are specified in an row-major interleaved for
 
 === `mapGet`: Read a value from a map
 
-This function is called monadically with `A` being the map and `B` being the key.
+This function is called dyadically with `A` being the map and `B` being the key.
 The corresponding value is returned, or `⍬` if the key was not found in the map.
 
 === `mapPut`: Update a map
@@ -468,3 +534,10 @@ It returns the number of elements in the map.
     mapSize m
 4
 ----
+
+== Definitions
+
+== Axis specifier
+
+An axis specifier is integer value that specifies which axis of a multi-dimensional array to act on.
+Axes are numbered from 0 to the dimensionality of the array - 1. For example, in a 2-dimensional array, axis 0 refers to the rows, while axis 1 refers to the columns.
