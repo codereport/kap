@@ -127,7 +127,7 @@ class DeferAPLOperator : APLOperatorOneArg {
 }
 
 class TagCatch(
-        val tag: APLValue, val data: APLValue, description: String? = null, pos: Position? = null
+    val tag: APLValue, val data: APLValue, description: String? = null, pos: Position? = null
 ) : APLEvalException(description ?: data.formatted(FormatStyle.PLAIN), pos)
 
 class UnwindProtectAPLFunction : APLFunctionDescriptor {
@@ -201,7 +201,7 @@ class CatchOperator : APLOperatorOneArg {
     override fun combineFunction(fn: APLFunction, pos: FunctionInstantiation) = CatchFunctionDescriptor(fn)
 
     class CatchFunctionDescriptor(
-            val fn1Descriptor: APLFunction
+        val fn1Descriptor: APLFunction
     ) : APLFunctionDescriptor {
 
         override fun make(instantiation: FunctionInstantiation): APLFunction {
@@ -209,11 +209,11 @@ class CatchOperator : APLOperatorOneArg {
             return object : NoAxisAPLFunction(instantiation) {
                 override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
                     val dimensions = a.dimensions
-                    unless(dimensions.size == 2 && dimensions[1] == 2) {
+                    unless((dimensions.size == 1 && dimensions[0] % 2 == 0) || (dimensions.size == 2 && dimensions[1] == 2)) {
                         throwAPLException(
-                                APLIllegalArgumentException(
-                                        "Catch argument must be a two-dimensional array with two columns",
-                                        pos))
+                            APLIllegalArgumentException(
+                                "Invalid dimensions of catch argument",
+                                pos))
                     }
                     try {
                         return fn.eval1Arg(context, APLNullValue.APL_NULL_INSTANCE, null)
@@ -224,10 +224,10 @@ class CatchOperator : APLOperatorOneArg {
                             val checked = a.valueAt(dimensions.indexFromPosition(intArrayOf(rowIndex, 0), multipliers))
                             if (sentTag.compareEquals(checked)) {
                                 val handlerFunction =
-                                        a.valueAt(dimensions.indexFromPosition(intArrayOf(rowIndex, 1), multipliers)).unwrapDeferredValue()
+                                    a.valueAt(dimensions.indexFromPosition(intArrayOf(rowIndex, 1), multipliers)).unwrapDeferredValue()
                                 if (handlerFunction !is LambdaValue) {
                                     throwAPLException(
-                                            APLIllegalArgumentException("The handler is not callable, this is currently an error.", pos))
+                                        APLIllegalArgumentException("The handler is not callable, this is currently an error.", pos))
                                 }
                                 return handlerFunction.makeClosure().eval2Arg(context, e.data, sentTag, null)
                             }
@@ -374,7 +374,7 @@ class ReturnFunction : APLFunctionDescriptor {
 
     override fun make(instantiation: FunctionInstantiation): ReturnFunctionImpl {
         val returnEnvironment = findReturnEnvironment(instantiation.env)
-                ?: throw ParseException("Call to return without a function call", instantiation.pos)
+            ?: throw ParseException("Call to return without a function call", instantiation.pos)
         instantiation.env.returnTargets.add(instantiation)
         return ReturnFunctionImpl(instantiation, returnEnvironment)
     }

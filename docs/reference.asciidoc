@@ -988,6 +988,122 @@ It returns the number of elements in the map.
 4
 ----
 
+== Flow control
+
+=== `→`: Return
+
+==== Monadic: Return
+
+Return from the innermost function.
+The argument is the value that will be returned.
+
+==== Dyadic: Conditional return
+
+If `A` is true, return `B` from the innermost function.
+
+=== `if`: Conditional evaluation
+
+Format: `if (expression) { thenStatement }`
+
+Evaluate `expression`.
+If true, evaluate `thenStatement` and return the result of its last form.
+Otherwise, return `⍬`.
+
+Format: `if (expression) { thenStatement } else { elseStatement }`
+
+Evaluate `expression`.
+If true, evaluate `thenStatement` and return the result of its last form.
+Otherwise, evaluate `elseStatement` and return the result of its last form.
+
+=== `when`: Multiple clause if
+
+The `when` statement is used as an alternative to series of `if` and `else`.
+The following sets `a` to be the value of some variable, or returns a message if all conditions failed.
+
+----
+a ← when {
+  (b=1) { c }
+  (b=2) { d }
+  (b=3) { e }
+  (1)   { "All comparisons were false" }
+}
+----
+
+=== `while`: While loop
+
+Format: `while (expression) { body }`
+
+The `while` statement evaluates the body as long as `expression` is true.
+
+----
+i ← 0
+while (i < 5) {
+  io:println "Number: ",⍕i
+  i ← i+1
+}
+----
+
+=== `throw`: Throw exception
+
+Exceptions are thrown using `throw`.
+Exception have a type, represented by a symbol and some associated data.
+The following example throws an exception of type `:foo` with data `"test"`:
+
+----
+:foo throw "test"
+----
+
+When called monadically, `throw` will throw an execption of type `:error`.
+
+=== `catch`: Catch exceptions
+
+The `catch` operator is used to perform some processing when an exception is thrown.
+It has the following form: `F catch x`.
+
+`x` must be either a one-dimensional array with an even number of elements, or a two-dimensional array with 2 columns.
+The content must be pairs of values, where each pair is a tag, followed by a function reference.
+
+The derived function first calls `F` with `⍬` as argument.
+If the invocation of `F` does not throw an exception, its return value is returned.
+If an exception was thrown, the tag is looked up in `x`, and if found, the corresponding function is called, with the left argument being the data that was passed to the `throw` call, and the right argument being the tag.
+The return value from the handler is then returned.
+
+== Regex
+
+=== `regex:match`: Match string against regex
+
+=== `regex:find`: Find matches in a string
+
+=== `regex:finderror`: Find matches in string or raise error
+
+=== `regex:create`: Compile regex
+
+=== `regex:split`: Split by regex
+
+=== `regex:replace`: Replace by regex
+
+== JSON functions
+
+=== `json:read`: Parse JSON from file
+
+=== `json:readString`: Parse JSON from string
+
+=== `json:writeString`: Write Kap objects as JSON
+
+== Unicode functions
+
+=== `unicode:toCodepoints`: Convert characters to codepoints
+
+=== `unicode:fromCodepoints`: Convert codepoints to characters
+
+=== `unicode:toGraphemes`: Split a string into graphemes
+
+=== `unicode:toLower`: Convert a string to lower case
+
+=== `unicode:toUpper`: Convert a string to upper case
+
+=== `unicode:toNames`: Return Unicode names
+
 == I/O functions
 
 === `io:read`: Read file
@@ -1024,6 +1140,32 @@ Currently the following formats are supported:
 
 - `:size` -- the size of the file, or 0 if the entry is a directory
 - `:type` -- the type of the entry, possible results are: `:file`, `:directory` or `:undefined`
+
+== SQL
+
+=== `sql:connect`: Connect to database
+
+=== `sql:query`: Query database
+
+=== `sql:update`: Perform update query
+
+=== `sql:prepare`: Prepare statement
+
+=== `sql:queryPrepared`: Perform query using prepared statement
+
+=== `sql:updatePrepared`: Perform update query using prepared statement
+
+== Graphics functions
+
+=== `gui:create`: Create graphics window
+
+=== `gui:draw`: Draw array
+
+== Charting functions
+
+=== `chart:bar`: Display bar chart
+
+=== `chart:line`: Display line chart
 
 == Definitions
 
