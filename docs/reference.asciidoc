@@ -655,7 +655,7 @@ Raises an error if the parsing failed.
 
 TODO
 
-=== `⊆`: Partitioned encode
+=== `⊆`: Partitioned enclose
 
 TODO
 
@@ -787,7 +787,18 @@ TODO
 
 === `∵`: Derive bitwise
 
-TODO
+Derives a version of the underlying function which performs its operation on the individual bits of an integer.
+The following bitwise operations are implemented:
+
+- `+`: xor
+- `-`: xor
+- `×`: and
+- `∧`: and
+- `∨`: or
+- `⍲`: nand
+- `⍱`: nor
+- `~`: not
+- `⌽`: logical shift
 
 === `∥`: Parallel
 
