@@ -624,6 +624,10 @@ TODO
 Returns an array of the same shape as `A`.
 For each value in `A`, the corresponding value in the returned array is set to `1` if the value is found in `B`, otherwise, set it to `0`.
 
+=== `⍷`: Find
+
+TODO
+
 === `⍋`: Grade up
 
 TODO
@@ -632,7 +636,11 @@ TODO
 
 TODO
 
-=== `⍷`: Find
+=== `,`: Catenate/Ravel
+
+TODO
+
+=== `⍪`: Catenate first axis/Table
 
 TODO
 
@@ -662,6 +670,32 @@ TODO
 === `⊇`: Select
 
 TODO
+
+=== `∩`: Intersection
+
+TODO
+
+=== `∪`: Union
+
+TODO
+
+=== `⊤`: Decode
+
+TODO
+
+=== `⊥`: Encode
+
+TODO
+
+=== `⌹`: Matrix division
+
+==== Monadic: Matrix inverse
+
+Return the inverse of a matrix
+
+==== Dyadic: Matrix division
+
+Divide the matrix `A` with `B`.
 
 == Operators
 
