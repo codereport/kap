@@ -348,6 +348,14 @@ class TransposeTest : APLTest() {
     }
 
     @Test
+    fun rotateWithSingleElementArrayLeftArgument() {
+        parseAPLExpression("(,2) ⌽ 4 5 ⍴ ⍳100").let { result ->
+            assertDimension(dimensionsOfSize(4, 5), result)
+            assertArrayContent(arrayOf(2, 3, 4, 0, 1, 7, 8, 9, 5, 6, 12, 13, 14, 10, 11, 17, 18, 19, 15, 16), result)
+        }
+    }
+
+    @Test
     fun reverseHorizontalInvalidAxis() {
         assertFailsWith<IllegalAxisException> {
             parseAPLExpression("⌽[¯1] 1 2 3")
@@ -396,6 +404,71 @@ class TransposeTest : APLTest() {
         }
         assertFailsWith<IllegalAxisException> {
             parseAPLExpression("2 ⊖[2] 4 5 ⍴ ⍳4")
+        }
+    }
+
+    @Test
+    fun inverseRotateHorizontal() {
+        parseAPLExpression("1 ⌽˝ 1 2 3 4 5").let { result ->
+            assert1DArray(arrayOf(5, 1, 2, 3, 4), result)
+        }
+    }
+
+    @Test
+    fun inverseRotateHorizontalWithAxis() {
+        parseAPLExpression("1 ⌽[0]˝ 3 3 ⍴ ⍳9").let { result ->
+            assertDimension(dimensionsOfSize(3, 3), result)
+            assertArrayContent(arrayOf(6, 7, 8, 0, 1, 2, 3, 4, 5), result)
+        }
+    }
+
+    @Test
+    fun inverseRotateVerical() {
+        parseAPLExpression("1 ⊖˝ 3 3 ⍴ ⍳9").let { result ->
+            assertDimension(dimensionsOfSize(3, 3), result)
+            assertArrayContent(arrayOf(6, 7, 8, 0, 1, 2, 3, 4, 5), result)
+        }
+    }
+
+    @Test
+    fun inverseRotateVerticalWithAxis() {
+        parseAPLExpression("1 ⊖[1]˝ 3 3 ⍴ ⍳9").let { result ->
+            assertDimension(dimensionsOfSize(3, 3), result)
+            assertArrayContent(arrayOf(2, 0, 1, 5, 3, 4, 8, 6, 7), result)
+        }
+    }
+
+    @Test
+    fun inverseRotateVerticalNegativeArgumentWithAxis() {
+        parseAPLExpression("¯3 ⊖[1]˝ 6 6 ⍴ ⍳36").let { result ->
+            assertDimension(dimensionsOfSize(6, 6), result)
+            assertArrayContent(
+                arrayOf(
+                    3, 4, 5, 0, 1, 2, 9, 10, 11, 6, 7, 8, 15, 16, 17, 12,
+                    13, 14, 21, 22, 23, 18, 19, 20, 27, 28, 29, 24, 25, 26,
+                    33, 34, 35, 30, 31, 32),
+                result)
+        }
+    }
+
+    @Test
+    fun inverseRotateLeftWithArrayLeftArg() {
+        parseAPLExpression("1 2 3 4 5 6 ⌽˝ 6 6 ⍴ ⍳36").let { result ->
+            assertDimension(dimensionsOfSize(6, 6), result)
+            assertArrayContent(
+                arrayOf(
+                    5, 0, 1, 2, 3, 4, 10, 11, 6, 7, 8, 9, 15, 16, 17,
+                    12, 13, 14, 20, 21, 22, 23, 18, 19, 25, 26, 27,
+                    28, 29, 24, 30, 31, 32, 33, 34, 35),
+                result)
+        }
+    }
+
+    @Test
+    fun inverseRotateWithMultiDimensionalLeftArgument() {
+        parseAPLExpression("(3 3 ⍴ 1 2 2 3 2 1 1 2 1) ⌽˝ 3 3 3 ⍴ ⍳100").let { result ->
+            assertDimension(dimensionsOfSize(3, 3, 3), result)
+            assertArrayContent(arrayOf(2, 0, 1, 4, 5, 3, 7, 8, 6, 9, 10, 11, 13, 14, 12, 17, 15, 16, 20, 18, 19, 22, 23, 21, 26, 24, 25), result)
         }
     }
 }

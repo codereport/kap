@@ -1034,34 +1034,52 @@ class InverseAPLValue private constructor(val source: APLValue, val axis: Int) :
 
 abstract class RotateFunction(pos: FunctionInstantiation) : APLFunction(pos) {
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-        val axisInt = if (axis == null) defaultAxis(a) else axis.ensureNumber(pos).asInt(pos).also { ensureValidAxis(it, a.dimensions, pos) }
+        val axisInt = computeAxis(a, axis)
         return InverseAPLValue.make(a, axisInt)
     }
 
     override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        return evalWithOptionalInverse(a, b, axis, false)
+    }
+
+    private fun evalWithOptionalInverse(a: APLValue, b: APLValue, axis: APLValue?, inverse: Boolean): APLValue {
         val bDimensions = b.dimensions
-        val axisInt = if (axis == null) defaultAxis(b) else axis.ensureNumber(pos).asInt(pos).also { ensureValidAxis(it, bDimensions, pos) }
-        if (a.isScalar()) {
-            val numShifts = a.ensureNumber(pos).asLong(pos)
-            return RotatedAPLValue.make(b, axisInt, numShifts)
+        val axisInt = computeAxis(b, axis)
+        val a0 = a.arrayify()
+
+        if (a0.dimensions.contentSize() == 1) {
+            val numShifts = a.valueAt(0).ensureNumber(pos).asLong(pos)
+            return RotatedAPLValue.make(b, axisInt, numShifts * if (inverse) -1 else 1)
         } else {
-            val aCollapsed = a.collapse()
-            val aDimensions = aCollapsed.dimensions
+            val a0Collapsed = a0.collapse()
+            val aDimensions = a0Collapsed.dimensions
             repeat(aDimensions.size) { i ->
                 if (aDimensions[i] != bDimensions[if (i < axisInt) i else i + 1]) {
                     throwAPLException(InvalidDimensionsException("Invalid dimension", pos))
                 }
             }
+            val a0Ints = if (inverse) {
+                IntArray(a0Collapsed.dimensions.contentSize()) { i -> -a0Collapsed.valueAtInt(i, pos) }
+            } else {
+                a0Collapsed.toIntArray(pos)
+            }
             return MultiRotationRotatedAPLValue(
                 b,
                 axisInt,
-                aCollapsed.dimensions.multipliers(),
-                aCollapsed.toIntArray(pos))
+                a0Collapsed.dimensions.multipliers(),
+                a0Ints)
         }
     }
 
+    private fun computeAxis(v: APLValue, axis: APLValue?) =
+        if (axis == null) defaultAxis(v) else axis.ensureNumber(pos).asInt(pos).also { ensureValidAxis(it, v.dimensions, pos) }
+
     override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?) =
         eval1Arg(context, a, axis)
+
+    override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        return evalWithOptionalInverse(a, b, axis, true)
+    }
 
     override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
         return inversibleStructuralUnder1Arg(this, baseFn, context, a, axis)
