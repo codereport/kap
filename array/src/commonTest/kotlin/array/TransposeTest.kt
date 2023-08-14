@@ -471,4 +471,11 @@ class TransposeTest : APLTest() {
             assertArrayContent(arrayOf(2, 0, 1, 4, 5, 3, 7, 8, 6, 9, 10, 11, 13, 14, 12, 17, 15, 16, 20, 18, 19, 22, 23, 21, 26, 24, 25), result)
         }
     }
+
+    @Test
+    fun underWithRotate() {
+        parseAPLExpression("(1↓)⍢(1⌽) ⍳5").let { result ->
+            assert1DArray(arrayOf(0, 2, 3, 4), result)
+        }
+    }
 }

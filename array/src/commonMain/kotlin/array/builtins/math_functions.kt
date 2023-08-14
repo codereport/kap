@@ -218,7 +218,6 @@ abstract class MathCombineAPLFunction(pos: FunctionInstantiation) : APLFunction(
                         GenericArraySum2Args(this, a, b, pos)
                 }
             }
-
             b is APLSingleValue -> {
                 when {
                     b is APLLong && a.specialisedType === ArrayMemberType.LONG && optimisationFlags.is2ALongLong ->
@@ -227,14 +226,11 @@ abstract class MathCombineAPLFunction(pos: FunctionInstantiation) : APLFunction(
                     else -> GenericArraySum2Args(this, a, b, pos)
                 }
             }
-
             a.rank == 0 && b.rank == 0 -> EnclosedAPLValue.make(makeCellSumFunction2Args(a.valueAt(0), b.valueAt(0), pos))
             a.specialisedType === ArrayMemberType.LONG && b.specialisedType === ArrayMemberType.LONG && optimisationFlags.is2ALongLong ->
                 LongArraySum2Args(this, a, b, pos)
-
             a.specialisedType === ArrayMemberType.DOUBLE && b.specialisedType === ArrayMemberType.DOUBLE && optimisationFlags.is2ADoubleDouble ->
                 DoubleArraySum2Args(this, a, b, pos)
-
             else ->
                 GenericArraySum2Args(this, a, b, pos)
         }

@@ -1085,6 +1085,10 @@ abstract class RotateFunction(pos: FunctionInstantiation) : APLFunction(pos) {
         return inversibleStructuralUnder1Arg(this, baseFn, context, a, axis)
     }
 
+    override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
+        return inversibleStructuralUnder2Arg(this, baseFn, context, a, b, axis)
+    }
+
     abstract fun defaultAxis(value: APLValue): Int
 }
 
