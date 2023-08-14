@@ -37,7 +37,7 @@ zSpc ⇐ { (0≡¨⍵) % ⍵ @\s }
 
 ∇ renderChar ch {
   n ← ch-@\0
-  ch ← if ((n ≥ 33) and (n ≤ 126)) {
+  ch ← if ((n ≥ 33 and n ≤ 126) and n ≠ 92) {
     @@ , ch
   } else {
     "@\\u" , toHex n
@@ -47,10 +47,6 @@ zSpc ⇐ { (0≡¨⍵) % ⍵ @\s }
 
 ∇ renderString {
   zSpc ⊃ (@\n≠)⍛⊂ @",⍵,@"
-}
-
-∇ renderString2 {
-  (@\n≠)⍛⊂ @",⍵,@"
 }
 
 ∇ renderNumber (n) {

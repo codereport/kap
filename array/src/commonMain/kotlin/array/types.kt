@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalStdlibApi::class)
+
 package array
 
 import array.builtins.compareAPLArrays
@@ -858,7 +860,7 @@ class APLChar(val value: Int) : APLSingleValue() {
     override fun formatted(style: FormatStyle) = when (style) {
         FormatStyle.PLAIN -> charToString(value)
         FormatStyle.PRETTY -> "@${charToString(value)}"
-        FormatStyle.READABLE -> "@${charToString(value)}"
+        FormatStyle.READABLE -> if (value in 33..126 && value != 92) "@${charToString(value)}" else "@\\u${value.toHexString(HexFormat.UpperCase)}"
     }
 
     override fun formattedAsCodeRequiresParens() = false
