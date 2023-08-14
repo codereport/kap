@@ -8,7 +8,7 @@
 The following document intends to list all functions and operators available in Kap.
 The list is currently incomplete.
 
-When describing arguments to dyadic calls, the left argument is referred to as `A` and the right argument as `B`.
+When describing arguments to dyadic calls in regular functions, the left argument is referred to as `A` and the right argument as `B`.
 
 == Syntax
 
@@ -61,6 +61,9 @@ List parsing has lower precedence than boolean operations as well as regular lis
 
 `1;2;3;4` -- A list consisting of 4 elements. +
 `1 + 2 ; 3 + 4 ; 5` -- a list consisting of the three values: `3`, `7`, and `5`.
+
+Note that the above syntax can only create N-tuples of length 2 or more.
+To create N-tuples of length 0 or 1, use the function `toList`.
 
 === Short-circuiting boolean operations
 
@@ -449,6 +452,16 @@ To access the APL-compatible complex ceiling operation, use `ceilc`.
 
 Returns the largest of `A` and `B`.
 
+=== `!`: Binomial/Gamma
+
+==== Monadic: Gamma
+
+Computes the result of the gamma function on `A`.
+
+==== Dyadic: Binomial
+
+Computes the result of the binomial function on `A` and `B`.
+
 === `floorc`: Complex floor
 
 ==== Monadic: Complex floor
@@ -460,6 +473,17 @@ Computes the complex floor of the argument.
 ==== Monadic: Complex ceiling
 
 Computes the complex ceiling of the argument.
+
+== Specialised functions
+
+=== `toList`: Create list
+
+Create an N-tuple.
+The function returns an N-tuple containing the elements of the input array.
+
+=== `fromList`: Convert a list to an array
+
+Given an N-tuple, return a 1-dimensional array with its content.
 
 == Object comparison functions
 
@@ -593,13 +617,60 @@ If the array being searched has more dimensions, one provides the full coordinat
 
 TODO
 
-=== `↑`: Take/Take first
+=== `⍪`: Concatenate first axis/Table
 
 TODO
+
+=== `↑`: Take/Take first
+
+==== Monadic: Take first
+
+Returns the first element in the argument.
+If the argument is a scalar value, reurn the argument itself.
+
+----
+    ↑ 10 11 12
+10
+----
+
+==== Dyadic: Take
+
+Take some number of values from each axis. `A` is an array of integers whose length is less than or equal to the rank of `B`.
+For each axis, the corresponding value in `A` represents the number of values to take from the start of that axis, if the value is negative, the absolute of the value is computed and that number of values is taken from the end of the axis.
+
+If the length of `A` is less than the rank of `B`, all values are taken from the remaining axes.
+
+----
+    2 3 4 ↑ 5 5 5 ⍴ ⍳125
+┌┌→──────────┐
+│↓ 0  1  2  3│
+││ 5  6  7  8│
+││10 11 12 13│
+│├→──────────┤
+│↓25 26 27 28│
+││30 31 32 33│
+││35 36 37 38│
+└└───────────┘
+----
 
 === `↓`: Drop/Drop first
 
-TODO
+==== Monadic: Drop first
+
+This function is only defined for 1-dimensional arrays.
+Removes first element from the array.
+
+----
+    ↓ 10 11 12
+11 12
+----
+
+==== Dyadic: Drop
+
+Drop some number of values from each axis. `A` is an array of integers wholse length is less than or equal to the rank of `B`.
+For each axis, the corresponding value in `A` represents the number of elements to drop from the beginning of the axis, or, if the value is negative, the absolute of the value represents the number of elements to drop from the end of the axis.
+
+If the length of `A` is less than the rank of `B`, the remaining values are set to 0.
 
 === `?`: Random
 
@@ -636,14 +707,6 @@ TODO
 
 TODO
 
-=== `,`: Catenate/Ravel
-
-TODO
-
-=== `⍪`: Catenate first axis/Table
-
-TODO
-
 === `⫽`: Select
 
 === `⍕`: Format
@@ -661,7 +724,18 @@ Raises an error if the parsing failed.
 
 === `%`: Case
 
-TODO
+==== Dyadic: Case
+
+This function accepts an array of indices and a list of arrays, each with the same shape as the index array, and for each cell in the index, pick a corresponding value in one of the subarrays.
+Example:
+
+----
+    0 1 1 2 % "abcd" "1234" "defg"
+"a23g"
+----
+
+The first cell in the left argument is 0, so it picks the first element of the first array in the right argument.
+The second cell is 1, so the second value is picked from the second array, and so on.
 
 === `⊆`: Partitioned enclose
 
@@ -873,7 +947,24 @@ In other words, this operator can be thought of processing the arguments using A
 
 === `⍢`: Structural under
 
-TODO
+The structural under operator takes two functions: When called as `A⍢B x`, the function `B` is first called on `x`, and the return value is passed to `B`.
+The effect of `A` is then reversed.
+
+For inversible scalar functions `B`, the reverse is simply a call to the inverse of `B`.
+However, some other functions can be used that are not normally inversible.
+An example:
+
+----
+    (10+)⍢(2↑) 3 3 ⍴ ⍳4
+┌→───────┐
+↓10 11 12│
+│13 10 11│
+│ 2  3  0│
+└────────┘
+----
+
+The above operation represents the addition of 10 after taking the first two rows of the array.
+After the addition, the original removed rows are put back.
 
 === `«` and `»`: Fork
 
