@@ -474,17 +474,6 @@ Computes the complex floor of the argument.
 
 Computes the complex ceiling of the argument.
 
-== Specialised functions
-
-=== `toList`: Create list
-
-Create an N-tuple.
-The function returns an N-tuple containing the elements of the input array.
-
-=== `fromList`: Convert a list to an array
-
-Given an N-tuple, return a 1-dimensional array with its content.
-
 == Object comparison functions
 
 === `≡`: Compare equal/depth
@@ -709,6 +698,8 @@ TODO
 
 === `⫽`: Select
 
+TODO
+
 === `⍕`: Format
 
 ==== Monadic: Format
@@ -770,6 +761,21 @@ Return the inverse of a matrix
 ==== Dyadic: Matrix division
 
 Divide the matrix `A` with `B`.
+
+== Specialised functions
+
+=== `toList`: Create list
+
+Create an N-tuple.
+The function returns an N-tuple containing the elements of the input array.
+
+=== `fromList`: Convert a list to an array
+
+Given an N-tuple, return a 1-dimensional array with its content.
+
+=== `labels`: Assign labels to an axis
+
+TODO
 
 == Operators
 
