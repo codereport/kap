@@ -26,6 +26,7 @@ Note that the real and imaginary parts are always floating point.
 - Symbol: `'foo`, `'qw:bar`.
 If the namespace name is blank, the symbol is placed in the `keyword` namespace: `:abcd`.
 All keywords are self-evaluating.
+- N-tuple: zero or more values treated as a single value
 - Array: An N-dimensional array of values, where each value is a primitive or another array
 
 === Character syntax
@@ -166,6 +167,56 @@ It can take any of the following forms:
 
 - `⍞ variable` -- Calls the function reference stored in variable `variable`.
 - `⍞(expression)` -- `expresion` is evaluated to return a function reference which is subsequently called.
+
+== Parser directives
+
+=== `use`: Load source file
+
+Format: `use("filename")`
+
+When the parser sees a use statement, the file is looked up and loaded as a separate parse unit.
+Any changes to the default namespace made while processing the file will be reverted once parsing of the file is complete.
+
+=== `import`: Import symbols into current namespace
+
+Format: `import("namespace")`
+
+This statement makes all exported symbols from `namespace` visible in the current namespace without the need to specify the namespace explicitly.
+
+=== `namespace`: Change default namespace
+
+Format: `namespace("namespace")`
+
+Set `namespace` as the default namespace for this parse unit.
+
+=== `declare`: Declare symbol parameters
+
+The `declare` statement is used to control various aspects of symbols.
+
+==== `:export`: Declare a symbol as exported
+
+Format: `declare(:export sym)`
+
+Declares one or more symbols as exported. `sym` is either a single symbol or a space-spearated list of symbols within parentheses, for example: `(foo bar)`.
+
+Symbols that are declared as exported will be accessible from the local namespace after performing an `import`.
+
+==== `:const`: Declare a variable as constant
+
+Format: `declare(:const sym)`
+
+This statement indicates that `sym` should not be modifiable.
+An attempt to modify such values will raise an error.
+
+==== `:singleCharExported`: Parse symbol as single character
+
+Format: `declare(:singleCharExported "S")`
+
+The argument `S` must be a single character.
+This statement tells the tokeniser that the given character should not form part of a word, but always be parsed as a single symbol.
+This allows single-symbol names to be written without needing to be delimited with spaces.
+
+This declaration also marks the symbol as being exported.
 
 == Scalar functions
 
