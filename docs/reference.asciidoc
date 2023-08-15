@@ -601,6 +601,8 @@ Returns the left argument
 
 TODO
 
+https://aplwiki.com/wiki/Index_(function)[APLWiki description]
+
 === `⊂`: Enclose/Paritioned enclose
 
 TODO
@@ -627,6 +629,8 @@ If the lengths of the subarrays don't match, the resulting array will have the s
 │6 7 8 9 10│
 └──────────┘
 ----
+
+https://aplwiki.com/wiki/Mix[APLWiki description]
 
 ==== Dyadic: Pick
 
@@ -720,13 +724,22 @@ TODO
 
 TODO
 
+https://aplwiki.com/wiki/Rotate[APLWiki description]
+
 === `⊖`: Rotate vertically/Reverse vertically
 
 TODO
 
+https://aplwiki.com/wiki/Rotate[APLWiki description]
+
 === `⍉`: Transpose/Transpose by axis
 
 TODO
+
+*Compatibility note:* APL supports repeated axis in the left argument.
+This is not supported in Kap.
+
+https://aplwiki.com/wiki/Transpose[APLWiki description]
 
 === `∊`: Member
 
@@ -743,9 +756,13 @@ TODO
 
 TODO
 
+https://aplwiki.com/wiki/Grade[APLWiki description]
+
 === `⍒`: Grade down
 
 TODO
+
+https://aplwiki.com/wiki/Grade[APLWiki description]
 
 === `⫽`: Select
 
@@ -783,9 +800,13 @@ The second cell is 1, so the second value is picked from the second array, and s
 
 TODO
 
+https://aplwiki.com/wiki/Partitioned_enclose[APLWiki description]
+
 === `⊇`: Select
 
 TODO
+
+https://aplwiki.com/wiki/From[APLWiki description]
 
 === `∩`: Intersection
 
@@ -812,6 +833,8 @@ Return the inverse of a matrix
 ==== Dyadic: Matrix division
 
 Divide the matrix `A` with `B`.
+
+https://aplwiki.com/wiki/Matrix_divide[APLWiki description]
 
 == Specialised functions
 
