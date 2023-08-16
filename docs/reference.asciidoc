@@ -50,6 +50,7 @@ Strings are single-dimensional arrays of characters, enclosed in double-quotes: 
 
 The following escape codes are allowed in a string:
 
+- `\\` -- Backslash
 - `\"` -- Double quote
 - `\n` -- Newline
 - `\r` -- CR
