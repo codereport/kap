@@ -29,6 +29,21 @@ class StructuralUnderTest : APLTest() {
     }
 
     @Test
+    fun scalarFunctionUnderMonadicTake0() {
+        parseAPLExpression("(1000+)⍢↑ 1 2 3 4 5 6 7 8").let { result ->
+            assert1DArray(arrayOf(1001, 2, 3, 4, 5, 6, 7, 8), result)
+        }
+    }
+
+    @Test
+    fun scalarFunctionUnderMonadicTake1() {
+        parseAPLExpression("(1000+)⍢↑ 3 4 ⍴ 1 2 3 4 5 6 7 8 9 10 11 12").let { result ->
+            assertDimension(dimensionsOfSize(3, 4), result)
+            assertArrayContent(arrayOf(1001, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12), result)
+        }
+    }
+
+    @Test
     fun dropUnderTake0() {
         parseAPLExpression("((1↓)under(¯2↑)) 3 4 ⍴ ⍳12").let { result ->
             assertDimension(dimensionsOfSize(2, 4), result)

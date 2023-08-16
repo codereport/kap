@@ -699,7 +699,7 @@ class TakeAPLFunction : APLFunctionDescriptor {
                 val a0Dimensions = a0.dimensions
                 val argInteger = when {
                     a0Dimensions.size == 0 -> a0.ensureNumber(pos).asInt()
-                    a0Dimensions.size == 1 && a0Dimensions[0] == 1 -> a0.valueAt(0).ensureNumber(pos).asInt()
+                    a0Dimensions.size == 1 && a0Dimensions[0] == 1 -> a0.valueAtInt(0, pos)
                     else -> throwAPLException(APLIllegalArgumentException("When given an explicit axis, the left argument must be a single integer", pos))
                 }
                 val bDimensions = b0.dimensions
@@ -713,6 +713,18 @@ class TakeAPLFunction : APLFunctionDescriptor {
                 }
             }
             return TakeArrayValue(selection, b0, pos)
+        }
+
+        override fun evalWithStructuralUnder1Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
+            val underValue = eval1Arg(context, a, axis)
+            val updated = baseFn.eval1Arg(context, underValue, null)
+            return if (a.dimensions.contentSize() == 0) {
+                a
+            } else {
+                val replacementDimensions = Dimensions(IntArray(a.dimensions.size) { 1 })
+                val replacement = APLArrayImpl(replacementDimensions, arrayOf(updated))
+                OverlayReplacementValue(a, replacementDimensions, replacement, IntArray(a.dimensions.size) { 0 }, pos)
+            }
         }
 
         override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
