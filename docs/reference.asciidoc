@@ -281,13 +281,17 @@ The most useful use of this is to subtract the nul symbol, `@\0`, from a charact
 ==== Monadic: Angle
 
 For real values, return the values 1, 0 or -1 if the argument is positive, zero or negative respectively.
-For complex arguments, return the angle of the point in complex space relative to the point at 0, or 0 if the value is at 0.
+For complex arguments, return a value with magnitude 1 having the same angle.
 
 `×2` => `1`
+
+https://aplwiki.com/wiki/Signum[APLWiki description]
 
 ==== Dyadic: Multiply
 
 Multiply `A` with `B`.
+
+https://aplwiki.com/wiki/Times[APLWiki description]
 
 === `÷`: Divide/reciprocal
 
@@ -318,6 +322,8 @@ Note that the order of the arguments is reversed compared to the similar functio
 *TODO:* Describe the behaviour of complex mod
 
 `2|5` => `1`
+
+https://aplwiki.com/wiki/Residue[APLWiki description]
 
 === `⋆`: Power
 
@@ -368,7 +374,7 @@ To compare arrays , use `≢`.
 
 ==== Monadic: Increase rank
 
-When called monadically, this function performs the non-scalar operation "increase rank".
+When called monadically, this function performs the non-scalar operation "`increase rank`".
 This function resizes the argument to a new array with a new dimension of size 1 added as an initial dimension.
 
 The functionality is equivalent to `(1,⍴A) ⍴ A`
@@ -384,7 +390,7 @@ To compare arrays, use `cmp`.
 
 ==== Monadic: Increase rank
 
-When called monadically, this function performs the non-scalar operation "decrease rank".
+When called monadically, this function performs the non-scalar operation "`decrease rank`".
 This function removes the major axis from the argument, and resizes the next axis to be the size of the first two axes multiplied together.
 
 In other words, this function performs the following operation: `((×/2↑⍴A),2↓⍴A) ⍴ A` for arrays of 2 or more dimensions.
@@ -918,7 +924,7 @@ Format: `x F⌻ y` where `F` is a dyadic function.
 
 This operator derives a dyadic function that returns an array consisting of all combinations of the elements of the last axis of `x` with the elements of the leading axis of `y`.
 
-For one-dimenaional arrays, this corresponds to a table mapping each element of `x` to each element of `y`:
+For one-dimensional arrays, this corresponds to a table mapping each element of `x` to each element of `y`:
 
 ----
     1 2 3 ,⌻ 1000 2000 3000
@@ -938,6 +944,8 @@ For one-dimenaional arrays, this corresponds to a table mapping each element of 
 === `.`: Inner product
 
 TODO
+
+https://aplwiki.com/wiki/Inner_Product[APLWiki description]
 
 === `⍨`: Commute/duplicate
 
@@ -965,9 +973,13 @@ TODO
 
 TODO
 
+https://aplwiki.com/wiki/Scan[APLWiki description]
+
 === `⍀`: Scan first axis
 
 TODO
+
+https://aplwiki.com/wiki/Scan[APLWiki description]
 
 === `⍤`: Rank operator
 
@@ -1164,6 +1176,20 @@ In both cases, the key/value pairs are specified in an row-major interleaved for
 
 This function is called dyadically with `A` being the map and `B` being the key.
 The corresponding value is returned, or `⍬` if the key was not found in the map.
+
+----
+    m ← map :a "test" :b "abc"
+    m mapGet :b
+"abc"
+----
+
+Regular bracket indexing works on maps, and is equivalent to a call to `mapGet`:
+
+----
+    m ← map :a 10 :b 11
+    m[:a]
+10
+----
 
 === `mapPut`: Update a map
 
