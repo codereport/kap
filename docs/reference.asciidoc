@@ -10,6 +10,39 @@ The list is currently incomplete.
 
 When describing arguments to dyadic calls in regular functions, the left argument is referred to as `A` and the right argument as `B`.
 
+== Parsing and evaluation
+
+When parsing a piece of code, such as an entire file, or a single command typed on the REPL, the process is split into two phases: Parsing and Evaluation.
+
+During the parsing phase, the parser reads the input and processes each declaration in order.
+Declarations include function definitions, syntax definitions or declarations.
+If an error occurs during parsing, any declarations that had been processed prior to the error will remain in effect.
+
+After the parsing phase, each statement is evaluated in order with the return value of the entire evaluation being the result of the last statement evaluated.
+Each statement is separated by the symbol `⋄` or a newline.
+
+After evaluating a statement, the result is collapsed (see <<comp,comp>>) before the next statement is evaluated.
+The reasoning behind this is that standalone statements are generally evaluated for its side effects.
+
+=== Forward declarations
+
+Since all code is parsed prior to evaluation, the Kap parser needs to know if a symbol refers to a function or a value at the time of parsing.
+This means that in contrast to APL, the rols of a symbol cannot change during evaluation.
+The normal way to deal with this is to ensure that a function is declared before the point in the code where the function is called.
+
+This presents a problem when two functions needs to call each other.
+At this point, forward declarations needs to be used.
+
+At present, Kap does not have a dedicated syntax for forward declarations.
+Instead, one defines a function that will never be called for the purpose of ensuring that the symbol is defined as a function.
+After defining the function calling this function, it can be redeclared with its correct definition.
+
+----
+foo ⇐ { throw "Forward declaration" }
+bar ⇐ { foo ... }
+foo ⇐ { bar ... }
+----
+
 == Syntax
 
 === Datatypes
@@ -77,7 +110,53 @@ For the purposes of these functions, the numeric value `0` is considered false, 
 
 Note that `and` and `or` has higher precendece than lists, but lower than regular lists and function calls.
 
+=== Line continuation
+
+If a line ends with a backquote `+`+`, the subsequent newline is treated as whitespace.
+This allows for statements to be broken up into multiple lines.
+
+----
+    1 + 2 + `
+    3 + 4 + 5
+15
+----
+
 == Syntactic elements
+
+=== Symbols
+
+Symbols are used to name objects in Kap.
+The name of a symbol consists of one or more non-space Unicode characters.
+Some examples include:
+
+- `+`
+- `foo`
+- `列表`
+
+All symbols belong to a namespace.
+A namespace is a grouping of symbols.
+When parsing a symbol, the namespace can be explicitly specified by prefixing the symbol name with the namspace name, separated by a `:`.
+Examples:
+
+- `default:foo`
+- `math:sin`
+- `abc:bar`
+
+If the namespace is blank, it is assumed to be `keyword`.
+Any symbol in the `keyword` namespace acts as a variable that returns the symbol itself.
+
+When lookup up a symbol without a namespace, the symbol is searched in the following order:
+
+- Check is the symbol is already interned in the current namespace
+- Search all imported namespaces for an external symbol
+- Intern the symbol in the current namespace
+
+A symbol can be marked as "`single character`", in which case it will always parse as a single symbol.
+For example, the symbol `÷` is a single character symbol.
+Because of this, the sequence `÷÷` are two separate symbols, instead of a single symbol consisting of two characters.
+
+The declaration `:singleCharExported` can be used to declare a symbol to be single character.
+See <<singleCharExported,:singleCharExported>> for details.
 
 === `⍝`: Comments
 
@@ -209,6 +288,7 @@ Format: `declare(:const sym)`
 This statement indicates that `sym` should not be modifiable.
 An attempt to modify such values will raise an error.
 
+[#singleCharExported]
 ==== `:singleCharExported`: Parse symbol as single character
 
 Format: `declare(:singleCharExported "S")`
@@ -857,6 +937,13 @@ Given an N-tuple, return a 1-dimensional array with its content.
 === `labels`: Assign labels to an axis
 
 TODO
+
+[#comp]
+=== `comp`: Force evaluation of lazy values
+
+Collapses a possibly lazy array and evaluates all values.
+The return valus is guaranteed to be a self-contained array with no references held to any other objects.
+Reading from this array will not cause concurrency issues.
 
 == Operators
 
