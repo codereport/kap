@@ -1128,8 +1128,8 @@ In other words, this operator can be thought of processing the arguments using A
 
 === `⍢`: Structural under
 
-The structural under operator takes two functions: When called as `A⍢B x`, the function `B` is first called on `x`, and the return value is passed to `B`.
-The effect of `A` is then reversed.
+The structural under operator takes two functions: When called as `A⍢B x`, the function `B` is first called on `x`, and the return value is passed to `A`.
+The effect of `B` is then reversed.
 
 For inversible scalar functions `B`, the reverse is simply a call to the inverse of `B`.
 However, some other functions can be used that are not normally inversible.

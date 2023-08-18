@@ -1,0 +1,617 @@
+= Quick tutorial
+:experimental:
+
+This tutorial is for people who just want a taste of what Kap can do and what it looks like.
+
+== Getting started
+
+A common usecase for Kap is to simply use it as an advanced calculator, so let's do some calculations:
+
+----
+    10 + 20
+30
+----
+
+So far so good.
+There should be little need to explain that this simply adds 10 and 20. Let's perform a multiplication:
+
+----
+    5×10
+50
+----
+
+Here we already see the use of non-ASCII symbols.
+Likewise, division uses `÷`:
+
+----
+    8÷4
+2
+----
+
+In order to avoid confusion with the symbol `-` used for subraction and negation, negative numbers are indicated using `¯`:
+
+----
+    ¯3+10
+7
+----
+
+== Order of evaluation
+
+For people coming from other languages, one of the biggest differences betwene other languages and Kap is the order of evaluation.
+Almost all evulation happens from right-to-left.
+Here's a simple computation to make this clear:
+
+----
+    2×5+1
+12
+----
+
+As we can see, this is evaluated as `2×(5+1)`.
+This may be surprising, but this makes a lot of more advanced features much simpler, at the cost of being different from regular maths as well as the majority of programming languages out there.
+
+Of course, one can always use paremthesis to force a specific evaulation order:
+
+----
+    (2×5)+1
+11
+----
+
+== Introducing arrays
+
+Formally, an array is an N-dimensional grouping of values.
+However, let's first discuss the simple case: 1-dimensional arrays.
+
+1-dimensional arrays is the only type of arrays available in most programming languages.
+It's simply a sequence of values, where each value is indexed by an integer.
+The syntax for such an array in Kap is simply the list of values separated by space:
+
+----
+    1 2 3 4
+┌→──────┐
+│1 2 3 4│
+└───────┘
+----
+
+In other words, typing some numbers separated by spaces will return an array of the same values.
+Kap renders such an array in a box with an array in the corner.
+
+Mathematical operations on an array applies that operation on each element.
+Here we negate all the values in an array:
+
+----
+    -10 20 30
+┌→──────────┐
+│-10 -20 -30│
+└───────────┘
+----
+
+Here we can see the reason negative numbers use a separate symbol, as `-` is just a function that applies to the entire argument, which in this particular case is a three-element array.
+Of course, it's certainly possible to use the negation function to negate just a single value, but that requires adding parenthesis:
+
+----
+    10 (-20) 30
+┌→────────┐
+│10 -20 30│
+└─────────┘
+----
+
+The following adds `100` to each element in the array:
+
+----
+    100 + 10 20 30
+┌→──────────┐
+│110 120 130│
+└───────────┘
+----
+
+If both sides of the operation are arrays, they need to have the same dimensions:
+
+----
+    1 2 3 + 100 200 300
+┌→──────────┐
+│101 202 303│
+└───────────┘
+----
+
+If the dimensions are mismatched, an error is raised:
+
+----
+    1 2 3 + 100 200
+Error at: 1:7: +: Arguments must be of the same dimension, or one of the arguments must be a scalar
+----
+
+== Variables
+
+Variables are assigned using `←`:
+
+----
+    foo ← 12
+    foo+4
+16
+----
+
+Any value can be assigned to a variable:
+
+----
+    foo ← 1 2 3 4
+    30+foo
+┌→──────────┐
+│31 32 33 34│
+└───────────┘
+----
+
+Many languages use `=` for variable assignment.
+In Kap, this symbol is used exclusively for comparison, as explained below.
+
+== Multi-dimensional arrays
+
+Before talking about how to create multi-dimensional arrays, let's spend a brief moment explaining how multi-dimensional data is structured.
+This will become important later since a lot of the power of Kap comes from working with higher-dimensional arrays.
+
+=== Array dimensionality
+
+All arrays have a dimensionality, or "`rank`" as it is often referred to.
+Arrays in most languages are 1-dimensional, meaning that values in the array are addressed using a single number.
+When creating an array using the syntax described in the previous section, the result is a 1-dimensional array.
+
+*Rank-0 arrays*
+
+A rank-0 array contains a single value:
+
+image::diagrams/zero-dim.svg[]
+
+All scalar values such as numbers or characters can be seen as rank-0 arrays.
+
+*Rank-1 arrays*
+
+Rank-1 arrays are often referred to as vectors, and are the default type of arrays in almost all programming languages.
+Elements are referenced using a single index:
+
+image::diagrams/one-dim.svg[]
+
+*Rank-2 arrays*
+
+A 2-dimensional array is similar to a spreadsheet, and have elements that are indexed using two numbers:
+
+image::diagrams/two-dim.svg[]
+
+*Rank-3 arrays*
+
+One can think of 3-dimensional arrays as a stack of 2-dimensional arrays, where the first index indicates the sheet, the second the row and the third is the column:
+
+image::diagrams/three-dim.svg[]
+
+*Rank-4 arrays*
+
+A 4-dimensional array can be thought of as multiple stacks of sheets.
+One needs 4 numbers to find a given cell, with the first number being the stack and the remaining three numbers as per the rank-3 array.
+
+image::diagrams/four-dim.svg[]
+
+KAP supports arrays with a large number of dimensions (the exact number is 2^31^-1), but in practice it's rare to work with arrays with more than 4 dimensions.
+The principles that are illustrated in the previous paragraphs extend naturally to any number of dimensions.
+
+=== Creating arrays with a given dimension
+
+Let's start by creating a 3-by-3 array containing the numbers 1 to 9:
+
+----
+    3 3 ⍴ 1 2 3 4 5 6 7 8 9
+┌→────┐
+↓1 2 3│
+│4 5 6│
+│7 8 9│
+└─────┘
+----
+
+The function `⍴` is called "`reshape`", and takes both a left and a right argument (this is similar to, say, addition or subtraction which also accepts arguments on the left and right side of the symbol, i.e. `4+8`).
+For the function `⍴`, the left argument indicates the requested dimensions of the result, which in this case is 3 rows and 3 columns.
+The right argument is an array containing the data to be reshaped.
+
+The result of this function is a rank-2 array, since each cell in the array requires two numbers to refer to its location: The row and the column.
+For example, the value `4` in the array above has position `1 0`.
+I.e. it's on the second row, and first column.
+
+We also note that the first element on an axis always has index 0. In APL, the starting index can be chosen to be either 0 or 1, and usually defaults to 1, this can be an important thing to remember when reading APL documentation and applying that information to Kap.
+
+What happens if you reshape an array that does not contain the same number of values?
+
+----
+    4 6 ⍴ 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15
+┌→────────────────┐
+↓ 1  2  3  4  5  6│
+│ 7  8  9 10 11 12│
+│13 14 15  1  2  3│
+│ 4  5  6  7  8  9│
+└─────────────────┘
+----
+
+As we can see, if the source array is too small, the reshape function will wrap around start again from the beginning.
+This can be very useful, for example if we want to create an array of 20 elements, alternating the values 0 and 2:
+
+----
+    20 ⍴ 0 2
+┌→──────────────────────────────────────┐
+│0 2 0 2 0 2 0 2 0 2 0 2 0 2 0 2 0 2 0 2│
+└───────────────────────────────────────┘
+----
+
+If the argument to the right is a single value, that value will be used to fill the entire array:
+
+----
+    3 3 ⍴ 1
+┌→────┐
+↓1 1 1│
+│1 1 1│
+│1 1 1│
+└─────┘
+----
+
+If you have an array with an arbitrary dimension and you want to take its content and create a 1-dimensional array from it, you can use the function `,`:
+
+----
+    foo ← 3 2 ⍴ 1 2 2
+    ,foo
+┌→──────────┐
+│1 2 3 1 2 3│
+└───────────┘
+----
+
+== Iota function
+
+For many purposes, it's very useful to create an array of numbers in a sequence.
+For this purpose, the following function is used: `⍳`.
+This is the Greek letter iota, so the function is usually called iota as well.
+Here is a simple example:
+
+----
+    ⍳5
+┌→────────┐
+│0 1 2 3 4│
+└─────────┘
+----
+
+Of course, this can be combined with `⍴` to reshape the output into the shape one wants:
+
+----
+    3 3 ⍴ ⍳9
+┌→────┐
+↓0 1 2│
+│3 4 5│
+│6 7 8│
+└─────┘
+----
+
+There is of course nothing special about combining these two functions.
+As mentioned earlier, evaluation happens from right-to-left, so this is simply taking `⍳9` and passing that result to `⍴`, with a left argument of `3 3`.
+
+== Monadic and dyadic calls
+
+As we introduce more functions, it's important to note the two main ways in which functions are called.
+
+The first type, "`monadic`" calls, is when the function accepts arguments to the right of the name.
+
+When a function accepts arguments on both the left and right side, it's called a "`dyadic`" invocation.
+
+Almost all functions in Kap accept 1 or 2 arguments, and in many cases both.
+When the documentation mentions a "`dyadic call`", it simply means that the function is called with one argument on each side of the function name.
+
+Many functions in Kap drastically changes their behaviour when called monadically vs. dyadically.
+That said, in many cases the two behaviours are related.
+
+The simples example of a function that can be called both monadically and dyadically is `-`.
+In its dyadic form, `x-y`, it subtracts `y` from `x`.
+The monadic form, `-x`, it negates its argument.
+
+== Concatenating arrays
+
+Earlier we saw that `,` when called monadically can be used to convert any array into its 1-dimensional version.
+
+When called dyadically, using the form `x,y`, the function concatenates the two arrays together:
+
+----
+    x ← ⍳3
+    y ← 100+⍳8
+    x,y
+┌→────────────────────────────────────┐
+│0 1 2 100 101 102 103 104 105 106 107│
+└─────────────────────────────────────┘
+----
+
+What happens if we omit the `,` and simply string `x` and `y` together?
+One may instinctively think that would do the same thing, given how arrays are automatically created when one types a sequence of numbers separated by spaces.
+Let's try it:
+
+----
+    x y
+┌→────────────────────────────────────────┐
+│┌→────┐ ┌→──────────────────────────────┐│
+││0 1 2│ │100 101 102 103 104 105 106 107││
+│└─────┘ └───────────────────────────────┘│
+└─────────────────────────────────────────┘
+----
+
+What happens here is that we asked for an array of 2 elements, `x` and `y`.
+These two elements are themselves arrays, so we end up with nested arrays.
+I.e. the first element is an array of 3 elements, and the second is another array of 7 elements.
+
+What about concatenating rrays of higher dimensions?
+How about a 3-by-3 array concatenated with a 3-by-4 array:
+
+----
+    (3 3 ⍴ ⍳9) , (3 4 ⍴ 100+⍳12)
+┌→────────────────────┐
+↓0 1 2 100 101 102 103│
+│3 4 5 104 105 106 107│
+│6 7 8 108 109 110 111│
+└─────────────────────┘
+----
+
+That worked fine, but what if we change the second argument to a 4-by-3 array?
+
+----
+    (3 3 ⍴ ⍳9) , (4 3 ⍴ 100+⍳12)
+Error at: 1:12: ,: Dimensions at axis 1 does not match: Dimensions[3, 3] compared to Dimensions[4, 3]
+----
+
+What we're trying to do is to concatenate along the horizontal axis (axis 1), and the two arrays has a different number of rows.
+An illustration may make this easier to see:
+
+----
+┌→────┐   ┌→──────────┐
+↓0 1 2│ - ↓100 101 102│
+│3 4 5│ - │103 104 105│
+│6 7 8│ - │106 107 108│
+└─────┘ X │109 110 111│
+          └───────────┘
+----
+
+As we can see, the right argument has an extra row that doesn't line up with the left.
+
+However, the se two arrays have the same number of columns, so we can concatenate them along the vertical axis (axis 0).
+The `,` function accepts an "`axis argument`" that is used to indicate along which axis the operation should take place:
+
+----
+    (3 3 ⍴ ⍳9) ,[0] (4 3 ⍴ 100+⍳12)
+┌→──────────┐
+↓  0   1   2│
+│  3   4   5│
+│  6   7   8│
+│100 101 102│
+│103 104 105│
+│106 107 108│
+│109 110 111│
+└───────────┘
+----
+
+This operation is so common that there is a dedicated symbol for it: `⍪`.
+
+== Rotation and reversal
+
+To reverse an array:
+
+----
+    ⌽ ⍳5
+┌→────────┐
+│4 3 2 1 0│
+└─────────┘
+----
+
+On multi-dimensional arrays, the function acts on the innermost array by default:
+
+----
+    ⌽ 8 8 ⍴ ⍳64
+┌→──────────────────────┐
+↓ 7  6  5  4  3  2  1  0│
+│15 14 13 12 11 10  9  8│
+│23 22 21 20 19 18 17 16│
+│31 30 29 28 27 26 25 24│
+│39 38 37 36 35 34 33 32│
+│47 46 45 44 43 42 41 40│
+│55 54 53 52 51 50 49 48│
+│63 62 61 60 59 58 57 56│
+└───────────────────────┘
+----
+
+Just like `,`, the rotate function can accept an axis, or one can use the alternative version: `⊖`.
+This version acts on the first axis:
+
+----
+    ⊖ 8 8 ⍴ ⍳64
+┌→──────────────────────┐
+↓56 57 58 59 60 61 62 63│
+│48 49 50 51 52 53 54 55│
+│40 41 42 43 44 45 46 47│
+│32 33 34 35 36 37 38 39│
+│24 25 26 27 28 29 30 31│
+│16 17 18 19 20 21 22 23│
+│ 8  9 10 11 12 13 14 15│
+│ 0  1  2  3  4  5  6  7│
+└───────────────────────┘
+----
+
+With a left argument, i.e. when called dyadically, these functions rotates the content some number steps to the right (or left, if negative):
+
+----
+    2 ⌽ 5 5 ⍴ ⍳25
+┌→─────────────┐
+↓ 2  3  4  0  1│
+│ 7  8  9  5  6│
+│12 13 14 10 11│
+│17 18 19 15 16│
+│22 23 24 20 21│
+└──────────────┘
+----
+
+The left argument does not have to be a single number.
+It can also be an array of the same size as the number of rows to rotate.
+This rotates every row a different number of steps:
+
+----
+    0 1 2 3 4 ⌽ 5 5 ⍴ ⍳25
+┌→─────────────┐
+↓ 0  1  2  3  4│
+│ 6  7  8  9  5│
+│12 13 14 10 11│
+│18 19 15 16 17│
+│24 20 21 22 23│
+└──────────────┘
+----
+
+== Transposing arrays
+
+Sometimes you have data arranged in one way and you want rearrange the axis without changing the content.
+This operation is called transposition, and is performed using the function `⍉`.
+
+----
+    ⍉ 2 8 ⍴ ⍳16
+┌→───┐
+↓0  8│
+│1  9│
+│2 10│
+│3 11│
+│4 12│
+│5 13│
+│6 14│
+│7 15│
+└────┘
+----
+
+== Accessing values from arrays
+
+Kap provides several ways in which data can be read from arrays.
+Some of them are listed below:
+
+=== Bracket index
+
+The simplest form, and a form that should be familiar to C or Java programmers is the bracket index.
+Here is how a single value can be read from an array:
+
+----
+    foo ← 100 200 300 400
+    foo[2]
+300
+----
+
+It is also possible to pass an array as an index.
+This causes each value to be looked up individually:
+
+----
+    foo ← 100 200 300 400 500 600 700 800
+    foo[2 4]
+┌→──────┐
+│300 500│
+└───────┘
+----
+
+What is notable here is that the output array has the same dimensionality as the arguments in the brackets (i.e. we passed a 2-element array inside the brackets, and the reutn value was also a 2-dimensional array).
+This observation holds true even if the index has higher dimensionality:
+
+----
+    foo ← 100 200 300 400 500 600 700 800
+    foo[2 2 ⍴ 2 2 1 4]
+┌→──────┐
+↓300 300│
+│200 500│
+└───────┘
+----
+
+If you want to use bracket indexes to look up a value in a multidimensional array, the different axes are separated with `;`.
+
+----
+    foo ← 2 4 ⍴ 100 200 300 400 500 600 700 800
+    foo[0;2]
+300
+----
+
+Multiple axis are of course still possible, and the result will have the combined dimensions of all selected axes:
+
+----
+    foo ← 2 4 ⍴ 100 200 300 400 500 600 700 800
+    foo[0 1;2 3]
+┌→──────┐
+↓300 400│
+│700 800│
+└───────┘
+----
+
+=== `⌷` indexing
+
+As an alternative to bracket index, a dedicated function exists that does the same thing:
+
+----
+    foo ← 2 4 ⍴ 100 200 300 400 500 600 700 800
+    1 2 ⌷ foo
+700
+----
+
+The `⌷` function takes a single-dimensional array on the left, where each element corresponds to one element in the corresponding bracket index argument.
+
+=== `⊇` indexing
+
+The function `⊇` is similarly used to index values from an array, but has different semantics.
+Instead of separating the values for each axis, each element is a set of coordinates to the corresponding value to look up.
+
+For 1-dimensional arrays, the syntax is very simple:
+
+----
+    foo ← 100 200 300 400 500 600 700 800
+    0 3 6 ⊇ foo
+┌→──────────┐
+│100 400 700│
+└───────────┘
+----
+
+For higher dimensions, each element is a nested arrays with the coordinates:
+
+----
+    foo ← 2 4 ⍴ 100 200 300 400 500 600 700 800
+    (0 1) (1 2) ⊇ foo
+┌→──────┐
+│200 700│
+└───────┘
+----
+
+== Computing sums
+
+So far we've mainly created arrays, done some simple rearranging and accessed individual elements.
+Often one wants to perform some action on multiple elements, and let's start with one of the more common ones: summing the elements of an array.
+
+----
+    +/ 1 2 3 4 5 6
+21
+----
+
+The symbol `/` is an "`operator`".
+Operators act on functions to derive a new function that performs some operation.
+
+The `/` operator is called the reduction operator, because it reduces an array down to a single element.
+It does this repeatedly applying the function on the values in the array.
+
+Let's define a custom function to make this a bit more clear:
+
+----
+∇ x printAndAdd y {
+  result ← x+y
+  io:println (⍕x) , " + " , (⍕y) , " = " , (⍕result)
+  result
+}
+
+printAndAdd/ 1 2 3 4 5 6
+----
+
+The above defines a function called `printAndAdd` that adds the left and right arguments and returns the sum.
+It also prints the values being added as well as the sum.
+
+By reducing over this custom function, we can see how `/` calls them in order to reduce the result:
+
+----
+1 + 2 = 3
+3 + 3 = 6
+6 + 4 = 10
+10 + 5 = 15
+15 + 6 = 21
+----
+
+The above example also shows how reduction acts on any function, not just the `+` function.
+For example, one can use `,/` to reduce an array of arrays into a single array.
