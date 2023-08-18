@@ -303,6 +303,120 @@ The simples example of a function that can be called both monadically and dyadic
 In its dyadic form, `x-y`, it subtracts `y` from `x`.
 The monadic form, `-x`, it negates its argument.
 
+== Reduction
+
+=== One-dimensional reduction
+
+So far we've mainly created arrays, done some simple rearranging and accessed individual elements.
+Often one wants to perform some action on multiple elements, and let's start with one of the more common ones: summing the elements of an array.
+
+----
+    +/ 1 2 3 4 5 6
+21
+----
+
+The symbol `/` is an "`operator`".
+Operators act on functions to derive a new function that performs some operation.
+
+The `/` operator is called the reduction operator, because it reduces an array down to a single element.
+It does this by repeatedly applying the function on the values in the array.
+
+Let's define a custom function to make this a bit more clear:
+
+----
+∇ x printAndAdd y {
+  result ← x+y
+  io:println (⍕x) , " + " , (⍕y) , " = " , (⍕result)
+  result
+}
+
+printAndAdd/ 1 2 3 4 5 6
+----
+
+The above defines a function called `printAndAdd` that adds the left and right arguments and returns the sum.
+It also prints the values being added as well as the sum.
+
+By reducing over this custom function, we can see how `/` calls them in order to reduce the result:
+
+----
+1 + 2 = 3
+3 + 3 = 6
+6 + 4 = 10
+10 + 5 = 15
+15 + 6 = 21
+----
+
+The above example also shows how reduction acts on any function, not just the `+` function.
+For example, one can use `,/` to reduce an array of arrays into a single array.
+
+----
+    foo ← (1 2 3) (10 11 12) (100 200) (⍳5)
+    foo
+┌→───────────────────────────────────────┐
+│┌→────┐ ┌→───────┐ ┌→──────┐ ┌→────────┐│
+││1 2 3│ │10 11 12│ │100 200│ │0 1 2 3 4││
+│└─────┘ └────────┘ └───────┘ └─────────┘│
+└────────────────────────────────────────┘
+    result ← ,/ foo
+    result
+┌──────────────────────────────────┐
+│┌→───────────────────────────────┐│
+││1 2 3 10 11 12 100 200 0 1 2 3 4││
+│└────────────────────────────────┘│
+└──────────────────────────────────┘
+----
+
+Well, this is new.
+What's the box around the result?
+To explain this, we have to look back at the beginning of this section where it was said that `/` reduces the result down to a single element.
+The box around the result is a scalar "`wrapper`" around the result array.
+It causes its content to be treated as a single element.
+For this simple case it may not make much sense, but the purpose of this behaviour is to make the result consistent overall types of input.
+Hopefully this will be more clear as wel discuss reduction over multidimensional arrays.
+
+For now, all we want to do is to unwrap the result to get to the value inside.
+To do this we use the "`disclose`" function, `⊃`.
+When passed an enclosed value, this function returns the value inside the wrapper.
+
+----
+    ⊃ result
+┌→───────────────────────────────┐
+│1 2 3 10 11 12 100 200 0 1 2 3 4│
+└────────────────────────────────┘
+----
+
+=== Multidimensional reduction
+
+Now let's take a look at what happens when we perform a reduction on a multidimensional array:
+
+----
+    foo ← 4 4 ⍴ ⍳16
+    foo
+┌→──────────┐
+↓ 0  1  2  3│
+│ 4  5  6  7│
+│ 8  9 10 11│
+│12 13 14 15│
+└───────────┘
+    +/ foo
+┌→─────────┐
+│6 22 38 54│
+└──────────┘
+----
+
+As we can see, the reduction is performed along each row.
+Specifically, it reduces along the last axis (in this case, axis 1).
+If you want to reduce along a different axis, use an axis argument on the operator:
+
+----
+    +/[0] foo
+┌→──────────┐
+│24 28 32 36│
+└───────────┘
+----
+
+The alternative operator `⌿` defaults to axis 0 instead of the last axis.
+
 == Concatenating arrays
 
 Earlier we saw that `,` when called monadically can be used to convert any array into its 1-dimensional version.
@@ -400,7 +514,7 @@ To reverse an array:
 └─────────┘
 ----
 
-On multidimensional arrays, the function acts on the innermost axis by default:
+On multidimensional arrays, the function acts on the last axis by default:
 
 ----
     ⌽ 8 8 ⍴ ⍳64
@@ -574,117 +688,3 @@ For higher dimensions, each element is a nested array with the coordinates:
 │200 700│
 └───────┘
 ----
-
-== Reduction
-
-=== One-dimensional reduction
-
-So far we've mainly created arrays, done some simple rearranging and accessed individual elements.
-Often one wants to perform some action on multiple elements, and let's start with one of the more common ones: summing the elements of an array.
-
-----
-    +/ 1 2 3 4 5 6
-21
-----
-
-The symbol `/` is an "`operator`".
-Operators act on functions to derive a new function that performs some operation.
-
-The `/` operator is called the reduction operator, because it reduces an array down to a single element.
-It does this by repeatedly applying the function on the values in the array.
-
-Let's define a custom function to make this a bit more clear:
-
-----
-∇ x printAndAdd y {
-  result ← x+y
-  io:println (⍕x) , " + " , (⍕y) , " = " , (⍕result)
-  result
-}
-
-printAndAdd/ 1 2 3 4 5 6
-----
-
-The above defines a function called `printAndAdd` that adds the left and right arguments and returns the sum.
-It also prints the values being added as well as the sum.
-
-By reducing over this custom function, we can see how `/` calls them in order to reduce the result:
-
-----
-1 + 2 = 3
-3 + 3 = 6
-6 + 4 = 10
-10 + 5 = 15
-15 + 6 = 21
-----
-
-The above example also shows how reduction acts on any function, not just the `+` function.
-For example, one can use `,/` to reduce an array of arrays into a single array.
-
-----
-    foo ← (1 2 3) (10 11 12) (100 200) (⍳5)
-    foo
-┌→───────────────────────────────────────┐
-│┌→────┐ ┌→───────┐ ┌→──────┐ ┌→────────┐│
-││1 2 3│ │10 11 12│ │100 200│ │0 1 2 3 4││
-│└─────┘ └────────┘ └───────┘ └─────────┘│
-└────────────────────────────────────────┘
-    result ← ,/ foo
-    result
-┌──────────────────────────────────┐
-│┌→───────────────────────────────┐│
-││1 2 3 10 11 12 100 200 0 1 2 3 4││
-│└────────────────────────────────┘│
-└──────────────────────────────────┘
-----
-
-Well, this is new.
-What's the box around the result?
-To explain this, we have to look back at the beginning of this section where it was said that `/` reduces the result down to a single element.
-The box around the result is a scalar "`wrapper`" around the result array.
-It causes its content to be treated as a single element.
-For this simple case it may not make much sense, but the purpose of this behaviour is to make the result consistent overall types of input.
-Hopefully this will be more clear as wel discuss reduction over multidimensional arrays.
-
-For now, all we want to do is to unwrap the result to get to the value inside.
-To do this we use the "`disclose`" function, `⊃`.
-When passed an enclosed value, this function returns the value inside the wrapper.
-
-----
-    ⊃ result
-┌→───────────────────────────────┐
-│1 2 3 10 11 12 100 200 0 1 2 3 4│
-└────────────────────────────────┘
-----
-
-=== Multidimensional reduction
-
-Now let's take a look at what happens when we perform a reduction on a multidimensional array:
-
-----
-    foo ← 4 4 ⍴ ⍳16
-    foo
-┌→──────────┐
-↓ 0  1  2  3│
-│ 4  5  6  7│
-│ 8  9 10 11│
-│12 13 14 15│
-└───────────┘
-    +/ foo
-┌→─────────┐
-│6 22 38 54│
-└──────────┘
-----
-
-As we can see, the reduction is performed along each row.
-Specifically, it reduces along the last axis (in this case, axis 1).
-If you want to reduce along a different axis, use an axis argument on the operator:
-
-----
-    +/[0] foo
-┌→──────────┐
-│24 28 32 36│
-└───────────┘
-----
-
-The alternative operator `⌿` defaults to axis 0 instead of the last axis.
