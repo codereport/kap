@@ -73,7 +73,7 @@ The syntax for such an array in Kap is simply the list of values separated by sp
 ----
 
 In other words, typing some numbers separated by spaces will return an array of the same values.
-Kap renders such an array in a box with an array in the corner.
+Kap renders such an array in a box with an arrow in the corner.
 
 Mathematical operations on an array applies that operation on each element.
 Here we negate all the values in an array:
@@ -188,7 +188,7 @@ One needs 4 numbers to find a given cell, with the first number being the stack 
 
 image::diagrams/four-dim.svg[]
 
-KAP supports arrays with a large number of dimensions (the exact number is 2^31^-1), but in practice it's rare to work with arrays with more than 4 dimensions.
+Kap supports arrays with a large number of dimensions (the exact number is 2^31^-1), but in practice it's rare to work with arrays with more than 4 dimensions.
 The principles that are illustrated in the previous paragraphs extend naturally to any number of dimensions.
 
 === Creating arrays with a given dimension
@@ -250,7 +250,7 @@ If the argument to the right is a single value, that value will be used to fill 
 If you have an array with an arbitrary dimension and you want to take its content and create a 1-dimensional array from it, you can use the function `,`:
 
 ----
-    foo ← 3 2 ⍴ 1 2 2
+    foo ← 3 2 ⍴ 1 2 3
     ,foo
 ┌→──────────┐
 │1 2 3 1 2 3│
@@ -296,7 +296,7 @@ When a function accepts arguments on both the left and right side, it's called a
 Almost all functions in Kap accept 1 or 2 arguments, and in many cases both.
 When the documentation mentions a "`dyadic call`", it simply means that the function is called with one argument on each side of the function name.
 
-Many functions in Kap drastically changes their behaviour when called monadically vs. dyadically.
+Many functions in Kap drastically change their behaviour when called monadically vs. dyadically.
 That said, in many cases the two behaviours are related.
 
 The simples example of a function that can be called both monadically and dyadically is `-`.
@@ -368,7 +368,7 @@ An illustration may make this easier to see:
 
 As we can see, the right argument has an extra row that doesn't line up with the left.
 
-However, the se two arrays have the same number of columns, so we can concatenate them along the vertical axis (axis 0).
+However, the two arrays have the same number of columns, so we can concatenate them along the vertical axis (axis 0).
 The `,` function accepts an "`axis argument`" that is used to indicate along which axis the operation should take place:
 
 ----
@@ -386,6 +386,9 @@ The `,` function accepts an "`axis argument`" that is used to indicate along whi
 
 This operation is so common that there is a dedicated symbol for it: `⍪`.
 
+The support for axis argument for `,` is not unique to this function.
+Many functions accept an axis argument for similar purposes.
+
 == Rotation and reversal
 
 To reverse an array:
@@ -397,7 +400,7 @@ To reverse an array:
 └─────────┘
 ----
 
-On multi-dimensional arrays, the function acts on the innermost array by default:
+On multi-dimensional arrays, the function acts on the innermost axis by default:
 
 ----
     ⌽ 8 8 ⍴ ⍳64
@@ -562,7 +565,7 @@ For 1-dimensional arrays, the syntax is very simple:
 └───────────┘
 ----
 
-For higher dimensions, each element is a nested arrays with the coordinates:
+For higher dimensions, each element is a nested array with the coordinates:
 
 ----
     foo ← 2 4 ⍴ 100 200 300 400 500 600 700 800
@@ -586,7 +589,7 @@ The symbol `/` is an "`operator`".
 Operators act on functions to derive a new function that performs some operation.
 
 The `/` operator is called the reduction operator, because it reduces an array down to a single element.
-It does this repeatedly applying the function on the values in the array.
+It does this by repeatedly applying the function on the values in the array.
 
 Let's define a custom function to make this a bit more clear:
 
