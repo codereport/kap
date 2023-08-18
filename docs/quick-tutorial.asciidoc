@@ -143,9 +143,9 @@ Any value can be assigned to a variable:
 Many languages use `=` for variable assignment.
 In Kap, this symbol is used exclusively for comparison, as explained below.
 
-== Multi-dimensional arrays
+== Multidimensional arrays
 
-Before talking about how to create multi-dimensional arrays, let's spend a brief moment explaining how multi-dimensional data is structured.
+Before talking about how to create multidimensional arrays, let's spend a brief moment explaining how multidimensional data is structured.
 This will become important later since a lot of the power of Kap comes from working with higher-dimensional arrays.
 
 === Array dimensionality
@@ -400,7 +400,7 @@ To reverse an array:
 └─────────┘
 ----
 
-On multi-dimensional arrays, the function acts on the innermost axis by default:
+On multidimensional arrays, the function acts on the innermost axis by default:
 
 ----
     ⌽ 8 8 ⍴ ⍳64
@@ -575,7 +575,9 @@ For higher dimensions, each element is a nested array with the coordinates:
 └───────┘
 ----
 
-== Computing sums
+== Reduction
+
+=== One-dimensional reduction
 
 So far we've mainly created arrays, done some simple rearranging and accessed individual elements.
 Often one wants to perform some action on multiple elements, and let's start with one of the more common ones: summing the elements of an array.
@@ -618,3 +620,71 @@ By reducing over this custom function, we can see how `/` calls them in order to
 
 The above example also shows how reduction acts on any function, not just the `+` function.
 For example, one can use `,/` to reduce an array of arrays into a single array.
+
+----
+    foo ← (1 2 3) (10 11 12) (100 200) (⍳5)
+    foo
+┌→───────────────────────────────────────┐
+│┌→────┐ ┌→───────┐ ┌→──────┐ ┌→────────┐│
+││1 2 3│ │10 11 12│ │100 200│ │0 1 2 3 4││
+│└─────┘ └────────┘ └───────┘ └─────────┘│
+└────────────────────────────────────────┘
+    result ← ,/ foo
+    result
+┌──────────────────────────────────┐
+│┌→───────────────────────────────┐│
+││1 2 3 10 11 12 100 200 0 1 2 3 4││
+│└────────────────────────────────┘│
+└──────────────────────────────────┘
+----
+
+Well, this is new.
+What's the box around the result?
+To explain this, we have to look back at the beginning of this section where it was said that `/` reduces the result down to a single element.
+The box around the result is a scalar "`wrapper`" around the result array.
+It causes its content to be treated as a single element.
+For this simple case it may not make much sense, but the purpose of this behaviour is to make the result consistent overall types of input.
+Hopefully this will be more clear as wel discuss reduction over multidimensional arrays.
+
+For now, all we want to do is to unwrap the result to get to the value inside.
+To do this we use the "`disclose`" function, `⊃`.
+When passed an enclosed value, this function returns the value inside the wrapper.
+
+----
+    ⊃ result
+┌→───────────────────────────────┐
+│1 2 3 10 11 12 100 200 0 1 2 3 4│
+└────────────────────────────────┘
+----
+
+=== Multidimensional reduction
+
+Now let's take a look at what happens when we perform a reduction on a multidimensional array:
+
+----
+    foo ← 4 4 ⍴ ⍳16
+    foo
+┌→──────────┐
+↓ 0  1  2  3│
+│ 4  5  6  7│
+│ 8  9 10 11│
+│12 13 14 15│
+└───────────┘
+    +/ foo
+┌→─────────┐
+│6 22 38 54│
+└──────────┘
+----
+
+As we can see, the reduction is performed along each row.
+Specifically, it reduces along the last axis (in this case, axis 1).
+If you want to reduce along a different axis, use an axis argument on the operator:
+
+----
+    +/[0] foo
+┌→──────────┐
+│24 28 32 36│
+└───────────┘
+----
+
+The alternative operator `⌿` defaults to axis 0 instead of the last axis.
