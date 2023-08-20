@@ -1,3 +1,17 @@
+.top-layer {
+    /*position: sticky;*/
+}
+
+.top-anchor {
+    position: relative;
+}
+
+.draggable {
+    position: fixed;
+    top: 0;
+    right: 0;
+}
+
 .output-result-outer {
     display: block;
     font-family: "Iosevka Fixed", monospace;

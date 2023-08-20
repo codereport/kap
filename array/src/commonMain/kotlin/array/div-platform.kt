@@ -87,3 +87,9 @@ interface MPWeakReference<T> {
 }
 
 expect fun <T : Any> MPWeakReference.Companion.make(ref: T): MPWeakReference<T>
+
+interface TimerHandler {
+    fun registerTimer(delays: IntArray, callbacks: List<LambdaValue>): APLValue
+}
+
+expect fun makeTimerHandler(engine: Engine): TimerHandler?

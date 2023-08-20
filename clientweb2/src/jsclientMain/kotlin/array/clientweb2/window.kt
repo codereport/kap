@@ -2,6 +2,7 @@ package array.clientweb2
 
 import kotlinx.browser.document
 import kotlinx.html.canvas
+import kotlinx.html.div
 import kotlinx.html.dom.create
 import kotlinx.html.js.div
 import org.w3c.dom.*
@@ -22,14 +23,19 @@ fun openWindow(msg: dynamic) {
     val width = msg.width as Int
     val height = msg.height as Int
     println("Created window id = ${id}")
-    val toplevelWindow = document.create.div {
-        text("This is some text")
-        canvas(classes = "gui-frame") {
+    val toplevelWindow = document.create.div("draggable") {
+        div {
+            text("This is some text")
+        }
+        div {
+            canvas(classes = "gui-frame") {
+            }
         }
     }
     val topElement = findElement<HTMLDivElement>("top")
     topElement.appendChild(toplevelWindow)
-    val descriptor = GuiWindowDescriptor(id, toplevelWindow, toplevelWindow.childNodes.get(1) as HTMLCanvasElement)
+    val element = toplevelWindow.childNodes.get(1)!!.childNodes.get(0) as HTMLCanvasElement
+    val descriptor = GuiWindowDescriptor(id, toplevelWindow, element)
     windowRegistry[id] = descriptor
 //    fillWindow(descriptor.canvas)
 }

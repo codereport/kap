@@ -28,3 +28,21 @@ class TimeMillisFunction : APLFunctionDescriptor {
 
     override fun make(instantiation: FunctionInstantiation) = TimeMillisFunctionImpl(instantiation)
 }
+
+class MakeTimerFunction : APLFunctionDescriptor {
+    class MakeTimerFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            val delays = b.arrayify().toIntArray(pos)
+            val callbacks = a.arrayify().membersSequence().map { v ->
+                if (v is LambdaValue) {
+                    v
+                } else {
+                    throwAPLException(APLIllegalArgumentException("Left argument must be a function or a list of functions"))
+                }
+            }.toList()
+            return context.engine.makeTimer(delays, callbacks, pos)
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = MakeTimerFunctionImpl(instantiation)
+}

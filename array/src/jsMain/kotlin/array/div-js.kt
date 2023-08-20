@@ -92,3 +92,5 @@ class JsWeakReference<T : Any>(ref: T) : MPWeakReference<T> {
 actual fun <T : Any> MPWeakReference.Companion.make(ref: T): MPWeakReference<T> {
     return JsWeakReference(ref)
 }
+
+actual fun makeTimerHandler(engine: Engine): TimerHandler? = null

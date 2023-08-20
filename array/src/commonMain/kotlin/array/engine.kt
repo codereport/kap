@@ -277,6 +277,7 @@ class Engine(numComputeEngines: Int? = null) {
     val rootStackFrame = StorageStack.StorageStackFrame(rootEnvironment)
     var standardOutput: CharacterOutput = NullCharacterOutput()
     var standardInput: CharacterProvider = NullCharacterProvider()
+    private val timerHandler: TimerHandler? = makeTimerHandler(this)
 
     val coreNamespace = makeNamespace(CORE_NAMESPACE_NAME, overrideDefaultImport = true)
     val keywordNamespace = makeNamespace(KEYWORD_NAMESPACE_NAME, overrideDefaultImport = true)
@@ -389,10 +390,11 @@ class Engine(numComputeEngines: Int? = null) {
 
         // misc functions
         registerNativeFunction("sleep", SleepFunction(), "time")
+        registerNativeFunction("timeMillis", TimeMillisFunction(), "time")
+        registerNativeFunction("makeTimer", MakeTimerFunction(), "time")
         registerNativeFunction("throw", ThrowFunction())
         registerNativeOperator("catch", CatchOperator())
         registerNativeFunction("labels", LabelsFunction())
-        registerNativeFunction("timeMillis", TimeMillisFunction(), "time")
         registerNativeFunction("unwindProtect", UnwindProtectAPLFunction(), "int")
         registerNativeOperator("defer", DeferAPLOperator())
         registerNativeFunction("ensureGeneric", EnsureTypeFunction(ArrayMemberType.GENERIC), "int")
@@ -733,6 +735,11 @@ class Engine(numComputeEngines: Int? = null) {
     }
 
     fun resolvePathName(file: String) = resolveDirectoryPath(file, workingDirectory)
+
+    fun makeTimer(delays: IntArray, callbacks: List<LambdaValue>, pos: Position): APLValue {
+        val handler = timerHandler ?: throwAPLException(APLEvalException("Backend does not support timers", pos))
+        return handler.registerTimer(delays, callbacks)
+    }
 
     var workingDirectory: String? = currentDirectory()
         get() = field

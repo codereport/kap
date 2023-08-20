@@ -85,3 +85,5 @@ class LinuxWeakRef<T : Any>(ref: T) : MPWeakReference<T> {
 actual fun <T : Any> MPWeakReference.Companion.make(ref: T): MPWeakReference<T> {
     return LinuxWeakRef(ref)
 }
+
+actual fun makeTimerHandler(engine: Engine): TimerHandler? = null
