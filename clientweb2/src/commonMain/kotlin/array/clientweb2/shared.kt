@@ -54,6 +54,8 @@ sealed class EvalResponse : ResponseMessage()
 @SerialName("stringresponse")
 data class StringResponse(val result: String) : EvalResponse()
 
+const val DATA_RESPONSE_TYPE = "dataresponse"
+
 @Serializable
 @SerialName("dataresponse")
 data class DataResponse(val result: JsKapValue) : EvalResponse()
@@ -62,9 +64,12 @@ data class DataResponse(val result: JsKapValue) : EvalResponse()
 @SerialName("output")
 data class OutputDescriptor(val text: String) : ResponseMessage()
 
+const val ENGINE_STARTED_TYPE = "avail"
+
 @Serializable
 @SerialName("avail")
 data class EngineStartedDescriptor(val text: String) : ResponseMessage()
+
 
 @Serializable
 @SerialName("additionaloutput")
@@ -74,7 +79,7 @@ data class AdditionalOutput(val content: AdditionalOutputData) : ResponseMessage
 sealed class AdditionalOutputData
 
 ///////////////////////////////////////////////
-// JSON representation of KAP datatypes
+// JSON representation of Kap datatypes
 ///////////////////////////////////////////////
 
 @Serializable

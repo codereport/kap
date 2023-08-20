@@ -5,7 +5,10 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @SerialName("chart")
-class ChartOutput(val content: ChartDescriptor) : AdditionalOutputData()
+class ChartOutput(
+    @SerialName("content")
+    val content: ChartDescriptor
+) : AdditionalOutputData()
 
 @Serializable
 sealed class ChartDescriptor

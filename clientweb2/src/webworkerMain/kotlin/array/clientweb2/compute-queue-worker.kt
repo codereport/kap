@@ -3,7 +3,6 @@ package array.clientweb2
 import array.*
 import array.csv.CsvParseException
 import array.csv.readCsv
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.w3c.dom.DedicatedWorkerGlobalScope
@@ -53,13 +52,14 @@ fun initQueue() {
     println("Starting listener: self = ${self}")
     val engine = Engine()
     engine.addLibrarySearchPath("standard-lib")
-    val sendMessageFn = { msg: ResponseMessage -> self.postMessage(Json.encodeToString(msg)) }
+    val sendMessageFn = { msg: dynamic -> self.postMessage(msg) }
     engine.standardOutput = object : CharacterOutput {
         override fun writeString(s: String) {
             sendMessageFn(OutputDescriptor(s))
         }
     }
     engine.addModule(JsChartModule(sendMessageFn))
+    engine.addModule(JsGuiModule(sendMessageFn))
     engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
     self.onmessage = { event ->
         when (val request = Json.decodeFromString<Request>(event.data as String)) {
@@ -68,8 +68,15 @@ fun initQueue() {
             is ImportCsvRequest -> processImportCsvRequest(engine, request)
         }
     }
-    val message: ResponseMessage = EngineStartedDescriptor("started")
-    self.postMessage(Json.encodeToString(message))
+    val message: dynamic = makeEngineStartedDescriptor()
+    self.postMessage(message)
+}
+
+private fun makeEngineStartedDescriptor(): dynamic {
+    val result: dynamic = js("{}")
+    result.messageType = ENGINE_STARTED_TYPE
+    result.text = "started"
+    return result
 }
 
 private fun processEvalRequest(engine: Engine, request: EvalRequest) {

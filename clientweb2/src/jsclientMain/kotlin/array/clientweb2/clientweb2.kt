@@ -5,7 +5,6 @@ import kotlinx.browser.window
 import kotlinx.html.*
 import kotlinx.html.dom.create
 import kotlinx.html.js.onClickFunction
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.w3c.dom.*
@@ -13,19 +12,29 @@ import org.w3c.dom.*
 external fun decodeURIComponent(text: String): String
 external fun encodeURIComponent(text: String): String
 
-var useHtmlValueRenderer: Boolean = false
-
 private fun initWorker(): Worker {
     val worker = Worker("compute-queue-worker.js")
     worker.onmessage = { event ->
-        when (val response = Json.decodeFromString<ResponseMessage>(event.data as String)) {
-            is EvalResponse -> addResponseToResultHistory(response)
-            is ExceptionDescriptor -> addExceptionResultToResultHistory(response)
-            is EvalExceptionDescriptor -> addEvalExceptionResultToResultHistory(response)
-            is OutputDescriptor -> processOutput(response.text)
-            is EngineStartedDescriptor -> engineAvailableCallback(worker)
-            is AdditionalOutput -> processAdditionalOutput(response)
-            is ImportResult -> processImportException(response)
+        val msg: dynamic = event.data
+        console.log("Got msg: ${msg}")
+        if (msg.messageType) {
+            println("message type = ${msg.messageType}")
+            when (msg.messageType) {
+                ENGINE_STARTED_TYPE -> engineAvailableCallback(worker)
+                IMAGE_CONTENT_TYPE -> updateImage(msg)
+                WINDOW_CREATED_TYPE -> openWindow(msg)
+            }
+        } else {
+            println("no message type")
+            when (val response = Json.decodeFromString<ResponseMessage>(event.data as String)) {
+                is EvalResponse -> addResponseToResultHistory(response)
+                is ExceptionDescriptor -> addExceptionResultToResultHistory(response)
+                is EvalExceptionDescriptor -> addEvalExceptionResultToResultHistory(response)
+                is OutputDescriptor -> processOutput(response.text)
+                is EngineStartedDescriptor -> error("not used")
+                is AdditionalOutput -> processAdditionalOutput(response)
+                is ImportResult -> processImportException(response)
+            }
         }
     }
     return worker
@@ -34,6 +43,7 @@ private fun initWorker(): Worker {
 private fun processAdditionalOutput(response: AdditionalOutput) {
     when (val content = response.content) {
         is ChartOutput -> displayChart(content)
+        is WindowCreated -> error("not used")
     }
 }
 
