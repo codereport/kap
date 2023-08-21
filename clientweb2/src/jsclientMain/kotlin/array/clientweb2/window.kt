@@ -23,6 +23,10 @@ fun openWindow(msg: dynamic) {
     val width = msg.width as Int
     val height = msg.height as Int
     println("Created window id = ${id}")
+    createWindowWithId(id)
+}
+
+private fun createWindowWithId(id: Int): GuiWindowDescriptor {
     val toplevelWindow = document.create.div("draggable") {
         div {
             text("This is some text")
@@ -38,6 +42,7 @@ fun openWindow(msg: dynamic) {
     val descriptor = GuiWindowDescriptor(id, toplevelWindow, element)
     windowRegistry[id] = descriptor
 //    fillWindow(descriptor.canvas)
+    return descriptor
 }
 
 /*
@@ -57,10 +62,12 @@ fun updateImage(msg: dynamic) {
     val data = msg.data as ImageData
     println("id=${id}, data=${data}")
     val desc = windowRegistry[id]
-    if (desc == null) {
-        println("Got window update for nonexistent window: ${id}")
-        return
-    }
+        ?: if (id == 0) {
+            createWindowWithId(id)
+        } else {
+            println("Got window update for nonexistent window: ${id}")
+            return
+        }
 
 //    val context: dynamic = desc.canvas.getContext("bitmaprenderer")
     val canvas: dynamic = desc.canvas
