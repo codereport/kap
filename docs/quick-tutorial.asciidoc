@@ -1,9 +1,37 @@
 = Quick tutorial
 :experimental:
 
-This tutorial is for people who just want a taste of what Kap can do and what it looks like.
-
 == Getting started
+
+The first thing people note when they see Kap (or APL) code is the use of non-ASCII symbols.
+And the first question asked is often "`how do I type those?`".
+
+The answer to that question depends on which version of Kap is used.
+The specific input methods are described in the tools themselves.
+In the case of the Kap web UI, the front page shows the keyboard layout and explains how to type the characters.
+
+=== Alternatives to Kap
+
+Some people would prefer not to use the special symbols.
+Unfortunately, Kap does not support this.
+However, there are other languages that are similar in capability and principles as Kap, which can be recommended instead:
+
+The most popular is https://www.jsoftware.com/[the J programming language] which embodies a lot of the same ideas as APL (an dby extension, Kap).
+It preserves the same terseness as APL and uses sequences of ASCII characters to achieve the same goal.
+
+Another alternative is https://pkg.go.dev/robpike.io/ivy[Ivy] which is developed by Rob Pike who is the co-creator of the Go programming language as well as UTF-8. It uses full words instead of symbols, and some people may find that to be more readable than J.
+
+=== Starting the interpreter
+
+The easiest way to get to an interpreter prompt is by using the web UI, which can be found at https://kapdemo.dhsdevelopments.com/clientweb2/
+
+When using the web UI, one can type the symbols by typing a backquote, `+`+`, followed by the appropriate key as shown in the layout on the main page.
+One can also click on the toolbar at the top of the screen.
+
+Both the JVM GUI client as well as the text-based native client support the same backquote prefix, but neither of them have anything like th etoolbar currently.
+This is planned for later versions.
+
+== Simple expressions
 
 A common usecase for Kap is to simply use it as an advanced calculator, so let's do some calculations:
 
