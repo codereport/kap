@@ -77,7 +77,7 @@ Here's a simple computation to make this clear:
 As we can see, this is evaluated as `2×(5+1)`.
 This may be surprising, but this makes a lot of more advanced features much simpler, at the cost of being different from regular maths as well as the majority of programming languages out there.
 
-Of course, one can always use paremthesis to force a specific evaulation order:
+Of course, one can always use parenthesis to force a specific evaluation order:
 
 ----
     (2×5)+1
@@ -330,6 +330,101 @@ That said, in many cases the two behaviours are related.
 The simples example of a function that can be called both monadically and dyadically is `-`.
 In its dyadic form, `x-y`, it subtracts `y` from `x`.
 The monadic form, `-x`, it negates its argument.
+
+== Accessing values from arrays
+
+Kap provides several ways in which data can be read from arrays.
+Some of them are listed below:
+
+=== Bracket index
+
+The simplest form, and a form that should be familiar to C or Java programmers is the bracket index.
+Here is how a single value can be read from an array:
+
+----
+    foo ← 100 200 300 400
+    foo[2]
+300
+----
+
+It is also possible to pass an array as an index.
+This causes each value to be looked up individually:
+
+----
+    foo ← 100 200 300 400 500 600 700 800
+    foo[2 4]
+┌→──────┐
+│300 500│
+└───────┘
+----
+
+What is notable here is that the output array has the same dimensionality as the arguments in the brackets (i.e. we passed a 2-element array inside the brackets, and the reutn value was also a 2-dimensional array).
+This observation holds true even if the index has higher dimensionality:
+
+----
+    foo ← 100 200 300 400 500 600 700 800
+    foo[2 2 ⍴ 2 2 1 4]
+┌→──────┐
+↓300 300│
+│200 500│
+└───────┘
+----
+
+If you want to use bracket indexes to look up a value in a multidimensional array, the different axes are separated with `;`.
+
+----
+    foo ← 2 4 ⍴ 100 200 300 400 500 600 700 800
+    foo[0;2]
+300
+----
+
+Multiple axis are of course still possible, and the result will have the combined dimensions of all selected axes:
+
+----
+    foo ← 2 4 ⍴ 100 200 300 400 500 600 700 800
+    foo[0 1;2 3]
+┌→──────┐
+↓300 400│
+│700 800│
+└───────┘
+----
+
+=== `⌷` indexing
+
+As an alternative to bracket index, a dedicated function exists that does the same thing:
+
+----
+    foo ← 2 4 ⍴ 100 200 300 400 500 600 700 800
+    1 2 ⌷ foo
+700
+----
+
+The `⌷` function takes a single-dimensional array on the left, where each element corresponds to one element in the corresponding bracket index argument.
+
+=== `⊇` indexing
+
+The function `⊇` is similarly used to index values from an array, but has different semantics.
+Instead of separating the values for each axis, each element is a set of coordinates to the corresponding value to look up.
+
+For 1-dimensional arrays, the syntax is very simple:
+
+----
+    foo ← 100 200 300 400 500 600 700 800
+    0 3 6 ⊇ foo
+┌→──────────┐
+│100 400 700│
+└───────────┘
+----
+
+For higher dimensions, each element is a nested array with the coordinates:
+
+----
+    foo ← 2 4 ⍴ 100 200 300 400 500 600 700 800
+    (0 1) (1 2) ⊇ foo
+┌→──────┐
+│200 700│
+└───────┘
+----
 
 == Reduction
 
@@ -620,99 +715,4 @@ This operation is called transposition, and is performed using the function `⍉
 │6 14│
 │7 15│
 └────┘
-----
-
-== Accessing values from arrays
-
-Kap provides several ways in which data can be read from arrays.
-Some of them are listed below:
-
-=== Bracket index
-
-The simplest form, and a form that should be familiar to C or Java programmers is the bracket index.
-Here is how a single value can be read from an array:
-
-----
-    foo ← 100 200 300 400
-    foo[2]
-300
-----
-
-It is also possible to pass an array as an index.
-This causes each value to be looked up individually:
-
-----
-    foo ← 100 200 300 400 500 600 700 800
-    foo[2 4]
-┌→──────┐
-│300 500│
-└───────┘
-----
-
-What is notable here is that the output array has the same dimensionality as the arguments in the brackets (i.e. we passed a 2-element array inside the brackets, and the reutn value was also a 2-dimensional array).
-This observation holds true even if the index has higher dimensionality:
-
-----
-    foo ← 100 200 300 400 500 600 700 800
-    foo[2 2 ⍴ 2 2 1 4]
-┌→──────┐
-↓300 300│
-│200 500│
-└───────┘
-----
-
-If you want to use bracket indexes to look up a value in a multidimensional array, the different axes are separated with `;`.
-
-----
-    foo ← 2 4 ⍴ 100 200 300 400 500 600 700 800
-    foo[0;2]
-300
-----
-
-Multiple axis are of course still possible, and the result will have the combined dimensions of all selected axes:
-
-----
-    foo ← 2 4 ⍴ 100 200 300 400 500 600 700 800
-    foo[0 1;2 3]
-┌→──────┐
-↓300 400│
-│700 800│
-└───────┘
-----
-
-=== `⌷` indexing
-
-As an alternative to bracket index, a dedicated function exists that does the same thing:
-
-----
-    foo ← 2 4 ⍴ 100 200 300 400 500 600 700 800
-    1 2 ⌷ foo
-700
-----
-
-The `⌷` function takes a single-dimensional array on the left, where each element corresponds to one element in the corresponding bracket index argument.
-
-=== `⊇` indexing
-
-The function `⊇` is similarly used to index values from an array, but has different semantics.
-Instead of separating the values for each axis, each element is a set of coordinates to the corresponding value to look up.
-
-For 1-dimensional arrays, the syntax is very simple:
-
-----
-    foo ← 100 200 300 400 500 600 700 800
-    0 3 6 ⊇ foo
-┌→──────────┐
-│100 400 700│
-└───────────┘
-----
-
-For higher dimensions, each element is a nested array with the coordinates:
-
-----
-    foo ← 2 4 ⍴ 100 200 300 400 500 600 700 800
-    (0 1) (1 2) ⊇ foo
-┌→──────┐
-│200 700│
-└───────┘
 ----
