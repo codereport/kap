@@ -290,6 +290,7 @@ class Engine(numComputeEngines: Int? = null) {
     val inComputeThread = makeMPThreadLocal<Boolean>()
     val systemParameters = HashMap<Symbol, SystemParameterProvider>()
     val standardSymbols = StandardSymbols(this)
+    val nativeData = makeNativeData()
 
     @Volatile
     private var breakPending = false
@@ -487,9 +488,9 @@ class Engine(numComputeEngines: Int? = null) {
 
     fun checkInterrupted(pos: Position? = null) {
         val pending = breakPending
-        if (pending) {
+        if (pending || nativeBreakPending(this)) {
             if (!isInComputeThread) {
-                breakPending = false
+                clearInterrupted()
             }
             throw APLEvaluationInterrupted(pos)
         }
@@ -497,6 +498,7 @@ class Engine(numComputeEngines: Int? = null) {
 
     fun clearInterrupted() {
         breakPending = false
+        nativeUpdateBreakPending(this, false)
     }
 
     val isInComputeThread get() = inComputeThread.value == true

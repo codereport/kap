@@ -77,7 +77,7 @@ actual fun makeBackgroundDispatcher(numThreads: Int): MPThreadPoolExecutor {
 }
 
 class LinuxWeakRef<T : Any>(ref: T) : MPWeakReference<T> {
-    val instance = WeakReference<T>(ref)
+    private val instance = WeakReference(ref)
 
     override val value: T? get() = instance.value
 }
@@ -87,3 +87,10 @@ actual fun <T : Any> MPWeakReference.Companion.make(ref: T): MPWeakReference<T> 
 }
 
 actual fun makeTimerHandler(engine: Engine): TimerHandler? = null
+
+class LinuxNativeData : NativeData
+
+actual fun makeNativeData(): NativeData = LinuxNativeData()
+
+actual inline fun nativeUpdateBreakPending(engine: Engine, state: Boolean) {}
+actual inline fun nativeBreakPending(engine: Engine): Boolean = false

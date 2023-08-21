@@ -93,3 +93,10 @@ interface TimerHandler {
 }
 
 expect fun makeTimerHandler(engine: Engine): TimerHandler?
+
+interface NativeData
+
+expect fun makeNativeData(): NativeData
+
+expect inline fun nativeUpdateBreakPending(engine: Engine, state: Boolean)
+expect inline fun nativeBreakPending(engine: Engine): Boolean

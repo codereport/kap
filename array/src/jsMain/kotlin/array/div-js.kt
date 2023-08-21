@@ -94,3 +94,46 @@ actual fun <T : Any> MPWeakReference.Companion.make(ref: T): MPWeakReference<T> 
 }
 
 actual fun makeTimerHandler(engine: Engine): TimerHandler? = null
+
+external class SharedArrayBuffer(size: Int)
+
+external val crossOriginIsolated: Boolean
+
+class JsNativeData : NativeData {
+    val breakBufferData: dynamic
+
+    init {
+        println("is cross origin isolated = ${crossOriginIsolated}")
+        breakBufferData = if (crossOriginIsolated) {
+            val b = SharedArrayBuffer(1)
+            js("b[0] = 0")
+            b
+        } else {
+            null
+        }
+    }
+}
+
+actual fun makeNativeData(): NativeData = JsNativeData()
+
+@Suppress("NOTHING_TO_INLINE")
+actual inline fun nativeUpdateBreakPending(engine: Engine, state: Boolean) {
+    val jsNativeData = engine.nativeData as JsNativeData
+    val b = jsNativeData.breakBufferData
+    if (b != null) {
+        @Suppress("UNUSED_VARIABLE")
+        val newState = if (state) 1 else 0
+        js("b[0] = newState")
+    }
+}
+
+@Suppress("NOTHING_TO_INLINE")
+actual inline fun nativeBreakPending(engine: Engine): Boolean {
+    val jsNativeData = engine.nativeData as JsNativeData
+    val b = jsNativeData.breakBufferData
+    return if (b != null) {
+        js("b[0] == 1") as Boolean
+    } else {
+        false
+    }
+}

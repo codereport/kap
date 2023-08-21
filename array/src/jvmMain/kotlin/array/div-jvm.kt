@@ -104,3 +104,14 @@ class JvmWeakReference<T : Any>(ref: T) : MPWeakReference<T> {
 actual fun <T : Any> MPWeakReference.Companion.make(ref: T): MPWeakReference<T> {
     return JvmWeakReference(ref)
 }
+
+class JvmNativeData : NativeData
+
+actual fun makeNativeData(): NativeData = JvmNativeData()
+
+@Suppress("NOTHING_TO_INLINE")
+actual inline fun nativeUpdateBreakPending(engine: Engine, state: Boolean) {
+}
+
+@Suppress("NOTHING_TO_INLINE")
+actual inline fun nativeBreakPending(engine: Engine): Boolean = false
