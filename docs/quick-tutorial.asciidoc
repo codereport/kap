@@ -171,6 +171,24 @@ Any value can be assigned to a variable:
 Many languages use `=` for variable assignment.
 In Kap, this symbol is used exclusively for comparison, as explained below.
 
+== Monadic and dyadic calls
+
+As we introduce more functions, it's important to note the two main ways in which functions are called.
+
+The first type, "`monadic`" calls, is when the function accepts arguments to the right of the name.
+
+When a function accepts arguments on both the left and right side, it's called a "`dyadic`" invocation.
+
+Almost all functions in Kap accept 1 or 2 arguments, and in many cases both.
+When the documentation mentions a "`dyadic call`", it simply means that the function is called with one argument on each side of the function name.
+
+Many functions in Kap drastically change their behaviour when called monadically vs. dyadically.
+That said, in many cases the two behaviours are related.
+
+The simples example of a function that can be called both monadically and dyadically is `-`.
+In its dyadic form, `x-y`, it subtracts `y` from `x`.
+The monadic form, `-x`, it negates its argument.
+
 == Multidimensional arrays
 
 Before talking about how to create multidimensional arrays, let's spend a brief moment explaining how multidimensional data is structured.
@@ -312,24 +330,6 @@ Of course, this can be combined with `⍴` to reshape the output into the shape 
 
 There is of course nothing special about combining these two functions.
 As mentioned earlier, evaluation happens from right-to-left, so this is simply taking `⍳9` and passing that result to `⍴`, with a left argument of `3 3`.
-
-== Monadic and dyadic calls
-
-As we introduce more functions, it's important to note the two main ways in which functions are called.
-
-The first type, "`monadic`" calls, is when the function accepts arguments to the right of the name.
-
-When a function accepts arguments on both the left and right side, it's called a "`dyadic`" invocation.
-
-Almost all functions in Kap accept 1 or 2 arguments, and in many cases both.
-When the documentation mentions a "`dyadic call`", it simply means that the function is called with one argument on each side of the function name.
-
-Many functions in Kap drastically change their behaviour when called monadically vs. dyadically.
-That said, in many cases the two behaviours are related.
-
-The simples example of a function that can be called both monadically and dyadically is `-`.
-In its dyadic form, `x-y`, it subtracts `y` from `x`.
-The monadic form, `-x`, it negates its argument.
 
 == Accessing values from arrays
 
@@ -716,3 +716,6 @@ This operation is called transposition, and is performed using the function `⍉
 │7 15│
 └────┘
 ----
+
+The transpose function can also be called dyadically, in which case you can rearrange the axes in any way you want.
+See the reference documentation for details how to do this.
