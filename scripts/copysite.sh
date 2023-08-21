@@ -4,10 +4,12 @@ set -e
 
 asciidoctor -a toc ./docs/kap-comparison.asciidoc
 asciidoctor -a toc ./docs/tutorial.asciidoc
+asciidoctor -a toc ./docs/quick-tutorial.asciidoc
 asciidoctor -a toc ./docs/reference.asciidoc
 
 scp -r docs/kap-comparison.html \
        docs/tutorial.html \
+       docs/quick-tutorial.html \
        docs/reference.html \
        docs/diagrams \
         root@matrix.dhsdevelopments.com:/var/www/kapdemo

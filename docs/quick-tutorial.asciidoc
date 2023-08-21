@@ -12,9 +12,10 @@ In the case of the Kap web UI, the front page shows the keyboard layout and expl
 
 === Alternatives to Kap
 
-Some people would prefer not to use the special symbols.
-Unfortunately, Kap does not support this.
-However, there are other languages that are similar in capability and principles as Kap, which can be recommended instead:
+The special symbols in Kap makes the languages easier and more powerful, and it's definitely worth learning it.
+It's also quite fun.
+
+That said, there are other similar languages that have chosen to use plain ASCII, and those may be of interest to anyone who don't want to use special symbols in their programming:
 
 The most popular is https://www.jsoftware.com/[the J programming language] which embodies a lot of the same ideas as APL (an dby extension, Kap).
 It preserves the same terseness as APL and uses sequences of ASCII characters to achieve the same goal.
