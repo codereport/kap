@@ -55,7 +55,10 @@ fun initQueue() {
     val sendMessageFn = { msg: dynamic -> self.postMessage(msg) }
     engine.standardOutput = object : CharacterOutput {
         override fun writeString(s: String) {
-            sendMessageFn(OutputDescriptor(s))
+            val output = js("{}")
+            output.messageType = OUTPUT_DESCRIPTOR_TYPE
+            output.text = s
+            sendMessageFn(output)
         }
     }
     engine.addModule(JsChartModule(sendMessageFn))
@@ -68,18 +71,21 @@ fun initQueue() {
             is ImportCsvRequest -> processImportCsvRequest(engine, request)
         }
     }
-    val message: dynamic = makeEngineStartedDescriptor()
+    val message: dynamic = makeEngineStartedDescriptor(engine)
     self.postMessage(message)
 }
 
-private fun makeEngineStartedDescriptor(): dynamic {
+private fun makeEngineStartedDescriptor(engine: Engine): dynamic {
+    val jsNativeData = engine.nativeData as JsNativeData
     val result: dynamic = js("{}")
     result.messageType = ENGINE_STARTED_TYPE
     result.text = "started"
+    result.breakData = jsNativeData.breakBufferData
     return result
 }
 
 private fun processEvalRequest(engine: Engine, request: EvalRequest) {
+    engine.clearInterrupted()
     val result = try {
         engine.parseAndEvalWithPostProcessing(StringSourceLocation(request.src)) { _, context, result ->
             val collapsed = result.collapse()

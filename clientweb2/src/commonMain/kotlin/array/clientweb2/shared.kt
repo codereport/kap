@@ -60,6 +60,8 @@ const val DATA_RESPONSE_TYPE = "dataresponse"
 @SerialName("dataresponse")
 data class DataResponse(val result: JsKapValue) : EvalResponse()
 
+const val OUTPUT_DESCRIPTOR_TYPE = "output"
+
 @Serializable
 @SerialName("output")
 data class OutputDescriptor(val text: String) : ResponseMessage()

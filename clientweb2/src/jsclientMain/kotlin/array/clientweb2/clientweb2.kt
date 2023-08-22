@@ -1,5 +1,6 @@
 package array.clientweb2
 
+import array.SharedArrayBuffer
 import kotlinx.browser.document
 import kotlinx.browser.window
 import kotlinx.html.*
@@ -7,6 +8,7 @@ import kotlinx.html.dom.create
 import kotlinx.html.js.onClickFunction
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.khronos.webgl.Uint8Array
 import org.w3c.dom.*
 
 external fun decodeURIComponent(text: String): String
@@ -20,7 +22,8 @@ private fun initWorker(): Worker {
         if (msg.messageType) {
             println("message type = ${msg.messageType}")
             when (msg.messageType) {
-                ENGINE_STARTED_TYPE -> engineAvailableCallback(worker)
+                ENGINE_STARTED_TYPE -> engineAvailableCallback(worker, msg)
+                OUTPUT_DESCRIPTOR_TYPE -> processOutput(msg)
                 IMAGE_CONTENT_TYPE -> updateImage(msg)
                 WINDOW_CREATED_TYPE -> openWindow(msg)
             }
@@ -30,7 +33,7 @@ private fun initWorker(): Worker {
                 is EvalResponse -> addResponseToResultHistory(response)
                 is ExceptionDescriptor -> addExceptionResultToResultHistory(response)
                 is EvalExceptionDescriptor -> addEvalExceptionResultToResultHistory(response)
-                is OutputDescriptor -> processOutput(response.text)
+                is OutputDescriptor -> error("not used")
                 is EngineStartedDescriptor -> error("not used")
                 is AdditionalOutput -> processAdditionalOutput(response)
                 is ImportResult -> processImportException(response)
@@ -91,7 +94,8 @@ fun findCurrentOutput(): CurrentOutput {
     }
 }
 
-private fun processOutput(text: String) {
+private fun processOutput(msg: dynamic) {
+    val text = msg.text as String
     findCurrentOutput().appendText(text)
 }
 
@@ -177,6 +181,13 @@ private fun sendCommandFromField(worker: Worker) {
     if (command.trim() != "") {
         addCommandResultToResultHistory(command)
         sendCommand(worker, command)
+    }
+}
+
+private fun interruptEvaluation() {
+    val ba = breakBufferArray
+    if (ba != null) {
+        js("Atomics.store(ba, 0, 1)")
     }
 }
 
@@ -270,13 +281,20 @@ fun main() {
  */
 
 private var engineInit = false
+private var breakData: SharedArrayBuffer? = null
+private var breakBufferArray: Uint8Array? = null
 
-fun engineAvailableCallback(worker: Worker) {
+fun engineAvailableCallback(worker: Worker, msg: dynamic) {
     if (engineInit) {
         throw IllegalStateException("Client already initialised")
     }
 
     engineInit = true
+    breakData = msg.breakData
+    val b = breakData
+    if (b != null) {
+        breakBufferArray = js("new Uint8Array(b)") as Uint8Array
+    }
 
     val loadingElement = findElement<HTMLDivElement>("loading-message")
     loadingElement.remove()
@@ -300,6 +318,11 @@ fun engineAvailableCallback(worker: Worker) {
                 id = "send-button"
                 +"Send"
             }
+            +" "
+            button {
+                id = "stop-button"
+                +"Stop"
+            }
         }
     }
 
@@ -308,8 +331,11 @@ fun engineAvailableCallback(worker: Worker) {
     val inputField = findElement<HTMLTextAreaElement>("input")
     configureAPLInputForField(inputField) { sendCommandFromField(worker) }
 
-    val button = findElement<HTMLButtonElement>("send-button")
-    button.onclick = { sendCommandFromField(worker) }
+    val sendButton = findElement<HTMLButtonElement>("send-button")
+    sendButton.onclick = { sendCommandFromField(worker) }
+
+    val stopButton = findElement<HTMLButtonElement>("stop-button")
+    stopButton.onclick = { interruptEvaluation() }
 
     val location = document.location
     if (location != null) {

@@ -1,5 +1,6 @@
 package array
 
+import org.khronos.webgl.Uint8Array
 import kotlin.js.Date
 import kotlin.reflect.KClass
 
@@ -100,16 +101,22 @@ external class SharedArrayBuffer(size: Int)
 external val crossOriginIsolated: Boolean
 
 class JsNativeData : NativeData {
-    val breakBufferData: dynamic
+    val breakBufferData: SharedArrayBuffer?
+    val breakBufferArray: Uint8Array?
 
     init {
         println("is cross origin isolated = ${crossOriginIsolated}")
-        breakBufferData = if (crossOriginIsolated) {
-            val b = SharedArrayBuffer(1)
-            js("b[0] = 0")
-            b
+        if (crossOriginIsolated) {
+            breakBufferData = SharedArrayBuffer(1)
+            @Suppress("UNUSED_VARIABLE")
+            val bd = breakBufferData
+            breakBufferArray = js("new Uint8Array(bd)") as Uint8Array
+            @Suppress("UNUSED_VARIABLE")
+            val barray = breakBufferArray
+            js("Atomics.store(barray, 0, 0)")
         } else {
-            null
+            breakBufferData = null
+            breakBufferArray = null
         }
     }
 }
@@ -119,20 +126,20 @@ actual fun makeNativeData(): NativeData = JsNativeData()
 @Suppress("NOTHING_TO_INLINE")
 actual inline fun nativeUpdateBreakPending(engine: Engine, state: Boolean) {
     val jsNativeData = engine.nativeData as JsNativeData
-    val b = jsNativeData.breakBufferData
+    val b = jsNativeData.breakBufferArray
     if (b != null) {
         @Suppress("UNUSED_VARIABLE")
         val newState = if (state) 1 else 0
-        js("b[0] = newState")
+        js("Atomics.store(b, 0, newState)")
     }
 }
 
 @Suppress("NOTHING_TO_INLINE")
 actual inline fun nativeBreakPending(engine: Engine): Boolean {
     val jsNativeData = engine.nativeData as JsNativeData
-    val b = jsNativeData.breakBufferData
+    val b = jsNativeData.breakBufferArray
     return if (b != null) {
-        js("b[0] == 1") as Boolean
+        js("Atomics.load(b, 0) == 1") as Boolean
     } else {
         false
     }
