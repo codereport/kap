@@ -75,6 +75,7 @@ fun runRepl(args: Array<String>, defaultLibPath: String? = null, keyboardInput: 
                 val stringTrimmed = line.trim()
                 if (stringTrimmed != "") {
                     try {
+                        engine.clearInterrupted()
                         val (_, result) = engine.parseAndEvalWithFormat(StringSourceLocation(line))
                         for (s in result) {
                             println(s)
