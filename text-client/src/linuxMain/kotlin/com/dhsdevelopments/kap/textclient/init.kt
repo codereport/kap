@@ -5,7 +5,6 @@ package com.dhsdevelopments.kap.textclient
 import array.Engine
 import array.repl.runRepl
 import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.memScoped
 import kotlinx.cinterop.staticCFunction
 import platform.posix.LC_ALL
 import platform.posix.SIGINT
@@ -18,13 +17,11 @@ private var engineInst: Engine? = null
 fun main(args: Array<String>) {
     setlocale(LC_ALL, "")
     runRepl(args, keyboardInput = LibinputKeyboardInput()) { engine ->
-        memScoped {
-            if (engineInst != null) {
-                throw IllegalStateException("Multiple repls not allowed")
-            }
-            engineInst = engine
-            signal(SIGINT, staticCFunction(::sigHandler))
+        if (engineInst != null) {
+            throw IllegalStateException("Multiple repls not allowed")
         }
+        engineInst = engine
+        signal(SIGINT, staticCFunction(::sigHandler))
     }
 }
 
