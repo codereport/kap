@@ -33,6 +33,11 @@ class GraphicWindowAPLValue(engine: Engine, width: Int, height: Int, settings: G
     override fun compareEquals(reference: APLValue) = reference is GraphicWindowAPLValue && window === reference.window
     override fun makeKey() = APLValueKeyImpl(this, window)
 
+    init {
+        val module = engine.findModuleOrError<GuiModule>()
+        module.registeredWindows.add(this)
+    }
+
     fun updateContent(image: WritableImage) {
         Platform.runLater {
             window.repaintContent(image)
@@ -85,14 +90,31 @@ private fun arrayToKeywords(engine: Engine, a: APLValue, pos: Position, allowed:
 
 class DrawGraphicFunction : APLFunctionDescriptor {
     class DrawGraphicFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val module = context.engine.findModule<GuiModule>() ?: throwAPLException(APLEvalException("gui module not available", pos))
+            val w = module.defaultGuiWindow
+            val window = if (w == null) {
+                val w0 = GraphicWindowAPLValue(context.engine, 400, 400, GraphicWindow.Settings())
+                module.defaultGuiWindow = w0
+                w0
+            } else {
+                w
+            }
+            renderArray(window, a)
+            return a
+        }
+
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val v = a.unwrapDeferredValue()
             if (v !is GraphicWindowAPLValue) {
                 throw APLIncompatibleDomainsException("Left argument must be a graphic object", pos)
             }
-            val bDimensions = b.dimensions
-            v.updateContent(renderArrayToImage(b, pos))
+            renderArray(v, b)
             return b
+        }
+
+        private fun renderArray(v: GraphicWindowAPLValue, b: APLValue) {
+            v.updateContent(renderArrayToImage(b, pos))
         }
     }
 
@@ -157,6 +179,15 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int, val settings: S
     init {
         Platform.runLater {
             content.set(Content(width, height))
+        }
+    }
+
+    fun close() {
+        Platform.runLater {
+            val c = content.get()
+            if (c != null) {
+                c.stage.close()
+            }
         }
     }
 
@@ -268,6 +299,8 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int, val settings: S
 
 class GuiModule : KapModule {
     override val name get() = "gui"
+    var defaultGuiWindow: GraphicWindowAPLValue? = null
+    val registeredWindows = ArrayList<GraphicWindowAPLValue>()
 
     override fun init(engine: Engine) {
         val guiNamespace = engine.makeNamespace("gui")
@@ -282,5 +315,11 @@ class GuiModule : KapModule {
         addFn("nextEventBlocking", ReadEventBlockingFunction())
         addFn("enableEvents", EnableEventsFunction())
         addFn("disableEvents", DisableEventsFunction())
+    }
+
+    override fun close() {
+        registeredWindows.forEach { v ->
+            v.window.close()
+        }
     }
 }

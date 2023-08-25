@@ -15,9 +15,4 @@ class ClientApplication : Application() {
         val extraPaths = if (path == null) emptyList() else listOf(path)
         client = Client(stage, extraPaths)
     }
-
-    override fun stop() {
-        client!!.stopRequest()
-        super.stop()
-    }
 }

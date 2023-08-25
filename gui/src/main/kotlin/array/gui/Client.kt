@@ -126,7 +126,7 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
         updateWorkingDirectory(settings.directory ?: currentDirectory())
 
         calculationQueue.start()
-        stage.onCloseRequest = EventHandler { calculationQueue.stop() }
+        stage.onCloseRequest = EventHandler { stopRequest() }
 
         stage.scene = Scene(border, 1000.0, 800.0)
         stage.show()
@@ -154,7 +154,7 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
                     onAction = EventHandler { openSettingsWindow() }
                 })
                 items.add(MenuItem("Close").apply {
-                    onAction = EventHandler { Platform.exit() }
+                    onAction = EventHandler { stage.close() }
                 })
             }
             menus.add(fileMenu)

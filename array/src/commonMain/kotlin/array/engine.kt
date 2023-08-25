@@ -480,6 +480,7 @@ class Engine(numComputeEngines: Int? = null) {
 
     fun close() {
         backgroundDispatcher.close()
+        modules.forEach(KapModule::close)
     }
 
     fun interruptEvaluation() {
@@ -510,6 +511,10 @@ class Engine(numComputeEngines: Int? = null) {
 
     inline fun <reified T : KapModule> findModule(): T? {
         return modules.filterIsInstance<T>().firstOrNull()
+    }
+
+    inline fun <reified T : KapModule> findModuleOrError(pos: Position? = null): T {
+        return findModule() ?: throwAPLException(ModuleNotFound(T::class.simpleName ?: "empty name", pos))
     }
 
     fun addLibrarySearchPath(path: String) {
@@ -892,6 +897,11 @@ interface KapModule {
      * Initialise the module.
      */
     fun init(engine: Engine)
+
+    /**
+     * Called when the engine is shutting down.
+     */
+    fun close() {}
 }
 
 class StandardSymbols(val engine: Engine) {

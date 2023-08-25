@@ -87,6 +87,8 @@ class CircularDynamicAssignment(pos: Position? = null) : APLEvalException("Circu
 class ListOutOfBounds(message: String, pos: Position? = null) : APLEvalException(message, pos)
 class UnmodifiableSystemParameterException(pos: Position? = null) : APLEvalException("System parameter cannot be modified", pos)
 
+class ModuleNotFound(name: String, pos: Position? = null) : APLEvalException("Module not available: ${name}", pos)
+
 open class ParseException(message: String, pos: Position? = null, cause: Throwable? = null) : APLGenericException(message, pos, cause)
 class UnexpectedSymbol(ch: Int, pos: Position? = null) :
         ParseException("Unexpected symbol: '${charToString(ch)}' (${ch.toString(16)})", pos)

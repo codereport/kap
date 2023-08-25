@@ -10,7 +10,7 @@ import java.util.concurrent.CopyOnWriteArrayList
 class ResizableCanvas : Canvas() {
     override fun isResizable() = true
 
-    private val changeListenerTimer = Timer()
+    private val changeListenerTimer = Timer(true)
     private var changeListenerTask: TimerTask? = null
     private val changeListeners = CopyOnWriteArrayList<() -> Unit>()
 
