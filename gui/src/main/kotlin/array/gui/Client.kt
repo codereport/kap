@@ -154,7 +154,10 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
                     onAction = EventHandler { openSettingsWindow() }
                 })
                 items.add(MenuItem("Close").apply {
-                    onAction = EventHandler { stage.close() }
+                    onAction = EventHandler {
+                        stage.close()
+                        stopRequest()
+                    }
                 })
             }
             menus.add(fileMenu)
@@ -164,7 +167,7 @@ class Client(val stage: Stage, extraPaths: List<String>? = null) {
                     onAction = EventHandler { keyboardHelpWindow.show() }
                 })
                 items.add(MenuItem("Array Editor").apply {
-                    onAction = EventHandler { Platform.runLater{ ArrayEditor.open(this@Client) } }
+                    onAction = EventHandler { Platform.runLater { ArrayEditor.open(this@Client) } }
                 })
                 items.add(MenuItem("Structure Viewer").apply {
                     onAction = EventHandler { Platform.runLater { StructureViewer.open(this@Client) } }
