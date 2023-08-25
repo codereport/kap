@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalForeignApi::class)
+
 package com.dhsdevelopments.kap.textclient
 
 import array.KeyboardInput
@@ -9,11 +11,11 @@ import jansson.stdin
 import jansson.stdout
 import kotlinx.cinterop.*
 import libedit.*
-import platform.posix.errno
-import platform.posix.strerror
-import platform.posix.wchar_tVar
+import platform.posix.*
 
 private const val PROMPT_BUF_SIZE = 1024
+
+private var currentEditline: CPointer<EditLine>? = null
 
 @OptIn(ExperimentalForeignApi::class)
 private class EditLineState {
@@ -43,13 +45,20 @@ class LibinputKeyboardInput : KeyboardInput {
             history_w(historyInst, event.ptr, H_SETSIZE, 100)
             history_w(historyInst, event.ptr, H_SETUNIQUE, 1)
         }
+
+        signal(SIGWINCH, staticCFunction(::windowUpdate))
     }
 
     override fun readString(prompt: String): String? {
         memScoped {
             copyTruncated(state.currentPromptPtr, prompt.encodeToByteArray())
             val length = alloc<IntVar>()
+            if (currentEditline !== null) {
+                throw IllegalStateException("currentEditline is not null")
+            }
+            currentEditline = editLine
             val res = el_wgets(editLine, length.ptr)
+            currentEditline = null
             if (res == null) {
                 return null
             } else {
@@ -61,6 +70,13 @@ class LibinputKeyboardInput : KeyboardInput {
                 return resString
             }
         }
+    }
+}
+
+private fun windowUpdate(n: Int) {
+    val l = currentEditline
+    if (l !== null) {
+        el_resize(l)
     }
 }
 
