@@ -16,13 +16,6 @@ import kotlin.math.max
 import kotlin.math.min
 import kotlin.reflect.KClass
 
-class ImageData(
-    val array: DoubleArray,
-    val width: Int,
-    val height: Int,
-    val arrayIs3D: Boolean
-)
-
 class GraphicWindowAPLValue(engine: Engine, width: Int, height: Int, settings: GraphicWindow.Settings) : APLSingleValue() {
     val window = GraphicWindow(engine, width, height, settings)
 
@@ -265,25 +258,6 @@ class GraphicWindow(val engine: Engine, width: Int, height: Int, val settings: S
                 canvas.graphicsContext2D.drawImage(image, 0.0, 0.0, image.width, image.height, 0.0, 0.0, canvas.width, canvas.height)
             }
         }
-
-//        private fun drawCellValues() {
-//            val imageData = array!!.array
-//            val width = array!!.width
-//            val height = array!!.height
-//
-//            val cellWidth = image.width / width
-//            val cellHeight = image.height / height
-//            val c = canvas.graphicsContext2D
-//            c.font = Font.font("Sans Serif", cellHeight / 2)
-//            if (cellWidth > 2 && cellHeight > 2) {
-//                for (y in 0 until height) {
-//                    for (x in 0 until width) {
-//                        val value = imageData[y * height + x]
-//                        c.fillText(String.format("%f", value), x * cellWidth, y * cellHeight)
-//                    }
-//                }
-//            }
-//        }
 
         private fun processKeyPress(event: KeyEvent) {
             publishEventIfEnabled(KapKeyEvent(event))
