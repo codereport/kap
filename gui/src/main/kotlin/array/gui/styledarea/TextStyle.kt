@@ -1,9 +1,15 @@
 package array.gui.styledarea
 
+import array.APLValue
 import javafx.scene.paint.Color
 import org.fxmisc.richtext.TextExt
 
-class TextStyle(val type: Type = Type.DEFAULT, val promptTag: Boolean = false, @Suppress("unused") val contentTag: Any? = null) {
+class TextStyle(
+    val type: Type = Type.DEFAULT,
+    val promptTag: Boolean = false,
+    @Suppress("unused") val contentTag: Any? = null,
+    val supplementaryValue: MutableSupplementaryValue? = null
+) {
     @Suppress("UNUSED_PARAMETER")
     fun styleContent(content: TextExt) {
         val css = when (type) {
@@ -60,4 +66,6 @@ class TextStyle(val type: Type = Type.DEFAULT, val promptTag: Boolean = false, @
         ERROR,
         SINGLE_CHAR_HIGHLIGHT
     }
+
+    class MutableSupplementaryValue(var value: APLValue?)
 }

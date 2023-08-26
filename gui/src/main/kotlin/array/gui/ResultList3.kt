@@ -1,10 +1,17 @@
 package array.gui
 
 import array.APLGenericException
+import array.APLValue
 import array.SourceLocation
 import array.StringCharacterProvider
+import array.gui.arrayedit.ArrayEditor
 import array.gui.styledarea.*
+import javafx.application.Platform
+import javafx.event.EventHandler
 import javafx.scene.Node
+import javafx.scene.control.ContextMenu
+import javafx.scene.control.MenuItem
+import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.layout.*
 import javafx.scene.paint.Color
 import javafx.scene.text.TextFlow
@@ -37,6 +44,8 @@ class ResultList3(val client: Client) {
     private var historyPos = 0
     private var pendingInput: String? = null
 
+    private val resultRefHistory = ArrayList<TextStyle.MutableSupplementaryValue>()
+
     init {
         val applyParagraphStyle = BiConsumer<TextFlow, ParStyle> { text, parStyle ->
             if (parStyle.type == ParStyle.ParStyleType.INDENT) {
@@ -50,8 +59,8 @@ class ResultList3(val client: Client) {
 
         GenericEditableStyledDocument(ParStyle(), TextStyle(), styledOps)
         styledArea = ROStyledArea(client, applyParagraphStyle, styledOps, nodeFactory)
-
         styledArea.setCommandListener(ResultListCommandListener())
+        initStyledAreaContextMenu()
 
         val historyListener = ResultHistoryListener()
         styledArea.addHistoryListener(historyListener)
@@ -61,6 +70,39 @@ class ResultList3(val client: Client) {
         scrollArea = VirtualizedScrollPane(styledArea)
     }
 
+    private fun initStyledAreaContextMenu() {
+        val m = ContextMenu(MenuItem("Selection").apply { isDisable = true })
+        styledArea.contextMenu = m
+        styledArea.onContextMenuRequested = EventHandler { event ->
+            repeat(m.items.size - 1) {
+                m.items.removeLast()
+            }
+            styledArea.hit(event.x, event.y).characterIndex.ifPresent { index ->
+                val style = styledArea.document.getStyleAtPosition(index)
+                val supp = style.supplementaryValue
+                if (supp != null) {
+                    val v = supp.value
+                    if (v != null) {
+                        m.items.add(MenuItem("Copy as string").apply { onAction = EventHandler { copyValueAsString(v) } })
+                        m.items.add(MenuItem("Copy as code").apply { onAction = EventHandler { copyValueAsCode(v) } })
+                        m.items.add(MenuItem("Copy as HTML").apply { onAction = EventHandler { copyValueAsHtml(v) } })
+                        if (v.dimensions.size >= 1) {
+                            m.items.add(SeparatorMenuItem())
+                            m.items.add(MenuItem("Open in array editor").apply { onAction = EventHandler { openInArrayEditor(v) } })
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+
+    private fun openInArrayEditor(value: APLValue) {
+        Platform.runLater {
+            ArrayEditor.open(client, value)
+        }
+    }
+
     fun requestFocus() {
         styledArea.requestFocus()
     }
@@ -68,7 +110,16 @@ class ResultList3(val client: Client) {
     fun getNode() = scrollArea
 
     fun addResult(v: EvalExpressionResult) {
-        styledArea.appendExpressionResultEnd(v, TextStyle(TextStyle.Type.RESULT))
+        val supp = TextStyle.MutableSupplementaryValue(v.value)
+        @Suppress("KotlinConstantConditions")
+        if (MAX_REF_HISTORY_SIZE > 0) {
+            resultRefHistory.add(supp)
+        }
+        while (resultRefHistory.size > MAX_REF_HISTORY_SIZE) {
+            val oldEntry = resultRefHistory.removeFirst()
+            oldEntry.value = null
+        }
+        styledArea.appendExpressionResultEnd(v, TextStyle(TextStyle.Type.RESULT, supplementaryValue = supp))
     }
 
     // Need to suppress error warning here because of https://youtrack.jetbrains.com/issue/KTIJ-20744
@@ -142,6 +193,10 @@ class ResultList3(val client: Client) {
                 }
             }
         }
+    }
+
+    companion object {
+        private const val MAX_REF_HISTORY_SIZE = 10
     }
 
     class CodeSegmentOps : SegmentOpsBase<EditorContent, TextStyle>(EditorContent.makeBlank()), TextOps<EditorContent, TextStyle> {
