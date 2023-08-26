@@ -112,13 +112,15 @@ class ROStyledArea(
     }
 
     private fun atEditboxStart(): Boolean {
-        println("Should check if we're at the top of the editbox")
-        return true
+        val inputPosition = findInputStartEnd()
+        val pos = caretPosition
+        return pos >= inputPosition.inputStart && pos <= inputPosition.inputEnd
     }
 
     private fun atEditboxEnd(): Boolean {
-        println("Should check if we're at the bottom of the editbox")
-        return true
+        val inputPosition = findInputStartEnd()
+        val pos = caretPosition
+        return pos >= inputPosition.inputStart && pos <= inputPosition.inputEnd
     }
 
     private fun atEditbox(): Boolean {
