@@ -1,8 +1,6 @@
 package array
 
-import kotlin.test.Ignore
 import kotlin.test.Test
-import kotlin.test.assertFails
 
 class EvalInstrTest : APLTest() {
     @Test
@@ -16,23 +14,12 @@ class EvalInstrTest : APLTest() {
         }
     }
 
-    // Support for extraBindings was removed in the rewrite of the stack management
     @Test
-    @Ignore
     fun evalWithExtraBindings() {
         val engine = Engine()
         val b = mapOf(engine.internSymbol("a") to APLLong(2))
         engine.parseAndEval(StringSourceLocation("a + 1"), extraBindings = b).let { result ->
             assertSimpleNumber(3, result)
-        }
-    }
-
-    @Test
-    fun evalWithExtraBindingsRequiresNewContext() {
-        val engine = Engine()
-        val b = mapOf(engine.internSymbol("a") to APLLong(3))
-        assertFails {
-            engine.parseAndEval(StringSourceLocation("a + 7"), extraBindings = b)
         }
     }
 }

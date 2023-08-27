@@ -98,15 +98,16 @@ actual fun makeTimerHandler(engine: Engine): TimerHandler? = null
 
 external class SharedArrayBuffer(size: Int)
 
-external val crossOriginIsolated: Boolean
+private fun crossOriginIsolatedAndDefined(): Boolean {
+    return js("typeof(crossOriginIsolated) !== \"undefined\" && crossOriginIsolated")
+}
 
 class JsNativeData : NativeData {
     val breakBufferData: SharedArrayBuffer?
     val breakBufferArray: Uint8Array?
 
     init {
-        println("is cross origin isolated = ${crossOriginIsolated}")
-        if (crossOriginIsolated) {
+        if (crossOriginIsolatedAndDefined()) {
             breakBufferData = SharedArrayBuffer(1)
             @Suppress("UNUSED_VARIABLE")
             val bd = breakBufferData

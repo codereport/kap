@@ -619,19 +619,45 @@ class Engine(numComputeEngines: Int? = null) {
         extraBindings: Map<Symbol, APLValue>? = null,
         postProcess: (Engine, RuntimeContext, APLValue) -> T
     ): T {
-        if (extraBindings != null) {
-            throw IllegalArgumentException("extra bindings is not supported at the moment")
-        }
         TokenGenerator(this, source).use { tokeniser ->
             val parser = APLParser(tokeniser)
-            val instr = parser.parseValueToplevel(EndOfFile)
-            rootEnvironment.escapeAnalysis()
+            if (extraBindings == null) {
+                val instr = parser.parseValueToplevel(EndOfFile)
+                rootEnvironment.escapeAnalysis()
 
-            withThreadLocalAssigned {
-                recomputeRootFrame()
-                val context = RuntimeContext(this)
-                val result = instr.evalWithContext(context)
-                return postProcess(tokeniser.engine, context, result)
+                withThreadLocalAssigned {
+                    recomputeRootFrame()
+                    val context = RuntimeContext(this)
+                    val result = instr.evalWithContext(context)
+                    return postProcess(tokeniser.engine, context, result)
+                }
+            } else {
+                // Extra bindings are requested, so we have to create an inner environment to bind the variables
+                val instr: Instruction
+                val bindingsWithValues: Map<EnvironmentBinding, APLValue>
+                val updatedEnv: Environment
+                parser.withEnvironment { env ->
+                    bindingsWithValues = extraBindings.map { (sym, value) ->
+                        Pair(env.bindLocal(sym), value)
+                    }.toMap()
+                    instr = parser.parseValueToplevel(EndOfFile)
+                    updatedEnv = env
+                }
+                rootEnvironment.escapeAnalysis()
+
+                withThreadLocalAssigned {
+                    recomputeRootFrame()
+                    val context = RuntimeContext(this)
+                    val result = withLinkedContext(updatedEnv, "extraBindings", instr.pos) {
+                        val stack = currentStack()
+                        bindingsWithValues.forEach { (binding, value) ->
+                            val storage = stack.findStorage(StackStorageRef(binding))
+                            storage.updateValue(value)
+                        }
+                        instr.evalWithContext(context)
+                    }
+                    return postProcess(tokeniser.engine, context, result)
+                }
             }
         }
     }
