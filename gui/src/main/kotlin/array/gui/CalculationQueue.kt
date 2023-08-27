@@ -119,13 +119,15 @@ class CalculationQueue(val engine: Engine) {
         override fun processRequest(engine: Engine) {
             val sym = engine.currentNamespace.internSymbol(name)
             val binding = engine.rootEnvironment.bindLocal(sym)
-            engine.recomputeRootFrame()
-            val stack = currentStack()
-            if (stack.stack.size != 1) {
-                throw IllegalStateException("Attempt to write to a variable with active frames")
+            engine.withThreadLocalAssigned {
+                engine.recomputeRootFrame()
+                val stack = currentStack()
+                if (stack.stack.size != 1) {
+                    throw IllegalStateException("Attempt to write to a variable with active frames")
+                }
+                val storage = stack.findStorage(StackStorageRef(binding))
+                storage.updateValue(value)
             }
-            val storage = stack.findStorage(StackStorageRef(binding))
-            storage.updateValue(value)
             callback(null)
         }
     }

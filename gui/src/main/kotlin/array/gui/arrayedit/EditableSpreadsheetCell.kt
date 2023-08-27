@@ -11,11 +11,16 @@ object KapValueSpreadsheetCellType : SpreadsheetCellType<APLValueSpreadsheetCell
     }
 
     override fun createEditor(view: SpreadsheetView): SpreadsheetCellEditor {
-        return SpreadsheetCellEditor.StringEditor(view)
+        return KapValueEditor(view)
     }
 
     override fun match(value: Any, vararg options: Any): Boolean {
-        return true
+        if (value !is String) {
+            println("Attempt to match non-string value")
+            return false
+        }
+        val result = KapValueStringConverter.fromStringOrNull(value)
+        return result != null
     }
 
     override fun convertValue(value: Any?): APLValueSpreadsheetCell? {
@@ -43,16 +48,16 @@ object KapValueStringConverter : StringConverter<APLValueSpreadsheetCell>() {
         return obj.value.formatted(FormatStyle.READABLE)
     }
 
-    override fun fromString(string: String): APLValueSpreadsheetCell {
+    fun fromStringOrNull(string: String): APLValue? {
         val tokeniser = TokenGenerator(Engine(), StringSourceLocation(string))
         try {
             val token = tokeniser.nextToken()
             if (token == EndOfFile) {
-                throw Exception("Empty input")
+                return null
             }
             tokeniser.nextToken().let { next ->
                 unless(next == EndOfFile) {
-                    throw Exception("Expected EndOfFile, found: ${next} (string='${string}')")
+                    return null
                 }
             }
             val value = when (token) {
@@ -62,10 +67,18 @@ object KapValueStringConverter : StringConverter<APLValueSpreadsheetCell>() {
                 is ParsedComplex -> token.value.makeAPLNumber()
                 else -> throw Exception("Illegal input")
             }
-            return APLValueSpreadsheetCell(value)
+            return value
         } catch (e: ParseException) {
-            throw Exception("Parse exception", e)
+            return null
         }
+    }
+
+    override fun fromString(string: String): APLValueSpreadsheetCell {
+        val result = fromStringOrNull(string)
+        if (result == null) {
+            throw IllegalStateException("Unable convert value from string")
+        }
+        return APLValueSpreadsheetCell(result)
     }
 }
 
