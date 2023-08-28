@@ -17,7 +17,7 @@ It's also quite fun.
 
 That said, there are other similar languages that have chosen to use plain ASCII, and those may be of interest to anyone who don't want to use special symbols in their programming:
 
-The most popular is https://www.jsoftware.com/[the J programming language] which embodies a lot of the same ideas as APL (an dby extension, Kap).
+The most popular is https://www.jsoftware.com/[the J programming language] which embodies a lot of the same ideas as APL (and by extension, Kap).
 It preserves the same terseness as APL and uses sequences of ASCII characters to achieve the same goal.
 
 Another alternative is https://pkg.go.dev/robpike.io/ivy[Ivy] which is developed by Rob Pike who is the co-creator of the Go programming language as well as UTF-8. It uses full words instead of symbols, and some people may find that to be more readable than J.
@@ -453,14 +453,18 @@ Let's define a custom function to make this a bit more clear:
   io:println (⍕x) , " + " , (⍕y) , " = " , (⍕result)
   result
 }
-
-printAndAdd/ 1 2 3 4 5 6
 ----
 
 The above defines a function called `printAndAdd` that adds the left and right arguments and returns the sum.
 It also prints the values being added as well as the sum.
 
-By reducing over this custom function, we can see how `/` calls them in order to reduce the result:
+We can reduce on this function just like w can with the function `+`.
+
+----
+printAndAdd/ 1 2 3 4 5 6
+----
+
+By reducing over this custom function, we can see how `/` calls them in order to obtain the result:
 
 ----
 1 + 2 = 3
@@ -470,7 +474,7 @@ By reducing over this custom function, we can see how `/` calls them in order to
 15 + 6 = 21
 ----
 
-The above example also shows how reduction acts on any function, not just the `+` function.
+The reduction operator is useful with a wide range of different functions.
 For example, one can use `,/` to reduce an array of arrays into a single array.
 
 ----
@@ -496,7 +500,7 @@ To explain this, we have to look back at the beginning of this section where it 
 The box around the result is a scalar "`wrapper`" around the result array.
 It causes its content to be treated as a single element.
 For this simple case it may not make much sense, but the purpose of this behaviour is to make the result consistent overall types of input.
-Hopefully this will be more clear as wel discuss reduction over multidimensional arrays.
+Hopefully this will be more clear as we'll discuss reduction over multidimensional arrays.
 
 For now, all we want to do is to unwrap the result to get to the value inside.
 To do this we use the "`disclose`" function, `⊃`.
