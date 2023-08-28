@@ -9,7 +9,6 @@ import javafx.scene.control.MenuItem
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
-import org.controlsfx.control.spreadsheet.Grid
 import org.controlsfx.control.spreadsheet.GridBase
 import org.controlsfx.control.spreadsheet.SpreadsheetCell
 import org.controlsfx.control.spreadsheet.SpreadsheetView
@@ -22,16 +21,16 @@ class ArrayEditSpreadsheetView : SpreadsheetView() {
     init {
         content = MutableAPLValue(APLArrayImpl(dimensionsOfSize(2, 2), arrayOf(APLLONG_1, APLLONG_1, APLString("Foo"), APLString("test"))))
         displayedPosition = intArrayOf(0, 0)
-        grid = makeGridBase()
+        updateGridBase()
     }
 
     fun replaceContent(newContent: MutableAPLValue, position: IntArray) {
         content = newContent
         displayedPosition = position
-        grid = makeGridBase()
+        updateGridBase()
     }
 
-    private fun makeGridBase(): Grid {
+    private fun updateGridBase() {
         val d = content.dimensions
         assertx(d.size == displayedPosition.size)
         assertx(displayedPosition[displayedPosition.size - 1] == 0)
@@ -72,7 +71,11 @@ class ArrayEditSpreadsheetView : SpreadsheetView() {
         }
         gridBase.rowHeaders.setAll(rowHeaders)
 
-        return gridBase
+        grid = gridBase
+        setGrid(grid)
+        columns.forEach { col ->
+            col.setPrefWidth(50.0)
+        }
     }
 
     private fun insertRowAbove() {
@@ -89,11 +92,20 @@ class ArrayEditSpreadsheetView : SpreadsheetView() {
         val d = content.dimensions
         if (d.size == 1) {
             content.insert(0, rowIndex, 1)
+            val cell = KapValueSpreadsheetCellType.createCell(content, rowIndex, 0, rowIndex)
+            grid.rows.add(rowIndex, FXCollections.observableArrayList(cell))
         } else {
             content.insert(d.size - 2, rowIndex, 1)
+            val d0 = content.dimensions
+            val w = d0[d0.size - 1]
+            val p = d0.indexFromPosition(displayedPosition) + (w * rowIndex)
+            val cells = FXCollections.observableArrayList<SpreadsheetCell>()
+            repeat(w) { i ->
+                val cell = KapValueSpreadsheetCellType.createCell(content, rowIndex, i, p + i)
+                cells.add(cell)
+            }
+            grid.rows.add(rowIndex, FXCollections.observableArrayList(cells))
         }
-        grid = makeGridBase()
-        setGrid(grid)
     }
 
     private fun insertColLeft() {
@@ -110,8 +122,17 @@ class ArrayEditSpreadsheetView : SpreadsheetView() {
         val d = content.dimensions
         if (d.size > 1) {
             content.insert(d.size - 1, colIndex, 1)
-            grid = makeGridBase()
-            setGrid(grid)
+            val d0 = content.dimensions
+            val w = d0[d0.size - 1]
+            val h = d0[d0.size - 2]
+            val p = d0.indexFromPosition(displayedPosition)
+            val rows = grid.rows
+            repeat(h) { i ->
+                val cell = KapValueSpreadsheetCellType.createCell(content, i, colIndex, p + (i * w) + colIndex)
+                val row = rows[i]
+                row.add(colIndex, cell)
+                rows[i] = row
+            }
         }
     }
 
