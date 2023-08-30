@@ -4,21 +4,20 @@
 }
 
 ⍝ Try to determine if x is part of the mandelbrot set
-∇ (Iterations) m (x) {
+∇ (iterations) m (x) {
 	n ← 0
-	({n←n+1 ◊ x+⍵×⍵}⍣{(2<|⍺) ∨ n≥Iterations}) 0
+	({n←n+1 ◊ x+⍵×⍵}⍣{(2<|⍺) ∨ n≥iterations}) 0
 	n
 }
 
 ⍝ Compute the mandelbrot set at the resolution given in Size
 ⍝ Limit the number of iterations to Iterations
-∇ (Iterations) mandelbrot (Size) {
-	Iterations ÷⍨ Iterations m¨(0J1×range(-2;2;Size[0])) ∘.+ range(-2;2;Size[1])
+∇ (n) mandelbrot (size) {
+	(h w z) ← size
+	n ÷⍨ n m¨∥ (0J1×range(¯2+z;2-z;h)) +⌻ range(¯2.5+z;1-z;w)
 }
 
 ∇ mandelbrotDemo (x) {
-	dimension ← 800 800
-	g ← gui:create dimension
-	g gui:draw 50 mandelbrot dimension
+	gui:draw 50.0 mandelbrot 800 800 0
 	0
 }

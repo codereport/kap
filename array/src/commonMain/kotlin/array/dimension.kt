@@ -119,7 +119,7 @@ value class Dimensions(val dimensions: IntArray) {
         }
     }
 
-    override fun toString() = "Dimensions[${dimensions.joinToString(", ")}]"
+    override fun toString() = "[${dimensions.joinToString(", ")}]"
 
     @JvmInline
     value class DimensionMultipliers(val values: IntArray) {

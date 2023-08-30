@@ -36,6 +36,10 @@ abstract class APLNumber : APLSingleValue() {
 
     open fun asBigInt(): BigInt = throwAPLException(APLIllegalArgumentException("Value cannot be converted to bigint: ${formatted(FormatStyle.PLAIN)}"))
     open fun asRational(): Rational = throwAPLException(APLIllegalArgumentException("Value cannot be converted to rational: ${formatted(FormatStyle.PLAIN)}"))
+
+    override fun asHtml(buf: Appendable) {
+        buf.append(formatted(FormatStyle.PLAIN))
+    }
 }
 
 class APLLong(val value: Long) : APLNumber() {

@@ -59,10 +59,10 @@ fun array2DAsHtml(value: APLValue, buf: Appendable) {
             repeat(d[0]) { rowIndex ->
                 encloseInTag(buf, "tr") {
                     if (rowLabels != null) {
-                        val header = rowLabels[rowIndex]?.title
+                        val header = rowLabels[rowIndex]
                         if (header != null) {
-                            encloseInTag(buf, "td", "style" to borderStyle) {
-                                escapeHtml(header, buf)
+                            encloseInTag(buf, "th", "style" to colHeaderStyle) {
+                                escapeHtml(header.title, buf)
                             }
                         } else {
                             buf.append("<td style=\"${borderStyle}\"></td>")

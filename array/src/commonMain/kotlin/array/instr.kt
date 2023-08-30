@@ -312,7 +312,10 @@ class AssignmentInstruction(val variableList: Array<StackStorageRef>, val instr:
         val v = res.collapse()
         when {
             variableList.size == 1 -> context.setVar(variableList[0], v)
-            v.dimensions.size != 1 -> throwAPLException(APLEvalException("Destructuring assignment requires rank-1 value", pos))
+            v.dimensions.size != 1 -> throwAPLException(
+                APLEvalException(
+                    "Destructuring assignment requires rank-1 value. Argument has dimensions ${v.dimensions}",
+                    pos))
             variableList.size != v.size -> throwAPLException(
                 APLEvalException("Destructuring assignment expected ${variableList.size} results, got: ${v.size}", pos))
             else -> {

@@ -449,10 +449,18 @@ abstract class APLArray : APLValue() {
 
     override fun asHtml(buf: Appendable) {
         val d = dimensions
-        if (d.size == 2) {
-            array2DAsHtml(this, buf)
-        } else {
-            super.asHtml(buf)
+        when {
+            d.size == 1 && isStringValue() -> {
+                buf.append("<span style=\"color: #00c000;\">")
+                escapeHtml(toStringValue(), buf)
+                buf.append("</span>")
+            }
+            d.size == 2 -> {
+                array2DAsHtml(this, buf)
+            }
+            else -> {
+                super.asHtml(buf)
+            }
         }
     }
 }
@@ -463,6 +471,14 @@ class LabelledArray(override val value: APLValue, override val labels: Dimension
 
     override fun collapseInt(): APLValue {
         return value.collapseInt()
+    }
+
+    override fun asHtml(buf: Appendable) {
+        if (dimensions.size == 2) {
+            array2DAsHtml(this, buf)
+        } else {
+            super.asHtml(buf)
+        }
     }
 
     companion object {
@@ -856,12 +872,8 @@ class APLChar(val value: Int) : APLSingleValue() {
     }
 
     override val aplValueType: APLValueType get() = APLValueType.CHAR
+
     fun asString() = charToString(value)
-    override fun formatted(style: FormatStyle) = when (style) {
-        FormatStyle.PLAIN -> charToString(value)
-        FormatStyle.PRETTY -> "@${charToString(value)}"
-        FormatStyle.READABLE -> if (value in 33..126 && value != 92) "@${charToString(value)}" else "@\\u${value.toHexString(HexFormat.UpperCase)}"
-    }
 
     override fun formattedAsCodeRequiresParens() = false
 
@@ -878,6 +890,16 @@ class APLChar(val value: Int) : APLSingleValue() {
     override fun toString() = "APLChar['${asString()}' 0x${value.toString(16)}]"
 
     override fun makeKey() = APLValueKeyImpl(this, value)
+
+    override fun formatted(style: FormatStyle) = when (style) {
+        FormatStyle.PLAIN -> charToString(value)
+        FormatStyle.PRETTY -> "@${charToString(value)}"
+        FormatStyle.READABLE -> if (value in 33..126 && value != 92) "@${charToString(value)}" else "@\\u${value.toHexString(HexFormat.UpperCase)}"
+    }
+
+    override fun asHtml(buf: Appendable) {
+        escapeHtml(formatted(FormatStyle.READABLE), buf)
+    }
 
     companion object {
         fun fromLong(value: Long, pos: Position): APLChar {
@@ -934,12 +956,6 @@ abstract class DeferredResultArray : APLArray() {
 
 class APLSymbol(val value: Symbol) : APLSingleValue() {
     override val aplValueType: APLValueType get() = APLValueType.SYMBOL
-    override fun formatted(style: FormatStyle) =
-        when (style) {
-            FormatStyle.PLAIN -> "${value.namespace.name}:${value.symbolName}"
-            FormatStyle.PRETTY -> "${value.namespace.name}:${value.symbolName}"
-            FormatStyle.READABLE -> "'${value.namespace.name}:${value.symbolName}"
-        }
 
     override fun compareEquals(reference: APLValue) = reference is APLSymbol && value == reference.value
 
@@ -954,6 +970,17 @@ class APLSymbol(val value: Symbol) : APLSingleValue() {
     override fun ensureSymbol(pos: Position?) = this
 
     override fun makeKey() = APLValueKeyImpl(this, value)
+
+    override fun formatted(style: FormatStyle) =
+        when (style) {
+            FormatStyle.PLAIN -> "${value.namespace.name}:${value.symbolName}"
+            FormatStyle.PRETTY -> "${value.namespace.name}:${value.symbolName}"
+            FormatStyle.READABLE -> "'${value.namespace.name}:${value.symbolName}"
+        }
+
+    override fun asHtml(buf: Appendable) {
+        escapeHtml(formatted(FormatStyle.PLAIN), buf)
+    }
 }
 
 /**
