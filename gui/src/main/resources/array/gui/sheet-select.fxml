@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.VBox?>
+<BorderPane prefHeight="400.0" prefWidth="600.0" xmlns="http://javafx.com/javafx/16"
+            xmlns:fx="http://javafx.com/fxml/1" fx:controller="array.gui.SheetSelect">
+    <center>
+        <ListView fx:id="sheetList" prefHeight="200.0" prefWidth="200.0" VBox.vgrow="ALWAYS"/>
+    </center>
+    <bottom>
+        <VBox BorderPane.alignment="CENTER">
+            <children>
+                <ButtonBar>
+                    <buttons>
+                        <Button fx:id="ok" mnemonicParsing="false" text="OK" ButtonBar.buttonData="OK_DONE"
+                                onAction="#loadClicked"/>
+                        <Button fx:id="cancel" mnemonicParsing="false" text="Cancel"
+                                ButtonBar.buttonData="CANCEL_CLOSE" onAction="#cancelClicked"/>
+                    </buttons>
+                </ButtonBar>
+            </children>
+        </VBox>
+    </bottom>
+</BorderPane>

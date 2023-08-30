@@ -6,12 +6,14 @@ import javafx.collections.ObservableList
 import javafx.event.EventHandler
 import javafx.scene.control.ContextMenu
 import javafx.scene.control.MenuItem
+import javafx.scene.control.SeparatorMenuItem
 import javafx.scene.input.KeyCode
 import javafx.scene.input.KeyCodeCombination
 import javafx.scene.input.KeyCombination
 import org.controlsfx.control.spreadsheet.GridBase
 import org.controlsfx.control.spreadsheet.SpreadsheetCell
 import org.controlsfx.control.spreadsheet.SpreadsheetView
+import java.util.*
 
 class ArrayEditSpreadsheetView : SpreadsheetView() {
     var content: MutableAPLValue
@@ -136,6 +138,50 @@ class ArrayEditSpreadsheetView : SpreadsheetView() {
         }
     }
 
+    private fun groupByAscending(list: List<Int>): List<Pair<Int, Int>> {
+        if (list.isEmpty()) {
+            return emptyList()
+        } else {
+            var start = list.first()
+            var curr = start
+            val res = ArrayList<Pair<Int, Int>>()
+            list.rest().forEach { v ->
+                if (v <= curr) {
+                    throw IllegalArgumentException("List is not strictly increasing")
+                }
+                if (v != curr + 1) {
+                    res.add(Pair(start, curr - start + 1))
+                    start = v
+                }
+                curr = v
+            }
+            res.add(Pair(start, curr - start + 1))
+            return res
+        }
+    }
+
+    private fun deleteRows() {
+        val rowIndexes = TreeSet<Int>()
+        selectionModel.selectedCells.forEach { cell ->
+            rowIndexes.add(cell.row)
+        }
+        groupByAscending(rowIndexes.toList()).asReversed().forEach { (index, n) ->
+            content.remove(0, index, n)
+        }
+        updateGridBase()
+    }
+
+    private fun deleteCols() {
+        val colIndexes = TreeSet<Int>()
+        selectionModel.selectedCells.forEach { cell ->
+            colIndexes.add(cell.column)
+        }
+        groupByAscending(colIndexes.toList()).asReversed().forEach { (index, n) ->
+            content.remove(1, index, n)
+        }
+        updateGridBase()
+    }
+
     override fun getSpreadsheetViewContextMenu(): ContextMenu {
         val menu = super.getSpreadsheetViewContextMenu()
         menu.items.add(MenuItem("Insert expression").apply {
@@ -144,6 +190,7 @@ class ArrayEditSpreadsheetView : SpreadsheetView() {
             }
             accelerator = KeyCodeCombination(KeyCode.O, KeyCombination.SHORTCUT_DOWN)
         })
+        menu.items.add(SeparatorMenuItem())
         menu.items.add(MenuItem("Insert row above").apply {
             onAction = EventHandler {
                 insertRowAbove()
@@ -162,6 +209,17 @@ class ArrayEditSpreadsheetView : SpreadsheetView() {
         menu.items.add(MenuItem("Insert column right").apply {
             onAction = EventHandler {
                 insertColRight()
+            }
+        })
+        menu.items.add(SeparatorMenuItem())
+        menu.items.add(MenuItem("Delete rows").apply {
+            onAction = EventHandler {
+                deleteRows()
+            }
+        })
+        menu.items.add(MenuItem("Delete columns").apply {
+            onAction = EventHandler {
+                deleteCols()
             }
         })
         return menu

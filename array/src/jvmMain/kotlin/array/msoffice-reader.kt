@@ -9,31 +9,57 @@ import java.io.File
 import java.io.FileNotFoundException
 import java.io.FileOutputStream
 
+class ExcelFileWrapper(private val workbook: Workbook) : NativeCloseable {
+    val sheetCount: Int get() = workbook.numberOfSheets
+
+    fun sheetName(index: Int): String {
+        return workbook.getSheetAt(index).sheetName
+    }
+
+    override fun close() {
+        workbook.close()
+    }
+
+    fun parseSheet(sheetIndex: Int): APLValue {
+        val evaluator = workbook.creationHelper.createFormulaEvaluator()
+        val sheet = workbook.getSheetAt(sheetIndex)
+        return readSheet(sheet, evaluator)
+    }
+}
+
+fun loadExcelFileWrapper(name: String): ExcelFileWrapper {
+    return ExcelFileWrapper(WorkbookFactory.create(File(name)))
+}
+
 fun readExcelFile(name: String): APLValue {
     WorkbookFactory.create(File(name)).use { workbook ->
         val evaluator = workbook.creationHelper.createFormulaEvaluator()
         val sheet = workbook.getSheetAt(0)
-        if (sheet.physicalNumberOfRows == 0) {
-            return APLNullValue.APL_NULL_INSTANCE
-        }
+        return readSheet(sheet, evaluator)
+    }
+}
 
-        val lastRowIndex = sheet.lastRowNum
-        val rows = ArrayList<List<APLValue>>()
-        for (i in 0..lastRowIndex) {
-            val row = readRow(sheet.getRow(i), evaluator)
-            rows.add(row)
-        }
+fun readSheet(sheet: Sheet, evaluator: FormulaEvaluator): APLValue {
+    if (sheet.physicalNumberOfRows == 0) {
+        return APLNullValue.APL_NULL_INSTANCE
+    }
 
-        val width = rows.maxValueBy { it.size }
-        return APLArrayImpl.make(dimensionsOfSize(rows.size, width)) { i ->
-            val rowIndex = i / width
-            val colIndex = i % width
-            val row = rows[rowIndex]
-            if (colIndex < row.size) {
-                row[colIndex]
-            } else {
-                APLNullValue.APL_NULL_INSTANCE
-            }
+    val lastRowIndex = sheet.lastRowNum
+    val rows = ArrayList<List<APLValue>>()
+    for (i in 0..lastRowIndex) {
+        val row = readRow(sheet.getRow(i), evaluator)
+        rows.add(row)
+    }
+
+    val width = rows.maxValueBy { it.size }
+    return APLArrayImpl.make(dimensionsOfSize(rows.size, width)) { i ->
+        val rowIndex = i / width
+        val colIndex = i % width
+        val row = rows[rowIndex]
+        if (colIndex < row.size) {
+            row[colIndex]
+        } else {
+            APLNullValue.APL_NULL_INSTANCE
         }
     }
 }

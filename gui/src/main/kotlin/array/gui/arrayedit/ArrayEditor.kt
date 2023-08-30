@@ -5,7 +5,7 @@ import array.csv.CsvParseException
 import array.csv.readCsv
 import array.gui.Client
 import array.gui.displayErrorWithStage
-import array.msofficereader.readExcelFile
+import array.gui.readExcelFileAndSelectSheet
 import javafx.application.Platform
 import javafx.collections.FXCollections
 import javafx.collections.ObservableList
@@ -26,7 +26,6 @@ import javafx.stage.StageStyle
 import org.controlsfx.control.spreadsheet.SpreadsheetCell
 import org.jsoup.Jsoup
 import java.io.File
-import java.io.IOException
 import kotlin.math.max
 
 class ArrayEditor {
@@ -57,7 +56,6 @@ class ArrayEditor {
     }
 
     private fun loadFromField() {
-        println("Variable name: ${variableField.text}")
         val name = variableField.text.trim()
         client.calculationQueue.pushReadVariableRequest(name) { result ->
             if (result != null) {
@@ -70,7 +68,6 @@ class ArrayEditor {
     }
 
     private fun saveFromField() {
-        println("Variable name: ${variableField.text}")
         val name = variableField.text.trim()
         unless(TokenGenerator.isValidSymbolName(name)) {
             displayError("Not a valid symbol name: ${name}")
@@ -168,7 +165,6 @@ class ArrayEditor {
 
     private fun displayInsertExpressionMenu() {
         val selection = SelectedArea.computeSelectedArea(table.selectionModel.selectedCells)
-        println("Selected area: ${selection}")
         if (selection == null || selection.width == 0 || selection.height == 0) {
             return
         }
@@ -322,11 +318,8 @@ class ArrayEditor {
     }
 
     private fun loadXls(file: File) {
-        try {
-            val content = readExcelFile(file.absolutePath)
+        readExcelFileAndSelectSheet(stage, file.absolutePath) { content ->
             loadArray(content)
-        } catch (e: IOException) {
-            displayError("Error reading Excel file", "Error reading ${file.name}: ${e.message}")
         }
     }
 
