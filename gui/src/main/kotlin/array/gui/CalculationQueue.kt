@@ -107,8 +107,10 @@ class CalculationQueue(val engine: Engine) {
                 null
             } else {
                 engine.rootEnvironment.findBinding(sym)?.let { binding ->
-                    val storage = currentStack().findStorage(StackStorageRef(binding))
-                    storage.value()
+                    engine.withThreadLocalAssigned {
+                        val storage = currentStack().findStorage(StackStorageRef(binding))
+                        storage.value()
+                    }
                 }
             }
             callback(result)
