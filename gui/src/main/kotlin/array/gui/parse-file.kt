@@ -26,8 +26,12 @@ fun readExcelFileAndSelectSheet(parent: Stage, filename: String, loadedCallback:
             displayErrorWithStage(parent, "Document does not contain any sheets")
         }
         1 -> {
-            val sheet = workbook.parseSheet(0)
-            loadedCallback(sheet)
+            try {
+                val sheet = workbook.parseSheet(0)
+                loadedCallback(sheet)
+            } finally {
+                workbook.close()
+            }
         }
         else -> {
             openSelectSheet(workbook, loadedCallback)
@@ -55,10 +59,14 @@ class SheetSelect {
     }
 
     fun loadClicked(@Suppress("UNUSED_PARAMETER") event: ActionEvent) {
-        val selected = sheetList.selectionModel.selectedItem
-        val sheet = workbook.parseSheet(selected.index)
-        loadedCallback(sheet)
-        stage.close()
+        try {
+            val selected = sheetList.selectionModel.selectedItem
+            val sheet = workbook.parseSheet(selected.index)
+            loadedCallback(sheet)
+            stage.close()
+        } finally {
+            workbook.close()
+        }
     }
 
     fun cancelClicked(@Suppress("UNUSED_PARAMETER") event: ActionEvent) {

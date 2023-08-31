@@ -24,6 +24,7 @@ class ArrayEditSpreadsheetView : SpreadsheetView() {
         content = MutableAPLValue(APLArrayImpl(dimensionsOfSize(2, 2), arrayOf(APLLONG_1, APLLONG_1, APLString("Foo"), APLString("test"))))
         displayedPosition = intArrayOf(0, 0)
         updateGridBase()
+
     }
 
     fun replaceContent(newContent: MutableAPLValue, position: IntArray) {

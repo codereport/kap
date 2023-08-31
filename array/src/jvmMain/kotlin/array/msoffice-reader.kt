@@ -28,11 +28,11 @@ class ExcelFileWrapper(private val workbook: Workbook) : NativeCloseable {
 }
 
 fun loadExcelFileWrapper(name: String): ExcelFileWrapper {
-    return ExcelFileWrapper(WorkbookFactory.create(File(name)))
+    return ExcelFileWrapper(WorkbookFactory.create(File(name), null, true))
 }
 
 fun readExcelFile(name: String): APLValue {
-    WorkbookFactory.create(File(name)).use { workbook ->
+    WorkbookFactory.create(File(name), null, true).use { workbook ->
         val evaluator = workbook.creationHelper.createFormulaEvaluator()
         val sheet = workbook.getSheetAt(0)
         return readSheet(sheet, evaluator)
@@ -47,8 +47,13 @@ fun readSheet(sheet: Sheet, evaluator: FormulaEvaluator): APLValue {
     val lastRowIndex = sheet.lastRowNum
     val rows = ArrayList<List<APLValue>>()
     for (i in 0..lastRowIndex) {
-        val row = readRow(sheet.getRow(i), evaluator)
-        rows.add(row)
+        val row = sheet.getRow(i)
+        val parsedRow = if (row == null) {
+            listOf(APLNullValue.APL_NULL_INSTANCE)
+        } else {
+            readRow(row, evaluator)
+        }
+        rows.add(parsedRow)
     }
 
     val width = rows.maxValueBy { it.size }
@@ -59,7 +64,7 @@ fun readSheet(sheet: Sheet, evaluator: FormulaEvaluator): APLValue {
         if (colIndex < row.size) {
             row[colIndex]
         } else {
-            APLNullValue.APL_NULL_INSTANCE
+            APLLONG_0
         }
     }
 }
@@ -74,7 +79,7 @@ fun readRow(row: Row, evaluator: FormulaEvaluator): List<APLValue> {
             numPendingNulls++
         } else {
             repeat(numPendingNulls) {
-                cellList.add(APLNullValue.APL_NULL_INSTANCE)
+                cellList.add(APLLONG_0)
             }
             numPendingNulls = 0
             cellList.add(cellToAPLValue(cell, evaluator))

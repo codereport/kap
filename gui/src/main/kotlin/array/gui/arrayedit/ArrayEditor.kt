@@ -17,6 +17,8 @@ import javafx.scene.Parent
 import javafx.scene.Scene
 import javafx.scene.control.*
 import javafx.scene.input.Clipboard
+import javafx.scene.input.DragEvent
+import javafx.scene.input.TransferMode
 import javafx.scene.layout.GridPane
 import javafx.scene.layout.HBox
 import javafx.stage.FileChooser
@@ -41,6 +43,23 @@ class ArrayEditor {
 
     fun show() {
         stage.show()
+    }
+
+    private fun handleDragOver(event: DragEvent) {
+        val dragboard = event.dragboard
+        if (dragboard.hasFiles()) {
+            if (dragboard.files.size == 1) {
+                event.acceptTransferModes(TransferMode.COPY)
+                event.consume()
+            }
+        }
+    }
+
+    private fun handleDrop(event: DragEvent) {
+        val dragboard = event.dragboard
+        val files = dragboard.files
+        assertx(files.size == 1)
+        loadXls(files[0])
     }
 
     fun loadFromVariable(@Suppress("UNUSED_PARAMETER") event: ActionEvent) {
@@ -395,6 +414,11 @@ class ArrayEditor {
 
             controller.table.insertExpressionCallback = controller::displayInsertExpressionMenu
             controller.loadArray(makeDefaultContent())
+
+            controller.table.let { view ->
+                view.onDragOver = EventHandler { event -> controller.handleDragOver(event) }
+                view.onDragDropped = EventHandler { event -> controller.handleDrop(event) }
+            }
 
             return controller
         }
