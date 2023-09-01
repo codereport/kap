@@ -6,7 +6,7 @@ import kotlin.test.assertFailsWith
 class StructuralUnderTest : APLTest() {
     @Test
     fun scalarFunctionUnderTake0() {
-        parseAPLExpression("((1000+)under(1↑)) 3 4 ⍴ ⍳12").let { result ->
+        parseAPLExpression("((1000+)⍢(1↑)) 3 4 ⍴ ⍳12").let { result ->
             assertDimension(dimensionsOfSize(3, 4), result)
             assertArrayContent(arrayOf(1000, 1001, 1002, 1003, 4, 5, 6, 7, 8, 9, 10, 11), result)
         }
@@ -14,7 +14,7 @@ class StructuralUnderTest : APLTest() {
 
     @Test
     fun scalarFunctionUnderTake1() {
-        parseAPLExpression("(1000+)under(¯1↑) 3 4 ⍴ ⍳12").let { result ->
+        parseAPLExpression("(1000+)⍢(¯1↑) 3 4 ⍴ ⍳12").let { result ->
             assertDimension(dimensionsOfSize(3, 4), result)
             assertArrayContent(arrayOf(0, 1, 2, 3, 4, 5, 6, 7, 1008, 1009, 1010, 1011), result)
         }
@@ -45,7 +45,7 @@ class StructuralUnderTest : APLTest() {
 
     @Test
     fun dropUnderTake0() {
-        parseAPLExpression("((1↓)under(¯2↑)) 3 4 ⍴ ⍳12").let { result ->
+        parseAPLExpression("((1↓)⍢(¯2↑)) 3 4 ⍴ ⍳12").let { result ->
             assertDimension(dimensionsOfSize(2, 4), result)
             assertArrayContent(arrayOf(0, 1, 2, 3, 8, 9, 10, 11), result)
         }
@@ -113,7 +113,7 @@ class StructuralUnderTest : APLTest() {
 
     @Test
     fun takeUnderDrop() {
-        parseAPLExpression("((50 60 70 80⍪)under(1↓)) 4 4 ⍴ ⍳16").let { result ->
+        parseAPLExpression("((50 60 70 80⍪)⍢(1↓)) 4 4 ⍴ ⍳16").let { result ->
             assertDimension(dimensionsOfSize(5, 4), result)
             assertArrayContent(arrayOf(0, 1, 2, 3, 50, 60, 70, 80, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15), result)
         }

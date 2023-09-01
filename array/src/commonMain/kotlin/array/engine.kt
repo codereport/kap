@@ -445,9 +445,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeOperator("parallel", ParallelOp())
         registerNativeOperator("∥", ParallelOp())
         registerNativeOperator("⍛", ReverseComposeOp())
-        registerNativeOperator("inverse", InverseFnOp())
         registerNativeOperator("˝", InverseFnOp())
-        registerNativeOperator("under", StructuralUnderOp())
         registerNativeOperator("⍢", StructuralUnderOp())
 
         // function aliases                             
