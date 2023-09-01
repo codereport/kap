@@ -54,6 +54,17 @@ class ParsedAPLList(val instructions: List<Instruction>) : Instruction(instructi
     }
 
     override fun children() = instructions
+
+    override fun deriveLvalueReader(): LvalueReader {
+        if (instructions.any { instr -> instr !is VariableRef }) {
+            throw IncompatibleTypeParseException("Destructuring variable list must only contain variable names", pos)
+        }
+        return object : LvalueReader {
+            override fun makeInstruction(rightArgs: Instruction, pos: Position): Instruction {
+                return ListAssignmentInstruction(instructions.map { instr -> (instr as VariableRef).storageRef }.toTypedArray(), rightArgs, pos)
+            }
+        }
+    }
 }
 
 class FunctionCall1Arg(
@@ -112,7 +123,7 @@ class DynamicFunctionDescriptor(val instr: Instruction) : APLFunctionDescriptor 
             val sym = parser.tokeniser.engine.createAnonymousSymbol("leftAssignedFunction")
             val binding = parser.currentEnvironment().bindLocal(sym)
             val ref = StackStorageRef(binding)
-            val list = listOf<Instruction>(AssignmentInstruction(arrayOf(ref), instr, pos))
+            val list = listOf<Instruction>(AssignmentInstruction(ref, instr, pos))
             val env = parser.currentEnvironment()
             return Pair(DynamicFunctionImpl(VariableRef(sym, ref, pos), FunctionInstantiation(pos, env), env), list)
         }
@@ -133,10 +144,7 @@ class VariableRef(val name: Symbol, val storageRef: StackStorageRef, pos: Positi
     override fun deriveLvalueReader(): LvalueReader {
         return object : LvalueReader {
             override fun makeInstruction(rightArgs: Instruction, pos: Position): Instruction {
-                if (storageRef.binding.storage.isConst) {
-                    throw AssignmentToConstantException(storageRef.binding.name, pos)
-                }
-                return AssignmentInstruction(arrayOf(storageRef), rightArgs, pos)
+                return AssignmentInstruction(storageRef, rightArgs, pos)
             }
         }
     }
@@ -162,7 +170,7 @@ class Literal1DArray private constructor(val values: List<Instruction>, pos: Pos
         }
         return object : LvalueReader {
             override fun makeInstruction(rightArgs: Instruction, pos: Position): Instruction {
-                return AssignmentInstruction(values.map { instr -> (instr as VariableRef).storageRef }.toTypedArray(), rightArgs, pos)
+                return ArrayAssignmentInstruction(values.map { instr -> (instr as VariableRef).storageRef }.toTypedArray(), rightArgs, pos)
             }
         }
     }
@@ -306,23 +314,62 @@ class LiteralDoubleArray(val value: DoubleArray, pos: Position) : Instruction(po
     override fun children(): List<Instruction> = emptyList()
 }
 
-class AssignmentInstruction(val variableList: Array<StackStorageRef>, val instr: Instruction, pos: Position) : Instruction(pos) {
+class AssignmentInstruction(val variableRef: StackStorageRef, val instr: Instruction, pos: Position) : Instruction(pos) {
+    init {
+        if (variableRef.binding.storage.isConst) {
+            throw AssignmentToConstantException(variableRef.binding.name, pos)
+        }
+    }
+
+    override fun evalWithContext(context: RuntimeContext): APLValue {
+        val res = instr.evalWithContext(context).collapse()
+        context.setVar(variableRef, res)
+        return res
+    }
+
+    override fun children() = listOf(instr)
+}
+
+class ArrayAssignmentInstruction(val variableList: Array<StackStorageRef>, val instr: Instruction, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
         val res = instr.evalWithContext(context)
         val v = res.collapse()
         when {
-            variableList.size == 1 -> context.setVar(variableList[0], v)
             v.dimensions.size != 1 -> throwAPLException(
                 APLEvalException(
                     "Destructuring assignment requires rank-1 value. Argument has dimensions ${v.dimensions}",
                     pos))
-            variableList.size != v.size -> throwAPLException(
-                APLEvalException("Destructuring assignment expected ${variableList.size} results, got: ${v.size}", pos))
+            variableList.size != v.size -> throwAPLException(DestructuringAssignmentShapeMismatch(pos))
             else -> {
-                variableList.forEachIndexed { i, binding ->
-                    context.setVar(binding, v.valueAt(i))
+                variableList.forEachIndexed { i, variableRef ->
+                    if (variableRef.binding.storage.isConst) {
+                        throw AssignmentToConstantException(variableRef.binding.name, pos)
+                    }
+                    context.setVar(variableRef, v.valueAt(i))
                 }
             }
+        }
+        return v
+    }
+
+    override fun children() = listOf(instr)
+}
+
+class ListAssignmentInstruction(val variableList: Array<StackStorageRef>, val instr: Instruction, pos: Position) : Instruction(pos) {
+    override fun evalWithContext(context: RuntimeContext): APLValue {
+        val res = instr.evalWithContext(context)
+        val v = res.collapse()
+        if (v !is APLList) {
+            throwAPLException(DestructuringAssignmentShapeMismatch(pos))
+        }
+        if (variableList.size != v.listSize()) {
+            throwAPLException(DestructuringAssignmentShapeMismatch(pos))
+        }
+        variableList.forEachIndexed { i, variableRef ->
+            if (variableRef.binding.storage.isConst) {
+                throw AssignmentToConstantException(variableRef.binding.name, pos)
+            }
+            context.setVar(variableRef, v.listElement(i, pos))
         }
         return v
     }

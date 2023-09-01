@@ -82,6 +82,7 @@ class LeftAssigned2ArgException(pos: Position? = null) :
 class ArraySizeException(d: IntArray, pos: Position? = null) :
         APLEvalException("Array too large. Requested size: [${d.joinToString(", ")}]", pos)
 
+class DestructuringAssignmentShapeMismatch(pos: Position? = null) : APLEvalException("Destructuring assignment target shape does not match argument", pos)
 class StructuralUnderNotSupported(pos: Position? = null) : APLEvalException("under not supported for function", pos)
 class CircularDynamicAssignment(pos: Position? = null) : APLEvalException("Circular dynamic assignment", pos)
 class ListOutOfBounds(message: String, pos: Position? = null) : APLEvalException(message, pos)

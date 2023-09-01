@@ -414,7 +414,7 @@ class LeftAssignedFunction(
         val binding = parser.currentEnvironment().bindLocal(sym)
         val (innerFn, relatedInstrs) = underlying.computeClosure(parser)
         val ref = StackStorageRef(binding)
-        val list = mutableListOf<Instruction>(AssignmentInstruction(arrayOf(ref), leftArgs, pos))
+        val list = mutableListOf<Instruction>(AssignmentInstruction(ref, leftArgs, pos))
         list.addAll(relatedInstrs)
         val env = parser.currentEnvironment()
         return Pair(
@@ -484,7 +484,7 @@ class AxisValAssignedFunctionDirect(baseFn: APLFunction, val axis: Instruction, 
         val ref = StackStorageRef(binding)
         val list = ArrayList<Instruction>()
         list.addAll(relatedInstrs)
-        list.add(AssignmentInstruction(arrayOf(ref), axis, pos))
+        list.add(AssignmentInstruction(ref, axis, pos))
         val env = parser.currentEnvironment()
         return Pair(
             AxisValAssignedFunctionDirect(innerFn, VariableRef(sym, ref, pos), env),

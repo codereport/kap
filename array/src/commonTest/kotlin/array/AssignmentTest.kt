@@ -94,14 +94,14 @@ class AssignmentTest : APLTest() {
 
     @Test
     fun destructuringAssignmentTooManyValues() {
-        assertFailsWith<APLEvalException> {
+        assertFailsWith<DestructuringAssignmentShapeMismatch> {
             parseAPLExpression("(a b) ← 10 20 30")
         }
     }
 
     @Test
     fun destructuringAssignmentTooFewValues() {
-        assertFailsWith<APLEvalException> {
+        assertFailsWith<DestructuringAssignmentShapeMismatch> {
             parseAPLExpression("(a b c) ← 10 20")
         }
     }
@@ -114,7 +114,18 @@ class AssignmentTest : APLTest() {
     }
 
     @Test
-    fun destructuringAssignmentSingleValue() {
+    fun destructuringAssignmentSingleElementArray() {
+        // Ideally, this should destruct the array into a single element
+        // Fixing this is tricky, since the parser effectively removes the parentheses before the assignment instruction is created
+        parseAPLExpression("(a) ← ,1").let { result ->
+            assert1DArray(arrayOf(1), result)
+        }
+    }
+
+    @Test
+    fun destructuringAssignmentScalar() {
+        // This should probably fail, since it looks like the code attempts to destructure a scalar
+        // The same reasoning as for the previous test applies here
         parseAPLExpression("(a) ← 1").let { result ->
             assertSimpleNumber(1, result)
         }
@@ -124,6 +135,27 @@ class AssignmentTest : APLTest() {
     fun destructuringAssignmentWithWrongType() {
         assertFailsWith<ParseException> {
             parseAPLExpression("(a 1) ← 1 2")
+        }
+    }
+
+    @Test
+    fun destructuringAssignmentWithList() {
+        parseAPLExpression("(a;b) ← (1;2) ◊ a b").let { result ->
+            assert1DArray(arrayOf(1, 2), result)
+        }
+    }
+
+    @Test
+    fun destructuringAssignmentWithListTooManyValues() {
+        assertFailsWith<DestructuringAssignmentShapeMismatch> {
+            parseAPLExpression("(a;b) ← 1 2 3 ◊ a b")
+        }
+    }
+
+    @Test
+    fun destructuringAssignmentWithListTooFewValues() {
+        assertFailsWith<DestructuringAssignmentShapeMismatch> {
+            parseAPLExpression("(a;b;c) ← 1 2 ◊ a b")
         }
     }
 
@@ -171,6 +203,30 @@ class AssignmentTest : APLTest() {
             |a ← 1
             |declare(:const a)
             |a ← 2
+        """.trimMargin()
+        assertFailsWith<AssignmentToConstantException> {
+            parseAPLExpression(src)
+        }
+    }
+
+    @Test
+    fun assignmentToConstInDestructuringArray() {
+        val src = """
+            |a ← 1
+            |declare(:const a)
+            |(a b) ← (2 3)
+        """.trimMargin()
+        assertFailsWith<AssignmentToConstantException> {
+            parseAPLExpression(src)
+        }
+    }
+
+    @Test
+    fun assignmentToConstInDestructuringList() {
+        val src = """
+            |a ← 1
+            |declare(:const a)
+            |(a;b) ← (2;3)
         """.trimMargin()
         assertFailsWith<AssignmentToConstantException> {
             parseAPLExpression(src)
