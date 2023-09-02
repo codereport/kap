@@ -1572,11 +1572,33 @@ class LcmAPLFunction : APLFunctionDescriptor {
                 { x, y -> opLong(x, y).makeAPLNumber() },
                 { x, y -> (x * (y / floatGcd(x, y))).makeAPLNumber() },
                 { x, y -> (y * (x / complexGcd(x, y))).nearestGaussian().makeAPLNumber() },
-                fnBigint = { x, y -> opBigint(x, y) },
+                fnBigint = { x, y -> opBigint(x, y).makeAPLNumber() },
                 fnRational = { x, y -> opRational(x, y) })
         }
 
+        private fun productFitsInLong(a: Long, b: Long): Boolean {
+            if ((a or b) and -0x80000000 != 0L) {
+                if (a > 0) {
+                    if (b > 0) {
+                        if (a > Long.MAX_VALUE / b) return false
+                    } else {
+                        if (b < Long.MIN_VALUE / a) return false
+                    }
+                } else {
+                    if (b > 0) {
+                        if (a < Long.MIN_VALUE / b) return false
+                    } else {
+                        if (a != 0L && b < Long.MAX_VALUE / a) return false
+                    }
+                }
+            }
+            return true
+        }
+
         private fun opLong(x: Long, y: Long): Long {
+            if (!productFitsInLong(x, y)) {
+                throw LongExpressionOverflow(opBigint(BigInt.of(x), BigInt.of(y)))
+            }
             val gcd = integerGcd(x, y)
             return if (gcd == 0L) {
                 0
@@ -1594,12 +1616,12 @@ class LcmAPLFunction : APLFunctionDescriptor {
             }
         }
 
-        private fun opBigint(x: BigInt, y: BigInt): APLBigInt {
+        private fun opBigint(x: BigInt, y: BigInt): BigInt {
             val gcd = x.gcd(y)
             return if (gcd.signum() == 0) {
-                BigIntConstants.ZERO.makeAPLNumber()
+                BigIntConstants.ZERO
             } else {
-                (x * (y / gcd)).makeAPLNumber()
+                (x * (y / gcd))
             }
         }
 

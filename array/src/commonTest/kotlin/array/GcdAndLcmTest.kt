@@ -53,6 +53,20 @@ class GcdAndLcmTest : APLTest() {
     }
 
     @Test
+    fun leastCommonMultipleLongToBigint() {
+        parseAPLExpression("219060189739591200 math:lcm 106").let { result ->
+            assertBigIntOrLong("11610190056198333600", result)
+        }
+    }
+
+    @Test
+    fun lcmWithReduction() {
+        parseAPLExpression("math:lcm/ 1+⍳50").let { result ->
+            assertBigIntOrLong("3099044504245996706400", result)
+        }
+    }
+
+    @Test
     fun greatestCommonDenominatorIntegers() {
         assertSimpleNumber(1, parseAPLExpression("3 math:gcd 8"))
         assertSimpleNumber(4, parseAPLExpression("4 math:gcd 8"))
