@@ -109,6 +109,12 @@ class StringsTest : APLTest() {
     }
 
     @Test
+    fun parseBigint() {
+        assertBigIntOrLong("123456789012345678901234567890123456", parseAPLExpression("⍎\"123456789012345678901234567890123456\""))
+        assertBigIntOrLong("-987654321098765432109876543210123456", parseAPLExpression("⍎\"-987654321098765432109876543210123456\""))
+    }
+
+    @Test
     fun parseDoubleTest() {
         assertNearDouble(NearDouble(10.1, 4), parseAPLExpression("⍎\"10.1\""))
         assertNearDouble(NearDouble(-4.5, 4), parseAPLExpression("⍎\"-4.5\""))

@@ -1,6 +1,8 @@
 package array.builtins
 
 import array.*
+import com.dhsdevelopments.mpbignum.BigInt
+import com.dhsdevelopments.mpbignum.of
 import kotlin.math.absoluteValue
 import kotlin.math.max
 
@@ -1570,7 +1572,7 @@ class ParseNumberFunction : APLFunctionDescriptor {
 
             val intMatch = INTEGER_PATTERN.matchEntire(s)
             if (intMatch != null) {
-                return intMatch.groups.get(1)!!.value.toInt().makeAPLNumber()
+                return BigInt.of(intMatch.groups.get(1)!!.value).makeAPLNumberWithReduction()
             }
             val doubleMatch = DOUBLE_PATTERN.matchEntire(s)
             if (doubleMatch != null) {
