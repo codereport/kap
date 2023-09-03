@@ -82,7 +82,7 @@ startScripts {
     def winGen = windowsStartScriptGenerator
     winGen.template = resources.text.fromString(
             winGen.template.asString().replaceFirst('%> -classpath') {
-                '%> -Dkap.installPath=%APP_HOME% -classpath'
+                '%> -Dkap.installPath="%APP_HOME%" -classpath'
             })
 
     applicationName = 'kap-jvm'
