@@ -1597,7 +1597,12 @@ class LcmAPLFunction : APLFunctionDescriptor {
 
         private fun opLong(x: Long, y: Long): Long {
             if (!productFitsInLong(x, y)) {
-                throw LongExpressionOverflow(opBigint(BigInt.of(x), BigInt.of(y)))
+                val bigIntResult = opBigint(BigInt.of(x), BigInt.of(y))
+                if (bigIntResult.rangeInLong()) {
+                    return bigIntResult.toLong()
+                } else {
+                    throw LongExpressionOverflow(bigIntResult)
+                }
             }
             val gcd = integerGcd(x, y)
             return if (gcd == 0L) {
