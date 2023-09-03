@@ -84,6 +84,8 @@ startScripts {
             winGen.template.asString().replaceFirst('%> -classpath') {
                 '%> -Dkap.installPath=%APP_HOME% -classpath'
             })
+
+    applicationName = 'kap-jvm'
 }
 
 distributions {
