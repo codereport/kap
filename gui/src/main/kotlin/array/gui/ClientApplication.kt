@@ -9,10 +9,15 @@ class ClientApplication : Application() {
     private var client: Client? = null
 
     override fun start(stage: Stage) {
-        val parser = ArgParser(Option("lib-path", true, "Path to add to search path"))
+        val parser = ArgParser(Option("lib-path", true, "Path to add to search paths"))
         val options = parser.parse(parameters.raw.toTypedArray())
-        val path = options["lib-path"]
-        val extraPaths = if (path == null) emptyList() else listOf(path)
+        val extraPaths = ArrayList<String>()
+        System.getProperty("kap.installPath")?.let { appPath ->
+            extraPaths.add("${appPath}/standard-lib")
+        }
+        options["lib-path"]?.let { path ->
+            extraPaths.add(path)
+        }
         client = Client(stage, extraPaths)
     }
 }

@@ -62,6 +62,30 @@ run {
     ]
 }
 
+//task createStartScripts(type: CreateStartScripts) {
+//    println("template: ${unixStartScriptGenerator.template}")
+//    def zz = resources.text.fromFile('xcustomUnixStartScript.txt')
+//    println("resource: ${zz}")
+//    assert project.file(zz).exists()
+//    println("exists: ${project.file(zz).exists()}")
+//    unixStartScriptGenerator.template = resources.text.fromFile('xcustomUnixStartScript.txt')
+//    windowsStartScriptGenerator.template = resources.text.fromFile('xcustomWindowsStartScript.txt')
+//}
+
+startScripts {
+    def unixGen = unixStartScriptGenerator
+    unixGen.template = resources.text.fromString(
+            unixGen.template.asString().replaceFirst('(?=\nDEFAULT_JVM_OPTS=.*?\n)') {
+                '\nJAVA_OPTS="\\$JAVA_OPTS -Dkap.installPath=\\$APP_HOME"'
+            })
+
+    def winGen = windowsStartScriptGenerator
+    winGen.template = resources.text.fromString(
+            winGen.template.asString().replaceFirst('%> -classpath') {
+                '%> -Dkap.installPath=%APP_HOME% -classpath'
+            })
+}
+
 distributions {
     main {
         contents {
