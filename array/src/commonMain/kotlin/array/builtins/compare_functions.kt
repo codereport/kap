@@ -226,11 +226,12 @@ inline fun numericRelationOperation(
                 a is APLDouble || b is APLDouble -> fnDouble(a.asDouble(), b.asDouble())
                 a is APLRational || b is APLRational -> fnRational(a.asRational(), b.asRational())
                 a is APLBigInt || b is APLBigInt -> fnBigint(a.asBigInt(), b.asBigInt())
-                else -> try {
+                a is APLLong && b is APLLong -> try {
                     fnLong(a.asLong(pos), b.asLong(pos))
                 } catch (e: LongExpressionOverflow) {
                     APLBigInt(e.result)
                 }
+                else -> error("Unexpected types. a: ${a::class.simpleName}, b: ${b::class.simpleName}")
             }
         }
         a is APLChar && b is APLChar -> {
