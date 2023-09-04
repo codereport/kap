@@ -26,8 +26,11 @@ Another alternative is https://pkg.go.dev/robpike.io/ivy[Ivy] which is developed
 
 The easiest way to get to an interpreter prompt is by using the web UI, which can be found at https://kapdemo.dhsdevelopments.com/clientweb2/
 
-When using the web UI, one can type the symbols by typing a backquote, `+`+`, followed by the appropriate key as shown in the layout on the main page.
-One can also click on the toolbar at the top of the screen.
+The easiest way to type Kap symbols is by typing a backquote, kbd:[+`+], followed by the appropriate key (as shown in the layout on the main page in the web UI, and in the menu *Window→Keyboard* in the JavaFX-based UI.
+For example, to type the symbol `⍳`, press kbd:[+`+] followed by kbd:[i].
+To type the symbol `λ`, use kbd:[+`+] followed by kbd:[Shift-v].
+
+As an alternative, in the web UI, one can also click on the toolbar at the top of the screen.
 
 Both the JVM GUI client as well as the text-based native client support the same backquote prefix, but neither of them have anything like th etoolbar currently.
 This is planned for later versions.
