@@ -32,7 +32,7 @@ To type the symbol `λ`, use kbd:[+`+] followed by kbd:[Shift-v].
 
 As an alternative, in the web UI, one can also click on the toolbar at the top of the screen.
 
-Both the JVM GUI client as well as the text-based native client support the same backquote prefix, but neither of them have anything like th etoolbar currently.
+Both the JVM GUI client as well as the text-based native client support the same backquote prefix, but neither of them have anything like the toolbar currently.
 This is planned for later versions.
 
 == Simple expressions
@@ -189,9 +189,9 @@ When the documentation mentions a "`dyadic call`", it simply means that the func
 Many functions in Kap drastically change their behaviour when called monadically vs. dyadically.
 That said, in many cases the two behaviours are related.
 
-The simples example of a function that can be called both monadically and dyadically is `-`.
+The simplest example of a function that can be called both monadically and dyadically is `-`.
 In its dyadic form, `x-y`, it subtracts `y` from `x`.
-The monadic form, `-x`, it negates its argument.
+When using the monadic form, `-x`, it negates its argument.
 
 == Visualising arrays
 
@@ -205,6 +205,9 @@ gui:draw 9 9 ⍴ 1 0
 This will display the following image:
 
 image::diagrams/draw1.png[]
+
+Each cell in the input array can take a value between 0 and 1 inclusive, and indicates the shade of the pixel, with 1 being white and 0 black.
+Other values indicate different levels of greyscale.
 
 == Multidimensional arrays
 
@@ -380,7 +383,10 @@ Now, let's divide this array by 20.0:
 └───────────────────────────────────────────────────────────────────────────────────────┘
 ----
 
-We divide by `20.0` instead of `20` in order to force the use of floating point arithmetic.
+We divide by `20.0` instead of `20` in order to force the use of floating point arithmetic instead of rational arithmetic.
+This would not have any visible effect on the result when drawing to the screen, but when printing the results it's easier to see what's going on.
+Additionally, floating point operations are faster than using rational numbers.
+
 We can then reshape this into a 20-by-20 array:
 
 ----
@@ -607,6 +613,7 @@ Operators act on functions to derive a new function that performs some operation
 
 The `/` operator is called the reduction operator, because it reduces an array down to a single element.
 It does this by repeatedly applying the function on the values in the array.
+In the example above, the combination `+/` represents a new function which is a composition of the "`plus`" operation and the "`reduction`" operation.
 
 Let's define a custom function to make this a bit more clear:
 
@@ -620,8 +627,18 @@ Let's define a custom function to make this a bit more clear:
 
 The above defines a function called `printAndAdd` that adds the left and right arguments and returns the sum.
 It also prints the values being added as well as the sum.
+We can use it to add the values `3` and `4` like so:
 
-We can reduce on this function just like w can with the function `+`.
+----
+    3 printAndAdd 4
+3 + 4 = 7
+7
+----
+
+The message `3 + 4 = 7` is printed by the function, and the last line, `7` is simply the return value from the function, which is always printed after typing an expression into the REPL.
+As we can see, this function behaves just like `+`, with the side effect that it also prints the calulation performed.
+
+We can reduce on this function just like we can with the function `+`.
 
 ----
 printAndAdd/ 1 2 3 4 5 6
