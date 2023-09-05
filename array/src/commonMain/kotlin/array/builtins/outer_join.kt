@@ -131,9 +131,7 @@ class InnerJoinResult(
         var pb = posInB
         val rightArg = APLArrayImpl.make(axisDimensions) { b.valueAt(pb).also { pb += bStepSize } }
 
-        val v = withPossibleSavedStack(savedStack) {
-            fn2.eval2Arg(context, leftArg, rightArg, null)
-        }
+        val v = ForEachResult2Arg(context, fn2, leftArg, rightArg, null, pos, savedStack)
         return ReduceResult1Arg(context, fn1, v, 0, pos, savedStack)
     }
 }

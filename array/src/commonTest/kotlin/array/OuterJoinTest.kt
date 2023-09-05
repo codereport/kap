@@ -191,4 +191,28 @@ class OuterJoinTest : APLTest() {
             assertArrayContent(arrayOf(20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34), result)
         }
     }
+
+    @Test
+    fun innerJoinFromDocs() {
+        val src =
+            """
+            |(10 + 2 3 ⍴ ⍳6) ,.(⊂,) (100 + 3 2 ⍴ ⍳6)
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertDimension(dimensionsOfSize(2, 2), result)
+            fun checkPairs(n: Int, e0: Int, e1: Int, e2: Int, e3: Int, e4: Int, e5: Int) {
+                val v = result.valueAt(n)
+                assertDimension(emptyDimensions(), v)
+                val v0 = v.disclose()
+                assertDimension(dimensionsOfSize(3), v0)
+                assert1DArray(arrayOf(e0, e1), v0.valueAt(0))
+                assert1DArray(arrayOf(e2, e3), v0.valueAt(1))
+                assert1DArray(arrayOf(e4, e5), v0.valueAt(2))
+            }
+            checkPairs(0, 10, 100, 11, 102, 12, 104)
+            checkPairs(1, 10, 101, 11, 103, 12, 105)
+            checkPairs(2, 13, 100, 14, 102, 15, 104)
+            checkPairs(3, 13, 101, 14, 103, 15, 105)
+        }
+    }
 }

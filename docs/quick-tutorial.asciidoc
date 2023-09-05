@@ -818,3 +818,83 @@ This operation is called transposition, and is performed using the function `⍉
 
 The transpose function can also be called dyadically, in which case you can rearrange the axes in any way you want.
 See the reference documentation for details how to do this.
+
+== Inner product
+
+(*Note:* This section should come later in the tutorial.
+It has already been written since it was adapted from a post on Matrix by electronegative.
+It contains references to functionality which has not yet been explained, as it has not been fully merged into this tutorial yet)
+
+The operator `.` has multiple uses.
+Most commonly "`inner product`", where `.` is a dyadic operator taking a function on the left and a function on the right.
+Inner product generalizes the idea of a matrix product.
+The idea is that for each rank-1 element in the arguments, you do one function component-wise between the two and then reduce another function over that vector of results.
+Sounds scary, so let's look at some examples.
+
+With simple vector arguments, "`each rank-1 element in the arguments`" is just going to be the whole arguments (since vectors are rank-1).
+
+So if we do the following:
+
+----
+1 2 3 4 A.B 5 6 7 8
+----
+
+(where `A` and `B` are stand-in functions), this will be evaluated like so:
+
+----
+(1 B 5) A (2 B 6) A (3 B 7) A (4 B 8)
+----
+
+So if we want the dot product of these two vectors, we just write `+1 2 3 4 +.× 5 6 7 8+`.
+This applies `×` between each of the elements of the two vectors, then adds them all up with `+++` (or rather, it effectively applies `+/`).
+We will see that this actually works for matrices too, it's the full matrix product.
+
+With matrices, it gets a bit more complex, but if one keeps thinking about the mathematical matrix product, it should make sense.
+
+If we have the following:
+
+----
+    x ← 2 3 ⍴ 1 2 3 4 5 6
+    y ← 3 2 ⍴ 7 8 9 10 11 12
+    x
+┌→────┐
+↓1 2 3│
+│4 5 6│
+└─────┘
+    y
+┌→────┐
+↓ 7  8│
+│ 9 10│
+│11 12│
+└─────┘
+----
+
+Let's look at what happens if we do `x ,.(⊂,) y`.
+This will give us a good visual descriptor of what's going on. `⊂,` just creates an enclosed pair, and then `,` is going to make lists of those pairs.
+So we'll imagine that each time we see an enclosed pair (made by `⊂,`) it's where `B` gets applied, and between each list (made by `,`) it's where `A` gets applied.
+
+This will make more sense in a moment, let's just look at the result:
+
+----
+┌──────────────┬───────────────┐
+│┌───┬───┬────┐│┌───┬────┬────┐│
+││1 7│2 9│3 11│││1 8│2 10│3 12││
+│└───┴───┴────┘│└───┴────┴────┘│
+├──────────────┼───────────────┤
+│┌───┬───┬────┐│┌───┬────┬────┐│
+││4 7│5 9│6 11│││4 8│5 10│6 12││
+│└───┴───┴────┘│└───┴────┴────┘│
+└──────────────┴───────────────┘
+----
+
+Notice anything about the numbers that are getting paired up in the inner pairs that is, the numbers that we're calling `B` on?
+They're going along the rows of `x` and the columns of `y`.
+For example, in the upper left, `1 2 3` (first of each pair) is the first row of `x`, and `7 9 11` (second of each pair) is the first column of `y`.
+Also notice: the top row of the result matrix all comes from the top row of `x`, the bottom row of the result matrix all comes from the bottom row of `x`, and the left column of the result matrix all comes from the left column of `y`, and likewise for the right column.
+This will be familiar from the mathematical matrix product.
+
+Okay, so in total what we're doing here is:
+
+- For each row of `x` and column of `y`:
+- Do the simple vector matrix product we talked about above.
+- Put that into the result matrix at a position where the row is the same as the row of `x` that it came from and the column is the same as the column of `y` where it came from.
