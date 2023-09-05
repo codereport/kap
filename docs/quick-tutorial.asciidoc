@@ -326,7 +326,7 @@ If you have an array with an arbitrary dimension and you want to take its conten
 == Iota function
 
 For many purposes, it's very useful to create an array of numbers in a sequence.
-For this purpose, the following function is used: `⍳`.
+For this purpose, the following function is used: `⍳` (type: kbd:[+`+], kbd:[i]).
 This is the Greek letter iota, so the function is usually called iota as well.
 Here is a simple example:
 
@@ -475,7 +475,7 @@ Multiple axis are of course still possible, and the result will have the combine
 
 === `⌷` indexing
 
-As an alternative to bracket index, a dedicated function exists that does the same thing:
+As an alternative to bracket index, a dedicated function exists that does the same thing (the symbol `⌷` can be typed using: kbd:[+`+], kbd:[Shift-l]):
 
 ----
     foo ← 2 4 ⍴ 100 200 300 400 500 600 700 800
@@ -487,7 +487,7 @@ The `⌷` function takes a single-dimensional array on the left, where each elem
 
 === `⊇` indexing
 
-The function `⊇` is similarly used to index values from an array, but has different semantics.
+The function `⊇` (type this symbol using: kbd:[+`+], kbd:[Shift-x]) is similarly used to index values from an array, but has different semantics.
 Instead of separating the values for each axis, each element is a set of coordinates to the corresponding value to look up.
 
 For 1-dimensional arrays, the syntax is very simple:
