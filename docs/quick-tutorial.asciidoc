@@ -278,7 +278,8 @@ The result of this function is a rank-2 array, since each cell in the array requ
 For example, the value `4` in the array above has position `1 0`.
 I.e. it's on the second row, and first column.
 
-We also note that the first element on an axis always has index 0. In APL, the starting index can be chosen to be either 0 or 1, and usually defaults to 1, this can be an important thing to remember when reading APL documentation and applying that information to Kap.
+NOTE: We also note that the first element on an axis always has index 0. Any reader with some experience with APL will know that in APL, arrays are indexed using either 0- or 1-based indexing, which can be chosen by the programmer.
+In APL, the default is also commonly 1. It is important to remember this difference between Kap and APL since it sometimes forces the programmer to add or subtract 1 from any APL algorithms.
 
 What happens if you reshape an array that does not contain the same number of values?
 
