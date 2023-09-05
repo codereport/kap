@@ -625,6 +625,11 @@ Let's define a custom function to make this a bit more clear:
 }
 ----
 
+In order to enter a newline into the REPL, use the following key combination depending on which client you are using:
+
+- In the JavaFX-based UI: type kbd:[Control-Enter]
+- In the Web-based UI: type kbd:[Shift-Enter]
+
 The above defines a function called `printAndAdd` that adds the left and right arguments and returns the sum.
 It also prints the values being added as well as the sum.
 We can use it to add the values `3` and `4` like so:
