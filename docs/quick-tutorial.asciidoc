@@ -60,7 +60,7 @@ Likewise, division uses `÷`:
 2
 ----
 
-In order to avoid confusion with the symbol `-` used for subraction and negation, negative numbers are indicated using `¯`:
+In order to avoid confusion with the symbol `-` used for subraction and negation, negative numbers are indicated using `¯` (this symbol can be entered using kbd:[+`+], kbd:[2]):
 
 ----
     ¯3+10
@@ -71,7 +71,7 @@ In order to avoid confusion with the symbol `-` used for subraction and negation
 
 For people coming from other languages, one of the biggest differences betwene other languages and Kap is the order of evaluation.
 Almost all evulation happens from right-to-left.
-Here's a simple computation to make this clear:
+Here's a simple computation to make this clear (type `×` using kbd:[+`+], kbd:[-]:
 
 ----
     2×5+1
@@ -154,7 +154,7 @@ Error at: 1:7: +: Arguments must be of the same dimension, or one of the argumen
 
 == Variables
 
-Variables are assigned using `←`:
+Variables are assigned using `←` (type: kbd:[+`+], kbd:[+[+]):
 
 ----
     foo ← 12
@@ -196,7 +196,7 @@ When using the monadic form, `-x`, it negates its argument.
 == Visualising arrays
 
 If you are using the web or JVM versions of Kap, we can use the function `gui:draw` to visualise 2-dimensional arrays of numbers.
-This function can be used to draw a bitmap where each value is drawn as a pixel:
+This function can be used to draw a bitmap where each value is drawn as a pixel (`⍴` can be entered by typing: kbd:[+`+], kbd:[r]):
 
 ----
 gui:draw 9 9 ⍴ 1 0
