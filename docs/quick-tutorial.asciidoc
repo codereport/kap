@@ -60,7 +60,7 @@ Likewise, division uses `÷`:
 2
 ----
 
-In order to avoid confusion with the symbol `-` used for subraction and negation, negative numbers are indicated using `¯` (this symbol can be entered using kbd:[+`+], kbd:[2]):
+In order to avoid confusion with the symbol `-` used for subtraction and negation, negative numbers are indicated using `¯` (this symbol can be entered using kbd:[+`+], kbd:[2]):
 
 ----
     ¯3+10
@@ -70,7 +70,7 @@ In order to avoid confusion with the symbol `-` used for subraction and negation
 == Order of evaluation
 
 For people coming from other languages, one of the biggest differences betwene other languages and Kap is the order of evaluation.
-Almost all evulation happens from right-to-left.
+Almost all evaluation happens from right-to-left.
 Here's a simple computation to make this clear (type `×` using kbd:[+`+], kbd:[-]:
 
 ----
@@ -823,6 +823,42 @@ This operation is called transposition, and is performed using the function `⍉
 
 The transpose function can also be called dyadically, in which case you can rearrange the axes in any way you want.
 See the reference documentation for details how to do this.
+
+== While loops
+
+Up until now we've talked about arrays, how to create them, concatenate them, perform computations on them, etc.
+If you've read about array languages before, you know that a lot of algorithms that are expressed using loops in most languages can be expressed using simple array manipulation in array languages.
+This is why you often see very consise expressions that would take tens if not 100 lines of code in more traditional languages.
+
+However, before going into more detail how to do these things, it's important to explain how traditional loops work in Kap.
+Just because it's probably possible to express some complex logic using only array operations doesn't mean that you have to.
+In fact, especially when starting out, it's probably easier just to express it using loops and then change to an array solution later.
+
+To begin this explanation, lets write some code that computes the product of the numbers 1 to 5, printing the current value in each iteration.
+This code will look very familiar to anyone who has worked with an imperative programming language such as C, Java, Javascript, etc.
+
+----
+result ← 1
+i ← 1
+while (i ≤ 5) {
+    result ← result × i
+    io:println result
+    i ← i + 1
+}
+io:println "Result: ",(⍕result)
+----
+
+The only function that really needs some explanation here is `⍕`.
+This function accepts any argument and returns a string representation of the value.
+Here it's being used to convert the number in `result` to a string so that it can be concatenated with the prefix (the string `"Result: "`) prior to being printed.
+
+Without introducing any new concepts, we can also explain how to compute the same thing using array notation:
+
+----
+×/ 1+⍳5
+----
+
+Experiment with this in the REPL to get a feel for how this works.
 
 == Inner product
 
