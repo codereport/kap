@@ -69,7 +69,7 @@ In order to avoid confusion with the symbol `-` used for subtraction and negatio
 
 == Order of evaluation
 
-For people coming from other languages, one of the biggest differences betwene other languages and Kap is the order of evaluation.
+For people coming from other languages, one of the biggest differences between other languages and Kap is the order of evaluation.
 Almost all evaluation happens from right-to-left.
 Here's a simple computation to make this clear (type `×` using kbd:[+`+], kbd:[-]:
 
@@ -443,7 +443,7 @@ This causes each value to be looked up individually:
 └───────┘
 ----
 
-What is notable here is that the output array has the same dimensionality as the arguments in the brackets (i.e. we passed a 2-element array inside the brackets, and the reutn value was also a 2-dimensional array).
+What is notable here is that the output array has the same dimensionality as the arguments in the brackets (i.e. we passed a 2-element array inside the brackets, and the return value was also a 2-dimensional array).
 This observation holds true even if the index has higher dimensionality:
 
 ----
