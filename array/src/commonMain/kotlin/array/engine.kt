@@ -442,7 +442,6 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeOperator("∵", BitwiseOp())
         registerNativeOperator("∘", ComposeOp())
         registerNativeOperator("⍥", OverOp())
-        registerNativeOperator("parallel", ParallelOp())
         registerNativeOperator("∥", ParallelOp())
         registerNativeOperator("⍛", ReverseComposeOp())
         registerNativeOperator("˝", InverseFnOp())
