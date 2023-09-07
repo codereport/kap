@@ -49,15 +49,19 @@ To start the client, simply run:
 ./gradlew gui:run
 ```          
 
-## Running the native version
+## Running the Linux native version
 
-Build the entire project:
+Build the native Linux binary:
 
 ```
-./gradlew build
+./gradlew text-client:linuxMainBinaries
 ``` 
 
-Once the build is complete, the binaries can be found in the following directory: `text-client/build/bin/linux`.
+When running the Linux binary, the path to the standard library needs to be passed to the executable:
+
+```
+text-client/build/bin/linux/releaseExecutable/text-client.kexe --lib-path=array/standard-lib
+```
 
 There is currently no support for native compilation on Windows or OSX. As long as the dependencies are available, it
 should be possible to make it work. Help appreciated if anyone is interested in working on it.
@@ -67,15 +71,13 @@ should be possible to make it work. Help appreciated if anyone is interested in 
 The application also compiles to Javascript, and it's possible to run it in a browser. Note that some functionality is
 missing from the Javascript version. For example, network and file operations are currently not implemented.
 
-### Online demo
-
-If you still want to try the web application you can try it here: http://kapdemo.dhsdevelopments.com/
+You can try the web UI here: https://kapdemo.dhsdevelopments.com/clientweb2/
 
 ## Documentation
 
 Work on the documentation is in progress, but it's still limited.
 
-There is a tutorial which is incomplete: https://kapdemo.dhsdevelopments.com/tutorial.html
+There is a tutorial which is incomplete: https://kapdemo.dhsdevelopments.com/quick-tutorial.html
 
 The following document explains the differences between KAP and APL, which is useful for readers who already are
 familiar with APL: https://kapdemo.dhsdevelopments.com/kap-comparison.html
@@ -84,7 +86,7 @@ Anyone interested in learning more can ask questions on the Matrix channel.
 
 ## Contributions
 
-The main repository for this project is available from Github: https://codeberg.org/loke/array
+The main repository for this project is available from Codeberg: https://codeberg.org/loke/array
 
 For discussions about this project, feel free to join
 the [Matrix channel](https://matrix.to/#/#kap:dhsdevelopments.com):
