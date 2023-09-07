@@ -807,7 +807,7 @@ This rotates every row a different number of steps:
 
 == Transposing arrays
 
-Sometimes you have data arranged in one way and you want rearrange the axis without changing the content.
+Sometimes you have data arranged in one way and you want to rearrange the axis without changing the content.
 This operation is called transposition, and is performed using the function `⍉`.
 
 ----
@@ -833,7 +833,7 @@ See the reference documentation for details how to do this.
 
 Up until now we've talked about arrays, how to create them, concatenate them, perform computations on them, etc.
 If you've read about array languages before, you know that a lot of algorithms that are expressed using loops in most languages can be expressed using simple array manipulation in array languages.
-This is why you often see very consise expressions that would take tens if not 100 lines of code in more traditional languages.
+This is why you often see very concise expressions that would take tens if not 100 lines of code in more traditional languages.
 
 However, before going into more detail how to do these things, it's important to explain how traditional loops work in Kap.
 Just because it's probably possible to express some complex logic using only array operations doesn't mean that you have to.
@@ -914,7 +914,7 @@ a ← 5
 b ← 10 + if (a=5) { 1 } else { 1000 }
 ----
 
-After this code has bene evaluated, the variable `b` will have the value `11`.
+After this code has been evaluated, the variable `b` will have the value `11`.
 
 Of course, the example above could also have been written like so:
 
