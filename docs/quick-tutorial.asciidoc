@@ -196,6 +196,8 @@ When using the monadic form, `-x`, it negates its argument.
 == Visualising arrays
 
 If you are using the web or JVM versions of Kap, we can use the function `gui:draw` to visualise 2-dimensional arrays of numbers.
+Array dimensionality will be described in the next section, but as an introduction, let's draw the content of an array containing alternating 0's and 1's.
+
 This function can be used to draw a bitmap where each value is drawn as a pixel (`⍴` can be entered by typing: kbd:[+`+], kbd:[r]):
 
 ----
@@ -863,6 +865,28 @@ Without introducing any new concepts, we can also explain how to compute the sam
 
 Experiment with this in the REPL to get a feel for how this works.
 
+==== Animations with while loops
+
+Let's use a while loop to create a small animation.
+We'll start by creating an array representing a series of vertical bars, and draw it to see what it looks like:
+
+----
+gui:draw 400 400 ⍴ (20⍴0) , (20⍴1)
+----
+
+Next, we'll rotate this horizontally one pixel every frame:
+
+----
+a ← 400 400 ⍴ (20⍴0) , (20⍴1)
+n ← 0
+while (1) {
+    gui:draw (50 × math:cos n×0.01) ⌽ a    ⍝ math:cos computes the cosine of the argument
+    n ← n + 1
+}
+----
+
+Click the *"`Stop`"* button to stop the animation.
+
 === If statements
 
 Most programming languages has a basic "`if`"-statement which conditionally evaluates some code depending on whether a condition is true or false.
@@ -901,7 +925,7 @@ b ← 10 + (1000 1)[a=5]
 
 What happens here is that since expression `a=5` is true, it evaluates as `1`.
 The number `1` is then used to index into the array `1000 1` which is, `1`.
-This values is then added to `10`, giving the final result `11`.
+This value is then added to `10`, giving the final result `11`.
 
 This approach is not a general alternative to the `if` statement, however, since both sides will always be evaluated.
 In this particular case, this is not a problem, but if any of the clauses have side effects, this can cause problems.
@@ -911,7 +935,7 @@ Consider the following example:
 ((io:println 10) (io:println 11))[a=5]
 ----
 
-Assuming `a` is equal to `5`, this expression will return `11` (`io:println` always returns the argument in addition to printing it). however, both `10` and `11` will be printed, since these expresions will have been evaluated prior to getting the first or second value (depending on the result of the comparison).
+Assuming `a` is equal to `5`, this expression will return `11` (`io:println` always returns the argument in addition to printing it). however, both `10` and `11` will be printed, since these expressions will have been evaluated prior to getting the first or second value (depending on the result of the comparison).
 
 === When-statement
 
