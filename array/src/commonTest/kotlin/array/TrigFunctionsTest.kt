@@ -151,4 +151,40 @@ class TrigFunctionsTest : APLTest() {
             assertNearDouble(NearDouble(-0.09572354801437566), result)
         }
     }
+
+    @Test
+    fun tanDouble() {
+        parseAPLExpression("math:tan 0 0.1 0.2 1 2.8 4.4 ¯1 ¯2 ¯5 ¯5.01 ¯100.1").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearDouble(0.0),
+                    NearDouble(0.1003346721),
+                    NearDouble(0.2027100355),
+                    NearDouble(1.557407725),
+                    NearDouble(-0.3555298317),
+                    NearDouble(3.096323781),
+                    NearDouble(-1.557407725),
+                    NearDouble(2.185039863),
+                    NearDouble(3.380515006),
+                    NearDouble(3.260296197),
+                    NearDouble(0.4597894094)),
+                result)
+        }
+    }
+
+    @Test
+    fun tanComplex() {
+        parseAPLExpression("math:tan 0j0 1j0 0j1 1.1j0.2 ¯0.2j0.4 1.4j¯0.1 ¯4j¯7 ").let { result ->
+            assert1DArray(
+                arrayOf(
+                    NearDouble(0.0),
+                    NearDouble(1.557407725),
+                    NearComplex(Complex(0.0, 0.761594156)),
+                    NearComplex(Complex(1.64137959, 0.8338942274)),
+                    NearComplex(Complex(-0.1724237513, 0.3932289478)),
+                    NearComplex(Complex(4.303303588, -2.586389822)),
+                    NearComplex(Complex(-0.000001645359989, -1.000000242)),
+                ), result)
+        }
+    }
 }

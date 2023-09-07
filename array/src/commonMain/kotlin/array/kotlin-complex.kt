@@ -84,3 +84,10 @@ fun complexSin(v: Complex): Complex {
 fun complexCos(v: Complex): Complex {
     return (E.pow(v * Complex.I) + E.pow(-v * Complex.I)) / 2.0
 }
+
+fun complexTan(v: Complex): Complex {
+    val re2 = v.real * 2
+    val im2 = v.imaginary * 2
+    val d = cos(re2) + cosh(im2)
+    return Complex(sin(re2) / d, sinh(im2) / d)
+}

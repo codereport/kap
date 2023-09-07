@@ -1047,6 +1047,10 @@ class SinAPLFunction : APLFunctionDescriptor {
                 fnRational = { x -> sin(x.toDouble()).makeAPLNumber() })
         }
 
+        override fun combine1ArgDouble(a: Double) = sin(a)
+
+        override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_DOUBLE)
+
         override val name1Arg get() = "sin"
     }
 
@@ -1065,6 +1069,12 @@ class CosAPLFunction : APLFunctionDescriptor {
                 fnBigInt = { x -> cos(x.toDouble()).makeAPLNumber() },
                 fnRational = { x -> cos(x.toDouble()).makeAPLNumber() })
         }
+
+        override fun combine1ArgDouble(a: Double) = cos(a)
+
+        override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_DOUBLE)
+
+        override val name1Arg get() = "cos"
     }
 
     override fun make(instantiation: FunctionInstantiation) = CosAPLFunctionImpl(instantiation)
@@ -1072,7 +1082,21 @@ class CosAPLFunction : APLFunctionDescriptor {
 
 class TanAPLFunction : APLFunctionDescriptor {
     class TanAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
-        override fun numberCombine1Arg(a: APLNumber) = APLDouble(tan(a.asDouble()))
+        override fun numberCombine1Arg(a: APLNumber): APLValue {
+            return singleArgNumericRelationOperation(
+                pos,
+                a,
+                { x -> tan(x.toDouble()).makeAPLNumber() },
+                { x -> tan(x).makeAPLNumber() },
+                { x -> complexTan(x).makeAPLNumber() },
+                fnBigInt = { x -> tan(x.toDouble()).makeAPLNumber() },
+                fnRational = { x -> tan(x.toDouble()).makeAPLNumber() })
+        }
+
+        override fun combine1ArgDouble(a: Double) = tan(a)
+
+        override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_DOUBLE)
+
         override val name1Arg get() = "tan"
     }
 
@@ -1082,6 +1106,11 @@ class TanAPLFunction : APLFunctionDescriptor {
 class AsinAPLFunction : APLFunctionDescriptor {
     class AsinAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber) = APLDouble(asin(a.asDouble()))
+
+        override fun combine1ArgDouble(a: Double) = asin(a)
+
+        override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_DOUBLE)
+
         override val name1Arg get() = "asin"
     }
 
@@ -1091,6 +1120,11 @@ class AsinAPLFunction : APLFunctionDescriptor {
 class AcosAPLFunction : APLFunctionDescriptor {
     class AcosAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber) = APLDouble(acos(a.asDouble()))
+
+        override fun combine1ArgDouble(a: Double) = acos(a)
+
+        override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_DOUBLE)
+
         override val name1Arg get() = "acos"
     }
 
@@ -1100,6 +1134,11 @@ class AcosAPLFunction : APLFunctionDescriptor {
 class AtanAPLFunction : APLFunctionDescriptor {
     class AtanAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber) = APLDouble(atan(a.asDouble()))
+
+        override fun combine1ArgDouble(a: Double) = atan(a)
+
+        override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_DOUBLE)
+
         override val name1Arg get() = "atan"
     }
 
