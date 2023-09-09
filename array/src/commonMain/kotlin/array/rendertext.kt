@@ -383,3 +383,34 @@ fun encloseInBox(value: APLValue, style: FormatStyle): String {
         else -> encloseNDim(value)
     }
 }
+
+fun formatArrayAsPlain(value: APLValue): String {
+    val d = value.dimensions
+    return when (d.size) {
+        0 -> {
+            value.valueAt(0).formatted(FormatStyle.PLAIN)
+        }
+        1 -> {
+            val buf = StringBuilder()
+            value.iterateMembers { v ->
+                buf.append(v.formatted(FormatStyle.PLAIN))
+            }
+            buf.toString()
+        }
+        else -> {
+            val width = d.lastDimension()
+            if (width == 0) {
+                ""
+            } else {
+                val buf = StringBuilder()
+                value.iterateMembersWithPosition { v, i ->
+                    buf.append(v.formatted(FormatStyle.PLAIN))
+                    if ((i + 1) % width == 0) {
+                        buf.append("\n")
+                    }
+                }
+                buf.toString()
+            }
+        }
+    }
+}

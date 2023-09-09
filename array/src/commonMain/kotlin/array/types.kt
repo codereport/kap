@@ -3,10 +3,7 @@
 package array
 
 import array.builtins.compareAPLArrays
-import array.rendertext.String2D
-import array.rendertext.encloseInBox
-import array.rendertext.maybeWrapInParens
-import array.rendertext.renderStringValue
+import array.rendertext.*
 import com.dhsdevelopments.mpbignum.LongExpressionOverflow
 
 enum class APLValueType(val typeName: String) {
@@ -383,8 +380,8 @@ abstract class APLArray : APLValue() {
 
     override fun formatted(style: FormatStyle) =
         when (style) {
-            FormatStyle.PLAIN -> arrayAsString(this, FormatStyle.PLAIN)
-            FormatStyle.PRETTY -> arrayAsString(this, FormatStyle.PRETTY)
+            FormatStyle.PLAIN -> formatArrayAsPlain(this)
+            FormatStyle.PRETTY -> encloseInBox(this, FormatStyle.PRETTY)
             FormatStyle.READABLE -> arrayToAPLFormat(this)
         }
 
@@ -752,11 +749,6 @@ fun APLValue.toStringValue(pos: Position? = null, message: String? = null): Stri
         throwAPLException(IncompatibleTypeException("${messagePrefix}Argument is not a string", pos))
     }
     return result
-}
-
-fun arrayAsString(array: APLValue, style: FormatStyle): String {
-    val v = array.collapse() // This is to prevent multiple evaluations during printing
-    return encloseInBox(v, style)
 }
 
 class ConstantArray(
