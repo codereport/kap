@@ -659,8 +659,10 @@ class Engine(numComputeEngines: Int? = null) {
         }
     }
 
-    fun internSymbol(name: String, namespace: Namespace? = null): Symbol =
-        (namespace ?: currentNamespace).internSymbol(name)
+    fun internSymbol(name: String, namespace: Namespace? = null, exported: Boolean = false): Symbol {
+        val ns = namespace ?: currentNamespace
+        return if (exported) ns.internAndExport(name) else ns.internSymbol(name)
+    }
 
     fun makeNamespace(name: String, overrideDefaultImport: Boolean = false): Namespace {
         return namespaces.getOrPut(name) {

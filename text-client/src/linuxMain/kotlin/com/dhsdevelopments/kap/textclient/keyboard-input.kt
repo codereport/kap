@@ -73,7 +73,7 @@ class LibinputKeyboardInput : KeyboardInput {
     }
 }
 
-private fun windowUpdate(n: Int) {
+private fun windowUpdate(@Suppress("UNUSED_PARAMETER") n: Int) {
     val l = currentEditline
     if (l !== null) {
         el_resize(l)

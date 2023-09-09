@@ -11,6 +11,7 @@ kotlin {
     linuxX64("linux") {
         compilations.main.cinterops {
             libedit
+            ncurses
         }
         binaries {
             executable {

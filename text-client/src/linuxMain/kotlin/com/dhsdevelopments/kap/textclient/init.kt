@@ -4,30 +4,40 @@ package com.dhsdevelopments.kap.textclient
 
 import array.Engine
 import array.repl.runRepl
-import kotlinx.cinterop.ExperimentalForeignApi
-import kotlinx.cinterop.staticCFunction
-import platform.posix.LC_ALL
-import platform.posix.SIGINT
-import platform.posix.setlocale
-import platform.posix.signal
+import kotlinx.cinterop.*
+import ncurses.OK
+import ncurses.setupterm
+import platform.posix.*
 
 private var engineInst: Engine? = null
+var consoleInit: Boolean = false
 
 @OptIn(ExperimentalForeignApi::class)
 fun main(args: Array<String>) {
     setlocale(LC_ALL, "")
+    initConsole()
     runRepl(args, keyboardInput = LibinputKeyboardInput()) { engine ->
         if (engineInst != null) {
             throw IllegalStateException("Multiple repls not allowed")
         }
+        engine.addModule(TerminalModule())
         engineInst = engine
         signal(SIGINT, staticCFunction(::sigHandler))
     }
 }
 
-private fun sigHandler(n: Int) {
-    val engine = engineInst
-    if (engine != null) {
-        engine.interruptEvaluation()
+private fun sigHandler(@Suppress("UNUSED_PARAMETER") n: Int) {
+    engineInst?.interruptEvaluation()
+}
+
+private fun initConsole() {
+    memScoped {
+        val ret = allocArray<IntVar>(1)
+        val termValue = getenv("TERM")
+        if (termValue != null) {
+            if (setupterm(termValue.toKString(), 1, ret) == OK) {
+                consoleInit = true
+            }
+        }
     }
 }
