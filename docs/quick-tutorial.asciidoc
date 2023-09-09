@@ -10,18 +10,6 @@ The answer to that question depends on which version of Kap is used.
 The specific input methods are described in the tools themselves.
 In the case of the Kap web UI, the front page shows the keyboard layout and explains how to type the characters.
 
-=== Alternatives to Kap
-
-The special symbols in Kap makes the languages easier and more powerful, and it's definitely worth learning it.
-It's also quite fun.
-
-That said, there are other similar languages that have chosen to use plain ASCII, and those may be of interest to anyone who don't want to use special symbols in their programming:
-
-The most popular is https://www.jsoftware.com/[the J programming language] which embodies a lot of the same ideas as APL (and by extension, Kap).
-It preserves the same terseness as APL and uses sequences of ASCII characters to achieve the same goal.
-
-Another alternative is https://pkg.go.dev/robpike.io/ivy[Ivy] which is developed by Rob Pike who is the co-creator of the Go programming language as well as UTF-8. It uses full words instead of symbols, and some people may find that to be more readable than J.
-
 === Starting the interpreter
 
 The easiest way to get to an interpreter prompt is by using the web UI, which can be found at https://kapdemo.dhsdevelopments.com/clientweb2/
@@ -35,6 +23,18 @@ As an alternative, in the web UI, one can also click on the toolbar at the top o
 Both the JVM GUI client as well as the text-based native client support the same backquote prefix, but neither of them have anything like the toolbar currently.
 This is planned for later versions.
 
+=== Alternatives to Kap
+
+The special symbols in Kap makes the languages easier and more powerful, and it's definitely worth learning it.
+It's also quite fun.
+
+That said, there are other similar languages that have chosen to use plain ASCII, and those may be of interest to anyone who don't want to use special symbols in their programming:
+
+The most popular is https://www.jsoftware.com/[the J programming language] which embodies a lot of the same ideas as APL (and by extension, Kap).
+It preserves the same terseness as APL and uses sequences of ASCII characters to achieve the same goal.
+
+Another alternative is https://pkg.go.dev/robpike.io/ivy[Ivy] which is developed by Rob Pike who is the co-creator of the Go programming language as well as UTF-8. It uses full words instead of symbols, and some people may find that to be more readable than J.
+
 == Simple expressions
 
 A common usecase for Kap is to simply use it as an advanced calculator, so let's do some calculations:
@@ -45,7 +45,7 @@ A common usecase for Kap is to simply use it as an advanced calculator, so let's
 ----
 
 So far so good.
-There should be little need to explain that this simply adds 10 and 20. Let's perform a multiplication (enter the multiplication symbol by typing: kbd:[+`+], kbd:[-]:
+There should be little need to explain that this simply adds 10 and 20. Let's perform a multiplication (enter the multiplication symbol by typing: kbd:[+`+], kbd:[-]):
 
 ----
     5×10
@@ -53,7 +53,7 @@ There should be little need to explain that this simply adds 10 and 20. Let's pe
 ----
 
 Here we already see the use of non-ASCII symbols.
-Likewise, division uses `÷` (:type kbd:[+`+], kbd:[=]):
+Likewise, division uses `÷` (type: kbd:[+`+], kbd:[=]):
 
 ----
     8÷4
@@ -86,6 +86,16 @@ Of course, one can always use parenthesis to force a specific evaluation order:
 ----
     (2×5)+1
 11
+----
+
+== Comments
+
+The comment character is `⍝` (type: kbd:[+`+], kbd:[,]).
+It ignores everything from the symbol until the end of the line:
+
+----
+    10+11    ⍝ This is a comment
+21
 ----
 
 == Introducing arrays
