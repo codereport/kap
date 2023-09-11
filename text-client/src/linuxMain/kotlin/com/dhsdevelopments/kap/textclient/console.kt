@@ -12,24 +12,66 @@ class TerminalModule : KapModule {
     override fun init(engine: Engine) {
         val ns = engine.makeNamespace("term")
         engine.registerFunction(ns.internAndExport("clear"), ClearFunction())
+        engine.registerFunction(ns.internAndExport("home"), HomeFunction())
+        engine.registerFunction(ns.internAndExport("bold"), EnableBoldFunction())
+        engine.registerFunction(ns.internAndExport("inverse"), EnableInverseFunction())
+        engine.registerFunction(ns.internAndExport("norm"), ResetAttrsFunction())
     }
 }
 
-class ClearFunction : APLFunctionDescriptor {
-    @OptIn(ExperimentalForeignApi::class)
-    class ClearFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
-        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            if (consoleInit) {
-                val clearScreen = tigetstr("clear")
-                if (clearScreen != null) {
-                    tputs(clearScreen.toKString(), 1, staticCFunction(::outputChar))
-                }
+@OptIn(ExperimentalForeignApi::class)
+abstract class TerminalOpFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+    override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+        if (consoleInit) {
+            val res = tigetstr(capability())
+            if (res != null) {
+                tputs(res.toKString(), 1, staticCFunction(::outputChar))
             }
-            return APLNullValue.APL_NULL_INSTANCE
         }
+        return APLNullValue.APL_NULL_INSTANCE
+    }
+
+    abstract fun capability(): String
+}
+
+class ClearFunction : APLFunctionDescriptor {
+    class ClearFunctionImpl(pos: FunctionInstantiation) : TerminalOpFunctionImpl(pos) {
+        override fun capability() = "clear"
     }
 
     override fun make(instantiation: FunctionInstantiation) = ClearFunctionImpl(instantiation)
+}
+
+class HomeFunction : APLFunctionDescriptor {
+    class HomeFunctionImpl(pos: FunctionInstantiation) : TerminalOpFunctionImpl(pos) {
+        override fun capability() = "home"
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = HomeFunctionImpl(instantiation)
+}
+
+class EnableBoldFunction : APLFunctionDescriptor {
+    class EnableBoldFunctionImpl(pos: FunctionInstantiation) : TerminalOpFunctionImpl(pos) {
+        override fun capability() = "bold"
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = EnableBoldFunctionImpl(instantiation)
+}
+
+class EnableInverseFunction : APLFunctionDescriptor {
+    class EnableInverseFunctionImpl(pos: FunctionInstantiation) : TerminalOpFunctionImpl(pos) {
+        override fun capability() = "rev"
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = EnableInverseFunctionImpl(instantiation)
+}
+
+class ResetAttrsFunction : APLFunctionDescriptor {
+    class ResetAttrsFunctionImpl(pos: FunctionInstantiation) : TerminalOpFunctionImpl(pos) {
+        override fun capability() = "sgr0"
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = ResetAttrsFunctionImpl(instantiation)
 }
 
 @OptIn(ExperimentalForeignApi::class)
