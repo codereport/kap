@@ -54,7 +54,7 @@ class EvaluationOrderTest : APLTest() {
      * This is needed if a call is for side-effects only.
      */
     @Test
-    fun collapseResultWhenNotUsed() {
+    fun collapseResultWhenNotUsed0() {
         parseAPLExpressionWithOutput(
             """
             |∇ printx (v) {
@@ -67,6 +67,40 @@ class EvaluationOrderTest : APLTest() {
         """.trimMargin()).let { (result, out) ->
             assertEquals("1122", out)
             assertSimpleNumber(33, result)
+        }
+    }
+
+    @Test
+    fun collapseResultWhenNotUsed1() {
+        parseAPLExpressionWithOutput(
+            """
+            |∇ (x) printx (y) {
+            |  io:print x
+            |  io:print y
+            |  x,y
+            |}
+            |
+            |1000 2000 printx¨1 2
+            |33
+        """.trimMargin()).let { (result, out) ->
+            assertEquals("1000120002", out)
+            assertSimpleNumber(33, result)
+        }
+    }
+
+    @Test
+    fun discardedResults0() {
+        parseAPLExpressionWithOutput("io:print io:print¨ 1 2 3").let { (result, out) ->
+            assertEquals("123123", out)
+            assert1DArray(arrayOf(1, 2, 3), result)
+        }
+    }
+
+    @Test
+    fun discardedResults1() {
+        parseAPLExpressionWithOutput("io:print 1000 2000 3000 {io:print ⍺ \":\" ⍵ ⋄ ⍺ + ⍵}¨ 1 2 3").let { (result, out) ->
+            assertEquals("1000:12000:23000:3100120023003", out)
+            assert1DArray(arrayOf(1001, 2002, 3003), result)
         }
     }
 

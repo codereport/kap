@@ -20,7 +20,7 @@ class Concatenated1DArrays(private val a: APLValue, private val b: APLValue) : A
         return if (p >= aSize) b.valueAt(p - aSize) else a.valueAt(p)
     }
 
-    override fun collapseInt(): APLValue {
+    override fun collapseInt(withDiscard: Boolean): APLValue {
         return if (a is APLString && b is APLString) {
             APLString(IntArray(dimensions[0]) { i ->
                 if (i < aSize) {
@@ -30,7 +30,7 @@ class Concatenated1DArrays(private val a: APLValue, private val b: APLValue) : A
                 }
             })
         } else {
-            super.collapseInt()
+            super.collapseInt(withDiscard = false)
         }
     }
 

@@ -10,6 +10,11 @@ interface LvalueReader {
 
 abstract class Instruction(val pos: Position) {
     abstract fun evalWithContext(context: RuntimeContext): APLValue
+
+    open fun evalWithContextAndDiscardResult(context: RuntimeContext) {
+        evalWithContext(context).collapse(withDiscard = true)
+    }
+
     abstract fun children(): List<Instruction>
     open fun deriveLvalueReader(): LvalueReader? = null
 }
@@ -26,7 +31,7 @@ class InstructionList(val instructions: List<Instruction>) : Instruction(compute
     override fun evalWithContext(context: RuntimeContext): APLValue {
         for (i in 0 until instructions.size - 1) {
             val instr = instructions[i]
-            instr.evalWithContext(context).collapse()
+            instr.evalWithContextAndDiscardResult(context)
         }
         return instructions.last().evalWithContext(context)
     }
@@ -76,6 +81,10 @@ class FunctionCall1Arg(
         return fn.evalArgsAndCall1Arg(context, rightArgs)
     }
 
+    override fun evalWithContextAndDiscardResult(context: RuntimeContext) {
+        fn.evalArgsAndCall1ArgDiscardResult(context, rightArgs)
+    }
+
     override fun children() = listOf(rightArgs)
 
     override fun toString() = "FunctionCall1Arg(fn=${fn}, rightArgs=${rightArgs})"
@@ -89,6 +98,10 @@ class FunctionCall2Arg(
 ) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
         return fn.evalArgsAndCall2Arg(context, leftArgs, rightArgs)
+    }
+
+    override fun evalWithContextAndDiscardResult(context: RuntimeContext) {
+        fn.evalArgsAndCall2ArgDiscardResult(context, leftArgs, rightArgs)
     }
 
     override fun children() = listOf(leftArgs, rightArgs)

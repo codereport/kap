@@ -16,10 +16,30 @@ abstract class APLFunction(instantiation: FunctionInstantiation, val fns: List<A
     val instantiationEnv = instantiation.env
     val instantiation get() = FunctionInstantiation(pos, instantiationEnv)
 
+    ///////////////////////////////////
+    // 1-arg evaluation functions
+    ///////////////////////////////////
+
     open fun evalArgsAndCall1Arg(context: RuntimeContext, rightArgs: Instruction): APLValue {
         val rightValue = rightArgs.evalWithContext(context)
         return eval1Arg(context, rightValue, null)
     }
+
+    open fun evalArgsAndCall1ArgDiscardResult(context: RuntimeContext, rightArgs: Instruction) {
+        val rightValue = rightArgs.evalWithContext(context)
+        eval1ArgDiscardResult(context, rightValue, null)
+    }
+
+    open fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue =
+        throwAPLException(Unimplemented1ArgException(pos))
+
+    open fun eval1ArgDiscardResult(context: RuntimeContext, a: APLValue, axis: APLValue?) {
+        eval1Arg(context, a, axis).collapse(withDiscard = true)
+    }
+
+    ///////////////////////////////////
+    // 2-arg evaluation functions
+    ///////////////////////////////////
 
     open fun evalArgsAndCall2Arg(context: RuntimeContext, leftArgs: Instruction, rightArgs: Instruction): APLValue {
         val rightValue = rightArgs.evalWithContext(context)
@@ -27,12 +47,24 @@ abstract class APLFunction(instantiation: FunctionInstantiation, val fns: List<A
         return eval2Arg(context, leftValue, rightValue, null)
     }
 
-    open fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue =
-        throwAPLException(Unimplemented1ArgException(pos))
+    open fun evalArgsAndCall2ArgDiscardResult(context: RuntimeContext, leftArgs: Instruction, rightArgs: Instruction) {
+        val rightValue = rightArgs.evalWithContext(context)
+        val leftValue = leftArgs.evalWithContext(context)
+        eval2ArgDiscardResult(context, leftValue, rightValue, null)
+    }
 
     open fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue =
         throwAPLException(Unimplemented2ArgException(pos))
 
+    open fun eval2ArgDiscardResult(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?) {
+        eval2Arg(context, a, b, axis).collapse(withDiscard = true)
+    }
+
+    /**
+     * Return the identity value for this function
+     *
+     * @throws APLIncompatibleDomainsException is the function does not have an identity value
+     */
     open fun identityValue(): APLValue =
         throwAPLException(APLIncompatibleDomainsException("Function does not have an identity value", pos))
 

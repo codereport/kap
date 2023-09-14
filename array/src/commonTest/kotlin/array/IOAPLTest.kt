@@ -5,6 +5,31 @@ import kotlin.test.*
 
 class IOAPLTest : APLTest() {
     @Test
+    fun plainPrint() {
+        parseAPLExpressionWithOutput("io:print 10").let { (result, out) ->
+            assertSimpleNumber(10, result)
+            assertEquals("10", out)
+        }
+    }
+
+    @Test
+    fun printWithArrayArgument() {
+        parseAPLExpressionWithOutput("io:print 2 5 ⍴ 1 2 3 4 5 6 7 8 9 10").let { (result, out) ->
+            assertDimension(dimensionsOfSize(2, 5), result)
+            assertArrayContent(arrayOf(1, 2, 3, 4, 5, 6, 7, 8, 9, 10), result)
+            assertEquals("12345\n678910\n", out)
+        }
+    }
+
+    @Test
+    fun testPlainPrintln() {
+        parseAPLExpressionWithOutput("io:println 10").let { (result, out) ->
+            assertSimpleNumber(10, result)
+            assertEquals("10\n", out)
+        }
+    }
+
+    @Test
     fun plainReaddir() {
         parseAPLExpression("x ← io:readdir \"test-data/readdir-test/\" ◊ x[⍋x;]").let { result ->
             assertDimension(dimensionsOfSize(2, 1), result)

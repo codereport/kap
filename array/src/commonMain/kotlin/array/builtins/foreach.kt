@@ -10,11 +10,21 @@ class ForEachResult1Arg(
     val pos: Position,
     val savedStack: StorageStack.StorageStackFrame?
 ) : APLArray() {
-    override val dimensions
-        get() = value.dimensions
+    override val dimensions = value.dimensions
     override val rank get() = value.rank
     override fun valueAt(p: Int) = withPossibleSavedStack(savedStack) { fn.eval1Arg(context, value.valueAt(p), axis) }
     override val size get() = value.size
+
+    override fun collapseInt(withDiscard: Boolean): APLValue {
+        return if (withDiscard) {
+            iterateMembers { v ->
+                v.collapseInt(withDiscard = true)
+            }
+            UnusedResultAPLValue
+        } else {
+            super.collapseInt(withDiscard = false)
+        }
+    }
 }
 
 class ForEachResult2Arg(
@@ -32,15 +42,25 @@ class ForEachResult2Arg(
         }
     }
 
-    override val dimensions: Dimensions
-        get() = arg1.dimensions
+    override val dimensions get() = arg1.dimensions
     override val rank get() = arg1.rank
     override fun valueAt(p: Int) = withPossibleSavedStack(savedStack) { fn.eval2Arg(context, arg1.valueAt(p), arg2.valueAt(p), axis) }
     override val size get() = arg1.size
+
+    override fun collapseInt(withDiscard: Boolean): APLValue {
+        return if (withDiscard) {
+            iterateMembers { v ->
+                v.collapseInt(withDiscard = true)
+            }
+            UnusedResultAPLValue
+        } else {
+            super.collapseInt(withDiscard = false)
+        }
+    }
 }
 
 class ForEachFunctionDescriptor(val fnInner: APLFunction) : APLFunctionDescriptor {
-    class ForEachFunctionImpl(pos: FunctionInstantiation, fn: APLFunction) : APLFunction(pos, listOf(fn)), ParallelSupported{
+    class ForEachFunctionImpl(pos: FunctionInstantiation, fn: APLFunction) : APLFunction(pos, listOf(fn)), ParallelSupported {
 
         private val saveStackSupport = SaveStackSupport(this)
 

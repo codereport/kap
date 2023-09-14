@@ -34,11 +34,17 @@ class ReadFunction : APLFunctionDescriptor {
 class PrintAPLFunction : APLFunctionDescriptor {
     class PrintAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val a0 = a.collapse()
+            printValue(context, a0, FormatStyle.PLAIN)
+            return a0
+        }
+
+        override fun eval1ArgDiscardResult(context: RuntimeContext, a: APLValue, axis: APLValue?) {
             printValue(context, a, FormatStyle.PLAIN)
-            return a
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            val b0 = b.collapse()
             val engine = context.engine
             val plainSym = engine.internSymbol("plain", engine.keywordNamespace)
             val prettySym = engine.internSymbol("pretty", engine.keywordNamespace)
@@ -48,21 +54,36 @@ class PrintAPLFunction : APLFunctionDescriptor {
                 plainSym -> FormatStyle.PLAIN
                 prettySym -> FormatStyle.PRETTY
                 readSym -> FormatStyle.READABLE
-                else -> throwAPLException(
-                    APLIllegalArgumentException(
-                        "Invalid print style: ${styleName.symbolName}",
-                        pos))
+                else -> throwAPLException(APLIllegalArgumentException("Invalid print style: ${styleName.symbolName}", pos))
             }
-            printValue(context, b, style)
-            return b
-        }
-
-        private fun printValue(context: RuntimeContext, a: APLValue, style: FormatStyle) {
-            context.engine.standardOutput.writeString(a.formatted(style))
+            printValue(context, b0, style)
+            return b0
         }
     }
 
     override fun make(instantiation: FunctionInstantiation) = PrintAPLFunctionImpl(instantiation)
+}
+
+class PrintLnAPLFunction : APLFunctionDescriptor {
+    class PrintLnAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val a0 = a.collapse()
+            printValue(context, a0, FormatStyle.PLAIN)
+            context.engine.standardOutput.writeString("\n")
+            return a0
+        }
+
+        override fun eval1ArgDiscardResult(context: RuntimeContext, a: APLValue, axis: APLValue?) {
+            printValue(context, a, FormatStyle.PLAIN)
+            context.engine.standardOutput.writeString("\n")
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = PrintLnAPLFunctionImpl(instantiation)
+}
+
+private fun printValue(context: RuntimeContext, a: APLValue, style: FormatStyle) {
+    context.engine.standardOutput.writeString(a.formatted(style))
 }
 
 class WriteCsvFunction : APLFunctionDescriptor {

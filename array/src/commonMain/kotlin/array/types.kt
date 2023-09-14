@@ -117,7 +117,7 @@ abstract class APLValue {
 
     abstract fun formatted(style: FormatStyle = FormatStyle.PRETTY): String
     open fun formattedAsCodeRequiresParens() = true
-    abstract fun collapseInt(): APLValue
+    abstract fun collapseInt(withDiscard: Boolean = false): APLValue
     abstract fun collapseFirstLevel(): APLValue
     fun isScalar(): Boolean = rank == 0
     open fun defaultValue(): APLValue = APLLONG_0
@@ -150,9 +150,9 @@ abstract class APLValue {
 
     open val labels: DimensionLabels? get() = null
 
-    fun collapse(): APLValue {
+    fun collapse(withDiscard: Boolean = false): APLValue {
         val l = labels
-        val v = collapseInt()
+        val v = collapseInt(withDiscard = withDiscard)
         return when {
             l == null -> v
             v === this -> this
@@ -357,7 +357,7 @@ abstract class APLSingleValue : APLValue() {
 
     override val size get() = 1
     override val rank get() = 0
-    override fun collapseInt() = this
+    override fun collapseInt(withDiscard: Boolean) = this
     override fun collapseFirstLevel() = this
     override fun isAtomic() = true
     override fun disclose() = this
@@ -366,11 +366,19 @@ abstract class APLSingleValue : APLValue() {
 abstract class APLArray : APLValue() {
     override val aplValueType: APLValueType get() = APLValueType.ARRAY
 
-    override fun collapseInt(): APLValue {
+    override fun collapseInt(withDiscard: Boolean): APLValue {
         val v = unwrapDeferredValue()
-        return when {
-            v.rank == 0 -> EnclosedAPLValue.make(v.valueAt(0).collapseInt())
-            else -> CollapsedArrayImpl.make(v)
+        return if (withDiscard) {
+            when {
+                v.rank == 0 -> v.valueAt(0).collapseInt(withDiscard = true)
+                else -> iterateMembers { v0 -> v0.collapseInt(withDiscard = true) }
+            }
+            UnusedResultAPLValue
+        } else {
+            when {
+                v.rank == 0 -> EnclosedAPLValue.make(v.valueAt(0).collapseInt())
+                else -> CollapsedArrayImpl.make(v)
+            }
         }
     }
 
@@ -466,7 +474,7 @@ class LabelledArray(override val value: APLValue, override val labels: Dimension
     override val dimensions = value.dimensions
     override fun valueAt(p: Int) = value.valueAt(p)
 
-    override fun collapseInt(): APLValue {
+    override fun collapseInt(withDiscard: Boolean): APLValue {
         return value.collapseInt()
     }
 
@@ -601,7 +609,7 @@ class APLList(val elements: List<APLValue>) : APLSingleValue() {
             FormatStyle.READABLE -> elements.joinToString(separator = " ; ") { v -> v.formatted(FormatStyle.READABLE) }
         }
 
-    override fun collapseInt() = this
+    override fun collapseInt(withDiscard: Boolean) = this
 
     override fun ensureList(pos: Position?) = this
 
@@ -767,6 +775,21 @@ class ConstantArray(
     override fun valueAt(p: Int) = valueInternal
 }
 
+object UnusedResultAPLValue : APLValue() {
+    private fun raiseError(): Nothing = throw RuntimeException("Attempt to call unused value")
+
+    override val aplValueType get() = raiseError()
+    override val dimensions get() = raiseError()
+    override fun valueAt(p: Int) = raiseError()
+    override fun formatted(style: FormatStyle) = raiseError()
+    override fun collapseInt(withDiscard: Boolean) = raiseError()
+    override fun collapseFirstLevel() = raiseError()
+    override fun isAtomic() = raiseError()
+    override fun compareEquals(reference: APLValue) = raiseError()
+    override fun disclose() = raiseError()
+    override fun makeKey() = raiseError()
+}
+
 open class APLArrayImpl(
     override val dimensions: Dimensions,
     private val values: Array<APLValue>
@@ -784,7 +807,7 @@ open class APLArrayImpl(
 }
 
 class CollapsedArrayImpl(dimensions: Dimensions, values: Array<APLValue>) : APLArrayImpl(dimensions, values) {
-    override fun collapseInt() = this
+    override fun collapseInt(withDiscard: Boolean) = this
 
     companion object {
         fun make(orig: APLValue): APLValue {
@@ -912,7 +935,7 @@ class APLString(val content: IntArray) : APLArray() {
     override val dimensions = dimensionsOfSize(content.size)
     override fun valueAt(p: Int) = APLChar(content[p])
 
-    override fun collapseInt() = this
+    override fun collapseInt(withDiscard: Boolean) = this
 
     override fun toString() = "APLString[value=\"${content.joinToString(transform = ::charToString)}\"]"
 
@@ -1046,7 +1069,7 @@ class APLArrayLong(
     override val specialisedType get() = ArrayMemberType.LONG
     override fun valueAt(p: Int) = values[p].makeAPLNumber()
     override fun valueAtLong(p: Int, pos: Position?) = values[p]
-    override fun collapseInt() = this
+    override fun collapseInt(withDiscard: Boolean) = this
 
     companion object
 }
@@ -1058,7 +1081,7 @@ class APLArrayDouble(
     override val specialisedType get() = ArrayMemberType.DOUBLE
     override fun valueAt(p: Int) = values[p].makeAPLNumber()
     override fun valueAtDouble(p: Int, pos: Position?) = values[p]
-    override fun collapseInt() = this
+    override fun collapseInt(withDiscard: Boolean) = this
 }
 
 abstract class AbstractDelegatedValue : APLValue() {
@@ -1073,7 +1096,7 @@ abstract class AbstractDelegatedValue : APLValue() {
     override fun valueAtInt(p: Int, pos: Position?) = value.valueAtInt(p, pos)
     override val size: Int get() = value.size
     override fun formatted(style: FormatStyle) = value.formatted(style)
-    override fun collapseInt() = value.collapseInt()
+    override fun collapseInt(withDiscard: Boolean) = value.collapseInt()
     override fun collapseFirstLevel() = value.collapseFirstLevel()
     override fun defaultValue() = value.defaultValue()
     override fun isAtomic() = value.isAtomic()

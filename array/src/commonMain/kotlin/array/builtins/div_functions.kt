@@ -297,7 +297,7 @@ class ForcedElementTypeArray(val inner: APLValue, val overrideType: ArrayMemberT
         }
     }
 
-    override fun collapseInt() = maybeWrapValue(inner.collapseInt())
+    override fun collapseInt(withDiscard: Boolean) = maybeWrapValue(inner.collapseInt())
     override fun unwrapDeferredValue() = maybeWrapValue(inner.unwrapDeferredValue())
 }
 

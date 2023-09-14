@@ -46,7 +46,7 @@ object IotaArrayImpls {
     class IotaArrayLong(val length: Int) : APLArray(), GenericIotaArrayLong {
         override val dimensions = dimensionsOfSize(length)
         override val specialisedType get() = ArrayMemberType.LONG
-        override fun collapseInt() = this
+        override fun collapseInt(withDiscard: Boolean) = this
 
         override fun valueAtInt(p: Int, pos: Position?): Int {
             if (p < 0 || p >= length) {
@@ -75,7 +75,7 @@ object IotaArrayImpls {
     ) : APLArray(), GenericIotaArrayLong {
         val length = dimensions.contentSize()
         override val specialisedType get() = ArrayMemberType.LONG
-        override fun collapseInt() = this
+        override fun collapseInt(withDiscard: Boolean) = this
 
         override fun valueAtLong(p: Int, pos: Position?): Long {
             return when {
