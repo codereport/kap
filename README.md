@@ -82,6 +82,8 @@ There is a tutorial which is incomplete: https://kapdemo.dhsdevelopments.com/qui
 The following document explains the differences between KAP and APL, which is useful for readers who already are
 familiar with APL: https://kapdemo.dhsdevelopments.com/kap-comparison.html
 
+There is also a document containing the reference documentation: https://kapdemo.dhsdevelopments.com/reference.html
+
 Anyone interested in learning more can ask questions on the Matrix channel.
 
 ## Contributions
