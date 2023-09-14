@@ -67,26 +67,35 @@ private fun makeWindowCreatedMessage(id: Int, width: Int, height: Int): dynamic 
 class JsGuiDrawFunction : APLFunctionDescriptor {
     class JsGuiDrawFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
-            return drawArrayToWin(context, a, GuiWindow(GuiWindow.DEFAULT_WINDOW_ID))
+            return drawArrayToWin(context, a.collapse(), GuiWindow(GuiWindow.DEFAULT_WINDOW_ID))
+        }
+
+        override fun eval1ArgDiscardResult(context: RuntimeContext, a: APLValue, axis: APLValue?) {
+            ensureAxisNull(axis)
+            drawArrayToWin(context, a, GuiWindow(GuiWindow.DEFAULT_WINDOW_ID))
         }
 
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val win = guiWindowFromAPLValue(a, pos)
-            return drawArrayToWin(context, b, win)
+            return drawArrayToWin(context, b.collapse(), win)
+        }
+
+        override fun eval2ArgDiscardResult(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?) {
+            val win = guiWindowFromAPLValue(a, pos)
+            drawArrayToWin(context, b, win)
         }
 
         private fun drawArrayToWin(context: RuntimeContext, b: APLValue, win: GuiWindow): APLValue {
-            val b0 = b.collapse()
-            val b0Dimensions = b0.dimensions
+            val b0Dimensions = b.dimensions
             when (b0Dimensions.size) {
                 2 -> {
                     val height = b0Dimensions[0]
                     val width = b0Dimensions[1]
                     val content = Uint8ClampedArray(width * height * 4)
                     var i = 0
-                    b0.iterateMembers { v ->
+                    b.iterateMembers { v ->
                         @Suppress("UNUSED_VARIABLE")
-                        val member = (b0.valueAtDouble(i / 4, pos) * 255).toInt()
+                        val member = (b.valueAtDouble(i / 4, pos) * 255).toInt()
                         js("content[i] = member; content[i+1] = member; content[i+2] = member; content[i+3] = 255")
                         i += 4
                     }
@@ -108,15 +117,15 @@ class JsGuiDrawFunction : APLFunctionDescriptor {
                         val iTimes4 = i * 4
 
                         @Suppress("UNUSED_VARIABLE")
-                        val rP = (b0.valueAtDouble(iTimes3, pos) * 255).toInt()
+                        val rP = (b.valueAtDouble(iTimes3, pos) * 255).toInt()
                         js("content[iTimes4] = rP")
 
                         @Suppress("UNUSED_VARIABLE")
-                        val gP = (b0.valueAtDouble(iTimes3 + 1, pos) * 255).toInt()
+                        val gP = (b.valueAtDouble(iTimes3 + 1, pos) * 255).toInt()
                         js("content[iTimes4 + 1] = gP")
 
                         @Suppress("UNUSED_VARIABLE")
-                        val bP = (b0.valueAtDouble(iTimes3 + 2, pos) * 255).toInt()
+                        val bP = (b.valueAtDouble(iTimes3 + 2, pos) * 255).toInt()
                         js("content[iTimes4 + 2] = bP")
                         js("content[iTimes4 + 3] = 255")
                     }
@@ -128,7 +137,7 @@ class JsGuiDrawFunction : APLFunctionDescriptor {
                     throwAPLException(APLIllegalArgumentException("Only 2-dimensional or 3-dimensional arrays are currently supported", pos))
                 }
             }
-            return b0
+            return b
         }
     }
 
