@@ -93,6 +93,10 @@ class ROStyledArea(
             EventPattern.keyPressed(KeyCode.K, KeyCombination.CONTROL_DOWN),
             { atEditbox() },
             { deleteToEnd() }))
+        entries.add(InputMap.consumeWhen(
+            EventPattern.keyPressed(KeyCode.D, KeyCombination.CONTROL_DOWN),
+            { atEditbox() },
+            { deleteNextChar() }))
     }
 
     fun displayPrompt() {
