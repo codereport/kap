@@ -48,7 +48,7 @@ class ExtendedCharsKeyboardInput {
             // Fourth row
             makeKeyDescriptor("z") to "⊂", makeKeyDescriptor("Z", Flag.SHIFT) to "⊆",
             makeKeyDescriptor("x") to "⊃", makeKeyDescriptor("X", Flag.SHIFT) to "⊇",
-            makeKeyDescriptor("c") to "∩",
+            makeKeyDescriptor("c") to "∩", makeKeyDescriptor("C", Flag.SHIFT) to "•",
             makeKeyDescriptor("v") to "∪", makeKeyDescriptor("V", Flag.SHIFT) to "λ",
             makeKeyDescriptor("b") to "⊥", makeKeyDescriptor("B", Flag.SHIFT) to "«",
             makeKeyDescriptor("n") to "⊤", makeKeyDescriptor("N", Flag.SHIFT) to "»",

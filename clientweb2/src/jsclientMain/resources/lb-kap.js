@@ -19,13 +19,13 @@
             '⍒⍒\ngrade down\ngrades down', ' ', '⍳⍳\nindices\nindices of', '⍸⍸\nwhere\ninterval index', '∊∊\nenlist\nmember of', '⍷⍷\nfind', '∪∪\nunique\nunion', '∩∩\nintersection', '~~\nnot\nwithout', '⫽⫽\nreplicate', ' ',
             '//\nReduce', '\\\\\n\expand\nScan', '⌿⌿\nreplicate first\nReduce First', '⍀⍀\nexpand first\nScan First', ' ', ',,\nravel\ncatenate/laminate',
             '⍪⍪\ntable\ncatenate first/laminate', '⍴⍴\nshape\nreshape', '⌽⌽\nreverse\nrotate', '⊖⊖\nreverse first\nrotate first',
-            '⍉⍉\ntranspose\nreorder axes', ' ', '¨¨\nEach', '⍨⍨\nConstant\nSelf\nSwap', '⍣⍣\nRepeat\nUntil', '..\nOuter Product', '⌻⌻\nInner product', '˝˝\nFunctional inverse',
+            '⍉⍉\ntranspose\nreorder axes', ' ', '¨¨\nEach', '⍨⍨\nConstant\nSelf\nSwap', '⍣⍣\nRepeat\nUntil', '••\nOuter Product', '⌻⌻\nInner product', '˝˝\nFunctional inverse',
             '∘∘\nBind\nBeside', '⍛⍛\nBind left', '⍤⍤\nRank\nAtop', '⍥⍥\nOver', '⍢⍢\nUnder', '∵∵\nDerive bitwise', '∥∥\nDerive parallel', ' ', 'λλ\nLAMBDA', '⍞⍞\nAPPLY',
             '⍎⍎\nparse string', '⍕⍕\nformat', ' ', '««\nLeft fork', '»»\nRight fork', '⋄⋄\nSTATEMENT SEPARATOR', '⍝⍝\nCOMMENT', '→→\nRETURN\nRETURN CONDITIONALLY', '⍵⍵\nRIGHT ARGUMENT', '⍺⍺\nLEFT ARGUMENT', '∇∇\nDefine function',
             '⍓⍓\nrecursion\nRecursion', ' ', '¯¯\nNEGATIVE', '⍬⍬\nEMPTY NUMERIC VECTOR', '∆∆\nIDENTIFIER CHARACTER', '⍙⍙\nIDENTIFIER CHARACTER']
         , bqk = ' =1234567890-qwertyuiop\\asdfghjkl;\'zxcvbnm,./`[]+!@#$%^&*()_QWERTYUIOP|ASDFGHJKL:"ZXCVBNM<>?~{}'.replace(/∙/g, '')
         ,
-        bqv = '`÷¨¯<≤=≥>≠∨∧×q⍵∊⍴~↑↓⍳○⋆⊢∙⍺⌈⌊_∇∆∘⍓⎕⍎⍕∙⊂⊃∩∪⊥⊤|⍝⍀⌿⋄←→⌹⌶⍫⍒⍋⌽⍉⊖⍟⍱⍲⍠Q⍹⍷√⍨Y⇐⍸⍥⍣⊣⍶∵˝⍛⍢⍙⍤⌻⌷≡≢⊆⊇Cλ«»∥⍪⑊⫽⌺⍞⍬'.replace(/∙/g, '')
+        bqv = '`÷¨¯<≤=≥>≠∨∧×q⍵∊⍴~↑↓⍳○⋆⊢∙⍺⌈⌊_∇∆∘⍓⎕⍎⍕∙⊂⊃∩∪⊥⊤|⍝⍀⌿⋄←→⌹⌶⍫⍒⍋⌽⍉⊖⍟⍱⍲⍠Q⍹⍷√⍨Y⇐⍸⍥⍣⊣⍶∵˝⍛⍢⍙⍤⌻⌷≡≢⊆⊇•λ«»∥⍪⑊⫽⌺⍞⍬'.replace(/∙/g, '')
         , tc = {}, bqc = {} //tab completions and ` completions
     for (let i = 0; i < bqk.length; i++) bqc[bqk[i]] = bqv[i]
     for (let i = 0; i < tcs.length; i += 3) tc[tcs[i] + tcs[i + 1]] = tcs[i + 2]

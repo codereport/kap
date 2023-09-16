@@ -435,6 +435,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeOperator("⌿", ReduceOpFirstAxis())
         registerNativeOperator("⌻", OuterJoinOp())
         registerNativeOperator(".", OuterInnerJoinOp())
+        registerNativeOperator("•", OuterInnerJoinOp())
         registerNativeOperator("⍨", CommuteOp())
         registerNativeOperator("⍣", PowerAPLOperator())
         registerNativeOperator("\\", ScanLastAxisOp())
@@ -471,7 +472,7 @@ class Engine(numComputeEngines: Int? = null) {
             "⌻", "⌽", "⌿", "⍀", "⍉", "⍋", "⍎", "⍒", "⍕", "⍞", "⍟", "⍠", "⍣", "⍤", "⍥",
             "⍨", "⍪", "⍫", "⍱", "⍲", "⍳", "⍴", "⍵", "⍶", "⍷", "⍸", "⍹", "⍺", "◊",
             "○", "$", "¥", "χ", "\\", ".", "∵", "⍓", "⫽", "⑊", "⊆", "⊇", "⍥", "∥", "⍛", "˝",
-            "⍢", "√")
+            "⍢", "√", "•")
     }
 
     fun charIsSingleCharExported(ch: String) = exportedSingleCharFunctions.contains(ch)
