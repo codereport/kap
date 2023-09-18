@@ -428,6 +428,55 @@ We can then reshape this into a 20-by-20 array:
 └───────────────────────────────────────────────────────────────────────────────────────┘
 ----
 
+== Strings
+
+Kap does not have a dedicated string type.
+Instead, any 1-dimensional array that contains only characters are referred to as a string, and will be rendered as such in the REPL:
+
+----
+    ⍴ "abcd"
+┌→┐
+│4│
+└─┘
+----
+
+If an array contains non-characters, the entire array is rendered in normal array notation:
+
+----
+"xyz",1
+┌→─────────┐
+│@x @y @z 1│
+└──────────┘
+----
+
+You can add or subtract numeric values to/from characters.
+This applies the operation on the Unicode codepoint:
+
+----
+    "abcd"+1
+"bcde"
+----
+
+You can also take the difference between two characters.
+This returns an integer, and can be used to for example get the numeric value from a character representing a number:
+
+----
+    "123"-@0
+┌→────┐
+│1 2 3│
+└─────┘
+----
+
+This mechanism makes it possible to subtrac the NUL character (Unicode codepoint 0) from a character to obtain the Unicode value.
+The special character syntax `@\0` represents the NUL character:
+
+----
+    "Abcd"-@\0
+┌→───────────┐
+│65 98 99 100│
+└────────────┘
+----
+
 == Accessing values from arrays
 
 Kap provides several ways in which data can be read from arrays.
