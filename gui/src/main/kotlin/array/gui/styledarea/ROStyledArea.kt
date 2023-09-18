@@ -56,47 +56,20 @@ class ROStyledArea(
         // History navigation
         entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.UP), { atEditboxStart() }, { prevHistory() }))
         entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.DOWN), { atEditboxEnd() }, { nextHistory() }))
-        entries.add(InputMap.consumeWhen(
-            EventPattern.keyPressed(KeyCode.P, KeyCombination.CONTROL_DOWN),
-            { atEditboxStart() },
-            { prevHistory() }))
-        entries.add(InputMap.consumeWhen(
-            EventPattern.keyPressed(KeyCode.N, KeyCombination.CONTROL_DOWN),
-            { atEditboxEnd() },
-            { nextHistory() }))
+        entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.P, KeyCombination.CONTROL_DOWN), { atEditboxStart() }, { prevHistory() }))
+        entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.N, KeyCombination.CONTROL_DOWN), { atEditboxEnd() }, { nextHistory() }))
 
         // Cursor movement
         entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.HOME), { atEditbox() }, { moveToBeginningOfInput() }))
-        entries.add(InputMap.consumeWhen(
-            EventPattern.keyPressed(KeyCode.HOME, KeyCombination.SHIFT_DOWN),
-            { atEditbox() },
-            { moveToBeginningOfInput() }))
+        entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.HOME, KeyCombination.SHIFT_DOWN), { atEditbox() }, { moveToBeginningOfInput() }))
 
         // Emacs-style cursor movement
-        entries.add(InputMap.consumeWhen(
-            EventPattern.keyPressed(KeyCode.F, KeyCombination.CONTROL_DOWN),
-            { true },
-            { caretSelectionBind.moveToNextChar() }))
-        entries.add(InputMap.consumeWhen(
-            EventPattern.keyPressed(KeyCode.B, KeyCombination.CONTROL_DOWN),
-            { true },
-            { caretSelectionBind.moveToPrevChar() }))
-        entries.add(InputMap.consumeWhen(
-            EventPattern.keyPressed(KeyCode.A, KeyCombination.CONTROL_DOWN),
-            { atEditbox() },
-            { moveToBeginningOfInput() }))
-        entries.add(InputMap.consumeWhen(
-            EventPattern.keyPressed(KeyCode.E, KeyCombination.CONTROL_DOWN),
-            { atEditbox() },
-            { moveToEndOfInput() }))
-        entries.add(InputMap.consumeWhen(
-            EventPattern.keyPressed(KeyCode.K, KeyCombination.CONTROL_DOWN),
-            { atEditbox() },
-            { deleteToEnd() }))
-        entries.add(InputMap.consumeWhen(
-            EventPattern.keyPressed(KeyCode.D, KeyCombination.CONTROL_DOWN),
-            { atEditbox() },
-            { deleteNextChar() }))
+        entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.F, KeyCombination.CONTROL_DOWN), { true }, { caretSelectionBind.moveToNextChar() }))
+        entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.B, KeyCombination.CONTROL_DOWN), { true }, { caretSelectionBind.moveToPrevChar() }))
+        entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.A, KeyCombination.CONTROL_DOWN), { atEditbox() }, { moveToBeginningOfInput() }))
+        entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.E, KeyCombination.CONTROL_DOWN), { atEditbox() }, { moveToEndOfInput() }))
+        entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.K, KeyCombination.CONTROL_DOWN), { atEditbox() }, { deleteToEnd() }))
+        entries.add(InputMap.consumeWhen(EventPattern.keyPressed(KeyCode.D, KeyCombination.CONTROL_DOWN), { atEditbox() }, { deleteNextChar() }))
     }
 
     fun displayPrompt() {
