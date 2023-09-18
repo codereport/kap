@@ -188,9 +188,9 @@ The functions `toList` and `fromList` can be used to convert between lists and v
     a ← (1 ; 2 ; 3)
 list
     fromList a
-┏━━━━━┓
-┃1 2 3┃
-┗━━━━━┛
+┌→────┐
+│1 2 3│
+└─────┘
 ----
 
 == Tacit programming
@@ -268,9 +268,9 @@ The function `⊂` encloses the value in a scalar wrapper, and `⊃` undoes this
 [source,kap]
 ----
     ⊂ "foo"
-┏━━━━━┓
-┃"foo"┃
-┗━━━━━┛
+┌─────┐
+│"Foo"│
+└─────┘
     ⊃ ⊂ "foo"
 "foo"
 ----
@@ -280,10 +280,10 @@ If `⊃` is called on an array, it performs the "`mix`" operation:
 [source,kap]
 ----
     ⊃ (1 2 3 4) (5 6 7 8)
-┏━━━━━━━┓
-┃1 2 3 4┃
-┃5 6 7 8┃
-┗━━━━━━━┛
+┌→──────┐
+↓1 2 3 4│
+│5 6 7 8│
+└───────┘
 ----
 
 === Take and drop: `↑`, `↓`
@@ -295,17 +295,17 @@ The `↑` and `↓` operations are consistently representing the take and drop f
     ↑ 1 2 3 4
 1
     3 ↑ ⍳10
-┏━━━━━┓
-┃0 1 2┃
-┗━━━━━┛
+┌→────┐
+│0 1 2│
+└─────┘
     ↓ 1 2 3 4
-┏━━━━━┓
-┃2 3 4┃
-┗━━━━━┛
+┌→────┐
+│2 3 4│
+└─────┘
     7 ↓ ⍳10
-┏━━━━━┓
-┃7 8 9┃
-┗━━━━━┛
+┌→────┐
+│7 8 9│
+└─────┘
 ----
 
 === Convert to string: `⍕`
@@ -329,6 +329,15 @@ The eval symbol is instead used to parse a string as a number:
     ⍎"432"
 432
 ----
+
+=== Outer product
+
+Outer product uses the monadic operator `⌻` instead of `∘.`.
+For example, the APL expression `∘.+` is expressed as `+⌻` in Kap.
+
+=== Inner product
+
+The inner product uses the symbol `•` rather than a period.
 
 === Maths functions
 

@@ -1028,8 +1028,8 @@ when {
 It has already been written since it was adapted from a post on Matrix by electronegative.
 It contains references to functionality which has not yet been explained, as it has not been fully merged into this tutorial yet)
 
-The operator `.` has multiple uses.
-Most commonly "`inner product`", where `.` is a dyadic operator taking a function on the left and a function on the right.
+The operator `•` has multiple uses.
+Most commonly "`inner product`", where `•` is a dyadic operator taking a function on the left and a function on the right.
 Inner product generalises the idea of a matrix product.
 The idea is that for each rank-1 element in the arguments, you do one function component-wise between the two and then reduce another function over that vector of results.
 Sounds scary, so let's look at some examples.
@@ -1039,7 +1039,7 @@ With simple vector arguments, "`each rank-1 element in the arguments`" is just g
 So if we do the following:
 
 ----
-1 2 3 4 A.B 5 6 7 8
+1 2 3 4 A•B 5 6 7 8
 ----
 
 (where `A` and `B` are stand-in functions), this will be evaluated like so:
@@ -1048,7 +1048,7 @@ So if we do the following:
 (1 B 5) A (2 B 6) A (3 B 7) A (4 B 8)
 ----
 
-So if we want the dot product of these two vectors, we just write `+1 2 3 4 +.× 5 6 7 8+`.
+So if we want the dot product of these two vectors, we just write `+1 2 3 4 +•× 5 6 7 8+`.
 This applies `×` between each of the elements of the two vectors, then adds them all up with `+++` (or rather, it effectively applies `+/`).
 We will see that this actually works for matrices too, it's the full matrix product.
 
@@ -1072,7 +1072,7 @@ If we have the following:
 └─────┘
 ----
 
-Let's look at what happens if we do `x ,.(⊂,) y`.
+Let's look at what happens if we do `x ,•(⊂,) y`.
 This will give us a good visual descriptor of what's going on. `⊂,` just creates an enclosed pair, and then `,` is going to make lists of those pairs.
 So we'll imagine that each time we see an enclosed pair (made by `⊂,`) it's where `B` gets applied, and between each list (made by `,`) it's where `A` gets applied.
 
