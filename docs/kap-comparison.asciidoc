@@ -1,14 +1,14 @@
-= KAP for APL'ers
+= Kap for APL'ers
 :experimental:
 
 :toc:
 
 == Introduction
 
-KAP is very similar to APL in several aspects.
+Kap is very similar to APL in several aspects.
 So much so that an APL'er may be convinced that it is a full APL.
 If they do, they will be surprised when certain things does not behave the way they expect.
-The purpose of this document is to explain how KAP works from the perspective of a developer who already knows APL.
+The purpose of this document is to explain how Kap works from the perspective of a developer who already knows APL.
 
 The different features are listed here in no particular order.
 
@@ -30,11 +30,11 @@ In other words, the newline is interpreted as a space.
 === Parsing operators
 
 Dyadic operators that can take either a function or a value as a right argument causes problems during parsing.
-KAP supports two of these operators: `⍤` and `⍣`.
+Kap supports two of these operators: `⍤` and `⍣`.
 Different APL versions have different ways of dealing with this depending on the type of parser used.
-KAP uses a single token lookahead left-to-right parser, which makes this form very difficult to parse.
+Kap uses a single token lookahead left-to-right parser, which makes this form very difficult to parse.
 
-Due to this parsing issue, KAP requires the programmer to enclose the operator arguments in parentheses regardless of whether the arguments are functions or values.
+Due to this parsing issue, Kap requires the programmer to enclose the operator arguments in parentheses regardless of whether the arguments are functions or values.
 
 [source,kap]
 ----
@@ -46,8 +46,8 @@ The parentheses are not required for operators that only support function argume
 
 == Namespaces
 
-Every symbol in KAP belongs to a namespace.
-Unless changed, the default namespace after starting the KAP REPL is `default`.
+Every symbol in Kap belongs to a namespace.
+Unless changed, the default namespace after starting the Kap REPL is `default`.
 The default namespace can be changed using the `use` keyword.
 The default namespace is the namespace where new symbols are interned if they cannot be found in any of the other namespaces in the search path.
 After starting, the only namespace in the search path is `kap` which is where all the standard symbols are located.
@@ -62,7 +62,7 @@ As keywords are the most common use of symbols, this namespace is assumed by def
 
 === Numbers
 
-In contrast to APL, KAP makes the difference between integers and floating point numbers explicit.
+In contrast to APL, Kap makes the difference between integers and floating point numbers explicit.
 If a number is specified with a period, it is a floating point number (64-bit double).
 Otherwise, it is an integer (stored as a bigint if it doesn't fit in a 64-bit register).
 Mathematical operations on rationals gives a rational result if possible, otherwise it's converted to floating point before the computation takes place.
@@ -78,13 +78,13 @@ The functions `unicode:toCodepoints` and `unicode:fromCodepoints` can be used to
 
 Note that in Unicode, a single codepoint does not necessarily mean a single character.
 Unicode uses the term "`grapheme cluster`" to describe a single unit (what most people would refer to as a character).
-KAP provides the function `unicode:toGraphemes` to convert a string into an array of graphemes.
+Kap provides the function `unicode:toGraphemes` to convert a string into an array of graphemes.
 
 Strings are specified using double quotes rather than single quotes in APL.
-In KAP, a string containing a single character is simply `"a"`.
+In Kap, a string containing a single character is simply `"a"`.
 This is different compared to APL where a single-character string has a special case where it represents just the character.
 In APL, to type a single-character string, one has to type `,'a'`.
-To specify a single character in KAP, use the `@` symbol, followed by the character.
+To specify a single character in Kap, use the `@` symbol, followed by the character.
 Thus, the following two lines both specify the same string:
 
 [source,kap]
@@ -108,7 +108,7 @@ Note that this syntax is not available in the Javascript backend as this would e
 
 === Symbols
 
-Symbols are first-class objects in KAP.
+Symbols are first-class objects in Kap.
 They work similar to Lisp in that they are unique objects identified by their name.
 Symbols in the `keyword` namespace are special in that they always evaluate to themselves and as such are useful for things like hash keys.
 To obtain the symbol itself instead of its value, they are prefixed by a quote:
@@ -121,7 +121,7 @@ b ← :abc     ⍝ b contains the keyword abc, no need to use ' here
 
 === Maps
 
-Maps are a separate datatypes in KAP.
+Maps are a separate datatypes in Kap.
 They are immutable, and updating a map returns a new instance with the requested change applied.
 
 A map is created using the function `map`.
@@ -195,8 +195,8 @@ list
 
 == Tacit programming
 
-KAP supports a modified version of tacit programming as included in Dyalog.
-The most significant difference between KAP and APL in this regard is that KAP does not implement forks in the form of a 3-train, and instead uses dedicated symbols for this purpose.
+Kap supports a modified version of tacit programming as included in Dyalog.
+The most significant difference between Kap and APL in this regard is that Kap does not implement forks in the form of a 3-train, and instead uses dedicated symbols for this purpose.
 
 The following tacit programming structures exist:
 
@@ -208,7 +208,7 @@ A sequence of two functions next to each other are executed in the same manner a
 
 - `(AB) y` is evaluated as `A B y`
 
-Since KAP does not implement APL-style forks, this expands to any number of functions in a train.
+Since Kap does not implement APL-style forks, this expands to any number of functions in a train.
 In other words:
 
 - `x (ABCD) y` is evaluated as `A B C x D y`
@@ -226,7 +226,7 @@ It has the following form:
 The compose operator works the same as APL when called dyadically, but its monadic version is different.
 
 - `x A∘B y` is evaluated as `x A (B y)`
-- `A∘B y` is evaluated as `x A (B y)`
+- `A∘B y` is evaluated as `y A (B y)`
 
 The inverse of compose is also available:
 
@@ -256,13 +256,13 @@ Example:
 ----
 
 In APL, the same code would use the `∘` operator to bind the left argument to the function.
-This syntax is not possible in KAP since operators in KAP requires the left argument to be a function.
+This syntax is not possible in Kap since operators in Kap requires the left argument to be a function.
 
 == Differences in standard functions
 
 === Enclose and disclose: `⊂`, `⊃`
 
-In KAP, the `⊂` and `⊃` functions follow the APL2 style, based on an assumption that it is more consistent than the style used by for example Dyalog.
+In Kap, the `⊂` and `⊃` functions follow the APL2 style, based on an assumption that it is more consistent than the style used by for example Dyalog.
 The function `⊂` encloses the value in a scalar wrapper, and `⊃` undoes this operation, returning the contained value.
 
 [source,kap]
@@ -321,7 +321,7 @@ It's currently only used to a value to a string:
 
 === Parse string as number: `⍎`
 
-KAP currently does not support eval.
+Kap currently does not support eval.
 The eval symbol is instead used to parse a string as a number:
 
 [source,kap]
@@ -333,7 +333,7 @@ The eval symbol is instead used to parse a string as a number:
 === Outer product
 
 Outer product uses the monadic operator `⌻` instead of `∘.`.
-For example, the APL expression `∘.+` is expressed as `+⌻` in Kap.
+For example, the APL expression `∘.\+` is expressed as `+⌻` in Kap.
 
 === Inner product
 
@@ -343,7 +343,7 @@ The inner product uses the symbol `•` rather than a period.
 
 In APL, a lot of maths functions are provided via the `○` function.
 The left argument is a number specifying the operation and the right argument is the value on which the function should work.
-The `○` function is not available in KAP, and instead these functions are given regular names and placed in the `math` namespace.
+The `○` function is not available in Kap, and instead these functions are given regular names and placed in the `math` namespace.
 The currently implemented functions include:
 
 - `sin` - Sine
@@ -355,9 +355,9 @@ The currently implemented functions include:
 
 == Function declarations
 
-Both APL and KAP has two ways of declaring functions, either tradfns or using dfns.
+Both APL and Kap has two ways of declaring functions, either tradfns or using dfns.
 
-In KAP, functions that are defined using the tradfn style are global functions, while dfns are local to the current lexical context.
+In Kap, functions that are defined using the tradfn style are global functions, while dfns are local to the current lexical context.
 
 === Tradfn
 
@@ -368,34 +368,34 @@ The following is an example of an APL tradfn:
 ----
 ∇ R←A foo B
   ⎕←'This function returns 10 plus the sum of A and B'
-  R←A+B
+  R←1+A+B
 ∇
 ----
 
-KAP provides a similar form.
+Kap provides a similar form.
 The corresponding version looks like this:
 
 [source,kap]
 ----
 ∇ A foo B {
   io:println "This function returns 10 plus the sum of A and B"
-  A+B
+  1+A+B
 }
 ----
 
-The main difference here are:
+The main differences here are:
 
 - The code is enclosed between `{` and `}`.
 This is to make code blocks consistent across all uses.
-- In tradfns the return value is assigned to a special variable.
-In KAP, the function returns the last value that was evaluated.
-- KAP does not support the use of goto for flow control (please see the separate section on flow control for alternative solutions).
+- In Kap, the function returns the last value that was evaluated.
+In APL the return value is assigned to a special variable.
+- Kap does not support the use of goto for flow control (please see the separate section on flow control for alternative solutions).
 
 Functions defined using this style are global, and after declaration they can be accessible from any part of a program.
 
 === Dfns style
 
-Defining a dfn in KAP is similar to APL.
+Defining a dfn in Kap is similar to APL.
 The only visible difference is the use of `⇐` instead of `←`.
 The reason for this difference is because `⇐` is processed at parse time, while `←` represents a runtime assignment to a variable.
 As these are vastly different types of operations, different symbols are used to represent these operations.
@@ -407,7 +407,7 @@ foo ⇐ { ⍵+1 }
 
 === Multiple arguments
 
-Multiple arguments are passed to KAP functions as lists.
+Multiple arguments are passed to Kap functions as lists.
 The tradfn syntax allows for declaring a function as accepting multiple arguments which are then automatically destructured when the function is called.
 
 [source,kap]
@@ -437,16 +437,16 @@ b ← { ⍵+1 }
 a 1  ⍝ This will print 12
 ----
 
-The corresponding code in KAP will not work, because at the time where the definition of `a` happens, `b` is not yet declared and the following error will be displayed when `a` is called on the last line: `Variable not assigned: default:b`.
+The corresponding code in Kap will not work, because at the time where the definition of `a` happens, `b` is not yet declared and the following error will be displayed when `a` is called on the last line: `Variable not assigned: default:b`.
 This error may seem confusing until one notes that when the first line was parsed, `b` was assumed to be a variable, and this variable indeed does not have a value.
 
 This difference is important when coming from APL.
-During parsing, KAP needs to know whether a symbol represents a function, an operator or a value.
+During parsing, Kap needs to know whether a symbol represents a function, an operator or a value.
 Any undefined symbols are assumed to be values.
 
 == Flow control
 
-KAP provides flow control structures that are similar to traditional programming languages.
+Kap provides flow control structures that are similar to traditional programming languages.
 These are described in more detail in the tutorial, and are therefore only listed here briefly:
 
 === if statements
@@ -486,7 +486,7 @@ while (i < 5) {
 
 == Lambda functions
 
-KAP provides support for first-class functions.
+Kap provides support for first-class functions.
 A first-class function is a function that can be processed like a value.
 They can be placed in arrays, and returned from functions.
 To convert a function into a value, the symbol `λ` is used:
@@ -532,7 +532,7 @@ function
 
 == Lazy evaluation
 
-Many functions in KAP returns lazy values.
+Many functions in Kap returns lazy values.
 The value returned is a representation of the result, but the actual computation is only performed once the value is needed.
 The `¨` operator is the one that has the capability of creating the most surprises as it will defer the evaluation of the function until a possibly much later time.
 An example follows:
