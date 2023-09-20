@@ -88,9 +88,9 @@ class APLDouble(val value: Double) : APLNumber() {
     override fun isComplex() = false
 
     override fun formatted(style: FormatStyle) = when (style) {
-        FormatStyle.PLAIN -> value.toString()
-        FormatStyle.PRETTY -> value.toString()
-        FormatStyle.READABLE -> if (value < 0) "¯" + (-value).toString() else value.toString()
+        FormatStyle.PLAIN -> value.formatDouble()
+        FormatStyle.PRETTY -> value.formatDouble()
+        FormatStyle.READABLE -> if (value < 0) "¯" + (-value).formatDouble() else value.formatDouble()
     }
 
     override fun compareEquals(reference: APLValue): Boolean {

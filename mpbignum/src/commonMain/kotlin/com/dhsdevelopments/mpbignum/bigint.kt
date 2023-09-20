@@ -135,6 +135,7 @@ val VALID_DIGITS_UPPER = (0..35).map { i -> if (i < 10) ('0'.code + i).toChar() 
 fun standardParseWithBase(s: String, radix: Int): BigInt {
     fun throwDefault(): Nothing = throw NumberFormatException("Invalid decimal value: ${s}")
 
+    if (s.isEmpty()) throwDefault()
     val isNegative = s[0] == '-'
     val start = if (isNegative) 1 else 0
     if (s.length < start + 1) throwDefault()

@@ -1,6 +1,7 @@
 package array
 
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class OutputFormatterTest : APLTest() {
     @Test
@@ -126,5 +127,27 @@ class OutputFormatterTest : APLTest() {
     @Test
     fun singleElementArrayShouldNotFail() {
         parseAPLExpression("o3:format ,1", withStandardLib = true)
+    }
+
+    @Test
+    fun readableDouble() {
+        parseAPLExpression("5.0 ¯5.0 0.0 1.5 ¯2.5").let { result ->
+            assertDimension(dimensionsOfSize(5), result)
+            assertEquals("5.0", result.valueAt(0).formatted(FormatStyle.READABLE))
+            assertEquals("¯5.0", result.valueAt(1).formatted(FormatStyle.READABLE))
+            assertEquals("0.0", result.valueAt(2).formatted(FormatStyle.READABLE))
+            assertEquals("1.5", result.valueAt(3).formatted(FormatStyle.READABLE))
+            assertEquals("¯2.5", result.valueAt(4).formatted(FormatStyle.READABLE))
+        }
+    }
+
+    @Test
+    fun readableInt() {
+        parseAPLExpression("5 ¯5 0").let { result ->
+            assertDimension(dimensionsOfSize(3), result)
+            assertEquals("5", result.valueAt(0).formatted(FormatStyle.READABLE))
+            assertEquals("¯5", result.valueAt(1).formatted(FormatStyle.READABLE))
+            assertEquals("0", result.valueAt(2).formatted(FormatStyle.READABLE))
+        }
     }
 }
