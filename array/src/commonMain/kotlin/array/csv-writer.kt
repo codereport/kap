@@ -52,7 +52,9 @@ class CsvWriter(val consumer: CharacterConsumer) {
 
     fun writeRow(values: List<String>) {
         val n = numColumns
-        if (n != null && n != values.size) {
+        if (n == null) {
+            numColumns = values.size
+        } else if (n != values.size) {
             throw IllegalArgumentException("Attempt to add a row of ${values.size} cells. Table is expected to have ${n} columns.")
         }
         values.map { v -> maybeEscape(v) }.joinToString(",").let(consumer::writeString)
