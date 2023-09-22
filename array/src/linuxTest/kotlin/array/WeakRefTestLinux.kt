@@ -1,5 +1,8 @@
+@file:OptIn(NativeRuntimeApi::class)
+
 package array
 
+import kotlin.native.runtime.NativeRuntimeApi
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

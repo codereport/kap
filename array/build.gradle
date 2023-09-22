@@ -75,6 +75,9 @@ repositories {
 }
 
 kotlin {
+    targetHierarchy.default {
+    }
+
     jvm() {
         compilations.main.kotlinOptions {
             jvmTarget = "17"

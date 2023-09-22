@@ -8,6 +8,9 @@ repositories {
 }
 
 kotlin {
+    targetHierarchy.default {
+    }
+
     linuxX64("linux") {
         compilations.main.cinterops {
             libedit

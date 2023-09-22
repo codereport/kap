@@ -2,7 +2,7 @@ plugins {
     id 'application'
     id 'org.jetbrains.kotlin.jvm'
     id 'org.openjfx.javafxplugin' version '0.0.14'
-    id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.10'
+    id 'org.jetbrains.kotlin.plugin.serialization' version '1.9.20-Beta2'
 }
 
 repositories {
