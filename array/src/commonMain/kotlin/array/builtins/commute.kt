@@ -28,6 +28,28 @@ class CommuteOp : APLOperatorOneArg {
             override fun evalWithStructuralUnder2Arg(baseFn: APLFunction, context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
                 return inversibleStructuralUnder2Arg(this, baseFn, context, a, b, axis)
             }
+
+            override val optimisationFlags = run {
+                val a2 = fn.optimisationFlags.masked2Arg
+                a2.orWith(OptimisationFlags(if (a2.is2ALongLong) OptimisationFlags.OPTIMISATION_FLAG_1ARG_LONG else 0))
+                    .orWith(OptimisationFlags(if (a2.is2ADoubleDouble) OptimisationFlags.OPTIMISATION_FLAG_1ARG_DOUBLE else 0))
+            }
+
+            override fun eval1ArgLong(context: RuntimeContext, a: Long, axis: APLValue?): Long {
+                return fn.eval2ArgLongLong(context, a, a, axis)
+            }
+
+            override fun eval1ArgDouble(context: RuntimeContext, a: Double, axis: APLValue?): Double {
+                return fn.eval2ArgDoubleDouble(context, a, a, axis)
+            }
+
+            override fun eval2ArgLongLong(context: RuntimeContext, a: Long, b: Long, axis: APLValue?): Long {
+                return fn.eval2ArgLongLong(context, b, a, axis)
+            }
+
+            override fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?): Double {
+                return fn.eval2ArgDoubleDouble(context, b, a, axis)
+            }
         }
 
         override fun make(instantiation: FunctionInstantiation): APLFunction {
