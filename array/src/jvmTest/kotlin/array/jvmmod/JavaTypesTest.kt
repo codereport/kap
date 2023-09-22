@@ -1,9 +1,6 @@
 package array.jvmmod
 
-import array.APLTest
-import array.APLValue
-import array.ListOutOfBounds
-import array.dimensionsOfSize
+import array.*
 import org.junit.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -12,6 +9,10 @@ import kotlin.test.assertTrue
 class TypesExample() {
     fun createString() = "foostring"
     fun createLong() = 1L
+}
+
+class SimpleExample() {
+    override fun toString() = "foo"
 }
 
 class JavaTypesTest : APLTest() {
@@ -90,6 +91,19 @@ class JavaTypesTest : APLTest() {
             """.trimMargin()
         assertFailsWith<ListOutOfBounds> {
             parseAPLExpression(src)
+        }
+    }
+
+    @Test
+    fun toStringCalledWhenPrinting() {
+        val src =
+            """
+            |cl ← jvm:findClass "array.jvmmod.SimpleExample"
+            |constructor ← cl jvm:findConstructor toList ⍬
+            |constructor jvm:createInstance toList ⍬
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assertEquals("foo", result.formatted(FormatStyle.PLAIN))
         }
     }
 
