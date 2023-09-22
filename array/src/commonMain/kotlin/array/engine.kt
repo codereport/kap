@@ -588,7 +588,7 @@ class Engine(numComputeEngines: Int? = null) {
         source: SourceLocation,
         extraBindings: Map<Symbol, APLValue>? = null,
     ): Pair<APLValue, List<String>> {
-        return parseAndEvalWithPostProcessing(source, extraBindings = extraBindings) { engine, context, result ->
+        return parseAndEvalWithPostProcessing(source, extraBindings = extraBindings) { context, result ->
             val collapsed = result.collapse()
             val renderedResult = renderResult(context, collapsed)
             val list = ArrayList<String>()
@@ -604,7 +604,7 @@ class Engine(numComputeEngines: Int? = null) {
         extraBindings: Map<Symbol, APLValue>? = null,
         collapseResult: Boolean = true
     ): APLValue {
-        return parseAndEvalWithPostProcessing(source, extraBindings = extraBindings) { engine, context, result ->
+        return parseAndEvalWithPostProcessing(source, extraBindings = extraBindings) { _, result ->
             if (collapseResult) {
                 result.collapse()
             } else {
@@ -616,7 +616,7 @@ class Engine(numComputeEngines: Int? = null) {
     fun <T> parseAndEvalWithPostProcessing(
         source: SourceLocation,
         extraBindings: Map<Symbol, APLValue>? = null,
-        postProcess: (Engine, RuntimeContext, APLValue) -> T
+        postProcess: (RuntimeContext, APLValue) -> T
     ): T {
         TokenGenerator(this, source).use { tokeniser ->
             val parser = APLParser(tokeniser)
@@ -628,7 +628,7 @@ class Engine(numComputeEngines: Int? = null) {
                     recomputeRootFrame()
                     val context = RuntimeContext(this)
                     val result = instr.evalWithContext(context)
-                    return postProcess(tokeniser.engine, context, result)
+                    return postProcess(context, result)
                 }
             } else {
                 // Extra bindings are requested, so we have to create an inner environment to bind the variables
@@ -655,7 +655,7 @@ class Engine(numComputeEngines: Int? = null) {
                         }
                         instr.evalWithContext(context)
                     }
-                    return postProcess(tokeniser.engine, context, result)
+                    return postProcess(context, result)
                 }
             }
         }

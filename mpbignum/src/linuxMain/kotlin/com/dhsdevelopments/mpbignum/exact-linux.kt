@@ -47,6 +47,7 @@ actual inline fun mulExact(a: Long, b: Long): Long {
     return a * b
 }
 
+@Throws(LongExpressionOverflow::class)
 actual inline fun addExactWrapped(a: Long, b: Long): Long {
     val r = a + b
     if ((a xor r) and (b xor r) < 0L) {
@@ -55,6 +56,7 @@ actual inline fun addExactWrapped(a: Long, b: Long): Long {
     return r
 }
 
+@Throws(LongExpressionOverflow::class)
 actual inline fun subExactWrapped(a: Long, b: Long): Long {
     val r = a - b
     // HD 2-12 Overflow iff the arguments have different signs and
@@ -65,6 +67,7 @@ actual inline fun subExactWrapped(a: Long, b: Long): Long {
     return r
 }
 
+@Throws(LongExpressionOverflow::class)
 actual inline fun mulExactWrapped(a: Long, b: Long): Long {
     if ((a or b) and -0x80000000 != 0L) {
         if (a > 0) {

@@ -45,10 +45,8 @@ kotlin {
                 // https://gist.github.com/karlrwjohnson/a631cbda6b2fb316bc0a9f37156eae5d
                 var list = new ArrayList()
                 list.addAll(devServer.static)
-                println("adding to path: " + compilation.output.resourcesDir.path)
                 list.add(new File(compilation.output.resourcesDir.path + "/../../../dist/webworker/developmentExecutable").canonicalPath)
                 var p = new File(compilation.output.resourcesDir.path + "/../../../../../array/standard-lib").canonicalPath
-                println("resulting path: " + p)
                 list.add([directory: p, publicPath: "/standard-lib"])
                 devServer.static = list
             }

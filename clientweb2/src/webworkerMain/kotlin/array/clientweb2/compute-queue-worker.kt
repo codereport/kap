@@ -87,7 +87,7 @@ private fun makeEngineStartedDescriptor(engine: Engine): dynamic {
 private fun processEvalRequest(engine: Engine, request: EvalRequest) {
     engine.clearInterrupted()
     val result = try {
-        engine.parseAndEvalWithPostProcessing(StringSourceLocation(request.src)) { _, context, result ->
+        engine.parseAndEvalWithPostProcessing(StringSourceLocation(request.src)) { context, result ->
             val collapsed = result.collapse()
             when (request.resultType) {
                 ResultType.FORMATTED_PRETTY -> StringResponse(formatResultToStrings(renderResult(context, collapsed)).joinToString("\n"))
