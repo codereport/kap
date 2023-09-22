@@ -95,7 +95,7 @@ abstract class GradeFunction(pos: FunctionInstantiation) : NoAxisAPLFunction(pos
             }
             applyReverse(res)
         }
-        return APLArrayList(dimensionsOfSize(sorted.size), sorted.map { it.makeAPLNumber() })
+        return APLArrayLong(dimensionsOfSize(sorted.size), LongArray(sorted.size) { i -> sorted[i].toLong() })
     }
 
     abstract fun applyReverse(result: Int): Int
