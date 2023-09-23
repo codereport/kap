@@ -64,16 +64,15 @@ class TokenGeneratorTest {
         assertSame(EndOfFile, gen.nextToken())
     }
 
-//    @Test
-//    fun testNewline() {
-//        val gen = makeGenerator("foo\nbar test")
-//        val expectedTokens = arrayOf("foo", "bar", "test")
-//        expectedTokens.forEach { name ->
-//            val token = gen.nextToken()
-//            assertTokenIsSymbol(gen, token, name)
-//        }
-//        assertSame(EndOfFile, gen.nextToken())
-//    }
+    @Test
+    fun testNewline() {
+        val gen = makeGenerator("foo\nbar test")
+        assertTokenIsSymbol(gen, gen.nextToken(), "foo")
+        assertSame(Newline, gen.nextToken())
+        assertTokenIsSymbol(gen, gen.nextToken(), "bar")
+        assertTokenIsSymbol(gen, gen.nextToken(), "test")
+        assertSame(EndOfFile, gen.nextToken())
+    }
 
     @Test
     fun newlinePara() {
@@ -124,6 +123,16 @@ class TokenGeneratorTest {
     }
 
     @Test
+    fun parseDoubleWithScientificNotation() {
+        val gen = makeGenerator("1e4 ¯1e2 1e20 2.1e10")
+        assertExactDouble(1e4, gen.nextToken())
+        assertExactDouble(-1e2, gen.nextToken())
+        assertExactDouble(1e20, gen.nextToken())
+        assertExactDouble(2.1e10, gen.nextToken())
+        assertSame(EndOfFile, gen.nextToken())
+    }
+
+    @Test
     fun parseHexNumbers() {
         val gen = makeGenerator(
             """
@@ -145,6 +154,11 @@ class TokenGeneratorTest {
         assertInteger(-0x1234abcdefL, gen.nextToken())
         assertBigInt(BigInt.of("-abcdefabcdefabcdef1234567890", 16), gen.nextToken())
         assertSame(EndOfFile, gen.nextToken())
+    }
+
+    private fun assertExactDouble(expected: Double, token: Token) {
+        assertTrue(token is ParsedDouble)
+        assertEquals(expected, token.value)
     }
 
     private fun assertDouble(expected: Pair<Double, Double>, token: Token) {

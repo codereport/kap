@@ -608,6 +608,14 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
                 val s = groups.get(2) ?: throw IllegalNumberFormat("Illegal format of number part")
                 ParsedDouble(withNeg(sign.value != "", s.value).toDouble())
             },
+            NumberParser("^(¯?)([0-9]+(?:\\.[0-9]*)?)[eE]([0-9]+)\$".toRegex()) { result ->
+                val groups = result.groups
+                val sign = groups.get(1) ?: throw IllegalNumberFormat("Illegal format of sign")
+                val s = groups.get(2) ?: throw IllegalNumberFormat("Illegal format of number part")
+                val exponent = groups.get(3) ?: throw IllegalNumberFormat("Illegal format of exponent part")
+                val valueWithExponent = "${s.value}e${exponent.value}"
+                ParsedDouble(withNeg(sign.value != "", valueWithExponent).toDouble())
+            },
             NumberParser("^(¯?)([0-9]+)$".toRegex()) { result ->
                 val groups = result.groups
                 val sign = groups.get(1) ?: throw IllegalNumberFormat("Illegal format of sign")

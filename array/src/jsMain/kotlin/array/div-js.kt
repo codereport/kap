@@ -39,11 +39,14 @@ actual fun <T : Any> makeMPThreadLocalBackend(type: KClass<T>): MPThreadLocal<T>
     }
 }
 
+private val NON_SCIENTIFIC_INTEGER_REGEX = "^-?[0-9]+$".toRegex()
+
 actual fun Double.formatDouble(): String {
-    return if (this.rem(1.0) == 0.0) {
-        "${this}.0"
+    val s = this.toString()
+    return if (NON_SCIENTIFIC_INTEGER_REGEX.matches(s)) {
+        "${s}.0"
     } else {
-        this.toString()
+        s
     }
 }
 
