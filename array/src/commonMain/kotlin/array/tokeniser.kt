@@ -638,7 +638,7 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
                     ParsedBigInt(v)
                 }
             },
-            NumberParser("^(¯?)([0-9]+(?:\\.[0-9]*)?)(?:[eE](¯?)([0-9]+(?:\\.[0-9]*)?))?[jJ](¯?)([0-9]+(?:\\.[0-9]*)?)(?:[eE](¯?)([0-9]+(?:\\\\.[0-9]*)?))?$".toRegex()) { result ->
+            NumberParser("^(¯?)([0-9]+(?:\\.[0-9]*)?)(?:[eE](¯?)([0-9]+))?[jJ](¯?)([0-9]+(?:\\.[0-9]*)?)(?:[eE](¯?)([0-9]+))?$".toRegex()) { result ->
                 val groups = result.groups
                 val realSign = groups.get(1)!!.value
                 val realS = groups.get(2)!!.value
