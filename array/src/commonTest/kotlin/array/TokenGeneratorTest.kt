@@ -124,11 +124,13 @@ class TokenGeneratorTest {
 
     @Test
     fun parseDoubleWithScientificNotation() {
-        val gen = makeGenerator("1e4 ¯1e2 1e20 2.1e10")
+        val gen = makeGenerator("1e4 ¯1e2 1e20 2.1e10 1e¯30 ¯2.3e¯30")
         assertExactDouble(1e4, gen.nextToken())
         assertExactDouble(-1e2, gen.nextToken())
         assertExactDouble(1e20, gen.nextToken())
         assertExactDouble(2.1e10, gen.nextToken())
+        assertExactDouble(1e-30, gen.nextToken())
+        assertExactDouble(-2.3e-30, gen.nextToken())
         assertSame(EndOfFile, gen.nextToken())
     }
 
@@ -355,39 +357,35 @@ class TokenGeneratorTest {
     @Test
     fun complexNumbers() {
         val gen = makeGenerator("1j2 0j2 2j0 1J2 0J2 ¯1j2 1j¯2 ¯1j¯2")
-        gen.nextToken().let { token ->
-            assertTrue(token is ParsedComplex)
-            assertEquals(Complex(1.0, 2.0), token.value)
-        }
-        gen.nextToken().let { token ->
-            assertTrue(token is ParsedComplex)
-            assertEquals(Complex(0.0, 2.0), token.value)
-        }
-        gen.nextToken().let { token ->
-            assertTrue(token is ParsedComplex)
-            assertEquals(Complex(2.0, 0.0), token.value)
-        }
-        gen.nextToken().let { token ->
-            assertTrue(token is ParsedComplex)
-            assertEquals(Complex(1.0, 2.0), token.value)
-        }
-        gen.nextToken().let { token ->
-            assertTrue(token is ParsedComplex)
-            assertEquals(Complex(0.0, 2.0), token.value)
-        }
-        gen.nextToken().let { token ->
-            assertTrue(token is ParsedComplex)
-            assertEquals(Complex(-1.0, 2.0), token.value)
-        }
-        gen.nextToken().let { token ->
-            assertTrue(token is ParsedComplex)
-            assertEquals(Complex(1.0, -2.0), token.value)
-        }
-        gen.nextToken().let { token ->
-            assertTrue(token is ParsedComplex)
-            assertEquals(Complex(-1.0, -2.0), token.value)
-        }
+        assertComplex(Complex(1.0, 2.0), gen.nextToken())
+        assertComplex(Complex(0.0, 2.0), gen.nextToken())
+        assertComplex(Complex(2.0, 0.0), gen.nextToken())
+        assertComplex(Complex(1.0, 2.0), gen.nextToken())
+        assertComplex(Complex(0.0, 2.0), gen.nextToken())
+        assertComplex(Complex(-1.0, 2.0), gen.nextToken())
+        assertComplex(Complex(1.0, -2.0), gen.nextToken())
+        assertComplex(Complex(-1.0, -2.0), gen.nextToken())
         assertSame(EndOfFile, gen.nextToken())
+    }
+
+    @Test
+    fun complexWithDecimals() {
+        val gen = makeGenerator("1.2j2.1 ¯1.1j6 2j¯3.1 1e8j9 4j2e3 ¯1.2e20j¯2.1e19 1.1e¯20j3.3e¯21 ¯2e¯4j¯3.1e¯10 ¯2.3e¯10j1e30")
+        assertComplex(Complex(1.2, 2.1), gen.nextToken())
+        assertComplex(Complex(-1.1, 6.0), gen.nextToken())
+        assertComplex(Complex(2.0, -3.1), gen.nextToken())
+        assertComplex(Complex(1e8, 9.0), gen.nextToken())
+        assertComplex(Complex(4.0, 2e3), gen.nextToken())
+        assertComplex(Complex(-1.2e20, -2.1e19), gen.nextToken())
+        assertComplex(Complex(1.1e-20, 3.3e-21), gen.nextToken())
+        assertComplex(Complex(-2e-4, -3.1e-10), gen.nextToken())
+        assertComplex(Complex(-2.3e-10, 1e30), gen.nextToken())
+        assertSame(EndOfFile, gen.nextToken())
+    }
+
+    private fun assertComplex(expected: Complex, token: Token) {
+        assertTrue(token is ParsedComplex)
+        assertEquals(expected, token.value)
     }
 
     @Test

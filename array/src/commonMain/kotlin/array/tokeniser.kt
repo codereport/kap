@@ -604,22 +604,22 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
         private val NUMBER_PARSERS = listOf(
             NumberParser("^(¯?)([0-9]+\\.[0-9]*)\$".toRegex()) { result ->
                 val groups = result.groups
-                val sign = groups.get(1) ?: throw IllegalNumberFormat("Illegal format of sign")
-                val s = groups.get(2) ?: throw IllegalNumberFormat("Illegal format of number part")
-                ParsedDouble(withNeg(sign.value != "", s.value).toDouble())
+                val sign = groups.get(1)!!.value
+                val s = groups.get(2)!!.value
+                ParsedDouble(makeDoubleWithExponent(sign, s, null, null))
             },
-            NumberParser("^(¯?)([0-9]+(?:\\.[0-9]*)?)[eE]([0-9]+)\$".toRegex()) { result ->
+            NumberParser("^(¯?)([0-9]+(?:\\.[0-9]*)?)[eE](¯?)([0-9]+)\$".toRegex()) { result ->
                 val groups = result.groups
-                val sign = groups.get(1) ?: throw IllegalNumberFormat("Illegal format of sign")
-                val s = groups.get(2) ?: throw IllegalNumberFormat("Illegal format of number part")
-                val exponent = groups.get(3) ?: throw IllegalNumberFormat("Illegal format of exponent part")
-                val valueWithExponent = "${s.value}e${exponent.value}"
-                ParsedDouble(withNeg(sign.value != "", valueWithExponent).toDouble())
+                val sign = groups.get(1)!!.value
+                val s = groups.get(2)!!.value
+                val exponentSign = groups.get(3)!!.value
+                val exponent = groups.get(4)!!.value
+                ParsedDouble(makeDoubleWithExponent(sign, s, exponentSign, exponent))
             },
             NumberParser("^(¯?)([0-9]+)$".toRegex()) { result ->
                 val groups = result.groups
-                val sign = groups.get(1) ?: throw IllegalNumberFormat("Illegal format of sign")
-                val s = groups.get(2) ?: throw IllegalNumberFormat("Illegal format of number part")
+                val sign = groups.get(1)!!
+                val s = groups.get(2)!!
                 val v = BigInt.of(withNeg(sign.value != "", s.value))
                 if (v >= Long.MIN_VALUE && v <= Long.MAX_VALUE) {
                     ParsedLong(v.toLong())
@@ -629,8 +629,8 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
             },
             NumberParser("^(¯?)0x([0-9a-fA-F]+)$".toRegex()) { result ->
                 val groups = result.groups
-                val sign = groups.get(1) ?: throw IllegalNumberFormat("Illegal format of sign")
-                val s = groups.get(2) ?: throw IllegalNumberFormat("Illegal format of number part")
+                val sign = groups.get(1)!!
+                val s = groups.get(2)!!
                 val v = BigInt.of(withNeg(sign.value != "", s.value), 16)
                 if (v >= Long.MIN_VALUE && v <= Long.MAX_VALUE) {
                     ParsedLong(v.toLong())
@@ -638,17 +638,26 @@ class TokenGenerator(val engine: Engine, contentArg: SourceLocation) : NativeClo
                     ParsedBigInt(v)
                 }
             },
-            NumberParser("^(¯?)([0-9]+(?:\\.[0-9]*)?)[jJ](¯?)([0-9]+(?:\\.[0-9]*)?)$".toRegex()) { result ->
+            NumberParser("^(¯?)([0-9]+(?:\\.[0-9]*)?)(?:[eE](¯?)([0-9]+(?:\\.[0-9]*)?))?[jJ](¯?)([0-9]+(?:\\.[0-9]*)?)(?:[eE](¯?)([0-9]+(?:\\\\.[0-9]*)?))?$".toRegex()) { result ->
                 val groups = result.groups
-                val realSign = groups.get(1) ?: throw IllegalNumberFormat("Illegal format of sign in real part")
-                val realS = groups.get(2) ?: throw IllegalNumberFormat("Illegal format of number in real part")
-                val complexSign = groups.get(3) ?: throw IllegalNumberFormat("Illegal format of sign in complex")
-                val complexS = groups.get(4) ?: throw IllegalNumberFormat("Illegal format of number in complex part")
+                val realSign = groups.get(1)!!.value
+                val realS = groups.get(2)!!.value
+                val realExpSign = groups.get(3)?.value
+                val realExpS = groups.get(4)?.value
+                val complexSign = groups.get(5)!!.value
+                val complexS = groups.get(6)!!.value
+                val complexExpSign = groups.get(7)?.value
+                val complexExpS = groups.get(8)?.value
                 ParsedComplex(
                     Complex(
-                        withNeg(realSign.value != "", realS.value).toDouble(),
-                        withNeg(complexSign.value != "", complexS.value).toDouble()))
+                        makeDoubleWithExponent(realSign, realS, realExpSign, realExpS),
+                        makeDoubleWithExponent(complexSign, complexS, complexExpSign, complexExpS)))
             }
         )
+
+        private fun makeDoubleWithExponent(sign: String, value: String, exponentSign: String?, exponent: String?): Double {
+            val valueWithExponent = if (exponentSign != null && exponent != null) "${value}e${withNeg(exponentSign != "", exponent)}" else value
+            return withNeg(sign != "", valueWithExponent).toDouble()
+        }
     }
 }
