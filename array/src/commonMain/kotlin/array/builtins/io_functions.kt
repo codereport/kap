@@ -31,6 +31,22 @@ class ReadFunction : APLFunctionDescriptor {
     override fun make(instantiation: FunctionInstantiation) = ReadFunctionImpl(instantiation)
 }
 
+class WriteFunction : APLFunctionDescriptor {
+    class WriteFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
+            val b0 = b.collapse()
+            val file = a.toStringValue(pos)
+            openOutputCharFile(file).use { output ->
+                output.writeString(b0.formatted(FormatStyle.PLAIN))
+            }
+            return b0
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = WriteFunctionImpl(instantiation)
+}
+
+
 class PrintAPLFunction : APLFunctionDescriptor {
     class PrintAPLFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {

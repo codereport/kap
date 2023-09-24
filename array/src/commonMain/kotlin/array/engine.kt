@@ -379,6 +379,7 @@ class Engine(numComputeEngines: Int? = null) {
 
         // io functions
         registerNativeFunction("read", ReadFunction(), "io")
+        registerNativeFunction("write", WriteFunction(), "io")
         registerNativeFunction("print", PrintAPLFunction(), "io")
         registerNativeFunction("println", PrintLnAPLFunction(), "io")
         registerNativeFunction("writeCsv", WriteCsvFunction(), "io")

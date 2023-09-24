@@ -58,15 +58,29 @@ actual fun openInputCharFile(name: String): CharacterProvider {
 
 class LinuxCharConsumer(val fd: Int) : CharacterConsumer {
     override fun writeChar(ch: Int) {
+        val utf = charToString(ch).encodeToByteArray()
+        writeBufferToFd(utf)
+    }
+
+    override fun writeString(s: String) {
+        val utf = s.encodeToByteArray()
+        writeBufferToFd(utf)
+    }
+
+    private fun writeBufferToFd(utf: ByteArray) {
         memScoped {
-            val utf = charToString(ch).encodeToByteArray()
             val buf = allocArray<ByteVar>(utf.size)
             utf.forEachIndexed { i, value ->
                 buf[i] = value
             }
-            val result = write(fd, buf, utf.size.toULong())
-            if (result == -1L) {
-                translateErrno(errno)
+            val size = utf.size.toLong()
+            var written = 0L
+            while (written < size) {
+                val result = write(fd, buf.plus(written), (size - written).toULong())
+                if (result == -1L) {
+                    translateErrnoAndThrow(errno)
+                }
+                written += result
             }
         }
     }
@@ -74,7 +88,7 @@ class LinuxCharConsumer(val fd: Int) : CharacterConsumer {
     override fun close() {
         val result = close(fd)
         if (result == -1) {
-            translateErrno(errno)
+            translateErrnoAndThrow(errno)
         }
     }
 }
@@ -128,7 +142,7 @@ actual fun openInputFile(name: String): ByteProvider {
 private fun openInputWithTranslatedExceptions(name: String): Int {
     val fd = open(name, O_RDONLY)
     if (fd == -1) {
-        translateErrno(errno)
+        translateErrnoAndThrow(errno)
     }
     return fd
 }
@@ -137,12 +151,12 @@ private fun openOutputWithTranslatedExceptions(name: String): Int {
     val fd = open(name, O_WRONLY or O_CREAT, 438) // rw-rw-rw-
     if (fd == -1) {
         println("Path: '${currentDirectory()}'")
-        translateErrno(errno, "Open file: '${name}'")
+        translateErrnoAndThrow(errno, "Open file: '${name}'")
     }
     return fd
 }
 
-private fun translateErrno(err: Int, description: String? = null): Nothing {
+private fun translateErrnoAndThrow(err: Int, description: String? = null): Nothing {
     val prefix = if (description == null) "" else "${description}: "
     if (err == ENOENT) {
         throw MPFileNotFoundException(prefix + nativeErrorString())
@@ -192,7 +206,7 @@ actual fun createDirectory(path: String) {
     memScoped {
         val result = mkdir(path, 511U) // rwxrwxrwx
         if (result == -1) {
-            translateErrno(errno)
+            translateErrnoAndThrow(errno)
         }
     }
 }
