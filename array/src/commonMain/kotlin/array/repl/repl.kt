@@ -86,6 +86,7 @@ fun runRepl(args: Array<String>, defaultLibPath: String? = null, keyboardInput: 
                 }
             }
         }
+        engine.close()
     } catch (e: ReplFailedException) {
         println(e.formatted())
     }

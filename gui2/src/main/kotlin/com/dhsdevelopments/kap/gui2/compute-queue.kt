@@ -4,12 +4,17 @@ import array.CharacterOutput
 import array.Engine
 import array.StringSourceLocation
 import java.util.concurrent.CopyOnWriteArrayList
-import java.util.concurrent.LinkedTransferQueue
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 class ComputeQueue {
     private val engine = Engine()
-    private val queue = LinkedTransferQueue<Request>()
+    private val queue = ArrayDeque<Request>()
+    private val queueLock = ReentrantLock()
+    private val queueCond = queueLock.newCondition()
+    private var stopped = false
     private val thread: Thread
+
     private val standardOutputListeners = CopyOnWriteArrayList<StdoutListener>()
 
     init {
@@ -32,15 +37,41 @@ class ComputeQueue {
 
     private fun calcLoop() {
         println("Starting calculation loop")
-        while (!Thread.interrupted()) {
-            val request = queue.take()
-            request.fn(engine)
+        try {
+            while (!Thread.interrupted() && !stopped) {
+                val request = queueLock.withLock {
+                    while (queue.isEmpty()) {
+                        queueCond.await()
+                    }
+                    queue.removeFirst()
+                }
+                request.fn(engine)
+            }
+        } catch (e: InterruptedException) {
+            println("Interrupted, closing calculation queue")
         }
-        println("Stopping calculation loop")
+        println("Stopping engine")
+        engine.close()
+    }
+
+    fun stop() {
+        queueLock.withLock {
+            queue.clear()
+            stopped = true
+            queueCond.signal()
+        }
+        thread.interrupt()
+        engine.interruptEvaluation()
+        thread.join()
     }
 
     fun requestJob(request: Request) {
-        queue.put(request)
+        queueLock.withLock {
+            if (!stopped) {
+                queue.add(request)
+                queueCond.signal()
+            }
+        }
     }
 
     fun addStandardOutputListener(listener: StdoutListener) = standardOutputListeners.add(listener)
