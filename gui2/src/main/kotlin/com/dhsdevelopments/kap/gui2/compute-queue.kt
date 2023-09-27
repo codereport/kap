@@ -38,12 +38,19 @@ class ComputeQueue {
     private fun calcLoop() {
         println("Starting calculation loop")
         try {
-            while (!Thread.interrupted() && !stopped) {
+            while (true) {
                 val request = queueLock.withLock {
-                    while (queue.isEmpty()) {
+                    while (!stopped && queue.isEmpty()) {
                         queueCond.await()
                     }
-                    queue.removeFirst()
+                    if (stopped) {
+                        null
+                    } else {
+                        queue.removeFirst()
+                    }
+                }
+                if (request == null) {
+                    break
                 }
                 request.fn(engine)
             }
