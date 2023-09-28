@@ -1,7 +1,7 @@
 package array
 
-import java.util.concurrent.locks.ReentrantReadWriteLock
-import kotlin.concurrent.write
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 class TimerJob
 
@@ -11,7 +11,7 @@ class TimerThread(val handler: JvmTimerHandler) : Thread("Timer thread") {
     override fun run() {
         var stopped = false
         while (!stopped) {
-            val job = handler.timerThreadLock.write {
+            val job = handler.timerThreadLock.withLock {
                 val element = queue.removeFirstOrNull()
                 if (element == null) {
                     handler.timerThread = null
@@ -33,11 +33,11 @@ class TimerThread(val handler: JvmTimerHandler) : Thread("Timer thread") {
 }
 
 class JvmTimerHandler(val engine: Engine) : TimerHandler {
-    val timerThreadLock = ReentrantReadWriteLock()
+    val timerThreadLock = ReentrantLock()
     var timerThread: TimerThread? = null
 
     override fun registerTimer(delays: IntArray, callbacks: List<LambdaValue>): APLValue {
-        val timer = timerThreadLock.write {
+        val timer = timerThreadLock.withLock {
             val ref = timerThread
             val th = if (ref == null) {
                 val v = TimerThread(this)
