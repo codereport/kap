@@ -1,6 +1,7 @@
 package array
 
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class TypesTest : APLTest() {
     @Test
@@ -64,6 +65,90 @@ class TypesTest : APLTest() {
     @Test
     fun testMaps() {
         testResultType("typeof map \"a\" 2", APLValueType.MAP)
+    }
+
+    @Test
+    fun specialisedTypeFromAddLong() {
+        parseAPLExpression("1 2 + 3 4", collapse = false).let { result ->
+            assertEquals(ArrayMemberType.LONG, result.specialisedType)
+        }
+    }
+
+    @Test
+    fun specialisedTypeFromAddSingleValueLeftLong() {
+        parseAPLExpression("1 + 3 4", collapse = false).let { result ->
+            assertEquals(ArrayMemberType.LONG, result.specialisedType)
+        }
+    }
+
+    @Test
+    fun specialisedTypeFromSingleValueRightAddLong() {
+        parseAPLExpression("1 2 + 3", collapse = false).let { result ->
+            assertEquals(ArrayMemberType.LONG, result.specialisedType)
+        }
+    }
+
+    @Test
+    fun specialisedTypeFromAddDouble() {
+        parseAPLExpression("1.1 2.0 + 3.9 4.8", collapse = false).let { result ->
+            assertEquals(ArrayMemberType.DOUBLE, result.specialisedType)
+        }
+    }
+
+    @Test
+    fun specialisedTypeFromSingleValueLeftAddDouble() {
+        parseAPLExpression("1.1 + 3.9 4.8", collapse = false).let { result ->
+            assertEquals(ArrayMemberType.DOUBLE, result.specialisedType)
+        }
+    }
+
+    @Test
+    fun specialisedTypeFromSingleValueRightAddDouble() {
+        parseAPLExpression("1.1 2.0 + 3.9", collapse = false).let { result ->
+            assertEquals(ArrayMemberType.DOUBLE, result.specialisedType)
+        }
+    }
+
+    @Test
+    fun specialisedTypeAddLongAndDoubleArrays() {
+        parseAPLExpression("1.1 2.0 + 10 11", collapse = false).let { result ->
+            assertEquals(ArrayMemberType.DOUBLE, result.specialisedType)
+        }
+    }
+
+    @Test
+    fun specialisedTypeAddDoubleAndLongArrays() {
+        parseAPLExpression("1 2 + 10.0 11.3", collapse = false).let { result ->
+            assertEquals(ArrayMemberType.DOUBLE, result.specialisedType)
+        }
+    }
+
+    @Test
+    fun specialisedTypeAddSingleValueDoubleLongArray() {
+        parseAPLExpression("1.1 + 10 11", collapse = false).let { result ->
+            assertEquals(ArrayMemberType.DOUBLE, result.specialisedType)
+        }
+    }
+
+    @Test
+    fun specialisedTypeAddLongArraysSingleValueDouble() {
+        parseAPLExpression("10 11 + 1.1", collapse = false).let { result ->
+            assertEquals(ArrayMemberType.DOUBLE, result.specialisedType)
+        }
+    }
+
+    @Test
+    fun specialisedTypeAddSingleValueLongDoubleArray() {
+        parseAPLExpression("1 + 10.0 11.3", collapse = false).let { result ->
+            assertEquals(ArrayMemberType.DOUBLE, result.specialisedType)
+        }
+    }
+
+    @Test
+    fun specialisedTypeAddDoubleArraySingleValueLong() {
+        parseAPLExpression("1.1 2.0 + 1", collapse = false).let { result ->
+            assertEquals(ArrayMemberType.DOUBLE, result.specialisedType)
+        }
     }
 
     private fun testResultType(expression: String, expectedResultSym: APLValueType) {
