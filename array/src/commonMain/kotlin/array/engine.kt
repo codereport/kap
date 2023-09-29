@@ -42,13 +42,18 @@ value class OptimisationFlags(val flags: Int) {
     val is1ADouble get() = (flags and OPTIMISATION_FLAG_1ARG_DOUBLE) != 0
     val is2ALongLong get() = (flags and OPTIMISATION_FLAG_2ARG_LONG_LONG) != 0
     val is2ADoubleDouble get() = (flags and OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE) != 0
+    val isFloatConversionRules get() = (flags and OPTIMISATION_FLAG_FLOAT_CONVERSION_RULES) != 0
+    val is2ADFloatConversionRules
+        get() = (flags and (OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE or OPTIMISATION_FLAG_FLOAT_CONVERSION_RULES)) ==
+                (OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE or OPTIMISATION_FLAG_FLOAT_CONVERSION_RULES)
 
     fun flagsString(): String {
         val flagMap = listOf(
             OPTIMISATION_FLAG_1ARG_LONG to "1ALong",
             OPTIMISATION_FLAG_1ARG_DOUBLE to "1ADouble",
             OPTIMISATION_FLAG_2ARG_LONG_LONG to "2ALongLong",
-            OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE to "2ADoubleDouble")
+            OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE to "2ADoubleDouble",
+            OPTIMISATION_FLAG_FLOAT_CONVERSION_RULES to "floatConversionRules")
         val flagsString = flagMap.filter { (value, _) -> (flags and value) != 0 }.joinToString(", ") { it.second }
         return "OptimisationFlags(flags=0x${flags.toString(16)}, values: ${flagsString})"
     }
@@ -70,6 +75,7 @@ value class OptimisationFlags(val flags: Int) {
         const val OPTIMISATION_FLAG_1ARG_DOUBLE = 0x2
         const val OPTIMISATION_FLAG_2ARG_LONG_LONG = 0x4
         const val OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE = 0x8
+        const val OPTIMISATION_FLAG_FLOAT_CONVERSION_RULES = 0x10
 
         const val OPTIMISATION_FLAGS_1ARG_MASK = OPTIMISATION_FLAG_1ARG_LONG or OPTIMISATION_FLAG_1ARG_DOUBLE
         const val OPTIMISATION_FLAGS_2ARG_MASK = OPTIMISATION_FLAG_2ARG_LONG_LONG or OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE

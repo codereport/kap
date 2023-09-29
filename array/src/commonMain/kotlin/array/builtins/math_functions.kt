@@ -7,6 +7,7 @@ import array.OptimisationFlags.Companion.OPTIMISATION_FLAG_1ARG_DOUBLE
 import array.OptimisationFlags.Companion.OPTIMISATION_FLAG_1ARG_LONG
 import array.OptimisationFlags.Companion.OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE
 import array.OptimisationFlags.Companion.OPTIMISATION_FLAG_2ARG_LONG_LONG
+import array.OptimisationFlags.Companion.OPTIMISATION_FLAG_FLOAT_CONVERSION_RULES
 import array.complex.*
 import com.dhsdevelopments.mpbignum.*
 import kotlin.math.*
@@ -150,7 +151,11 @@ class LongArraySum2ArgsLeftScalar(
     override val dimensions = b0.dimensions
     override val specialisedType get() = ArrayMemberType.LONG
 
-    override fun valueAt(p: Int) = valueAtLong(p, pos).makeAPLNumber()
+    override fun valueAt(p: Int) = try {
+        valueAtLong(p, pos).makeAPLNumber()
+    } catch (e: LongExpressionOverflow) {
+        e.result.makeAPLNumber()
+    }
 
     override fun valueAtLong(p: Int, pos: Position?): Long {
         val b1 = try {
@@ -191,7 +196,40 @@ class LongArraySum2ArgsRightScalar(
     }
 }
 
+class DoubleArraySum2ArgsLeftScalar(
+    val fn: MathCombineAPLFunction,
+    val a0: Double,
+    val b0: APLValue,
+    val pos: Position
+) : APLArray() {
+    override val dimensions = b0.dimensions
+    override val specialisedType get() = ArrayMemberType.DOUBLE
+
+    override fun valueAt(p: Int) = valueAtDouble(p, pos).makeAPLNumber()
+
+    override fun valueAtDouble(p: Int, pos: Position?): Double {
+        return fn.combine2ArgDouble(a0, b0.valueAtDouble(p, pos))
+    }
+}
+
+class DoubleArraySum2ArgsRightScalar(
+    val fn: MathCombineAPLFunction,
+    val a0: APLValue,
+    val b0: Double,
+    val pos: Position
+) : APLArray() {
+    override val dimensions = a0.dimensions
+    override val specialisedType get() = ArrayMemberType.DOUBLE
+
+    override fun valueAt(p: Int) = valueAtDouble(p, pos).makeAPLNumber()
+
+    override fun valueAtDouble(p: Int, pos: Position?): Double {
+        return fn.combine2ArgDouble(a0.valueAtDouble(p, pos), b0)
+    }
+}
+
 abstract class MathCombineAPLFunction(pos: FunctionInstantiation) : APLFunction(pos) {
+
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
         if (a is APLSingleValue) {
             return combine1Arg(a)
@@ -212,7 +250,12 @@ abstract class MathCombineAPLFunction(pos: FunctionInstantiation) : APLFunction(
                 when {
                     a is APLLong && b.specialisedType === ArrayMemberType.LONG && optimisationFlags.is2ALongLong ->
                         LongArraySum2ArgsLeftScalar(this, a.value, b, pos)
-
+                    a is APLDouble && b.specialisedType === ArrayMemberType.DOUBLE && optimisationFlags.is2ADoubleDouble ->
+                        DoubleArraySum2ArgsLeftScalar(this, a.value, b, pos)
+                    a is APLLong && b.specialisedType === ArrayMemberType.DOUBLE && optimisationFlags.is2ADFloatConversionRules ->
+                        DoubleArraySum2ArgsLeftScalar(this, a.value.toDouble(), b, pos)
+                    a is APLDouble && b.specialisedType === ArrayMemberType.LONG && optimisationFlags.is2ADFloatConversionRules ->
+                        DoubleArraySum2ArgsLeftScalar(this, a.value, b, pos)
                     b.isScalar() -> EnclosedAPLValue.make(makeCellSumFunction2Args(a, b.valueAt(0), pos))
                     else ->
                         GenericArraySum2Args(this, a, b, pos)
@@ -222,7 +265,13 @@ abstract class MathCombineAPLFunction(pos: FunctionInstantiation) : APLFunction(
                 when {
                     b is APLLong && a.specialisedType === ArrayMemberType.LONG && optimisationFlags.is2ALongLong ->
                         LongArraySum2ArgsRightScalar(this, a, b.value, pos)
+                    b is APLDouble && a.specialisedType === ArrayMemberType.DOUBLE && optimisationFlags.is2ADoubleDouble ->
+                        DoubleArraySum2ArgsRightScalar(this, a, b.value, pos)
                     a.isScalar() -> EnclosedAPLValue.make(makeCellSumFunction2Args(a.valueAt(0), b, pos))
+                    b is APLLong && a.specialisedType === ArrayMemberType.DOUBLE && optimisationFlags.is2ADFloatConversionRules ->
+                        DoubleArraySum2ArgsRightScalar(this, a, b.value.toDouble(), pos)
+                    b is APLDouble && a.specialisedType === ArrayMemberType.LONG && optimisationFlags.is2ADFloatConversionRules ->
+                        DoubleArraySum2ArgsRightScalar(this, a, b.value, pos)
                     else -> GenericArraySum2Args(this, a, b, pos)
                 }
             }
@@ -230,6 +279,10 @@ abstract class MathCombineAPLFunction(pos: FunctionInstantiation) : APLFunction(
             a.specialisedType === ArrayMemberType.LONG && b.specialisedType === ArrayMemberType.LONG && optimisationFlags.is2ALongLong ->
                 LongArraySum2Args(this, a, b, pos)
             a.specialisedType === ArrayMemberType.DOUBLE && b.specialisedType === ArrayMemberType.DOUBLE && optimisationFlags.is2ADoubleDouble ->
+                DoubleArraySum2Args(this, a, b, pos)
+            optimisationFlags.isFloatConversionRules &&
+                    ((a.specialisedType === ArrayMemberType.DOUBLE && b.specialisedType === ArrayMemberType.LONG) ||
+                            (a.specialisedType === ArrayMemberType.LONG && b.specialisedType === ArrayMemberType.DOUBLE)) ->
                 DoubleArraySum2Args(this, a, b, pos)
             else ->
                 GenericArraySum2Args(this, a, b, pos)
@@ -380,7 +433,8 @@ class AddAPLFunction : APLFunctionDescriptor {
                 OPTIMISATION_FLAG_1ARG_LONG or
                         OPTIMISATION_FLAG_1ARG_DOUBLE or
                         OPTIMISATION_FLAG_2ARG_LONG_LONG or
-                        OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
+                        OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE or
+                        OPTIMISATION_FLAG_FLOAT_CONVERSION_RULES)
 
         override val name1Arg get() = "conjugate"
         override val name2Arg get() = "add"
@@ -452,7 +506,8 @@ class SubAPLFunction : APLFunctionDescriptor {
                 OPTIMISATION_FLAG_1ARG_LONG or
                         OPTIMISATION_FLAG_1ARG_DOUBLE or
                         OPTIMISATION_FLAG_2ARG_LONG_LONG or
-                        OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
+                        OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE or
+                        OPTIMISATION_FLAG_FLOAT_CONVERSION_RULES)
 
         override val name1Arg get() = "negate"
         override val name2Arg get() = "subtract"
@@ -508,7 +563,13 @@ class MulAPLFunction : APLFunctionDescriptor {
             return inversibleStructuralUnder2Arg(this, baseFn, context, a, b, axis)
         }
 
-        override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_LONG or OPTIMISATION_FLAG_1ARG_DOUBLE or OPTIMISATION_FLAG_2ARG_LONG_LONG or OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
+        override val optimisationFlags
+            get() = OptimisationFlags(
+                OPTIMISATION_FLAG_1ARG_LONG or
+                        OPTIMISATION_FLAG_1ARG_DOUBLE or
+                        OPTIMISATION_FLAG_2ARG_LONG_LONG or
+                        OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE or
+                        OPTIMISATION_FLAG_FLOAT_CONVERSION_RULES)
 
         override val name1Arg get() = "magnitude"
         override val name2Arg get() = "multiply"
@@ -581,7 +642,11 @@ class DivAPLFunction : APLFunctionDescriptor {
 
         override fun identityValue() = APLLONG_1
 
-        override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_DOUBLE or OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE)
+        override val optimisationFlags
+            get() = OptimisationFlags(
+                OPTIMISATION_FLAG_1ARG_DOUBLE or
+                        OPTIMISATION_FLAG_2ARG_DOUBLE_DOUBLE or
+                        OPTIMISATION_FLAG_FLOAT_CONVERSION_RULES)
 
         override val name1Arg: String
             get() = "reciprocal"

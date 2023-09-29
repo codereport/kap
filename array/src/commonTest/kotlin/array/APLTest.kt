@@ -35,6 +35,19 @@ class NearComplex(val expected: Complex, val realPrecision: Int = 4, val imPreci
 }
 
 abstract class APLTest {
+    fun parseAndTestWithGeneric(expr: String, withStandardLib: Boolean = false, collapse: Boolean = true, numTasks: Int? = null, callback: (APLValue) -> Unit) {
+        parseAPLExpression(expr.replace("{GENERIC}", ""), withStandardLib = withStandardLib, collapse = collapse, numTasks = numTasks).let { result ->
+            callback(result)
+        }
+        parseAPLExpression(
+            expr.replace("{GENERIC}", "int:ensureGeneric"),
+            withStandardLib = withStandardLib,
+            collapse = collapse,
+            numTasks = numTasks).let { result ->
+            callback(result)
+        }
+    }
+
     fun parseAPLExpression(expr: String, withStandardLib: Boolean = false, collapse: Boolean = true, numTasks: Int? = null): APLValue {
         return parseAPLExpression2(expr, withStandardLib, collapse, numTasks).first
     }

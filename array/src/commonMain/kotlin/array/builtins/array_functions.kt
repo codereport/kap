@@ -457,11 +457,24 @@ class PickResultValue(val a: APLValue, val b: APLValue, val pos: Position) : APL
     override val dimensions = a.dimensions
     val bDimensions = b.dimensions
     val multipliers = bDimensions.multipliers()
+    override val specialisedType = b.specialisedType
 
     override fun valueAt(p: Int): APLValue {
         val indexCoord = a.valueAt(p)
         val resultPos = indexCoordToPosition(indexCoord)
         return b.valueAt(resultPos)
+    }
+
+    override fun valueAtLong(p: Int, pos: Position?): Long {
+        val indexCoord = a.valueAt(p)
+        val resultPos = indexCoordToPosition(indexCoord)
+        return b.valueAtLong(resultPos, pos)
+    }
+
+    override fun valueAtDouble(p: Int, pos: Position?): Double {
+        val indexCoord = a.valueAt(p)
+        val resultPos = indexCoordToPosition(indexCoord)
+        return b.valueAtDouble(resultPos, pos)
     }
 
     private fun indexCoordToPosition(indexCoord: APLValue): Int {
