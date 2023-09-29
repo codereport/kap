@@ -206,6 +206,28 @@ class ScopeTest : APLTest() {
     }
 
     @Test
+    fun axisAssignedFunctionWithDiscardResult() {
+        val src =
+            """
+            |1 + 2
+            |10 100 1000 +[0] 3 3 ⍴ ⍳9
+            |3
+            """.trimMargin()
+        assertSimpleNumber(3, parseAPLExpression(src))
+    }
+
+    @Test
+    fun axisAssignedFunctionWithDiscardResultAndLeftAssigned() {
+        val src =
+            """
+            |1 + 2
+            |(10 100 1000 +[0]) 3 3 ⍴ ⍳9
+            |3
+            """.trimMargin()
+        assertSimpleNumber(3, parseAPLExpression(src))
+    }
+
+    @Test
     fun leftBoundFunctionInDfn() {
         val src =
             """
