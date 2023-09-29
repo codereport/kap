@@ -906,6 +906,7 @@ class APLChar(val value: Int) : APLSingleValue() {
 
     override fun makeKey() = APLValueKeyImpl(this, value)
 
+    @OptIn(ExperimentalStdlibApi::class)
     override fun formatted(style: FormatStyle) = when (style) {
         FormatStyle.PLAIN -> charToString(value)
         FormatStyle.PRETTY -> "@${charToString(value)}"
