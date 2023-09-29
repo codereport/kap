@@ -1,6 +1,7 @@
 package array.builtins
 
 import array.*
+import com.dhsdevelopments.mpbignum.LongExpressionOverflow
 
 fun compareAPLArrays(a: APLValue, b: APLValue, pos: Position? = null): Int {
     val aDimensions = a.dimensions
@@ -86,15 +87,28 @@ abstract class GradeFunction(pos: FunctionInstantiation) : NoAxisAPLFunction(pos
         return APLArrayLong(dimensionsOfSize(sorted.size), LongArray(sorted.size) { i -> sorted[i].toLong() })
     }
 
+    private inline fun lookupAndCompareLong(source: APLValue, ap: Int, bp: Int): Int {
+        val objA = try {
+            source.valueAtLong(ap, pos)
+        } catch (e: LongExpressionOverflow) {
+            val objB = source.valueAt(bp)
+            return e.result.makeAPLNumber().compare(objB, pos)
+        }
+        val objB = try {
+            source.valueAtLong(bp, pos)
+        } catch (e: LongExpressionOverflow) {
+            return objA.makeAPLNumber().compare(e.result.makeAPLNumber(), pos)
+        }
+        return objA.compareTo(objB)
+    }
+
     private fun opLong(list: IntArray, firstAxisMultiplier: Int, source: APLValue): List<Int> {
         return list.sortedWith { aIndex, bIndex ->
             var ap = aIndex * firstAxisMultiplier
             var bp = bIndex * firstAxisMultiplier
             var res = 0
             for (i in 0 until firstAxisMultiplier) {
-                val objA = source.valueAtLong(ap, pos)
-                val objB = source.valueAtLong(bp, pos)
-                val result = objA.compareTo(objB)
+                val result = lookupAndCompareLong(source, ap, bp)
                 if (result != 0) {
                     res = result
                     break
