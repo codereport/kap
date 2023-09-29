@@ -10,7 +10,8 @@ class CommuteOp : APLOperatorOneArg {
             val fn get() = fns[0]
 
             override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
-                return fn.eval2Arg(context, a, a, axis)
+                val a0 = a.collapse()
+                return fn.eval2Arg(context, a0, a0, axis)
             }
 
             override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {
