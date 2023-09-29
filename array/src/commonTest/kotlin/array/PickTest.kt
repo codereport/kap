@@ -71,9 +71,23 @@ class PickTest : APLTest() {
     }
 
     @Test
+    fun pickWithInvalidSelectionDimensions0Generic() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("(2 2 ⍴ 1 0 4 4) ⊇ int:ensureGeneric 2 2 ⍴ ⍳4", true)
+        }
+    }
+
+    @Test
     fun pickWithInvalidSelectionDimensions1() {
         assertFailsWith<InvalidDimensionsException> {
             parseAPLExpression("(,⊂1 2) ⊇ ⍳4", true)
+        }
+    }
+
+    @Test
+    fun pickWithInvalidSelectionDimensions1Generic() {
+        assertFailsWith<InvalidDimensionsException> {
+            parseAPLExpression("(,⊂1 2) ⊇ int:ensureGeneric ⍳4", true)
         }
     }
 
@@ -101,6 +115,13 @@ class PickTest : APLTest() {
     @Test
     fun pickWithUnder0() {
         parseAPLExpression("(1+)⍢(2⊇) 10 20 30 40 50 60").let { result ->
+            assert1DArray(arrayOf(10, 20, 31, 40, 50, 60), result)
+        }
+    }
+
+    @Test
+    fun pickWithUnder0Generic() {
+        parseAPLExpression("(1+)⍢(2⊇) int:ensureGeneric 10 20 30 40 50 60").let { result ->
             assert1DArray(arrayOf(10, 20, 31, 40, 50, 60), result)
         }
     }
