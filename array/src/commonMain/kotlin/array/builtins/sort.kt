@@ -78,7 +78,56 @@ abstract class GradeFunction(pos: FunctionInstantiation) : NoAxisAPLFunction(pos
 
         val source = a.collapse()
         val list = IntArray(aDimensions[0]) { it }
-        val sorted = list.sortedWith { aIndex, bIndex ->
+        val sorted = when (source.specialisedType) {
+            ArrayMemberType.LONG -> opLong(list, firstAxisMultiplier, source)
+            ArrayMemberType.DOUBLE -> opDouble(list, firstAxisMultiplier, source)
+            ArrayMemberType.GENERIC -> opGeneric(list, firstAxisMultiplier, source)
+        }
+        return APLArrayLong(dimensionsOfSize(sorted.size), LongArray(sorted.size) { i -> sorted[i].toLong() })
+    }
+
+    private fun opLong(list: IntArray, firstAxisMultiplier: Int, source: APLValue): List<Int> {
+        return list.sortedWith { aIndex, bIndex ->
+            var ap = aIndex * firstAxisMultiplier
+            var bp = bIndex * firstAxisMultiplier
+            var res = 0
+            for (i in 0 until firstAxisMultiplier) {
+                val objA = source.valueAtLong(ap, pos)
+                val objB = source.valueAtLong(bp, pos)
+                val result = objA.compareTo(objB)
+                if (result != 0) {
+                    res = result
+                    break
+                }
+                ap++
+                bp++
+            }
+            applyReverse(res)
+        }
+    }
+
+    private fun opDouble(list: IntArray, firstAxisMultiplier: Int, source: APLValue): List<Int> {
+        return list.sortedWith { aIndex, bIndex ->
+            var ap = aIndex * firstAxisMultiplier
+            var bp = bIndex * firstAxisMultiplier
+            var res = 0
+            for (i in 0 until firstAxisMultiplier) {
+                val objA = source.valueAtDouble(ap, pos)
+                val objB = source.valueAtDouble(bp, pos)
+                val result = objA.compareTo(objB)
+                if (result != 0) {
+                    res = result
+                    break
+                }
+                ap++
+                bp++
+            }
+            applyReverse(res)
+        }
+    }
+
+    private fun opGeneric(list: IntArray, firstAxisMultiplier: Int, source: APLValue): List<Int> {
+        return list.sortedWith { aIndex, bIndex ->
             var ap = aIndex * firstAxisMultiplier
             var bp = bIndex * firstAxisMultiplier
             var res = 0
@@ -95,7 +144,6 @@ abstract class GradeFunction(pos: FunctionInstantiation) : NoAxisAPLFunction(pos
             }
             applyReverse(res)
         }
-        return APLArrayLong(dimensionsOfSize(sorted.size), LongArray(sorted.size) { i -> sorted[i].toLong() })
     }
 
     abstract fun applyReverse(result: Int): Int

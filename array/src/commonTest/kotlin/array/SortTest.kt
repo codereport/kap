@@ -31,6 +31,16 @@ class SortTest : APLTest() {
     }
 
     @Test
+    fun sortDouble() {
+        sortTest("1.2 0.1 ¯9.9 0.0 0.000001", arrayOf(2, 3, 4, 1, 0))
+    }
+
+    @Test
+    fun sortIntegerWithOverflow() {
+        sortTest("0x6000000000000000 + 0x1000 0x7000000000000000 0 ¯3 9 1000", arrayOf(3, 2, 4, 5, 0, 1))
+    }
+
+    @Test
     fun sortSingleElement() {
         sortTest(",1", arrayOf(0))
     }

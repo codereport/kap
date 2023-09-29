@@ -17,6 +17,7 @@ class ReduceResult1Arg(
     private val sizeAlongAxis: Int
     private val fromSourceMul: Int
     private val toDestMul: Int
+    override val specialisedType: ArrayMemberType
 
     init {
         val argDimensions = arg.dimensions
@@ -32,6 +33,12 @@ class ReduceResult1Arg(
 
         fromSourceMul = if (opAxis == 0) dimensions.contentSize() else multipliers[opAxis - 1]
         toDestMul = fromSourceMul * argDimensions[opAxis]
+
+        specialisedType = when {
+            arg.specialisedType === ArrayMemberType.LONG && fn.optimisationFlags.is2ALongLong -> ArrayMemberType.LONG
+            arg.specialisedType === ArrayMemberType.DOUBLE && fn.optimisationFlags.is2ADoubleDouble -> ArrayMemberType.DOUBLE
+            else -> ArrayMemberType.GENERIC
+        }
     }
 
     override fun valueAt(p: Int): APLValue {
