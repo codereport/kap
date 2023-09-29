@@ -31,12 +31,9 @@ defsyntax when (:special :openBrace :optional (:special :newline) :repeat (entry
   n ← ↑⍴entryList
   cont ← 1
   res ← ⍬
-  while((i<n) ∧ cont) {
+  while(i<n and cont) {
     (cond fn) ← ↑entryList[i]
-    if(⍞cond ⍬) {
-      res ← ⍞fn ⍬
-      cont ← 0
-    }
+    (⍞cond ⍬) and (res ← ⍞fn ⍬ ⋄ cont ← 0)
     i ← 1+i
   }
   res

@@ -12,6 +12,13 @@ class BooleanAndFunction : APLFunctionDescriptor {
                 a
             }
         }
+
+        override fun evalArgsAndCall2ArgDiscardResult(context: RuntimeContext, leftArgs: Instruction, rightArgs: Instruction) {
+            val a = leftArgs.evalWithContext(context)
+            if (a.asBoolean(pos)) {
+                rightArgs.evalWithContextAndDiscardResult(context)
+            }
+        }
     }
 
     override fun make(instantiation: FunctionInstantiation) = BooleanAndFunctionImpl(instantiation)
@@ -24,6 +31,13 @@ class BooleanOrFunction : APLFunctionDescriptor {
             return if (a.asBoolean(pos)) {
                 a
             } else {
+                rightArgs.evalWithContext(context)
+            }
+        }
+
+        override fun evalArgsAndCall2ArgDiscardResult(context: RuntimeContext, leftArgs: Instruction, rightArgs: Instruction) {
+            val a = leftArgs.evalWithContext(context)
+            unless(a.asBoolean(pos)) {
                 rightArgs.evalWithContext(context)
             }
         }

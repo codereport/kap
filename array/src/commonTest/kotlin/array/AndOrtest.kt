@@ -111,4 +111,60 @@ class AndOrtest : APLTest() {
             parseAPLExpression("or")
         }
     }
+
+    @Test
+    fun andWithDiscardLeftFalse() {
+        val src =
+            """
+            |a ← 1
+            |b ← 3
+            |(b-3) and (2)
+            |a b
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assert1DArray(arrayOf(1, 3), result)
+        }
+    }
+
+    @Test
+    fun andWithDiscardLeftTrue() {
+        val src =
+            """
+            |a ← 1
+            |b ← 3
+            |(b=3) and (2)
+            |a b
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assert1DArray(arrayOf(1, 3), result)
+        }
+    }
+
+    @Test
+    fun orWithDiscardLeftFalse() {
+        val src =
+            """
+            |a ← 1
+            |b ← 3
+            |(a-1) or (2)
+            |a b
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assert1DArray(arrayOf(1, 3), result)
+        }
+    }
+
+    @Test
+    fun orWithDiscardLeftTrue() {
+        val src =
+            """
+            |a ← 1
+            |b ← 3
+            |(a) or (2)
+            |a b
+            """.trimMargin()
+        parseAPLExpression(src).let { result ->
+            assert1DArray(arrayOf(1, 3), result)
+        }
+    }
 }
