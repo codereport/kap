@@ -66,7 +66,7 @@ class LinuxAudioModule : KapModule {
             val buf = allocArray<UByteVar>(size)
             repeat(size) { i ->
                 val v = max(min(a.valueAtDouble(i, pos), 1.0), -1.0)
-                buf[i] = ((v * 128) + 128).toInt().toUByte()
+                buf[i] = ((v * 127) + 128).toInt().toUByte()
             }
             val frames = snd_pcm_writei(handle, buf, size.toULong())
             if (frames < 0) {
