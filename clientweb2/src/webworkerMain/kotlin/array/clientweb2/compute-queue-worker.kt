@@ -63,6 +63,7 @@ fun initQueue() {
     }
     engine.addModule(JsChartModule(sendMessageFn))
     engine.addModule(JsGuiModule(sendMessageFn))
+    engine.addModule(JsAudioModule(sendMessageFn))
     engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
     self.onmessage = { event ->
         when (val request = Json.decodeFromString<Request>(event.data as String)) {

@@ -26,6 +26,7 @@ private fun initWorker(): Worker {
                 OUTPUT_DESCRIPTOR_TYPE -> processOutput(msg)
                 IMAGE_CONTENT_TYPE -> updateImage(msg)
                 WINDOW_CREATED_TYPE -> openWindow(msg)
+                PLAY_AUDIO_TYPE -> playAudioBuffer(msg.buffer)
             }
         } else {
             println("no message type")
@@ -271,6 +272,7 @@ fun getElementByIdOrFail(id: String): Element {
 }
 
 fun main() {
+    initAudio()
     val worker = initWorker()
     initFileUpload(worker)
 }

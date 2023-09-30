@@ -434,7 +434,7 @@ class Engine(numComputeEngines: Int? = null) {
         registerNativeFunction("isLocallyBound", IsLocallyBoundFunction())
         registerNativeFunction("comp", CompFunction())
         registerNativeFunction("sysparam", SystemParameterFunction())
-        registerNativeFunction("internalValueInfo", InternalValueInfoFunction(), "int")
+        registerNativeFunction("valueInfo", InternalValueInfoFunction(), "int")
 
         // operators
         registerNativeOperator("¨", ForEachOp())
