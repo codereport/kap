@@ -1,0 +1,6 @@
+headers = alsa/asoundlib.h
+headerFilter = alsa/*.h
+
+compilerOpts.linux = -I/usr/include -I/usr/include/x86_64-linux-gnu
+#linkerOpts.osx =
+linkerOpts.linux = -L/usr/lib64 -lasound

@@ -21,6 +21,7 @@ fun main(args: Array<String>) {
             throw IllegalStateException("Multiple repls not allowed")
         }
         engine.addModule(TerminalModule())
+        engine.addModule(LinuxAudioModule())
         engineInst = engine
         signal(SIGINT, staticCFunction(::sigHandler))
     }
@@ -30,6 +31,7 @@ private fun sigHandler(@Suppress("UNUSED_PARAMETER") n: Int) {
     engineInst?.interruptEvaluation()
 }
 
+@OptIn(ExperimentalForeignApi::class)
 private fun initConsole() {
     memScoped {
         val ret = allocArray<IntVar>(1)
