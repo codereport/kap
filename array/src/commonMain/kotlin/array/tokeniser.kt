@@ -173,6 +173,7 @@ class ParsedBigInt(val value: BigInt) : ConstantToken() {
 interface SourceLocation {
     fun sourceText(): String
     fun open(): CharacterProvider
+    val name: String? get() = null
 }
 
 class StringSourceLocation(private val sourceText: String) : SourceLocation {
@@ -186,6 +187,8 @@ class FileSourceLocation(private val file: String) : SourceLocation {
     }
 
     override fun open() = openInputCharFile(file)
+
+    override val name get() = file
 }
 
 data class Position(

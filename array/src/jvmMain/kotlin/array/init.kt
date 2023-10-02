@@ -10,4 +10,5 @@ actual fun platformInit(engine: Engine) {
     engine.addModule(MsOfficeModule())
     engine.addModule(SQLModule())
     engine.addModule(JvmModule())
+    engine.addModule(JvmAudioModule())
 }

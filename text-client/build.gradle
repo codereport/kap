@@ -15,7 +15,6 @@ kotlin {
         compilations.main.cinterops {
             libedit
             ncurses
-            alsa
         }
         binaries {
             executable {

@@ -120,6 +120,7 @@ kotlin {
             icu
             libcurl
             jansson
+            alsa
         }
         compilations.main.kotlinOptions {
             freeCompilerArgs += "-opt-in=kotlin.RequiresOptIn"

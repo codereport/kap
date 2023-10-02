@@ -1,7 +1,6 @@
-package com.dhsdevelopments.kap.textclient
+package array
 
 import alsa.*
-import array.*
 import kotlinx.cinterop.*
 import kotlin.math.max
 import kotlin.math.min
@@ -62,6 +61,26 @@ class LinuxAudioModule : KapModule {
             throwAPLException(InvalidDimensionsException("Argument must be a 1-dimensional array", pos))
         }
         memScoped {
+//            if(isStopped) {
+//                println("resetting")
+//                snd_pcm_reset(handle).let { res ->
+//                    if (res < 0) {
+//                        val message = snd_strerror(res)?.toKString() ?: "unknown"
+//                        println("Warning: Failed to reset audio stream: ${message}")
+//                        return
+//                    }
+//                }
+//                println("starting")
+//                isStopped = false
+//                snd_pcm_start(handle).let { res ->
+//                    if (res < 0) {
+//                        val message = snd_strerror(res)?.toKString() ?: "unknown"
+//                        println("Warning: Failed to start audio stream: ${message}")
+//                        return
+//                    }
+//                }
+//                isStopped = false
+//            }
             val size = d[0]
             val buf = allocArray<UByteVar>(size)
             repeat(size) { i ->
@@ -70,10 +89,13 @@ class LinuxAudioModule : KapModule {
             }
             val frames = snd_pcm_writei(handle, buf, size.toULong())
             if (frames < 0) {
-                val f = snd_pcm_recover(handle, frames.toInt(), 0)
+                val f = snd_pcm_recover(handle, frames.toInt(), 1)
                 if (f < 0) {
-                    println("Warning: short write. expected ${size}, written ${f}")
+                    val message = snd_strerror(f)?.toKString() ?: "unknown"
+                    println("Warning: failed to write audio: ${message}")
                 }
+            } else if (frames > 0 && frames < size) {
+                println("Warning: buffer underrun. size: ${size}, written: ${frames}")
             }
             snd_pcm_drain(handle).let { res ->
                 if (res < 0) {
