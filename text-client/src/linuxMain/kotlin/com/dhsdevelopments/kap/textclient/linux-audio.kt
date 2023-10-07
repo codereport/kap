@@ -1,6 +1,7 @@
-package array
+package com.dhsdevelopments.kap.textclient
 
 import alsa.*
+import array.*
 import kotlinx.cinterop.*
 import kotlin.math.max
 import kotlin.math.min

@@ -97,7 +97,7 @@ class FunctionCall1Arg(
     }
 
     override fun children() = listOf(rightArgs)
-    override fun copy(updatedChildList: List<Instruction>) = FunctionCall1Arg(fn, rightArgs, pos)
+    override fun copy(updatedChildList: List<Instruction>) = FunctionCall1Arg(fn, updatedChildList[0], pos)
 
     override fun toString() = "FunctionCall1Arg(fn=${fn}, rightArgs=${rightArgs})"
 }

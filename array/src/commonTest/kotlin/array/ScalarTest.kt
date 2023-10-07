@@ -5,10 +5,7 @@ import com.dhsdevelopments.mpbignum.Rational
 import com.dhsdevelopments.mpbignum.make
 import kotlin.math.pow
 import kotlin.math.sign
-import kotlin.test.Test
-import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
-import kotlin.test.assertTrue
+import kotlin.test.*
 
 class ScalarTest : APLTest() {
     @Test
@@ -377,6 +374,27 @@ class ScalarTest : APLTest() {
     }
 
     @Test
+    fun floorResultFromIntShouldBeInt() {
+        parseAPLExpression("⌊1 2 3 4 5 6", collapse = false).let { result ->
+            assertSame(ArrayMemberType.LONG, result.specialisedType)
+        }
+    }
+
+    @Test
+    fun floorResultFromDoubleShouldBeInt() {
+        parseAPLExpression("⌊1.2 2.2 3.2 4.2 5.2 6.2", collapse = false).let { result ->
+            assertSame(ArrayMemberType.LONG, result.specialisedType)
+        }
+    }
+
+    @Test
+    fun floorResultFromGenericShouldBeInt() {
+        parseAPLExpression("⌊ 1 2 3 4 5 1.2 2.2 3.2 4.2 5.2 6.2", collapse = false).let { result ->
+            assertSame(ArrayMemberType.LONG, result.specialisedType)
+        }
+    }
+
+    @Test
     fun floorOnComplexShouldFail() {
         assertFailsWith<APLIncompatibleDomainsException> {
             parseAPLExpression("⌊1j2")
@@ -432,7 +450,6 @@ class ScalarTest : APLTest() {
     }
 
     @Test
-
     fun failWithWrongAxis() {
         assertFailsWith<APLEvalException> {
             parseAPLExpression("1 2 3 4 +[3] 5 6 7 ⍴ ⍳24")

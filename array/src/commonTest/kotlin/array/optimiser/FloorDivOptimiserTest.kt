@@ -2,11 +2,13 @@ package array.optimiser
 
 import array.APLBigInt
 import array.APLTest
+import array.ArrayMemberType
 import com.dhsdevelopments.mpbignum.BigInt
 import com.dhsdevelopments.mpbignum.compareTo
 import com.dhsdevelopments.mpbignum.of
 import kotlin.test.Test
 import kotlin.test.assertIs
+import kotlin.test.assertSame
 import kotlin.test.assertTrue
 
 class FloorDivOptimiserTest : APLTest() {
@@ -66,4 +68,10 @@ class FloorDivOptimiserTest : APLTest() {
         }
     }
 
+    @Test
+    fun optimiseWithLongSpecialisedTypeShouldBeInt() {
+        parseAPLExpression("⌊ 1 2 3 4 5 ÷ 2", collapse = false).let { result ->
+            assertSame(ArrayMemberType.LONG, result.specialisedType)
+        }
+    }
 }

@@ -21,20 +21,15 @@ class StandardOptimiser : Optimiser {
         }
         require(childrenCopy.size == instr.children().size) { "Updated child list size is not the same as original list" }
         val newInstr = instr.copy(childrenCopy)
-        if (newInstr is FunctionCall1Arg && newInstr.rightArgs is FunctionCall2Arg) {
-            val fn0 = newInstr.fn
-            val fn1 = newInstr.rightArgs.fn
-            val merged = findMergedArgs2To1(fn0, fn1)
-            return merged?.computeReplacementInstr(newInstr.rightArgs.leftArgs, newInstr.rightArgs.rightArgs) ?: newInstr
-        } else {
-            return newInstr
-        }
+        return findOptimisedInstruction(newInstr) ?: newInstr
     }
 
-    private fun findMergedArgs2To1(fn0: APLFunction, fn1: APLFunction): MergeMethod? {
-        merged1To2Args.forEach { testF ->
-            val mergeMethod = testF(fn0, fn1)
-            return mergeMethod
+    private fun findOptimisedInstruction(instr: Instruction): Instruction? {
+        instructionOptimisers.forEach { opt ->
+            val res = opt.attemptOptimise(instr)
+            if (res != null) {
+                return res
+            }
         }
         return null
     }
@@ -44,31 +39,35 @@ class StandardOptimiser : Optimiser {
     }
 
     companion object {
-        val merged1To2Args: List<(APLFunction, APLFunction) -> MergeMethod?> = listOf(::divideToFloorMergedFunctions)
+        val instructionOptimisers = listOf(DivideToFloorInstructionOptimiser)
     }
 }
 
-private fun divideToFloorMergedFunctions(fn0: APLFunction, fn1: APLFunction): MergeMethod? {
-    if (fn0 !is MinAPLFunction.MinAPLFunctionImpl || fn1 !is DivAPLFunction.DivAPLFunctionImpl) {
-        return null
-    }
-    return object : MergeMethod {
-        override fun computeReplacementInstr(leftArgs: Instruction, rightArgs: Instruction): Instruction {
-            val mergedFloorDiv = MergedFloorDivFunction(fn0, fn1, fn0.instantiation)
-            return FunctionCall2Arg(mergedFloorDiv, leftArgs, rightArgs, fn0.pos)
+interface InstructionOptimiser {
+    fun attemptOptimise(instr: Instruction): Instruction?
+}
+
+object DivideToFloorInstructionOptimiser : InstructionOptimiser {
+    override fun attemptOptimise(instr: Instruction): Instruction? {
+        if (instr !is FunctionCall1Arg || instr.rightArgs !is FunctionCall2Arg) {
+            return null
         }
+        val fn0 = instr.fn
+        val divInstr = instr.rightArgs
+        val fn1 = divInstr.fn
+        if (fn0 !is MinAPLFunction.MinAPLFunctionImpl || fn1 !is DivAPLFunction.DivAPLFunctionImpl) {
+            return null
+        }
+        val mergedFloorDiv = MergedFloorDivFunction(fn0, fn1, fn0.instantiation)
+        return FunctionCall2Arg(mergedFloorDiv, divInstr.leftArgs, divInstr.rightArgs, fn0.pos)
     }
-}
-
-interface MergeMethod {
-    fun computeReplacementInstr(leftArgs: Instruction, rightArgs: Instruction): Instruction
 }
 
 class MergedFloorDivFunction(
     fn0: MinAPLFunction.MinAPLFunctionImpl,
     fn1: DivAPLFunction.DivAPLFunctionImpl,
     pos: FunctionInstantiation
-) : MathNumericCombineAPLFunction(pos, listOf(fn0, fn1)) {
+) : MathNumericCombineAPLFunction(pos, listOf(fn0, fn1), resultType = ArrayMemberType.LONG) {
 
     override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
         return numericRelationOperation(
@@ -91,6 +90,10 @@ class MergedFloorDivFunction(
             fnBigint = { x, y -> divFloor(x, y).makeAPLNumber() },
             fnRational = { x, y -> (x / y).floor().makeAPLNumberWithReduction() })
     }
+
+    override fun combine2ArgLong(a: Long, b: Long) = divFloor(a, b)
+
+    override val optimisationFlags get() = OptimisationFlags(OptimisationFlags.OPTIMISATION_FLAG_2ARG_LONG_LONG)
 }
 
 private fun divFloor(a: Long, b: Long): Long {
