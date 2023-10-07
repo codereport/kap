@@ -31,7 +31,7 @@ private fun makeDynamicAssignInstruction(
     env.markCanEscape()
     val freeVariableRefs = parsedEnv.freeVariableRefs()
     val assignmentInstr =
-        DynamicAssignmentInstruction(dest.storageRef, freeVariableRefs, holder.instr, parsedEnv, holder.pos)
+        DynamicAssignmentInstruction.make(dest.storageRef, freeVariableRefs, holder.instr, parsedEnv, holder.pos)
     return ParseResultHolder.InstrParseResult(assignmentInstr, holder.lastToken)
 }
 
@@ -58,15 +58,14 @@ private class WeakRefVariableUpdateListener(
     }
 }
 
-class DynamicAssignmentInstruction(
+class DynamicAssignmentInstruction private constructor(
     val storageRef: StackStorageRef,
-    bindings: List<EnvironmentBinding>,
+    val vars: List<StackStorageRef>,
     val instr: Instruction,
     val env: Environment,
     pos: Position
 ) : Instruction(pos) {
 
-    private val vars = bindings.map(::StackStorageRef)
     private val lock = MPLock()
     private var tracker: UpdateTracker? = null
 
@@ -86,6 +85,20 @@ class DynamicAssignmentInstruction(
     }
 
     override fun children() = listOf(instr)
+    override fun copy(updatedChildList: List<Instruction>) = DynamicAssignmentInstruction(storageRef, vars, updatedChildList[0], env, pos)
+
+    companion object {
+        fun make(
+            storageRef: StackStorageRef,
+            bindings: List<EnvironmentBinding>,
+            instr: Instruction,
+            env: Environment,
+            pos: Position
+        ): DynamicAssignmentInstruction {
+            val vars = bindings.map(::StackStorageRef)
+            return DynamicAssignmentInstruction(storageRef, vars, instr, env, pos)
+        }
+    }
 
     class UpdateTracker(
         val context: RuntimeContext,

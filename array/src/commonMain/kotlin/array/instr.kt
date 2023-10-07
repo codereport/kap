@@ -16,6 +16,13 @@ abstract class Instruction(val pos: Position) {
     }
 
     abstract fun children(): List<Instruction>
+
+    open fun copy(updatedChildList: List<Instruction>): Instruction {
+        require(children().isEmpty()) { "copy() not implemented for ${this::class.simpleName}" }
+        require(updatedChildList.isEmpty()) { "updated child list must be empty" }
+        return this
+    }
+
     open fun deriveLvalueReader(): LvalueReader? = null
 }
 
@@ -37,6 +44,7 @@ class InstructionList(val instructions: List<Instruction>) : Instruction(compute
     }
 
     override fun children() = instructions
+    override fun copy(updatedChildList: List<Instruction>) = InstructionList(updatedChildList)
 
     companion object {
         private fun computePos(l: List<Instruction>): Position {
@@ -49,7 +57,9 @@ class InstructionList(val instructions: List<Instruction>) : Instruction(compute
     }
 }
 
-class ParsedAPLList(val instructions: List<Instruction>) : Instruction(instructions[0].pos) {
+class ParsedAPLList private constructor(val instructions: List<Instruction>, pos: Position) : Instruction(pos) {
+    constructor(instructions: List<Instruction>) : this(instructions, instructions[0].pos)
+
     override fun evalWithContext(context: RuntimeContext): APLValue {
         val resultList = ArrayList<APLValue>()
         instructions.forEach { instr ->
@@ -59,6 +69,7 @@ class ParsedAPLList(val instructions: List<Instruction>) : Instruction(instructi
     }
 
     override fun children() = instructions
+    override fun copy(updatedChildList: List<Instruction>) = ParsedAPLList(updatedChildList)
 
     override fun deriveLvalueReader(): LvalueReader {
         if (instructions.any { instr -> instr !is VariableRef }) {
@@ -86,6 +97,7 @@ class FunctionCall1Arg(
     }
 
     override fun children() = listOf(rightArgs)
+    override fun copy(updatedChildList: List<Instruction>) = FunctionCall1Arg(fn, rightArgs, pos)
 
     override fun toString() = "FunctionCall1Arg(fn=${fn}, rightArgs=${rightArgs})"
 }
@@ -105,6 +117,7 @@ class FunctionCall2Arg(
     }
 
     override fun children() = listOf(leftArgs, rightArgs)
+    override fun copy(updatedChildList: List<Instruction>) = FunctionCall2Arg(fn, updatedChildList[0], updatedChildList[1], pos)
 
     override fun toString() = "FunctionCall2Arg(fn=${fn}, leftArgs=${leftArgs}, rightArgs=${rightArgs})"
 }
@@ -136,7 +149,7 @@ class DynamicFunctionDescriptor(val instr: Instruction) : APLFunctionDescriptor 
             val sym = parser.tokeniser.engine.createAnonymousSymbol("leftAssignedFunction")
             val binding = parser.currentEnvironment().bindLocal(sym)
             val ref = StackStorageRef(binding)
-            val list = listOf<Instruction>(AssignmentInstruction(ref, instr, pos))
+            val list = listOf<Instruction>(AssignmentInstruction.make(ref, instr, pos))
             val env = parser.currentEnvironment()
             return Pair(DynamicFunctionImpl(VariableRef(sym, ref, pos), FunctionInstantiation(pos, env), env), list)
         }
@@ -157,7 +170,7 @@ class VariableRef(val name: Symbol, val storageRef: StackStorageRef, pos: Positi
     override fun deriveLvalueReader(): LvalueReader {
         return object : LvalueReader {
             override fun makeInstruction(rightArgs: Instruction, pos: Position): Instruction {
-                return AssignmentInstruction(storageRef, rightArgs, pos)
+                return AssignmentInstruction.make(storageRef, rightArgs, pos)
             }
         }
     }
@@ -176,6 +189,7 @@ class Literal1DArray private constructor(val values: List<Instruction>, pos: Pos
     }
 
     override fun children() = values
+    override fun copy(updatedChildList: List<Instruction>) = Literal1DArray(updatedChildList, pos)
 
     override fun deriveLvalueReader(): LvalueReader {
         if (values.any { instr -> instr !is VariableRef }) {
@@ -327,13 +341,7 @@ class LiteralDoubleArray(val value: DoubleArray, pos: Position) : Instruction(po
     override fun children(): List<Instruction> = emptyList()
 }
 
-class AssignmentInstruction(val variableRef: StackStorageRef, val instr: Instruction, pos: Position) : Instruction(pos) {
-    init {
-        if (variableRef.binding.storage.isConst) {
-            throw AssignmentToConstantException(variableRef.binding.name, pos)
-        }
-    }
-
+class AssignmentInstruction private constructor(val variableRef: StackStorageRef, val instr: Instruction, pos: Position) : Instruction(pos) {
     override fun evalWithContext(context: RuntimeContext): APLValue {
         val res = instr.evalWithContext(context).collapse()
         context.setVar(variableRef, res)
@@ -341,6 +349,16 @@ class AssignmentInstruction(val variableRef: StackStorageRef, val instr: Instruc
     }
 
     override fun children() = listOf(instr)
+    override fun copy(updatedChildList: List<Instruction>) = AssignmentInstruction(variableRef, updatedChildList[0], pos)
+
+    companion object {
+        fun make(variableRef: StackStorageRef, instr: Instruction, pos: Position): AssignmentInstruction {
+            if (variableRef.binding.storage.isConst) {
+                throw AssignmentToConstantException(variableRef.binding.name, pos)
+            }
+            return AssignmentInstruction(variableRef, instr, pos)
+        }
+    }
 }
 
 class ArrayAssignmentInstruction(val variableList: Array<StackStorageRef>, val instr: Instruction, pos: Position) : Instruction(pos) {
@@ -366,6 +384,7 @@ class ArrayAssignmentInstruction(val variableList: Array<StackStorageRef>, val i
     }
 
     override fun children() = listOf(instr)
+    override fun copy(updatedChildList: List<Instruction>) = ArrayAssignmentInstruction(variableList, updatedChildList[0], pos)
 }
 
 class ListAssignmentInstruction(val variableList: Array<StackStorageRef>, val instr: Instruction, pos: Position) : Instruction(pos) {
@@ -388,6 +407,7 @@ class ListAssignmentInstruction(val variableList: Array<StackStorageRef>, val in
     }
 
     override fun children() = listOf(instr)
+    override fun copy(updatedChildList: List<Instruction>) = ListAssignmentInstruction(variableList, updatedChildList[0], pos)
 }
 
 class UserFunction(
@@ -429,6 +449,7 @@ class EvalLambdaFnx(val fn: APLFunction, pos: Position, val relatedInstructions:
     }
 
     override fun children() = relatedInstructions
+    override fun copy(updatedChildList: List<Instruction>) = EvalLambdaFnx(fn, pos, updatedChildList)
 }
 
 sealed class FunctionCallChain(pos: FunctionInstantiation, fns: List<APLFunction>) : APLFunction(pos, fns) {

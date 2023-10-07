@@ -209,8 +209,9 @@ private fun makeResultList(leftArgs: List<Instruction>): Instruction? {
     }
 }
 
-class APLParser(val tokeniser: TokenGenerator) {
+class APLParser(val tokeniser: TokenGenerator, selectedOptimiser: Optimiser? = null) {
     private var environments = mutableListOf(tokeniser.engine.rootEnvironment)
+    val optimiser = selectedOptimiser ?: StandardOptimiser()
 
     fun currentEnvironment() = environments.last()
 
@@ -275,7 +276,8 @@ class APLParser(val tokeniser: TokenGenerator) {
     }
 
     fun parseValueToplevel(endToken: Token): Instruction {
-        return parseValueToplevelWithPosition(endToken).first
+        val result = parseValueToplevelWithPosition(endToken).first
+        return optimiser.optimiseParsedCode(this, result)
     }
 
     fun parseExprToplevel(endToken: Token): ParseResultHolder {
@@ -500,6 +502,7 @@ class APLParser(val tokeniser: TokenGenerator) {
         }
 
         override fun children() = relatedInstructions
+        override fun copy(updatedChildList: List<Instruction>) = UpdateLocalFunctionInstruction(fn, pos, updatedChildList, storageRef, env)
     }
 
     class LocalFunctionCall(binding: EnvironmentBinding, instantiation: FunctionInstantiation) : APLFunction(instantiation) {
