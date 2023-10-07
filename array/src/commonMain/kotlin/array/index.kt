@@ -77,6 +77,7 @@ class ArrayIndex(val content: Instruction, val indexInstr: Instruction, pos: Pos
     }
 
     override fun children() = listOf(content, indexInstr)
+    override fun copy(updatedChildList: List<Instruction>) = ArrayIndex(updatedChildList[0], updatedChildList[1], pos)
 
     private fun lookupFromArray(
         indexValue: APLValue,

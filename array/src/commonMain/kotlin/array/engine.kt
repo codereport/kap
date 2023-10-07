@@ -255,7 +255,7 @@ class ConstantSymbolSystemParameterProvider(val name: Symbol) : SystemParameterP
     override fun lookupValue() = APLSymbol(name)
 }
 
-class Engine(numComputeEngines: Int? = null) {
+class Engine(numComputeEngines: Int? = null, val optimiser: Optimiser = StandardOptimiser()) {
     private val functions = HashMap<Symbol, APLFunctionDescriptor>()
     private val operators = HashMap<Symbol, APLOperator>()
     private val functionDefinitionListeners = ArrayList<FunctionDefinitionListener>()
@@ -584,9 +584,9 @@ class Engine(numComputeEngines: Int? = null) {
 
     fun createAnonymousSymbol(name: String? = null) = Symbol(if (name == null) "<anonymous>" else "<anonymous: ${name}>", anonymousSymbolNamespace)
 
-    fun parse(source: SourceLocation): Instruction {
+    fun parse(source: SourceLocation, optimiser: Optimiser? = null): Instruction {
         TokenGenerator(this, source).use { tokeniser ->
-            val parser = APLParser(tokeniser)
+            val parser = APLParser(tokeniser, optimiser)
             return parser.parseValueToplevel(EndOfFile)
         }
     }

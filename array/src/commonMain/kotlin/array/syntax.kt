@@ -270,15 +270,13 @@ fun processDefsyntax(parser: APLParser, pos: Position): Instruction {
     }
 }
 
-class CallWithVarInstruction(
+class CallWithVarInstruction private constructor(
     val name: String,
     val instr: Instruction,
     val env: Environment,
-    bindings: List<Pair<EnvironmentBinding, Instruction>>,
+    val refs: List<Pair<StackStorageRef, Instruction>>,
     pos: Position
 ) : Instruction(pos) {
-    private val refs = bindings.map { (b, instr) -> Pair(StackStorageRef(b), instr) }
-
     override fun evalWithContext(context: RuntimeContext): APLValue {
         val results = refs.map { (envBinding, instr) -> Pair(envBinding, instr.evalWithContext(context)) }
         return withLinkedContext(env, name, pos) {
@@ -290,6 +288,20 @@ class CallWithVarInstruction(
     }
 
     override fun children() = listOf(instr)
+    override fun copy(updatedChildList: List<Instruction>) = CallWithVarInstruction(name, updatedChildList[0], env, refs, pos)
+
+    companion object {
+        fun make(
+            name: String,
+            instr: Instruction,
+            env: Environment,
+            bindings: List<Pair<EnvironmentBinding, Instruction>>,
+            pos: Position
+        ): CallWithVarInstruction {
+            val refs = bindings.map { (b, instr) -> Pair(StackStorageRef(b), instr) }
+            return CallWithVarInstruction(name, instr, env, refs, pos)
+        }
+    }
 }
 
 fun processCustomSyntax(parser: APLParser, customSyntax: CustomSyntax): Instruction {
@@ -298,7 +310,7 @@ fun processCustomSyntax(parser: APLParser, customSyntax: CustomSyntax): Instruct
         rule.processRule(parser, bindings)
     }
     val envBindings = bindings.map { b -> Pair(b.name, b.value) }
-    return CallWithVarInstruction(
+    return CallWithVarInstruction.make(
         "CustomSyntax: ${customSyntax.name.nameWithNamespace}",
         customSyntax.instr,
         customSyntax.environment,

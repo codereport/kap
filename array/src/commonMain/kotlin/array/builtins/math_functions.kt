@@ -18,8 +18,10 @@ interface CellSumFunction1Arg {
 
 class ArraySum1Arg(
     private val fn: CellSumFunction1Arg,
-    private val a: APLValue
+    private val a: APLValue,
+    resultType: ArrayMemberType = ArrayMemberType.GENERIC
 ) : DeferredResultArray() {
+    override val specialisedType = resultType
     override val dimensions get() = a.dimensions
     override val size get() = a.size
     override fun valueAt(p: Int): APLValue {
@@ -44,13 +46,16 @@ class GenericArraySum2Args(
     val fn: MathCombineAPLFunction,
     val a0: APLValue,
     val b0: APLValue,
-    val pos: Position
+    val pos: Position,
+    resultType: ArrayMemberType = ArrayMemberType.GENERIC
 ) : DeferredResultArray() {
     private val aRank = a0.rank
     private val bRank = b0.rank
 
     override val dimensions = if (aRank == 0) b0.dimensions else a0.dimensions
     override val rank = dimensions.size
+
+    override val specialisedType = resultType
 
     init {
         unless(aRank == 0 || bRank == 0 || a0.dimensions.compareEquals(b0.dimensions)) {
@@ -228,7 +233,12 @@ class DoubleArraySum2ArgsRightScalar(
     }
 }
 
-abstract class MathCombineAPLFunction(pos: FunctionInstantiation) : APLFunction(pos) {
+abstract class MathCombineAPLFunction(
+    pos: FunctionInstantiation,
+    fns: List<APLFunction> = emptyList(),
+    val resultType1Arg: ArrayMemberType = ArrayMemberType.GENERIC,
+    val resultType2Arg: ArrayMemberType = ArrayMemberType.GENERIC
+) : APLFunction(pos, fns) {
 
     override fun eval1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue {
         if (a is APLSingleValue) {
@@ -240,7 +250,7 @@ abstract class MathCombineAPLFunction(pos: FunctionInstantiation) : APLFunction(
                 return combine1Arg(a)
             }
         }
-        return ArraySum1Arg(fn, a)
+        return ArraySum1Arg(fn, a, resultType = resultType1Arg)
     }
 
     fun makeCellSumFunction2Args(a: APLValue, b: APLValue, pos: Position): APLValue {
@@ -258,7 +268,7 @@ abstract class MathCombineAPLFunction(pos: FunctionInstantiation) : APLFunction(
                         DoubleArraySum2ArgsLeftScalar(this, a.value, b, pos)
                     b.isScalar() -> EnclosedAPLValue.make(makeCellSumFunction2Args(a, b.valueAt(0), pos))
                     else ->
-                        GenericArraySum2Args(this, a, b, pos)
+                        GenericArraySum2Args(this, a, b, pos, resultType = resultType2Arg)
                 }
             }
             b is APLSingleValue -> {
@@ -272,7 +282,7 @@ abstract class MathCombineAPLFunction(pos: FunctionInstantiation) : APLFunction(
                         DoubleArraySum2ArgsRightScalar(this, a, b.value.toDouble(), pos)
                     b is APLDouble && a.specialisedType === ArrayMemberType.LONG && optimisationFlags.is2ADFloatConversionRules ->
                         DoubleArraySum2ArgsRightScalar(this, a, b.value, pos)
-                    else -> GenericArraySum2Args(this, a, b, pos)
+                    else -> GenericArraySum2Args(this, a, b, pos, resultType = resultType2Arg)
                 }
             }
             a.rank == 0 && b.rank == 0 -> EnclosedAPLValue.make(makeCellSumFunction2Args(a.valueAt(0), b.valueAt(0), pos))
@@ -285,7 +295,7 @@ abstract class MathCombineAPLFunction(pos: FunctionInstantiation) : APLFunction(
                             (a.specialisedType === ArrayMemberType.LONG && b.specialisedType === ArrayMemberType.DOUBLE)) ->
                 DoubleArraySum2Args(this, a, b, pos)
             else ->
-                GenericArraySum2Args(this, a, b, pos)
+                GenericArraySum2Args(this, a, b, pos, resultType = resultType2Arg)
         }
     }
 
@@ -356,7 +366,11 @@ abstract class MathCombineAPLFunction(pos: FunctionInstantiation) : APLFunction(
     override fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?) = combine2ArgDouble(a, b)
 }
 
-abstract class MathNumericCombineAPLFunction(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
+abstract class MathNumericCombineAPLFunction(
+    pos: FunctionInstantiation,
+    fns: List<APLFunction> = emptyList(),
+    resultType: ArrayMemberType = ArrayMemberType.GENERIC
+) : MathCombineAPLFunction(pos, fns) {
     override fun combine1Arg(a: APLSingleValue): APLValue = numberCombine1Arg(a.ensureNumber(pos))
     override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue =
         numberCombine2Arg(a.ensureNumber(pos), b.ensureNumber(pos))
@@ -603,7 +617,7 @@ class DivAPLFunction : APLFunctionDescriptor {
                         else -> Rational.make(x.toBigInt(), y.toBigInt()).makeAPLNumber()
                     }
                 },
-                { x, y -> APLDouble(if (y == 0.0) 0.0 else x / y) },
+                { x, y -> (if (y == 0.0) 0.0 else x / y).makeAPLNumber() },
                 { x, y -> if (y == Complex.ZERO) APLDOUBLE_0 else (x / y).makeAPLNumber() },
                 fnBigint = { x, y ->
                     when {
@@ -909,7 +923,7 @@ const val MAX_INT_DOUBLE = 4503599627370494L
 const val MIN_INT_DOUBLE = -4503599627370494L
 
 class MinAPLFunction : APLFunctionDescriptor {
-    class MinAPLFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
+    class MinAPLFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos, resultType1Arg = ArrayMemberType.LONG) {
         override fun combine1Arg(a: APLSingleValue): APLValue {
             return singleArgNumericRelationOperation(
                 pos,
@@ -924,7 +938,7 @@ class MinAPLFunction : APLFunctionDescriptor {
                 },
                 { _ -> throwAPLException(APLIncompatibleDomainsException("Floor is not valid for complex values", pos)) },
                 fnBigInt = { x -> x.makeAPLNumber() },
-                fnRational = { x -> x.floor().makeAPLNumber() })
+                fnRational = { x -> x.floor().makeAPLNumberWithReduction() })
         }
 
         override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
@@ -972,7 +986,7 @@ class MaxAPLFunction : APLFunctionDescriptor {
                 },
                 { x -> throwAPLException(APLIncompatibleDomainsException("Ceiling is not valid for complex values", pos)) },
                 fnBigInt = { x -> x.makeAPLNumber() },
-                fnRational = { x -> x.ceil().makeAPLNumber() })
+                fnRational = { x -> x.ceil().makeAPLNumberWithReduction() })
         }
 
         override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {

@@ -21,6 +21,7 @@ fun main(args: Array<String>) {
             throw IllegalStateException("Multiple repls not allowed")
         }
         engine.addModule(TerminalModule())
+        engine.addModule(LinuxAudioModule())
         engineInst = engine
         signal(SIGINT, staticCFunction(::sigHandler))
     }

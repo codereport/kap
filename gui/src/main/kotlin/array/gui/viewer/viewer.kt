@@ -1,6 +1,7 @@
 package array.gui.viewer
 
 import array.Instruction
+import array.PlainOptimiser
 import array.Position
 import array.StringSourceLocation
 import array.gui.Client
@@ -40,7 +41,7 @@ class StructureViewer {
     }
 
     private fun parseExpression(text: String) {
-        val instr = client.engine.parse(StringSourceLocation(text))
+        val instr = client.engine.parse(StringSourceLocation(text), PlainOptimiser())
         graphContentPane.children.clear()
         val graph = createGraph(instr)
         val root = graph.rootNode
