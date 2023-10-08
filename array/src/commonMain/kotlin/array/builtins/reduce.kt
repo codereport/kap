@@ -59,7 +59,7 @@ class ReduceResult1Arg(
                         try {
                             while (i < sizeAlongAxis) {
                                 engine.checkInterrupted(pos)
-                                curr = fn.eval2ArgLongLong(context, curr, arg.valueAtLong(i++ * stepLength + posInSrc, pos), null)
+                                curr = fn.eval2ArgLongToLongWithAxis(context, curr, arg.valueAtLong(i++ * stepLength + posInSrc, pos), null)
                             }
                             APLLong(curr)
                         } catch (e: LongExpressionOverflow) {
@@ -78,7 +78,7 @@ class ReduceResult1Arg(
                     withPossibleSavedStack(savedStack) {
                         for (i in 1 until sizeAlongAxis) {
                             engine.checkInterrupted(pos)
-                            curr = fn.eval2ArgDoubleDouble(context, curr, arg.valueAtDouble(i * stepLength + posInSrc, pos), null)
+                            curr = fn.eval2ArgDoubleToDoubleWithAxis(context, curr, arg.valueAtDouble(i * stepLength + posInSrc, pos), null)
                         }
                     }
                     curr.makeAPLNumber()

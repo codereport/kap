@@ -30,7 +30,7 @@ class EqualsAPLFunction : APLFunctionDescriptor {
 
         override fun identityValue() = APLLONG_1
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_2ARG_LONG_LONG)
-        override fun combine2ArgLong(a: Long, b: Long) = if (a == b) 1L else 0L
+        override fun combine2ArgLongToLong(a: Long, b: Long) = if (a == b) 1L else 0L
 
         override val name2Arg get() = "equals"
     }
@@ -199,6 +199,10 @@ fun makeBoolean(value: Boolean): APLValue {
     return if (value) APLLONG_1 else APLLONG_0
 }
 
+fun throwIncompatibleArg(pos: Position?): Nothing {
+    throwAPLException(APLIncompatibleDomainsException("Incompatible argument types", pos))
+}
+
 inline fun numericRelationOperation(
     pos: Position,
     a: APLSingleValue,
@@ -206,31 +210,50 @@ inline fun numericRelationOperation(
     fnLong: (Long, Long) -> APLValue,
     fnDouble: (Double, Double) -> APLValue,
     fnComplex: (Complex, Complex) -> APLValue,
-    fnChar: ((Int, Int) -> APLValue) = { _, _ ->
-        throwAPLException(IncompatibleTypeException("Incompatible argument types", pos))
-    },
-    fnOther: ((aOther: APLValue, bOther: APLValue) -> APLValue) = { _, _ ->
-        throwAPLException(IncompatibleTypeException("Incompatible argument types", pos))
-    },
-    fnBigint: ((aBigint: BigInt, bBigint: BigInt) -> APLValue) = { _, _ ->
-        throwAPLException(IncompatibleTypeException("Bigint is not supported", pos))
-    },
-    fnRational: ((aRational: Rational, bRational: Rational) -> APLValue) = { _, _ ->
-        throwAPLException(IncompatibleTypeException("Rational is not supported", pos))
-    }
+    fnChar: ((Int, Int) -> APLValue) = { _, _ -> throwIncompatibleArg(pos) },
+    fnOther: ((aOther: APLValue, bOther: APLValue) -> APLValue) = { _, _ -> throwIncompatibleArg(pos) },
+    fnBigint: ((aBigint: BigInt, bBigint: BigInt) -> APLValue) = { _, _ -> throwIncompatibleArg(pos) },
+    fnRational: ((aRational: Rational, bRational: Rational) -> APLValue) = { _, _ -> throwIncompatibleArg(pos) }
 ): APLValue {
-    return when {
+    numericRelationOperation2(
+        pos,
+        a,
+        b,
+        { x, y ->
+            return try {
+                fnLong(x, y)
+            } catch (e: LongExpressionOverflow) {
+                e.result.makeAPLNumber()
+            }
+        },
+        { x, y -> return fnDouble(x, y) },
+        { x, y -> return fnComplex(x, y) },
+        { x, y -> return fnChar(x, y) },
+        { x, y -> return fnOther(x, y) },
+        { x, y -> return fnBigint(x, y) },
+        { x, y -> return fnRational(x, y) })
+}
+
+inline fun numericRelationOperation2(
+    pos: Position,
+    a: APLSingleValue,
+    b: APLSingleValue,
+    fnLong: (Long, Long) -> Nothing,
+    fnDouble: (Double, Double) -> Nothing,
+    fnComplex: (Complex, Complex) -> Nothing,
+    fnChar: ((Int, Int) -> Nothing) = { _, _ -> throwIncompatibleArg(pos) },
+    fnOther: ((aOther: APLValue, bOther: APLValue) -> Nothing) = { _, _ -> throwIncompatibleArg(pos) },
+    fnBigint: ((aBigint: BigInt, bBigint: BigInt) -> Nothing) = { _, _ -> throwIncompatibleArg(pos) },
+    fnRational: ((aRational: Rational, bRational: Rational) -> Nothing) = { _, _ -> throwIncompatibleArg(pos) }
+): Nothing {
+    when {
         a is APLNumber && b is APLNumber -> {
             when {
                 a is APLComplex || b is APLComplex -> fnComplex(a.asComplex(), b.asComplex())
                 a is APLDouble || b is APLDouble -> fnDouble(a.asDouble(), b.asDouble())
                 a is APLRational || b is APLRational -> fnRational(a.asRational(), b.asRational())
                 a is APLBigInt || b is APLBigInt -> fnBigint(a.asBigInt(), b.asBigInt())
-                a is APLLong && b is APLLong -> try {
-                    fnLong(a.asLong(pos), b.asLong(pos))
-                } catch (e: LongExpressionOverflow) {
-                    APLBigInt(e.result)
-                }
+                a is APLLong && b is APLLong -> fnLong(a.asLong(pos), b.asLong(pos))
                 else -> error("Unexpected types. a: ${a::class.simpleName}, b: ${b::class.simpleName}")
             }
         }
@@ -247,9 +270,9 @@ inline fun singleArgNumericRelationOperation(
     fnLong: (Long) -> APLValue,
     fnDouble: (Double) -> APLValue,
     fnComplex: (Complex) -> APLValue,
-    fnChar: ((Int) -> APLValue) = { _ -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos)) },
-    fnBigInt: ((BigInt) -> APLValue) = { _ -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos)) },
-    fnRational: ((Rational) -> APLValue) = { _ -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos)) }
+    fnChar: ((Int) -> APLValue) = { _ -> throwIncompatibleArg(pos) },
+    fnBigInt: ((BigInt) -> APLValue) = { _ -> throwIncompatibleArg(pos) },
+    fnRational: ((Rational) -> APLValue) = { _ -> throwIncompatibleArg(pos) }
 ): APLValue {
     return when (a) {
         is APLLong -> fnLong(a.asLong(pos))
@@ -258,7 +281,7 @@ inline fun singleArgNumericRelationOperation(
         is APLChar -> fnChar(a.value)
         is APLBigInt -> fnBigInt(a.value)
         is APLRational -> fnRational(a.value)
-        else -> throwAPLException(IncompatibleTypeException("Incompatible argument types", pos))
+        else -> throwIncompatibleArg(pos)
     }
 }
 

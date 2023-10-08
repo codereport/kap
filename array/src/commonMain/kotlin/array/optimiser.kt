@@ -67,31 +67,47 @@ class MergedFloorDivFunction(
     fn0: MinAPLFunction.MinAPLFunctionImpl,
     fn1: DivAPLFunction.DivAPLFunctionImpl,
     pos: FunctionInstantiation
-) : MathNumericCombineAPLFunction(pos, listOf(fn0, fn1), resultType = ArrayMemberType.LONG) {
+) : MathNumericCombineAPLFunction(pos, listOf(fn0, fn1), resultType2Arg = ArrayMemberType.LONG) {
 
     override fun combine2Arg(a: APLSingleValue, b: APLSingleValue): APLValue {
-        return numericRelationOperation(
+        return opLong(a, b, { x -> x.makeAPLNumber() }, { x -> x.makeAPLNumber() })
+    }
+
+    override fun combine2ArgGenericToLong(a: APLSingleValue, b: APLSingleValue): Long {
+        return opLong(a, b, { x -> x }, { x -> throw LongExpressionOverflow(x) })
+    }
+
+    private inline fun <T> convertOrOverflow(a: BigInt, convFn: (Long) -> T, overflowFn: (BigInt) -> T): T {
+        return if (a.rangeInLong()) {
+            convFn(a.toLong())
+        } else {
+            overflowFn(a)
+        }
+    }
+
+    private inline fun <T> opLong(a: APLSingleValue, b: APLSingleValue, convFn: (Long) -> T, overflowFn: (BigInt) -> T): T {
+        numericRelationOperation2(
             pos,
             a,
             b,
-            { x, y -> divFloor(x, y).makeAPLNumber() },
+            { x, y -> return convFn(divFloor(x, y)) },
             { x, y ->
-                if (y == 0.0) APLDOUBLE_0 else {
+                return if (y == 0.0) convFn(0) else {
                     (x / y).let { result ->
                         if (result <= MIN_INT_DOUBLE || result >= MAX_INT_DOUBLE) {
-                            BigInt.fromDoubleFloor(result).makeAPLNumber()
+                            overflowFn(BigInt.fromDoubleFloor(result))
                         } else {
-                            floor(result).toLong().makeAPLNumber()
+                            convFn(floor(result).toLong())
                         }
                     }
                 }
             },
             { _, _ -> throwAPLException(APLIncompatibleDomainsException("Floor is not valid for complex values", pos)) },
-            fnBigint = { x, y -> divFloor(x, y).makeAPLNumber() },
-            fnRational = { x, y -> (x / y).floor().makeAPLNumberWithReduction() })
+            fnBigint = { x, y -> return convertOrOverflow(divFloor(x, y), convFn, overflowFn) },
+            fnRational = { x, y -> return convertOrOverflow((x / y).floor(), convFn, overflowFn) })
     }
 
-    override fun combine2ArgLong(a: Long, b: Long) = divFloor(a, b)
+    override fun combine2ArgLongToLong(a: Long, b: Long) = divFloor(a, b)
 
     override val optimisationFlags get() = OptimisationFlags(OptimisationFlags.OPTIMISATION_FLAG_2ARG_LONG_LONG)
 }

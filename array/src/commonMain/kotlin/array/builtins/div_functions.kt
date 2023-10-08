@@ -19,7 +19,9 @@ class InternalValueInfoFunction : APLFunctionDescriptor {
     class InternalValueInfoFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
         override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val v = a.unwrapDeferredValue()
-            return APLArrayImpl(dimensionsOfSize(2), arrayOf(APLString(v::class.simpleName ?: "unknown"), APLString(v.specialisedType.name)))
+            return APLArrayImpl(
+                dimensionsOfSize(3),
+                arrayOf(APLString(v::class.simpleName ?: "unknown"), APLString(v.specialisedType.name), APLString(if (v.isDepth0) "1" else "0")))
         }
     }
 

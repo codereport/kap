@@ -213,14 +213,14 @@ class ComposeFunctionDescriptor(val fn0Inner: APLFunction, val fn1Inner: APLFunc
             return fn0.eval1ArgDouble(context, res, null)
         }
 
-        override fun eval2ArgLongLong(context: RuntimeContext, a: Long, b: Long, axis: APLValue?): Long {
+        override fun eval2ArgLongToLongWithAxis(context: RuntimeContext, a: Long, b: Long, axis: APLValue?): Long {
             val res = fn1.eval1ArgLong(context, b, null)
-            return fn0.eval2ArgLongLong(context, a, res, null)
+            return fn0.eval2ArgLongToLongWithAxis(context, a, res, null)
         }
 
-        override fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?): Double {
+        override fun eval2ArgDoubleToDoubleWithAxis(context: RuntimeContext, a: Double, b: Double, axis: APLValue?): Double {
             val res = fn1.eval1ArgDouble(context, b, null)
-            return fn0.eval2ArgDoubleDouble(context, a, res, null)
+            return fn0.eval2ArgDoubleToDoubleWithAxis(context, a, res, null)
         }
 
         override fun evalInverse2ArgB(context: RuntimeContext, a: APLValue, b: APLValue, axis: APLValue?): APLValue {

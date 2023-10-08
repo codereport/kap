@@ -54,7 +54,7 @@ class OuterJoinResultLong(
         return withPossibleSavedStack(savedStack) {
             val aPosition = p / divisor
             val bPosition = p % divisor
-            fn.eval2ArgLongLong(context, a.valueAtLong(aPosition, pos), b.valueAtLong(bPosition, pos), null)
+            fn.eval2ArgLongToLongWithAxis(context, a.valueAtLong(aPosition, pos), b.valueAtLong(bPosition, pos), null)
         }
     }
 }
@@ -77,7 +77,7 @@ class OuterJoinResultDouble(
         return withPossibleSavedStack(savedStack) {
             val aPosition = p / divisor
             val bPosition = p % divisor
-            fn.eval2ArgDoubleDouble(context, a.valueAtDouble(aPosition, pos), b.valueAtDouble(bPosition, pos), null)
+            fn.eval2ArgDoubleToDoubleWithAxis(context, a.valueAtDouble(aPosition, pos), b.valueAtDouble(bPosition, pos), null)
         }
     }
 }

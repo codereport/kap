@@ -32,6 +32,7 @@ object IotaArrayImpls {
         override val dimensions = Dimensions(indexes)
 
         private val multipliers = dimensions.multipliers()
+        override val isDepth0 get() = true
 
         init {
             assertx(indexes.isNotEmpty()) { "indexes is empty" }
@@ -47,6 +48,7 @@ object IotaArrayImpls {
         override val dimensions = dimensionsOfSize(length)
         override val specialisedType get() = ArrayMemberType.LONG
         override fun collapseInt(withDiscard: Boolean) = this
+        override val isDepth0 get() = true
 
         override fun valueAtInt(p: Int, pos: Position?): Int {
             if (p < 0 || p >= length) {
@@ -76,6 +78,7 @@ object IotaArrayImpls {
         val length = dimensions.contentSize()
         override val specialisedType get() = ArrayMemberType.LONG
         override fun collapseInt(withDiscard: Boolean) = this
+        override val isDepth0 get() = true
 
         override fun valueAtLong(p: Int, pos: Position?): Long {
             return when {
@@ -101,6 +104,7 @@ object IotaArrayImpls {
 
 class FindIndexArray(val a: APLValue, val b: APLValue, val context: RuntimeContext) : APLArray() {
     override val dimensions = b.dimensions
+    override val isDepth0 get() = true
 
     override fun valueAt(p: Int): APLValue {
         val reference = b.valueAt(p)
@@ -327,8 +331,8 @@ class IdentityAPLFunction : APLFunctionDescriptor {
 
         override fun eval1ArgLong(context: RuntimeContext, a: Long, axis: APLValue?) = a
         override fun eval1ArgDouble(context: RuntimeContext, a: Double, axis: APLValue?) = a
-        override fun eval2ArgLongLong(context: RuntimeContext, a: Long, b: Long, axis: APLValue?) = b
-        override fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?) = b
+        override fun eval2ArgLongToLongWithAxis(context: RuntimeContext, a: Long, b: Long, axis: APLValue?) = b
+        override fun eval2ArgDoubleToDoubleWithAxis(context: RuntimeContext, a: Double, b: Double, axis: APLValue?) = b
 
         override val optimisationFlags: OptimisationFlags
             get() = OptimisationFlags(
@@ -351,8 +355,8 @@ class HideAPLFunction : APLFunctionDescriptor {
 
         override fun eval1ArgLong(context: RuntimeContext, a: Long, axis: APLValue?) = a
         override fun eval1ArgDouble(context: RuntimeContext, a: Double, axis: APLValue?) = a
-        override fun eval2ArgLongLong(context: RuntimeContext, a: Long, b: Long, axis: APLValue?) = a
-        override fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?) = a
+        override fun eval2ArgLongToLongWithAxis(context: RuntimeContext, a: Long, b: Long, axis: APLValue?) = a
+        override fun eval2ArgDoubleToDoubleWithAxis(context: RuntimeContext, a: Double, b: Double, axis: APLValue?) = a
 
         override val optimisationFlags: OptimisationFlags
             get() = OptimisationFlags(

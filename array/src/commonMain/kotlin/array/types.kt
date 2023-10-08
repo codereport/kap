@@ -124,6 +124,7 @@ abstract class APLValue {
     abstract fun isAtomic(): Boolean
     fun arrayify() = if (rank == 0) APLArrayImpl.make(dimensionsOfSize(1)) { this.disclose() } else this
     open fun unwrapDeferredValue(): APLValue = this
+    open val isDepth0: Boolean = false
 
     abstract fun compareEquals(reference: APLValue): Boolean
 
@@ -361,6 +362,7 @@ abstract class APLSingleValue : APLValue() {
     override fun collapseFirstLevel() = this
     override fun isAtomic() = true
     override fun disclose() = this
+    override val isDepth0 get() = true
 }
 
 abstract class APLArray : APLValue() {
@@ -792,7 +794,8 @@ object UnusedResultAPLValue : APLValue() {
 
 open class APLArrayImpl(
     override val dimensions: Dimensions,
-    private val values: Array<APLValue>
+    private val values: Array<APLValue>,
+    override val isDepth0: Boolean = false
 ) : APLArray() {
 
     override fun valueAt(p: Int) = values[p]
@@ -800,13 +803,20 @@ open class APLArrayImpl(
 
     companion object {
         inline fun make(dimensions: Dimensions, fn: (index: Int) -> APLValue): APLArrayImpl {
-            val content = Array(dimensions.contentSize()) { index -> fn(index) }
-            return APLArrayImpl(dimensions, content)
+            var depth0 = true
+            val content = Array(dimensions.contentSize()) { index ->
+                fn(index).also { res ->
+                    if (res !is APLSingleValue) {
+                        depth0 = false
+                    }
+                }
+            }
+            return APLArrayImpl(dimensions, content, depth0)
         }
     }
 }
 
-class CollapsedArrayImpl(dimensions: Dimensions, values: Array<APLValue>) : APLArrayImpl(dimensions, values) {
+class CollapsedArrayImpl(dimensions: Dimensions, values: Array<APLValue>, override val isDepth0: Boolean = false) : APLArrayImpl(dimensions, values) {
     override fun collapseInt(withDiscard: Boolean) = this
 
     companion object {
@@ -816,8 +826,15 @@ class CollapsedArrayImpl(dimensions: Dimensions, values: Array<APLValue>) : APLA
                 ArrayMemberType.LONG -> APLArrayLong.makeWithOverflowCheck(d, orig, null)
                 ArrayMemberType.DOUBLE -> APLArrayDouble(d, DoubleArray(d.contentSize()) { index -> orig.valueAtDouble(index, null) })
                 ArrayMemberType.GENERIC -> {
-                    val content = Array(d.contentSize()) { index -> orig.valueAt(index).collapseInt() }
-                    CollapsedArrayImpl(d, content)
+                    var depth0 = true
+                    val content = Array(d.contentSize()) { index ->
+                        orig.valueAt(index).collapseInt().also { res ->
+                            if (res !is APLSingleValue) {
+                                depth0 = false
+                            }
+                        }
+                    }
+                    CollapsedArrayImpl(d, content, depth0)
                 }
             }
         }
@@ -850,9 +867,24 @@ private fun APLArrayLong.Companion.makeWithOverflowCheck(d: Dimensions, orig: AP
     }
 }
 
-class APLArrayList(override val dimensions: Dimensions, private val values: List<APLValue>) : APLArray() {
+class APLArrayList(
+    override val dimensions: Dimensions,
+    private val values: List<APLValue>,
+    override val isDepth0: Boolean = computeIsDepth0(values)
+) : APLArray() {
     override fun valueAt(p: Int) = values[p]
     override fun toString() = values.toString()
+
+    companion object {
+        private fun computeIsDepth0(values: List<APLValue>): Boolean {
+            values.forEach { v ->
+                if (v !is APLSingleValue) {
+                    return false
+                }
+            }
+            return true
+        }
+    }
 }
 
 class EnclosedAPLValue private constructor(val value: APLValue) : APLArray() {
@@ -937,6 +969,7 @@ class APLString(val content: IntArray) : APLArray() {
     override fun valueAt(p: Int) = APLChar(content[p])
 
     override fun collapseInt(withDiscard: Boolean) = this
+    override val isDepth0 get() = true
 
     override fun toString() = "APLString[value=\"${content.joinToString(transform = ::charToString)}\"]"
 
@@ -1071,6 +1104,7 @@ class APLArrayLong(
     override fun valueAt(p: Int) = values[p].makeAPLNumber()
     override fun valueAtLong(p: Int, pos: Position?) = values[p]
     override fun collapseInt(withDiscard: Boolean) = this
+    override val isDepth0 get() = true
 
     companion object
 }
@@ -1083,6 +1117,7 @@ class APLArrayDouble(
     override fun valueAt(p: Int) = values[p].makeAPLNumber()
     override fun valueAtDouble(p: Int, pos: Position?) = values[p]
     override fun collapseInt(withDiscard: Boolean) = this
+    override val isDepth0 get() = true
 }
 
 abstract class AbstractDelegatedValue : APLValue() {

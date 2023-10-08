@@ -37,19 +37,19 @@ class CommuteOp : APLOperatorOneArg {
             }
 
             override fun eval1ArgLong(context: RuntimeContext, a: Long, axis: APLValue?): Long {
-                return fn.eval2ArgLongLong(context, a, a, axis)
+                return fn.eval2ArgLongToLongWithAxis(context, a, a, axis)
             }
 
             override fun eval1ArgDouble(context: RuntimeContext, a: Double, axis: APLValue?): Double {
-                return fn.eval2ArgDoubleDouble(context, a, a, axis)
+                return fn.eval2ArgDoubleToDoubleWithAxis(context, a, a, axis)
             }
 
-            override fun eval2ArgLongLong(context: RuntimeContext, a: Long, b: Long, axis: APLValue?): Long {
-                return fn.eval2ArgLongLong(context, b, a, axis)
+            override fun eval2ArgLongToLongWithAxis(context: RuntimeContext, a: Long, b: Long, axis: APLValue?): Long {
+                return fn.eval2ArgLongToLongWithAxis(context, b, a, axis)
             }
 
-            override fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?): Double {
-                return fn.eval2ArgDoubleDouble(context, b, a, axis)
+            override fun eval2ArgDoubleToDoubleWithAxis(context: RuntimeContext, a: Double, b: Double, axis: APLValue?): Double {
+                return fn.eval2ArgDoubleToDoubleWithAxis(context, b, a, axis)
             }
         }
 

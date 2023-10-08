@@ -56,15 +56,15 @@ abstract class APLTest {
         expr: String,
         withStandardLib: Boolean = false,
         collapse: Boolean = true,
-        numTasks: Int? = null)
-            : Pair<APLValue, Engine> {
+        numTasks: Int? = null
+    ): Pair<APLValue, Engine> {
         val engine = Engine(numTasks)
         engine.addLibrarySearchPath("standard-lib")
         if (withStandardLib) {
             engine.parseAndEval(StringSourceLocation("use(\"standard-lib.kap\")"))
         }
-        val result = engine.parseAndEval(StringSourceLocation(expr))
-        return Pair(if (collapse) result.collapse() else result, engine)
+        val result = engine.parseAndEval(StringSourceLocation(expr), collapseResult = collapse)
+        return Pair(result, engine)
     }
 
     fun parseAPLExpressionWithOutput(

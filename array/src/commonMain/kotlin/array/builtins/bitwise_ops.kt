@@ -43,8 +43,8 @@ abstract class BitwiseCombineAPLFunction(pos: FunctionInstantiation) : MathCombi
         else -> bitwiseCombine2ArgBigint(tryConvertToBigInt(a), tryConvertToBigInt(b)).makeAPLNumberWithReduction()
     }
 
-    override fun combine1ArgLong(a: Long) = bitwiseCombine1ArgLong(a)
-    override fun combine2ArgLong(a: Long, b: Long) = bitwiseCombine2ArgLong(a, b)
+    override fun combine1ArgLongToLong(a: Long) = bitwiseCombine1ArgLong(a)
+    override fun combine2ArgLongToLong(a: Long, b: Long) = bitwiseCombine2ArgLong(a, b)
 
     open fun bitwiseCombine1ArgLong(a: Long): Long = throwAPLException(Unimplemented1ArgException(pos))
     open fun bitwiseCombine1ArgBigint(a: BigInt): BigInt = throwAPLException(Unimplemented1ArgException(pos))
@@ -137,7 +137,7 @@ class BitwiseCountBitsFunction : APLFunctionDescriptor {
 
 class BitwiseShiftFunction : APLFunctionDescriptor {
     class BitwiseShiftFunctionImpl(pos: FunctionInstantiation) : MathCombineAPLFunction(pos) {
-        override fun combine2ArgLong(a: Long, b: Long): Long {
+        override fun combine2ArgLongToLong(a: Long, b: Long): Long {
             return opLong(a, b)
         }
 

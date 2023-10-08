@@ -78,10 +78,10 @@ abstract class APLFunction(instantiation: FunctionInstantiation, val fns: List<A
     open fun eval1ArgDouble(context: RuntimeContext, a: Double, axis: APLValue?): Double =
         throw IllegalStateException("Illegal call to specialised function: ${this::class.simpleName}")
 
-    open fun eval2ArgLongLong(context: RuntimeContext, a: Long, b: Long, axis: APLValue?): Long =
+    open fun eval2ArgLongToLongWithAxis(context: RuntimeContext, a: Long, b: Long, axis: APLValue?): Long =
         throw IllegalStateException("Illegal call to specialised function: ${this::class.simpleName}")
 
-    open fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?): Double =
+    open fun eval2ArgDoubleToDoubleWithAxis(context: RuntimeContext, a: Double, b: Double, axis: APLValue?): Double =
         throw IllegalStateException("Illegal call to specialised function: ${this::class.simpleName}")
 
     open fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue =
@@ -297,11 +297,11 @@ abstract class DelegatedAPLFunctionImpl(pos: FunctionInstantiation, fns: List<AP
     override fun eval1ArgDouble(context: RuntimeContext, a: Double, axis: APLValue?) =
         innerImpl().eval1ArgDouble(context, a, axis)
 
-    override fun eval2ArgLongLong(context: RuntimeContext, a: Long, b: Long, axis: APLValue?) =
-        innerImpl().eval2ArgLongLong(context, a, b, axis)
+    override fun eval2ArgLongToLongWithAxis(context: RuntimeContext, a: Long, b: Long, axis: APLValue?) =
+        innerImpl().eval2ArgLongToLongWithAxis(context, a, b, axis)
 
-    override fun eval2ArgDoubleDouble(context: RuntimeContext, a: Double, b: Double, axis: APLValue?) =
-        innerImpl().eval2ArgDoubleDouble(context, a, b, axis)
+    override fun eval2ArgDoubleToDoubleWithAxis(context: RuntimeContext, a: Double, b: Double, axis: APLValue?) =
+        innerImpl().eval2ArgDoubleToDoubleWithAxis(context, a, b, axis)
 
     override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?): APLValue =
         innerImpl().evalInverse1Arg(context, a, axis)
