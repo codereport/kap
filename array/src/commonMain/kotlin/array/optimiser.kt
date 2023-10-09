@@ -47,19 +47,43 @@ interface InstructionOptimiser {
     fun attemptOptimise(instr: Instruction): Instruction?
 }
 
-object DivideToFloorInstructionOptimiser : InstructionOptimiser {
+abstract class Scalar2ArgInstructionChainOptimiser : InstructionOptimiser {
     override fun attemptOptimise(instr: Instruction): Instruction? {
+        attemptRegularChainedFnCalls(instr)?.let { result -> return result }
+        attemptCallChain(instr)?.let { result -> return result }
+        return null
+    }
+
+    private fun attemptRegularChainedFnCalls(instr: Instruction): Instruction? {
         if (instr !is FunctionCall1Arg || instr.rightArgs !is FunctionCall2Arg) {
             return null
         }
         val fn0 = instr.fn
-        val divInstr = instr.rightArgs
-        val fn1 = divInstr.fn
+        val secondInstr = instr.rightArgs
+        val fn1 = secondInstr.fn
+        val mergedFn = findMergedFunctions(fn0, fn1) ?: return null
+        return FunctionCall2Arg(mergedFn, secondInstr.leftArgs, secondInstr.rightArgs, fn0.pos)
+    }
+
+    private fun attemptCallChain(instr: Instruction): Instruction? {
+        if (instr !is FunctionCall2Arg || instr.fn !is FunctionCallChain.Chain2) {
+            return null
+        }
+        val fn0 = instr.fn.fn0
+        val fn1 = instr.fn.fn1
+        val mergedFn = findMergedFunctions(fn0, fn1) ?: return null
+        return FunctionCall2Arg(mergedFn, instr.leftArgs, instr.rightArgs, fn0.pos)
+    }
+
+    abstract fun findMergedFunctions(fn0: APLFunction, fn1: APLFunction): APLFunction?
+}
+
+object DivideToFloorInstructionOptimiser : Scalar2ArgInstructionChainOptimiser() {
+    override fun findMergedFunctions(fn0: APLFunction, fn1: APLFunction): APLFunction? {
         if (fn0 !is MinAPLFunction.MinAPLFunctionImpl || fn1 !is DivAPLFunction.DivAPLFunctionImpl) {
             return null
         }
-        val mergedFloorDiv = MergedFloorDivFunction(fn0, fn1, fn0.instantiation)
-        return FunctionCall2Arg(mergedFloorDiv, divInstr.leftArgs, divInstr.rightArgs, fn0.pos)
+        return MergedFloorDivFunction(fn0, fn1, fn0.instantiation)
     }
 }
 

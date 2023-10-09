@@ -6,6 +6,11 @@ import kotlin.test.assertFailsWith
 
 class SyntaxTest : APLTest() {
     @Test
+    fun foo() {
+        parseAPLExpression("({+/⍳1000000000}⍣10) 0")
+    }
+
+    @Test
     fun simpleCustomSyntax() {
         val result = parseAPLExpression(
             """
