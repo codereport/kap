@@ -28,7 +28,7 @@ defsyntaxsub whenInner (:nexprfunction cond :function thenStatement :optional (:
 
 defsyntax when (:special :openBrace :optional (:special :newline) :repeat (entryList whenInner) :special :closeBrace) {
   i ← 0
-  n ← ↑⍴entryList
+  n ← ≢entryList
   cont ← 1
   res ← ⍬
   while(i<n and cont) {

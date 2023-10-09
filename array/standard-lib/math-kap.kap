@@ -4,11 +4,11 @@
 namespace("kap")
 
 ∇ norm (B) {
-  (B+.×+B)*0.5
+  (B +•× +B) * 0.5
 }
 
 ∇ QR (B) {
-  n←(⍴B)[1]
+  n ← (⍴B)[1]
   if (n ≤ 1) {
     t ← norm ,B
     (B÷t) (⍪t)
@@ -17,9 +17,9 @@ namespace("kap")
     a0 ← ((1↑⍴B),m) ↑ B
     a1 ← (0,m) ↓ B
     (q0 r0) ← QR a0
-    c ← (+⍉q0) +.× a1
-    (q1 r1) ← QR a1-q0+.×c
-    (q0,q1) ((r0,c)⍪((⌊n÷2),-n)↑r1)
+    c ← (+⍉q0) +•× a1
+    (q1 r1) ← QR a1 - q0 +•× c
+    (q0,q1) ((r0,c) ⍪ ((⌊n÷2),-n) ↑ r1)
   }
 }
 
@@ -32,15 +32,15 @@ namespace("kap")
     ai ← Rinv (m,m)↑B
     di ← Rinv (m,m)↓B
     b ← (m,m-n)↑B
-    bx ← -ai+.×b+.×di
-    (ai,bx)⍪((⌊n÷2),-n)↑di
+    bx ← -ai +•× b +•× di
+    (ai,bx) ⍪ ((⌊n÷2),-n) ↑ di
   }
 }
 
 
 ∇ (A) ⌹ (B) {
   if (isLocallyBound('A)) {
-    (⌹B)+.×A
+    (⌹B) +•× A
   } else {
     rankB ← ↑⍴⍴B
     if (0 = rankB) {
@@ -53,7 +53,7 @@ namespace("kap")
           throw "error"
         }
         (Q R) ← QR B
-        (Rinv R) +.× +⍉Q
+        (Rinv R) +•× +⍉Q
       }
     }
   }
@@ -70,7 +70,7 @@ declare(:export ⊥)
 ∇ (A) ⊤ (B) {
   declare(:local a0)
   declare(:local d)
-  ⍉ ⌽ a0 (|⍤1) ⌊B ∘.÷ d←×\ ¯1 ↓ 1,a0←⌽A
+  ⍉ ⌽ a0 (|⍤1) ⌊B ÷⌻ d←×\ ¯1 ↓ 1,a0←⌽A
 }
 
 declare(:export ⊤)
