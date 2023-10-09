@@ -593,6 +593,13 @@ class ScalarTest : APLTest() {
         }
     }
 
+    @Test
+    fun divNegativeToBigint() {
+        parseAPLExpression("¯9223372036854775808÷¯1").let { result ->
+            assertBigIntOrLong("9223372036854775808", result)
+        }
+    }
+
     private fun runMaxTest(expected: Any, op: String, a: String, b: String) {
         assertAPLValue(expected, parseAPLExpression("${a}${op}${b}"))
         assertAPLValue(expected, parseAPLExpression("${b}${op}${a}"))

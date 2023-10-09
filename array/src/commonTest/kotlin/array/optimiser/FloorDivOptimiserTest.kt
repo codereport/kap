@@ -84,4 +84,11 @@ class FloorDivOptimiserTest : APLTest() {
             assertSame(ArrayMemberType.LONG, result.specialisedType)
         }
     }
+
+    @Test
+    fun optimiseWithSmallestLong() {
+        parseAPLExpression("⌊¯9223372036854775808÷¯1").let { result ->
+            assertBigIntOrLong("9223372036854775808", result)
+        }
+    }
 }

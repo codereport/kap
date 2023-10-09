@@ -90,7 +90,7 @@ class MergedFloorDivFunction(
             pos,
             a,
             b,
-            { x, y -> return convFn(divFloor(x, y)) },
+            { x, y -> return if (x == Long.MIN_VALUE && y == -1L) overflowFn(BIGINT_MAX_LONG_ADD_1) else convFn(divFloor(x, y)) },
             { x, y ->
                 return if (y == 0.0) convFn(0) else {
                     (x / y).let { result ->
@@ -110,6 +110,10 @@ class MergedFloorDivFunction(
     override fun combine2ArgLongToLong(a: Long, b: Long) = divFloor(a, b)
 
     override val optimisationFlags get() = OptimisationFlags(OptimisationFlags.OPTIMISATION_FLAG_2ARG_LONG_LONG)
+
+    companion object {
+        val BIGINT_MAX_LONG_ADD_1 = BigInt.of("9223372036854775808")
+    }
 }
 
 private fun divFloor(a: Long, b: Long): Long {

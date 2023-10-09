@@ -759,6 +759,7 @@ class DivAPLFunction : APLFunctionDescriptor {
                 { x, y ->
                     when {
                         y == 0L -> APLLONG_0
+                        x == Long.MIN_VALUE && y == -1L -> MAX_LONG_PLUS_1
                         x % y == 0L -> (x / y).makeAPLNumber()
                         else -> Rational.make(x.toBigInt(), y.toBigInt()).makeAPLNumber()
                     }
@@ -812,6 +813,10 @@ class DivAPLFunction : APLFunctionDescriptor {
             get() = "reciprocal"
         override val name2Arg: String
             get() = "divide"
+
+        companion object {
+            val MAX_LONG_PLUS_1 = BigInt.of("9223372036854775808").makeAPLNumber()
+        }
     }
 
     override fun make(instantiation: FunctionInstantiation) = DivAPLFunctionImpl(instantiation)
