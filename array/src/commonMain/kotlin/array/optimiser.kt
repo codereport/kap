@@ -102,7 +102,7 @@ class MergedFloorDivFunction(
                     }
                 }
             },
-            { _, _ -> throwAPLException(APLIncompatibleDomainsException("Floor is not valid for complex values", pos)) },
+            { _, _ -> throwAPLException(IncompatibleTypeException("Floor is not valid for complex values", pos)) },
             fnBigint = { x, y -> return convertOrOverflow(divFloor(x, y), convFn, overflowFn) },
             fnRational = { x, y -> return convertOrOverflow((x / y).floor(), convFn, overflowFn) })
     }

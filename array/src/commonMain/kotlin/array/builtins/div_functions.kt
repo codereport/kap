@@ -276,7 +276,7 @@ class LabelsFunction : APLFunctionDescriptor {
                 }
                 return LabelledArray.make(b, extraLabels)
             } else {
-                throwAPLException(APLIncompatibleDomainsException("Unable to set labels on non-array instances", pos))
+                throwAPLException(IncompatibleTypeException("Unable to set labels on non-array instances", pos))
             }
         }
 
@@ -320,7 +320,7 @@ class AsBigintFunction : APLFunctionDescriptor {
             return when (a0) {
                 is APLBigInt -> a0
                 is APLLong -> APLBigInt(a0.asBigInt())
-                else -> throwAPLException(APLIncompatibleDomainsException("Argument is not an integer: ${a0.formatted(FormatStyle.PLAIN)}", pos))
+                else -> throwAPLException(IncompatibleTypeException("Argument is not an integer: ${a0.formatted(FormatStyle.PLAIN)}", pos))
             }
         }
     }

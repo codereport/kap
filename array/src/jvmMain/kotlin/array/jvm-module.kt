@@ -44,7 +44,7 @@ class FindClassFunction : APLFunctionDescriptor {
 private fun ensureJvmGenericValue(a: APLValue, pos: Position): JvmInstanceValue {
     val a0 = a.unwrapDeferredValue()
     if (a0 !is JvmInstanceValue) {
-        throwAPLException(APLIncompatibleDomainsException("Expected JVM instance", pos))
+        throwAPLException(IncompatibleTypeException("Expected JVM instance", pos))
     }
     return a0
 }

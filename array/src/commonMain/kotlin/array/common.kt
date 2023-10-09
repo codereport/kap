@@ -45,7 +45,7 @@ open class APLEvalException(message: String, pos: Position? = null, cause: Throw
     var callStack: List<StorageStack.StackFrameDescription>? = null
 }
 
-open class IncompatibleTypeException(message: String, pos: Position? = null) : APLEvalException(message, pos)
+open class IncompatibleTypeException(message: String, pos: Position? = null, cause: Throwable? = null) : APLEvalException(message, pos, cause)
 
 class InvalidDimensionsException(message: String, pos: Position? = null) : APLEvalException(message, pos) {
     constructor(aDimensions: Dimensions, bDimensions: Dimensions, pos: Position)
@@ -62,8 +62,6 @@ class IllegalAxisException(message: String, pos: Position? = null) : APLEvalExce
 class AxisNotSupported(pos: Position) : APLEvalException("Function does not support axis specifier", pos)
 
 class APLIllegalArgumentException(message: String, pos: Position? = null) : APLEvalException(message, pos)
-class APLIncompatibleDomainsException(message: String, pos: Position? = null, cause: Throwable? = null) :
-        APLEvalException(message, pos, cause)
 
 class Unimplemented1ArgException(pos: Position? = null) : APLEvalException("Function cannot be called with one argument", pos)
 class Unimplemented2ArgException(pos: Position? = null) : APLEvalException("Function cannot be called with two arguments", pos)

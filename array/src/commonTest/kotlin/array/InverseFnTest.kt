@@ -248,21 +248,21 @@ class InverseFnTest : APLTest() {
 
     @Test
     fun inverseWhereTest2() {
-        assertFailsWith<APLIncompatibleDomainsException> {
+        assertFailsWith<IncompatibleTypeException> {
             parseAPLExpression("⍸˝ 2 1")
         }
     }
 
     @Test
     fun inverseWhereTest3() {
-        assertFailsWith<APLIncompatibleDomainsException> {
+        assertFailsWith<IncompatibleTypeException> {
             parseAPLExpression("⍸˝ ¯1 2")
         }
     }
 
     @Test
     fun inverseWhereTest4() {
-        assertFailsWith<APLIncompatibleDomainsException> {
+        assertFailsWith<IncompatibleTypeException> {
             parseAPLExpression("⍸˝ 5")
         }
     }
@@ -277,14 +277,14 @@ class InverseFnTest : APLTest() {
 
     @Test
     fun inverseWhereTest6() {
-        assertFailsWith<APLIncompatibleDomainsException> {
+        assertFailsWith<IncompatibleTypeException> {
             parseAPLExpression("⍸˝ (1 2) (0 3)")
         }
     }
 
     @Test
     fun inverseWhereTest7() {
-        assertFailsWith<APLIncompatibleDomainsException> {
+        assertFailsWith<IncompatibleTypeException> {
             parseAPLExpression("⍸˝ (1 2) (1 0)")
         }
     }
@@ -306,7 +306,7 @@ class InverseFnTest : APLTest() {
 
     @Test
     fun inverseWhereTest10() {
-        assertFailsWith<APLIncompatibleDomainsException> {
+        assertFailsWith<IncompatibleTypeException> {
             parseAPLExpression("⍸˝ 2 2⍴1 2 3 4")
         }
     }

@@ -491,7 +491,7 @@ abstract class MathCombineAPLFunction(
 
     open fun combine1Arg(a: APLSingleValue): APLValue = throwAPLException(Unimplemented1ArgException(pos))
     open fun combine1ArgLongToLong(a: Long): Long = throw IllegalStateException("Optimisation not implemented for: ${this::class.simpleName}")
-    open fun combine1ArgDoubleToLong(a: Double): Double = throw IllegalStateException("Optimisation not implemented for: ${this::class.simpleName}")
+    open fun combine1ArgDoubleToDouble(a: Double): Double = throw IllegalStateException("Optimisation not implemented for: ${this::class.simpleName}")
     open fun combine1ArgGenericToLong(a: APLSingleValue): Long = throw IllegalStateException("Optimisation not implemented for: ${this::class.simpleName}")
     open fun combine1ArgGenericToDouble(a: APLSingleValue): Double = throw IllegalStateException("Optimisation not implemented for: ${this::class.simpleName}")
 
@@ -561,7 +561,7 @@ class AddAPLFunction : APLFunctionDescriptor {
         }
 
         override fun combine1ArgLongToLong(a: Long) = a
-        override fun combine1ArgDoubleToLong(a: Double) = a
+        override fun combine1ArgDoubleToDouble(a: Double) = a
 
         override fun combine2ArgLongToLong(a: Long, b: Long) = addExactWrapped(a, b)
         override fun combine2ArgDoubleToDouble(a: Double, b: Double) = a + b
@@ -636,7 +636,7 @@ class SubAPLFunction : APLFunctionDescriptor {
         }
 
         override fun combine1ArgLongToLong(a: Long) = -a
-        override fun combine1ArgDoubleToLong(a: Double) = -a
+        override fun combine1ArgDoubleToDouble(a: Double) = -a
         override fun combine2ArgLongToLong(a: Long, b: Long) = subExactWrapped(a, b)
         override fun combine2ArgDoubleToDouble(a: Double, b: Double) = a - b
 
@@ -705,7 +705,7 @@ class MulAPLFunction : APLFunctionDescriptor {
         override fun deriveBitwise() = BitwiseAndFunction()
 
         override fun combine1ArgLongToLong(a: Long) = a.sign.toLong()
-        override fun combine1ArgDoubleToLong(a: Double) = a.sign
+        override fun combine1ArgDoubleToDouble(a: Double) = a.sign
 
         override fun combine2ArgLongToLong(a: Long, b: Long) = mulExactWrapped(a, b)
         override fun combine2ArgDoubleToDouble(a: Double, b: Double) = a * b
@@ -781,7 +781,7 @@ class DivAPLFunction : APLFunctionDescriptor {
                 })
         }
 
-        override fun combine1ArgDoubleToLong(a: Double) = 1.0 / a
+        override fun combine1ArgDoubleToDouble(a: Double) = 1.0 / a
         override fun combine2ArgDoubleToDouble(a: Double, b: Double) = a / b
 
         override fun evalInverse1Arg(context: RuntimeContext, a: APLValue, axis: APLValue?) = eval1Arg(context, a, axis)
@@ -834,7 +834,7 @@ class NotAPLFunction : APLFunctionDescriptor {
                     if (x.imaginary == 0.0) {
                         notOp(x.real.toLong(), pos).makeAPLNumber()
                     } else {
-                        throwAPLException(APLIncompatibleDomainsException("Operation not supported for complex", pos))
+                        throwAPLException(IncompatibleTypeException("Operation not supported for complex", pos))
                     }
                 })
         }
@@ -843,7 +843,7 @@ class NotAPLFunction : APLFunctionDescriptor {
             val result = when (v) {
                 0L -> 1L
                 1L -> 0L
-                else -> throwAPLException(APLIncompatibleDomainsException("Operation not supported for value", pos))
+                else -> throwAPLException(IncompatibleTypeException("Operation not supported for value", pos))
             }
             return result
         }
@@ -1149,7 +1149,7 @@ class MaxAPLFunction : APLFunctionDescriptor {
                         ceil(x).toLong().makeAPLNumber()
                     }
                 },
-                { x -> throwAPLException(APLIncompatibleDomainsException("Ceiling is not valid for complex values", pos)) },
+                { x -> throwAPLException(IncompatibleTypeException("Ceiling is not valid for complex values", pos)) },
                 fnBigInt = { x -> x.makeAPLNumber() },
                 fnRational = { x -> x.ceil().makeAPLNumberWithReduction() })
         }
@@ -1291,7 +1291,7 @@ class SinAPLFunction : APLFunctionDescriptor {
                 fnRational = { x -> sin(x.toDouble()).makeAPLNumber() })
         }
 
-        override fun combine1ArgDoubleToLong(a: Double) = sin(a)
+        override fun combine1ArgDoubleToDouble(a: Double) = sin(a)
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_DOUBLE)
 
@@ -1314,7 +1314,7 @@ class CosAPLFunction : APLFunctionDescriptor {
                 fnRational = { x -> cos(x.toDouble()).makeAPLNumber() })
         }
 
-        override fun combine1ArgDoubleToLong(a: Double) = cos(a)
+        override fun combine1ArgDoubleToDouble(a: Double) = cos(a)
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_DOUBLE)
 
@@ -1337,7 +1337,7 @@ class TanAPLFunction : APLFunctionDescriptor {
                 fnRational = { x -> tan(x.toDouble()).makeAPLNumber() })
         }
 
-        override fun combine1ArgDoubleToLong(a: Double) = tan(a)
+        override fun combine1ArgDoubleToDouble(a: Double) = tan(a)
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_DOUBLE)
 
@@ -1351,7 +1351,7 @@ class AsinAPLFunction : APLFunctionDescriptor {
     class AsinAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber) = APLDouble(asin(a.asDouble()))
 
-        override fun combine1ArgDoubleToLong(a: Double) = asin(a)
+        override fun combine1ArgDoubleToDouble(a: Double) = asin(a)
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_DOUBLE)
 
@@ -1365,7 +1365,7 @@ class AcosAPLFunction : APLFunctionDescriptor {
     class AcosAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber) = APLDouble(acos(a.asDouble()))
 
-        override fun combine1ArgDoubleToLong(a: Double) = acos(a)
+        override fun combine1ArgDoubleToDouble(a: Double) = acos(a)
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_DOUBLE)
 
@@ -1379,7 +1379,7 @@ class AtanAPLFunction : APLFunctionDescriptor {
     class AtanAPLFunctionImpl(pos: FunctionInstantiation) : MathNumericCombineAPLFunction(pos) {
         override fun numberCombine1Arg(a: APLNumber) = APLDouble(atan(a.asDouble()))
 
-        override fun combine1ArgDoubleToLong(a: Double) = atan(a)
+        override fun combine1ArgDoubleToDouble(a: Double) = atan(a)
 
         override val optimisationFlags get() = OptimisationFlags(OPTIMISATION_FLAG_1ARG_DOUBLE)
 
@@ -1802,7 +1802,7 @@ class BinomialAPLFunction : APLFunctionDescriptor {
                     else -> doubleBinomial(a, b)
                 }
             } catch (e: IllegalArgumentException) {
-                throwAPLException(APLIncompatibleDomainsException("Binomial: invalid arguments: ${a},${b}", pos, e))
+                throwAPLException(IncompatibleTypeException("Binomial: invalid arguments: ${a},${b}", pos, e))
             }
         }
 

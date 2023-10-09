@@ -200,7 +200,7 @@ fun makeBoolean(value: Boolean): APLValue {
 }
 
 fun throwIncompatibleArg(pos: Position?): Nothing {
-    throwAPLException(APLIncompatibleDomainsException("Incompatible argument types", pos))
+    throwAPLException(IncompatibleTypeException("Incompatible argument types", pos))
 }
 
 inline fun numericRelationOperation(

@@ -22,16 +22,16 @@ class BitwiseTest : APLTest() {
 
     @Test
     fun andOnIllegalArgumentsShouldFail() {
-        assertFailsWith<APLIncompatibleDomainsException> {
+        assertFailsWith<IncompatibleTypeException> {
             parseAPLExpression("4.0 ∧∵ 2")
         }
-        assertFailsWith<APLIncompatibleDomainsException> {
+        assertFailsWith<IncompatibleTypeException> {
             parseAPLExpression("4 ∧∵ 2.0")
         }
-        assertFailsWith<APLIncompatibleDomainsException> {
+        assertFailsWith<IncompatibleTypeException> {
             parseAPLExpression("(4÷3) ∧∵ 2")
         }
-        assertFailsWith<APLIncompatibleDomainsException> {
+        assertFailsWith<IncompatibleTypeException> {
             parseAPLExpression("5 ∧∵ (2÷3)")
         }
     }

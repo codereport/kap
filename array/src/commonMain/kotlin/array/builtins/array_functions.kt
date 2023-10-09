@@ -907,14 +907,14 @@ class RandomAPLFunction : APLFunctionDescriptor {
             val aInt = a.ensureNumber(pos).asInt(pos)
             val bLong = b.ensureNumber(pos).asLong(pos)
             if (aInt < 0) {
-                throwAPLException(APLIncompatibleDomainsException("A should not be negative, was: ${aInt}", pos))
+                throwAPLException(IncompatibleTypeException("A should not be negative, was: ${aInt}", pos))
             }
             if (bLong < 0) {
-                throwAPLException(APLIncompatibleDomainsException("B should not be negative, was: ${bLong}", pos))
+                throwAPLException(IncompatibleTypeException("B should not be negative, was: ${bLong}", pos))
             }
             if (aInt > bLong) {
                 throwAPLException(
-                    APLIncompatibleDomainsException(
+                    IncompatibleTypeException(
                         "A should not be greater than B. A: ${aInt}, B: ${bLong}",
                         pos))
             }
@@ -1527,14 +1527,14 @@ abstract class SelectElementsFunctionImpl(pos: FunctionInstantiation) : APLFunct
         val selectIndexes = if (a.isScalar()) {
             a.ensureNumber(pos).asInt(pos).let { v ->
                 if (v < 0) {
-                    throwAPLException(APLIncompatibleDomainsException("Selection index is negative", pos))
+                    throwAPLException(IncompatibleTypeException("Selection index is negative", pos))
                 }
                 IntArray(bDimensions[axisInt]) { v }
             }
         } else {
             a.toIntArray(pos).onEach { v ->
                 if (v < 0) {
-                    throwAPLException(APLIncompatibleDomainsException("Selection index is negative", pos))
+                    throwAPLException(IncompatibleTypeException("Selection index is negative", pos))
                 }
             }
         }
@@ -1620,7 +1620,7 @@ class WhereAPLFunction : APLFunctionDescriptor {
                 if (v is APLNumber) {
                     APLNullValue.APL_NULL_INSTANCE
                 } else {
-                    throwAPLException(APLIncompatibleDomainsException("Argument must be a number", pos))
+                    throwAPLException(IncompatibleTypeException("Argument must be a number", pos))
                 }
             } else {
                 val aDimensions = a.dimensions
@@ -1641,7 +1641,7 @@ class WhereAPLFunction : APLFunctionDescriptor {
                         }
                     } else if (n < 0) {
                         throwAPLException(
-                            APLIncompatibleDomainsException(
+                            IncompatibleTypeException(
                                 "Negative value found in right argument",
                                 pos))
                     }
@@ -1668,7 +1668,7 @@ class WhereAPLFunction : APLFunctionDescriptor {
         private fun makeLocationWithValue(location: IntArray): LocationWithValue {
             location.forEach { v ->
                 if (v < 0) {
-                    throwAPLException(APLIncompatibleDomainsException("Negative argument", pos))
+                    throwAPLException(IncompatibleTypeException("Negative argument", pos))
                 }
             }
             return LocationWithValue(location)
@@ -1677,7 +1677,7 @@ class WhereAPLFunction : APLFunctionDescriptor {
         override fun evalInverse1Arg(context: RuntimeContext, a: APLValue): APLValue {
             val a0 = a.collapse()
             if (a0.dimensions.size != 1) {
-                throwAPLException(APLIncompatibleDomainsException("Argument must be a one-dimensional array, got ${a0.dimensions}", pos))
+                throwAPLException(IncompatibleTypeException("Argument must be a one-dimensional array, got ${a0.dimensions}", pos))
             }
             if (a0.dimensions[0] == 0) {
                 return APLNullValue.APL_NULL_INSTANCE
@@ -1705,7 +1705,7 @@ class WhereAPLFunction : APLFunctionDescriptor {
                     if (v0Array.contentEquals(prevElement!!.location)) {
                         prevElement!!.value++
                     } else if (prevElement!!.isLocationBefore(v0Array)) {
-                        throwAPLException(APLIncompatibleDomainsException("All arguments must be ordered", pos))
+                        throwAPLException(IncompatibleTypeException("All arguments must be ordered", pos))
                     } else {
                         prevElement = makeLocationWithValue(v0Array).also { location -> valuesList.add(location) }
                     }

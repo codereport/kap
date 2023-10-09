@@ -68,7 +68,7 @@ class ExtractFunctionDescriptor : APLFunctionDescriptor {
         private fun ensureTypedAPLValue(a: APLValue): TypedAPLValue {
             val a0 = a.unwrapDeferredValue()
             if (a0 !is TypedAPLValue) {
-                throwAPLException(APLIncompatibleDomainsException("Value is not a class instance: ${a.aplValueType.typeName}"))
+                throwAPLException(IncompatibleTypeException("Value is not a class instance: ${a.aplValueType.typeName}"))
             }
             return a0
         }

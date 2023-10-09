@@ -100,7 +100,7 @@ class DrawGraphicFunction : APLFunctionDescriptor {
         override fun eval2Arg(context: RuntimeContext, a: APLValue, b: APLValue): APLValue {
             val v = a.unwrapDeferredValue()
             if (v !is GraphicWindowAPLValue) {
-                throw APLIncompatibleDomainsException("Left argument must be a graphic object", pos)
+                throw IncompatibleTypeException("Left argument must be a graphic object", pos)
             }
             renderArray(v, b)
             return b

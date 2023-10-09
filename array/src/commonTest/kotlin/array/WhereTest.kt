@@ -72,10 +72,10 @@ class WhereTest : APLTest() {
 
     @Test
     fun scalarArgumentWrongType() {
-        assertFailsWith<APLIncompatibleDomainsException> {
+        assertFailsWith<IncompatibleTypeException> {
             parseAPLExpression("⍸@a")
         }
-        assertFailsWith<APLIncompatibleDomainsException> {
+        assertFailsWith<IncompatibleTypeException> {
             parseAPLExpression("⍸ map 2 2 ⍴ 1 2 3 4")
         }
     }

@@ -353,7 +353,7 @@ class ScalarTest : APLTest() {
 
     @Test
     fun ceilOnComplexShouldFail() {
-        assertFailsWith<APLIncompatibleDomainsException> {
+        assertFailsWith<IncompatibleTypeException> {
             parseAPLExpression("⌈1j2")
         }
     }
@@ -396,7 +396,7 @@ class ScalarTest : APLTest() {
 
     @Test
     fun floorOnComplexShouldFail() {
-        assertFailsWith<APLIncompatibleDomainsException> {
+        assertFailsWith<IncompatibleTypeException> {
             parseAPLExpression("⌊1j2")
         }
     }

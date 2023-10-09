@@ -9,7 +9,7 @@ abstract class BitwiseCombineAPLFunction(pos: FunctionInstantiation) : MathCombi
     override val optimisationFlags get() = OptimisationFlags(OptimisationFlags.OPTIMISATION_FLAG_1ARG_LONG or OptimisationFlags.OPTIMISATION_FLAG_2ARG_LONG_LONG)
 
     private fun throwTypeError(): Nothing {
-        throwAPLException(APLIncompatibleDomainsException("Bitwise calls can only be performed on integers", pos))
+        throwAPLException(IncompatibleTypeException("Bitwise calls can only be performed on integers", pos))
     }
 
     override fun combine1Arg(a: APLSingleValue): APLValue = when (a) {
@@ -148,13 +148,13 @@ class BitwiseShiftFunction : APLFunctionDescriptor {
                 b,
                 { x, y -> opLong(x, y).makeAPLNumber() },
                 { x, y -> opBigInt(BigInt.of(x), BigInt.of(y)).makeAPLNumber() },
-                { x, y -> throwAPLException(APLIncompatibleDomainsException("Complex numbers not supported", pos)) },
+                { x, y -> throwAPLException(IncompatibleTypeException("Complex numbers not supported", pos)) },
                 fnBigint = { x, y -> opBigInt(x, y).makeAPLNumberWithReduction() })
         }
 
         private fun opLong(a: Long, b: Long): Long {
             if (a < Int.MIN_VALUE || a > Int.MAX_VALUE) {
-                throwAPLException(APLIncompatibleDomainsException("Shift count out of range: ${a}"))
+                throwAPLException(IncompatibleTypeException("Shift count out of range: ${a}"))
             }
             val result = BigInt.of(b).shl(a.toInt())
             if (result.rangeInLong()) {
@@ -166,7 +166,7 @@ class BitwiseShiftFunction : APLFunctionDescriptor {
 
         private fun opBigInt(a: BigInt, b: BigInt): BigInt {
             if (!a.rangeInInt()) {
-                throwAPLException(APLIncompatibleDomainsException("Shift count out of range: ${a}"))
+                throwAPLException(IncompatibleTypeException("Shift count out of range: ${a}"))
             }
             return b.shl(a.toLong())
         }

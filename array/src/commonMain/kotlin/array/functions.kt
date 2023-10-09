@@ -66,7 +66,7 @@ abstract class APLFunction(instantiation: FunctionInstantiation, val fns: List<A
      * @throws APLIncompatibleDomainsException is the function does not have an identity value
      */
     open fun identityValue(): APLValue =
-        throwAPLException(APLIncompatibleDomainsException("Function does not have an identity value", pos))
+        throwAPLException(IncompatibleTypeException("Function does not have an identity value", pos))
 
     open fun deriveBitwise(): APLFunctionDescriptor? = null
 
