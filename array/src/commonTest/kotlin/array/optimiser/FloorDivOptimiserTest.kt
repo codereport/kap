@@ -1,6 +1,7 @@
 package array.optimiser
 
 import array.*
+import array.builtins.OuterInnerJoinOp
 import com.dhsdevelopments.mpbignum.BigInt
 import com.dhsdevelopments.mpbignum.compareTo
 import com.dhsdevelopments.mpbignum.of
@@ -24,6 +25,16 @@ class FloorDivOptimiserTest : APLTest() {
         val instr = engine.parse(StringSourceLocation("10(⌊÷)4"))
         assertIs<FunctionCall2Arg>(instr)
         assertIs<MergedFloorDivFunction>(instr.fn)
+    }
+
+    @Test
+    fun testOuterProductOptimisation() {
+        val engine = Engine()
+        val instr = engine.parse(StringSourceLocation("⌊10 20 30 ÷⌻ 4 5 6"))
+        assertIs<FunctionCall2Arg>(instr)
+        val fn0 = instr.fn
+        assertIs<OuterInnerJoinOp.OuterJoinFunctionDescriptor.OuterJoinFunctionImpl>(fn0)
+        assertIs<MergedFloorDivFunction>(fn0.fn)
     }
 
     @Test

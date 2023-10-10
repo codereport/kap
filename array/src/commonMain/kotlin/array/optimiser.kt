@@ -51,6 +51,7 @@ abstract class Scalar2ArgInstructionChainOptimiser : InstructionOptimiser {
     override fun attemptOptimise(instr: Instruction): Instruction? {
         attemptRegularChainedFnCalls(instr)?.let { result -> return result }
         attemptCallChain(instr)?.let { result -> return result }
+        attemptOuterProduct(instr)?.let { result -> return result }
         return null
     }
 
@@ -73,6 +74,22 @@ abstract class Scalar2ArgInstructionChainOptimiser : InstructionOptimiser {
         val fn1 = instr.fn.fn1
         val mergedFn = findMergedFunctions(fn0, fn1) ?: return null
         return FunctionCall2Arg(mergedFn, instr.leftArgs, instr.rightArgs, fn0.pos)
+    }
+
+    private fun attemptOuterProduct(instr: Instruction): Instruction? {
+        if (instr !is FunctionCall1Arg || instr.rightArgs !is FunctionCall2Arg) {
+            return null
+        }
+        val rightFunction = instr.rightArgs.fn
+        if (rightFunction !is OuterInnerJoinOp.OuterJoinFunctionDescriptor.OuterJoinFunctionImpl) {
+            return null
+        }
+        val fn0 = instr.fn
+        val fn1 = rightFunction.fn
+        val mergedFn = findMergedFunctions(fn0, fn1) ?: return null
+        val rightArgs = instr.rightArgs
+        val outerJoinFn = OuterInnerJoinOp.OuterJoinFunctionDescriptor.OuterJoinFunctionImpl(rightFunction.instantiation, mergedFn)
+        return FunctionCall2Arg(outerJoinFn, rightArgs.leftArgs, rightArgs.rightArgs, rightFunction.pos)
     }
 
     abstract fun findMergedFunctions(fn0: APLFunction, fn1: APLFunction): APLFunction?

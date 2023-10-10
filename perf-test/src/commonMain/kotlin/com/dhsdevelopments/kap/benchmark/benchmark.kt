@@ -67,6 +67,14 @@ private fun benchmarkFormatter(): BenchmarkTestCase {
     return BenchmarkTestCase("formatter", srcString)
 }
 
+private fun benchmarkDecode(): BenchmarkTestCase {
+    val srcString =
+        """
+        |(⊂60 ⍴ 2) ⊤¨ (1000 ⍴ 987654321098765432)
+        """.trimMargin()
+    return BenchmarkTestCase("decode", srcString)
+}
+
 class TestCaseResults(val name: String, val results: List<Long>) {
     fun avg() = results.sum() / results.size.toDouble()
     fun max() = results.max()
@@ -117,7 +125,7 @@ fun runAllTests(name: String, libPath: String, reportPath: String, reportName: S
     }
 
     val tests = listOf(
-        benchmarkPrimes(), benchmarkVarLookupScope(), contribBench(), simpleSum(), benchmarkMultipleCall(), benchmarkFormatter())
+        /*benchmarkPrimes(), benchmarkVarLookupScope(), contribBench(), simpleSum(), benchmarkMultipleCall(), benchmarkFormatter(),*/ benchmarkDecode())
     println("Running tests: ${name}")
     val results = ArrayList<TestCaseResults>()
     tests.forEach { testcase ->
