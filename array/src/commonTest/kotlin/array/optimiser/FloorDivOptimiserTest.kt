@@ -204,4 +204,20 @@ class FloorDivOptimiserTest : APLTest() {
             assertBigIntOrLong("9223372036854775808", result)
         }
     }
+
+    @Test
+    fun floorDivWithOuterJoin() {
+        parseAPLExpression("⌊ (10+⍳4) ÷⌻ 3 4").let { result ->
+            assertDimension(dimensionsOfSize(4, 2), result)
+            assertArrayContent(arrayOf(3, 2, 3, 2, 4, 3, 4, 3), result)
+        }
+    }
+
+    @Test
+    fun ceilDivWithOuterJoin() {
+        parseAPLExpression("⌈ (10+⍳4) ÷⌻ 3 8").let { result ->
+            assertDimension(dimensionsOfSize(4, 2), result)
+            assertArrayContent(arrayOf(4, 2, 4, 2, 4, 2, 5, 2), result)
+        }
+    }
 }
