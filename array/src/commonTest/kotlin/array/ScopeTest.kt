@@ -1,5 +1,7 @@
 package array
 
+import com.dhsdevelopments.mpbignum.Rational
+import com.dhsdevelopments.mpbignum.make
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -249,6 +251,52 @@ class ScopeTest : APLTest() {
             assert1DArray(arrayOf(122, 222, 322, 422), result.valueAt(1))
             assert1DArray(arrayOf(132, 232, 332, 432), result.valueAt(2))
             assert1DArray(arrayOf(142, 242, 342, 442), result.valueAt(3))
+        }
+    }
+
+    @Test
+    fun contribScopeWithExtraEvaluation() {
+        val src =
+            """
+            |fns ← ⍬
+            |i ← 0
+            |while (i<2) {
+            |  fns ← fns , λ(⍞(i ⊃ (λ+) (λ÷)))
+            |  i ← i+1
+            |}
+            |{⍞⍵ 4}¨ fns
+            """.trimMargin()
+        parseAPLExpression(src, withStandardLib = true).let { result ->
+            assertDimension(dimensionsOfSize(2), result)
+            result.valueAt(0).let { v ->
+                assertSimpleNumber(4, v)
+            }
+            result.valueAt(1).let { v ->
+                assertRational(Rational.make(1, 4), v)
+            }
+        }
+    }
+
+    @Test
+    fun contribScopeWithNoExtraEvaluation() {
+        val src =
+            """
+            |fns ← ⍬
+            |i ← 0
+            |while (i<2) {
+            |  fns ← fns , i ⊃ (λ+) (λ÷)
+            |  i ← i+1
+            |}
+            |{⍞⍵ 4}¨ fns
+            """.trimMargin()
+        parseAPLExpression(src, withStandardLib = true).let { result ->
+            assertDimension(dimensionsOfSize(2), result)
+            result.valueAt(0).let { v ->
+                assertSimpleNumber(4, v)
+            }
+            result.valueAt(1).let { v ->
+                assertRational(Rational.make(1, 4), v)
+            }
         }
     }
 }
