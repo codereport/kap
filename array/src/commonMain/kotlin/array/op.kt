@@ -36,7 +36,7 @@ fun parseFunctionForOperatorRightArg(parser: APLParser): Either<Pair<APLFunction
 
     return when (token) {
         is Symbol -> {
-            val fn = parser.lookupFunction(token, ::makeInstantiation)
+            val fn = parser.lookupFunction(token) { FunctionInstantiation(pos.withCallerName(token.symbolName), parser.currentEnvironment()) }
             if (fn == null) {
                 parser.tokeniser.pushBackToken(tokenWithPos)
                 Either.Right(Pair(token, pos))
