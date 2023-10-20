@@ -104,7 +104,7 @@ If the `@` symbol is followed by a `\`, and at least one more character, the fol
 For example: `@\u905` for `अ`
 - `@\UNICODE_CHARACTER` -- Unicode name.
 For example: `@\LATIN_SMALL_LETTER_A_WITH_DIAERESIS` for `ä`.
-Note that this syntax is not available in the Javascript backend as this would either require the use of extra external files.
+Note that this syntax is not available in the Javascript backend as this would require the use of extra external files.
 
 === Symbols
 
@@ -258,6 +258,13 @@ Example:
 In APL, the same code would use the `∘` operator to bind the left argument to the function.
 This syntax is not possible in Kap since operators in Kap requires the left argument to be a function.
 
+== Functional inverses
+
+Some dialects of APL supports functional inverses.
+These dialects implement this using a right argument of `¯1` to `⍣`.
+Kap uses the symbol `˝` for this instead.
+In other words, the APL expression `a (+⍣¯1) b` is written in Kap like so: `a +˝ b`.
+
 == Differences in standard functions
 
 === Enclose and disclose: `⊂`, `⊃`
@@ -311,7 +318,7 @@ The `↑` and `↓` operations are consistently representing the take and drop f
 === Convert to string: `⍕`
 
 The format function is currently much less capable compared to APL.
-It's currently only used to a value to a string:
+It's currently only used to format a value to a string:
 
 [source,kap]
 ----
