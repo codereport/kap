@@ -1,13 +1,20 @@
 package array
 
-import java.nio.file.Paths
+class MetaModule : KapModule {
+    override val name get() = "classloader-metamodule"
 
-val jarDirectories = mutableListOf(Paths.get("lib"))
-
-class LibClassLoader : ClassLoader() {
-
+    override fun init(engine: Engine) {
+        val ns = engine.makeNamespace("mod")
+        engine.registerFunction(ns.internAndExport("load"), LoadJVMModuleFunction())
+    }
 }
 
-private fun initClassloader() {
-    val loader = LibClassLoader()
+class LoadJVMModuleFunction : APLFunctionDescriptor {
+    class LoadJVMModuleFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            throwAPLException(APLEvalException("dynamic loading of modules not implemented"))
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = LoadJVMModuleFunctionImpl(instantiation)
 }

@@ -115,3 +115,7 @@ actual inline fun nativeUpdateBreakPending(engine: Engine, state: Boolean) {
 
 @Suppress("NOTHING_TO_INLINE")
 actual inline fun nativeBreakPending(engine: Engine): Boolean = false
+
+actual fun findInstallPath(): String? {
+    return System.getProperty("kap.installPath")
+}

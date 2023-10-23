@@ -402,3 +402,14 @@ class ToBooleanFunction : APLFunctionDescriptor {
 
     override fun make(instantiation: FunctionInstantiation) = ToBooleanFunctionImpl(instantiation)
 }
+
+class ListModulesFunction : APLFunctionDescriptor {
+    class ListModulesFunctionImpl(pos: FunctionInstantiation) : NoAxisAPLFunction(pos) {
+        override fun eval1Arg(context: RuntimeContext, a: APLValue): APLValue {
+            val moduleNameList = context.engine.modules.map(KapModule::name).sorted()
+            return APLArrayList(dimensionsOfSize(moduleNameList.size), moduleNameList.map(::APLString), false)
+        }
+    }
+
+    override fun make(instantiation: FunctionInstantiation) = ListModulesFunctionImpl(instantiation)
+}

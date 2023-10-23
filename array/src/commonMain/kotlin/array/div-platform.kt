@@ -100,3 +100,5 @@ expect fun makeNativeData(): NativeData
 
 expect inline fun nativeUpdateBreakPending(engine: Engine, state: Boolean)
 expect inline fun nativeBreakPending(engine: Engine): Boolean
+
+expect fun findInstallPath(): String?

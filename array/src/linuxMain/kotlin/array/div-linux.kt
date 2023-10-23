@@ -94,3 +94,5 @@ actual fun makeNativeData(): NativeData = LinuxNativeData()
 
 actual inline fun nativeUpdateBreakPending(engine: Engine, state: Boolean) {}
 actual inline fun nativeBreakPending(engine: Engine): Boolean = false
+
+actual fun findInstallPath(): String? = null

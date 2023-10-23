@@ -148,3 +148,5 @@ actual inline fun nativeBreakPending(engine: Engine): Boolean {
         false
     }
 }
+
+actual fun findInstallPath(): String? = null

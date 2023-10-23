@@ -435,6 +435,7 @@ class Engine(numComputeEngines: Int? = null, val optimiser: Optimiser = Standard
         registerNativeFunction("comp", CompFunction())
         registerNativeFunction("sysparam", SystemParameterFunction())
         registerNativeFunction("valueInfo", InternalValueInfoFunction(), "int")
+        registerNativeFunction("list", ListModulesFunction(), "mod")
 
         // operators
         registerNativeOperator("¨", ForEachOp())
