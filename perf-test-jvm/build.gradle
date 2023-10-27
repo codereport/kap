@@ -28,6 +28,14 @@ dependencies {
     implementation project(':perf-test')
 }
 
+distTar {
+    duplicatesStrategy = 'INCLUDE'
+}
+
+distZip {
+    duplicatesStrategy = 'INCLUDE'
+}
+
 run {
 }
 
